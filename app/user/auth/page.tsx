@@ -1,52 +1,124 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { X, Eye, EyeOff, Mail, ArrowLeft } from "lucide-react"
+import { X, Eye, EyeOff, Mail, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-  })
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isForgotPassword) {
-      console.log("Password reset requested for:", formData.email)
-    } else {
-      console.log("Form submitted:", { isSignUp, formData, rememberMe })
+    const supabase = createClient()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+      router.push("/")
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleSocialAuth = (provider: string) => {
-    console.log(`Authenticating with ${provider}`)
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const supabase = createClient()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
+          data: {
+            username: username,
+            display_name: username,
+          },
+        },
+      })
+      if (error) throw error
+      setSuccess("Thank you for Registering!")
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const supabase = createClient()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/user/auth`,
+      })
+      if (error) throw error
+      setSuccess("Check your email for the reset link!")
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSocialAuth = async (provider: "google" | "github") => {
+    const supabase = createClient()
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred")
+    }
   }
 
   const handleForgotPasswordClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsForgotPassword(true)
+    setError(null)
+    setSuccess(null)
   }
 
   const handleBackToSignIn = () => {
     setIsForgotPassword(false)
     setIsSignUp(false)
+    setError(null)
+    setSuccess(null)
   }
 
   return (
@@ -136,167 +208,185 @@ export default function AuthPage() {
             </>
           )}
 
+          {error && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/50 text-red-700 px-4 py-3 rounded-xl">{error}</div>
+          )}
+
+          {success && (
+            <div className="mb-4 bg-green-500/10 border border-green-500/50 text-green-700 px-4 py-3 rounded-xl">
+              {success}
+            </div>
+          )}
+
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isForgotPassword ? (
-              <>
-                {/* Sign Up Fields */}
-                <div
-                  className={`grid grid-cols-2 gap-3 transition-all duration-300 ease-in-out overflow-hidden ${
-                    isSignUp ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
-                  }`}
-                >
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      placeholder="First name"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
-                      className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      placeholder="Last name"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange("lastName", e.target.value)}
-                      className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
-                    />
-                  </div>
-                </div>
-
-                {/* Email Field */}
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
-                  />
-                </div>
-
-                {/* Password Field */}
+          {!isForgotPassword ? (
+            <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+              {/* Sign Up Fields */}
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  isSignUp ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
                 <div className="relative">
                   <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pr-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground h-6 w-6 p-0 transition-all duration-200"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
                 </div>
+              </div>
 
-                {/* Remember Me & Forgot Password (Sign In Only) */}
-                <div
-                  className={`flex items-center justify-between transition-all duration-300 ease-in-out overflow-hidden ${
-                    !isSignUp ? "max-h-10 opacity-100" : "max-h-0 opacity-0"
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="remember"
-                      checked={rememberMe}
-                      onCheckedChange={setRememberMe}
-                      className="border-border data-[state=checked]:bg-foreground data-[state=checked]:border-foreground transition-all duration-200"
-                    />
-                    <label htmlFor="remember" className="text-sm text-muted-foreground transition-all duration-200">
-                      Remember me
-                    </label>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleForgotPasswordClick}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-all duration-200"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+              {/* Email Field */}
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
+                />
+              </div>
 
-                {/* Submit Button */}
+              {/* Password Field */}
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pr-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
+                />
                 <Button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium transition-all duration-300"
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground h-6 w-6 p-0 transition-all duration-200"
                 >
-                  {isSignUp ? "Create an account" : "Sign in"}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
+              </div>
 
-                {/* Divider */}
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border transition-all duration-200"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-background text-muted-foreground transition-all duration-200">
-                      {isSignUp ? "OR SIGN UP WITH" : "OR CONTINUE WITH"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Social Login Buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleSocialAuth("google")}
-                    className="bg-muted/30 border-border text-foreground hover:bg-muted rounded-xl h-12 flex items-center justify-center"
-                  >
-                    <img
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/google-color-q23vP6w1nV7ElZybaSRHqpvXY2DFW7.svg"
-                      alt="Google"
-                      className="w-5 h-5 mr-2"
-                    />
-                    Google
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleSocialAuth("github")}
-                    className="bg-muted/30 border-border text-foreground hover:bg-muted rounded-xl h-12 flex items-center justify-center"
-                  >
-                    <img
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/github-qFqLvPlTz3nsK0sR6uMXsGl6YFklgn.svg"
-                      alt="GitHub"
-                      className="w-5 h-5 mr-2"
-                    />
-                    GitHub
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
-                  <Input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
+              {/* Remember Me & Forgot Password (Sign In Only) */}
+              <div
+                className={`flex items-center justify-between transition-all duration-300 ease-in-out overflow-hidden ${
+                  !isSignUp ? "max-h-10 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={setRememberMe}
+                    className="border-border data-[state=checked]:bg-foreground data-[state=checked]:border-foreground transition-all duration-200"
                   />
+                  <label htmlFor="remember" className="text-sm text-muted-foreground transition-all duration-200">
+                    Remember me
+                  </label>
                 </div>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium transition-all duration-300"
+                <button
+                  type="button"
+                  onClick={handleForgotPasswordClick}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-all duration-200"
                 >
-                  Send reset link
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium transition-all duration-300"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isSignUp ? "Creating account..." : "Signing in..."}
+                  </>
+                ) : (
+                  <>{isSignUp ? "Create an account" : "Sign in"}</>
+                )}
+              </Button>
+
+              {/* Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border transition-all duration-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-background text-muted-foreground transition-all duration-200">
+                    {isSignUp ? "OR SIGN UP WITH" : "OR CONTINUE WITH"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Social Login Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleSocialAuth("google")}
+                  className="bg-muted/30 border-border text-foreground hover:bg-muted rounded-xl h-12 flex items-center justify-center"
+                >
+                  <img
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/google-color-q23vP6w1nV7ElZybaSRHqpvXY2DFW7.svg"
+                    alt="Google"
+                    className="w-5 h-5 mr-2"
+                  />
+                  Google
                 </Button>
-              </>
-            )}
-          </form>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleSocialAuth("github")}
+                  className="bg-muted/30 border-border text-foreground hover:bg-muted rounded-xl h-12 flex items-center justify-center"
+                >
+                  <img
+                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/github-qFqLvPlTz3nsK0sR6uMXsGl6YFklgn.svg"
+                    alt="GitHub"
+                    className="w-5 h-5 mr-2"
+                  />
+                  GitHub
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium transition-all duration-300"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending reset link...
+                  </>
+                ) : (
+                  "Send reset link"
+                )}
+              </Button>
+            </form>
+          )}
 
           {/* Terms & Service */}
           <div className="mt-6 text-center">

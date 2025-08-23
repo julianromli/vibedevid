@@ -46,3 +46,5 @@ export const AnimatedTooltip = ({
     </div>
   )
 }
+
+export default AnimatedTooltip

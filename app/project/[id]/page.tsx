@@ -4,111 +4,80 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
-import { ArrowLeft, ExternalLink, Share2, MessageCircle, Calendar, User, Globe, Tag } from "lucide-react"
+import { ArrowLeft, ExternalLink, Share2, MessageCircle, Calendar, User, Globe, Tag, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/ui/navbar"
-
-const projectDetails = {
-  1: {
-    id: 1,
-    title: "Pointer AI landing page",
-    description:
-      "A modern, responsive landing page for Pointer AI featuring clean design, smooth animations, and optimized user experience. Built with Next.js and Tailwind CSS, this project showcases advanced UI/UX principles and modern web development practices.",
-    fullDescription:
-      "This comprehensive landing page project demonstrates the power of modern web technologies in creating engaging user experiences. The design features a clean, minimalist aesthetic with carefully crafted animations and micro-interactions that guide users through the product story. Built using Next.js 14 with the App Router, the project leverages server-side rendering for optimal performance and SEO. The responsive design ensures perfect functionality across all device sizes, from mobile phones to large desktop displays.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-    author: {
-      name: "Sarah Chen",
-      avatar: "https://github.com/shadcn.png",
-      bio: "Senior Frontend Developer with 5+ years experience in React and Next.js",
-      location: "San Francisco, CA",
-    },
-    url: "https://pointer-ai.vercel.app",
-    category: "Landing Page",
-    tags: ["Next.js", "Tailwind CSS", "TypeScript", "Framer Motion"],
-    likes: 88,
-    views: 1240,
-    createdAt: "2024-01-15",
-    comments: [
-      {
-        id: 1,
-        author: "Alex Rivera",
-        avatar: "https://github.com/shadcn.png",
-        content:
-          "Amazing work! The animations are so smooth and the design is clean. How did you implement the scroll-triggered animations?",
-        timestamp: "2 hours ago",
-      },
-      {
-        id: 2,
-        author: "Emma Thompson",
-        avatar: "https://github.com/shadcn.png",
-        content:
-          "Love the color scheme and typography choices. This is exactly the kind of modern design I've been looking for inspiration on.",
-        timestamp: "1 day ago",
-      },
-      {
-        id: 3,
-        author: "David Kim",
-        avatar: "https://github.com/shadcn.png",
-        content: "The mobile responsiveness is perfect. Great attention to detail!",
-        timestamp: "3 days ago",
-      },
-    ],
-  },
-  2: {
-    id: 2,
-    title: "Liquid Glass - Navigation Menu",
-    description:
-      "An innovative navigation menu design featuring liquid glass morphism effects and smooth transitions. This component showcases advanced CSS techniques and modern design trends.",
-    fullDescription:
-      "This navigation menu component pushes the boundaries of modern web design with its innovative liquid glass morphism effects. The design incorporates advanced CSS techniques including backdrop filters, custom animations, and dynamic hover states to create a truly unique user interface element.",
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-    author: {
-      name: "Marcus Rodriguez",
-      avatar: "https://github.com/shadcn.png",
-      bio: "UI/UX Designer specializing in innovative interface design",
-      location: "Barcelona, Spain",
-    },
-    url: "https://liquid-glass-nav.vercel.app",
-    category: "Personal Web",
-    tags: ["CSS", "JavaScript", "GSAP", "Design"],
-    likes: 68,
-    views: 892,
-    createdAt: "2024-01-10",
-    comments: [
-      {
-        id: 1,
-        author: "Jennifer Walsh",
-        avatar: "https://github.com/shadcn.png",
-        content:
-          "This is absolutely stunning! The glass effect is so well executed. Would love to see a tutorial on this.",
-        timestamp: "4 hours ago",
-      },
-    ],
-  },
-  // Add more project details as needed
-}
+import { createClient } from "@/lib/supabase/client"
+import { addComment, getComments, getProject, incrementProjectViews, signOut } from "@/lib/actions"
+import { useRouter } from "next/navigation"
 
 export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter()
   const [project, setProject] = useState(null)
   const [newComment, setNewComment] = useState("")
   const [guestName, setGuestName] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [currentUser, setCurrentUser] = useState({
-    name: "John Doe",
-    avatar: "https://github.com/shadcn.png",
-  })
+  const [currentUser, setCurrentUser] = useState(null)
   const [comments, setComments] = useState([])
   const [showShareMenu, setShowShareMenu] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [addingComment, setAddingComment] = useState(false)
 
   useEffect(() => {
-    const projectId = Number.parseInt(params.id)
-    const projectData = projectDetails[projectId]
-    if (projectData) {
+    const initializePage = async () => {
+      // Check authentication
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session?.user) {
+        setIsLoggedIn(true)
+
+        // Get user profile
+        const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+
+        if (profile) {
+          setCurrentUser({
+            name: profile.display_name,
+            avatar: profile.avatar_url || "/placeholder.svg",
+          })
+        }
+      }
+
+      // Load project data
+      const { project: projectData, error: projectError } = await getProject(params.id)
+      if (projectError) {
+        console.error("Failed to load project:", projectError)
+        setLoading(false)
+        return
+      }
+
       setProject(projectData)
-      setComments(projectData.comments || [])
+
+      // Increment view count
+      await incrementProjectViews(params.id)
+
+      // Load comments
+      await loadComments()
+
+      setLoading(false)
     }
+
+    initializePage()
   }, [params.id])
+
+  const loadComments = async () => {
+    setCommentsLoading(true)
+    const { comments: commentsData, error } = await getComments(params.id)
+    if (error) {
+      console.error("Failed to load comments:", error)
+    } else {
+      setComments(commentsData)
+    }
+    setCommentsLoading(false)
+  }
 
   const handleShare = (platform: string) => {
     const url = window.location.href
@@ -132,35 +101,85 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
     setShowShareMenu(false)
   }
 
-  const handleAddComment = () => {
-    if (newComment.trim() && (isLoggedIn || guestName.trim())) {
-      const newCommentObj = {
-        id: Date.now(), // Simple ID generation
-        author: isLoggedIn ? currentUser.name : guestName,
-        avatar: isLoggedIn ? currentUser.avatar : "https://github.com/shadcn.png",
-        content: newComment.trim(),
-        timestamp: "Just now",
-      }
+  const handleAddComment = async () => {
+    if (!newComment.trim() || (!isLoggedIn && !guestName.trim())) {
+      return
+    }
 
-      setComments((prev) => [newCommentObj, ...prev])
+    setAddingComment(true)
+
+    const formData = new FormData()
+    formData.append("projectId", params.id)
+    formData.append("content", newComment.trim())
+    if (!isLoggedIn) {
+      formData.append("authorName", guestName.trim())
+    }
+
+    const result = await addComment(formData)
+
+    if (result.error) {
+      console.error("Failed to add comment:", result.error)
+      alert("Failed to add comment. Please try again.")
+    } else {
       setNewComment("")
       if (!isLoggedIn) {
         setGuestName("")
       }
+      // Reload comments
+      await loadComments()
     }
+
+    setAddingComment(false)
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
+
+  const handleProfile = () => {
+    if (currentUser && project) {
+      router.push(`/${project.author.username}`)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar showBackButton={true} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="w-full h-96 bg-muted animate-pulse rounded-xl"></div>
+              <div className="space-y-4">
+                <div className="h-8 bg-muted animate-pulse rounded"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
+                <div className="h-20 bg-muted animate-pulse rounded"></div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-48 bg-muted animate-pulse rounded-xl"></div>
+              <div className="h-32 bg-muted animate-pulse rounded-xl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Project Not Found</h1>
-          <Link href="/">
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
+      <div className="min-h-screen bg-background">
+        <Navbar showBackButton={true} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Project Not Found</h1>
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -168,7 +187,13 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar showBackButton={true} />
+      <Navbar
+        showBackButton={true}
+        isLoggedIn={isLoggedIn}
+        user={currentUser || undefined}
+        onSignOut={handleSignOut}
+        onProfile={handleProfile}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -217,23 +242,25 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
               </div>
 
               {/* Project URL */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Live Project</p>
-                        <p className="text-sm text-muted-foreground">{project.url}</p>
+              {project.url && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Live Project</p>
+                          <p className="text-sm text-muted-foreground">{project.url}</p>
+                        </div>
                       </div>
+                      <Button variant="outline" size="sm" onClick={() => window.open(project.url, "_blank")}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visit Site
+                      </Button>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => window.open(project.url, "_blank")}>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Visit Site
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Comments Section */}
@@ -243,9 +270,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                   <MessageCircle className="h-5 w-5" />
                   Comments ({comments.length})
                 </h3>
-                <Button variant="outline" size="sm" onClick={() => setIsLoggedIn(!isLoggedIn)}>
-                  {isLoggedIn ? "Logout" : "Login"}
-                </Button>
               </div>
 
               {/* Add Comment */}
@@ -266,7 +290,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder={
                         isLoggedIn
-                          ? `Share your thoughts about this project, ${currentUser.name}...`
+                          ? `Share your thoughts about this project, ${currentUser?.name}...`
                           : "Share your thoughts about this project..."
                       }
                       className="w-full p-3 border border-border rounded-lg bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
@@ -275,9 +299,16 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     <div className="flex justify-end">
                       <Button
                         onClick={handleAddComment}
-                        disabled={!newComment.trim() || (!isLoggedIn && !guestName.trim())}
+                        disabled={!newComment.trim() || (!isLoggedIn && !guestName.trim()) || addingComment}
                       >
-                        Post Comment
+                        {addingComment ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Posting...
+                          </>
+                        ) : (
+                          "Post Comment"
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -286,26 +317,43 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
               {/* Comments List */}
               <div className="space-y-4">
-                {comments.map((comment) => (
-                  <Card key={comment.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <img
-                          src={comment.avatar || "/placeholder.svg"}
-                          alt={comment.author}
-                          className="w-8 h-8 rounded-full"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{comment.author}</span>
-                            <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+                {commentsLoading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-muted-foreground">Loading comments...</p>
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <Card key={comment.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={comment.avatar || "/placeholder.svg"}
+                            alt={comment.author}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{comment.author}</span>
+                              {comment.isGuest && (
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                  Guest
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+                            </div>
+                            <p className="text-muted-foreground">{comment.content}</p>
                           </div>
-                          <p className="text-muted-foreground">{comment.content}</p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -329,9 +377,11 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                       {project.author.location}
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    View Profile
-                  </Button>
+                  <Link href={`/${project.author.username}`}>
+                    <Button variant="outline" className="w-full bg-transparent">
+                      View Profile
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -348,6 +398,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Likes</span>
                     <HeartButton
+                      projectId={project.id}
                       initialLikes={project.likes}
                       onLikeChange={(newLikes, isLiked) => {
                         console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,15 +14,19 @@ import {
 import { ArrowLeft, Menu, X, User, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signOut } from "@/lib/actions"
 
 interface NavbarProps {
   showBackButton?: boolean
   showNavigation?: boolean
   isLoggedIn?: boolean
   user?: {
+    id?: string
     name: string
     email: string
-    avatar: string
+    avatar?: string
+    avatar_url?: string
+    username?: string
   }
   onSignIn?: () => void
   onSignOut?: () => void
@@ -33,8 +37,8 @@ interface NavbarProps {
 export function Navbar({
   showBackButton = false,
   showNavigation = false,
-  isLoggedIn = false,
-  user = { name: "John Doe", email: "john@example.com", avatar: "https://github.com/shadcn.png" },
+  isLoggedIn,
+  user,
   onSignIn,
   onSignOut,
   onProfile,
@@ -42,6 +46,30 @@ export function Navbar({
 }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    console.log("[v0] Navbar received props:", {
+      isLoggedIn,
+      user: user
+        ? {
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            avatar_url: user.avatar_url,
+            username: user.username,
+          }
+        : null,
+    })
+  }, [isLoggedIn, user])
+
+  const safeUser = user
+    ? {
+        ...user,
+        avatar: user.avatar_url || user.avatar || "/placeholder.svg",
+      }
+    : { name: "User", email: "", avatar: "/placeholder.svg" }
+
+  const userIsLoggedIn = Boolean(isLoggedIn && user)
 
   const handleSignIn = () => {
     if (onSignIn) {
@@ -51,15 +79,21 @@ export function Navbar({
     }
   }
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     if (onSignOut) {
       onSignOut()
+    } else {
+      await signOut()
     }
   }
 
   const handleProfile = () => {
     if (onProfile) {
       onProfile()
+    } else {
+      if (safeUser.username) {
+        router.push(`/${safeUser.username}`)
+      }
     }
   }
 
@@ -137,7 +171,7 @@ export function Navbar({
           <div className="hidden md:block">
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              {!isLoggedIn ? (
+              {!userIsLoggedIn ? (
                 <Button
                   variant="default"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -149,17 +183,14 @@ export function Navbar({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                      <UserAvatar user={safeUser} size="md" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium">{user.name}</p>
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium">{safeUser.name}</p>
+                        <p className="w-[200px] truncate text-sm text-muted-foreground">{safeUser.email}</p>
                       </div>
                     </div>
                     <DropdownMenuSeparator />
@@ -236,19 +267,16 @@ export function Navbar({
               FAQ
             </button>
             <div className="px-3 py-2">
-              {!isLoggedIn ? (
+              {!userIsLoggedIn ? (
                 <Button className="w-full" onClick={handleSignIn}>
                   Sign In
                 </Button>
               ) : (
                 <div className="flex items-center gap-3 p-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar user={safeUser} size="sm" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-sm font-medium">{safeUser.name}</p>
+                    <p className="text-xs text-muted-foreground">{safeUser.email}</p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4" />

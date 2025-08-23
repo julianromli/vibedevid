@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Mail, Lock } from "lucide-react"
+import { Mail, Lock, User } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -16,12 +16,23 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type,
         return (
           <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
         )
+      case "text":
+        // Check if this is a username field by looking at placeholder or name
+        if (props.placeholder?.toLowerCase().includes("username") || props.name === "username") {
+          return (
+            <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
+          )
+        }
+        return null
       default:
         return null
     }
   }
 
-  const hasIcon = type === "email" || type === "password"
+  const hasIcon =
+    type === "email" ||
+    type === "password" ||
+    (type === "text" && (props.placeholder?.toLowerCase().includes("username") || props.name === "username"))
 
   if (hasIcon) {
     return (

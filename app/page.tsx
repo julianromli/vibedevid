@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
 import { TestimonialsColumns } from "@/components/ui/testimonials-columns"
+import { HeartButton } from "@/components/ui/heart-button"
+import { Navbar } from "@/components/ui/navbar"
 import {
   Drawer,
   DrawerClose,
@@ -15,10 +16,12 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { ArrowRight, Code, Smartphone, Globe, Heart, ChevronDown, Minus, Plus } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { ChevronDown, Code, Smartphone, Globe, ArrowRight, Plus, Minus } from "lucide-react"
 import Link from "next/link"
-import { Navbar } from "@/components/ui/navbar"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { signOut } from "@/lib/actions"
+import AnimatedTooltip from "@/components/ui/animated-tooltip"
 
 const Safari = ({ children, url = "trae.ai" }) => {
   return (
@@ -52,181 +55,246 @@ const Safari = ({ children, url = "trae.ai" }) => {
   )
 }
 
-const HeartButton = ({ initialLikes, onLikeChange }) => {
-  const [likes, setLikes] = useState(initialLikes)
-  const [isLiked, setIsLiked] = useState(false)
-
-  const handleLike = () => {
-    const newLikes = isLiked ? likes - 1 : likes + 1
-
-    setLikes(newLikes)
-    setIsLiked(!isLiked)
-
-    onLikeChange(newLikes, !isLiked)
-  }
-
-  return (
-    <Button variant="ghost" size="icon" onClick={handleLike}>
-      {isLiked ? <Heart className="h-5 w-5 text-red-500 fill-red-500" /> : <Heart className="h-5 w-5" />}
-      <span className="ml-1 text-sm text-muted-foreground">{likes}</span>
-    </Button>
-  )
-}
-
 export default function LandingPage() {
-  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false)
   const router = useRouter()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isVisible, setIsVisible] = useState({})
-  const [animatedWords, setAnimatedWords] = useState([])
-  const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState(null)
+  const [isVisible, setIsVisible] = useState({
+    hero: false,
+    features: false,
+    projects: false,
+    testimonials: false,
+    cta: false,
+    faq: false,
+  })
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("All")
   const [selectedTrending, setSelectedTrending] = useState("Trending")
   const [visibleProjects, setVisibleProjects] = useState(6)
+  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false)
+
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    avatar: "https://github.com/shadcn.png",
-  })
+  const [user, setUser] = useState<{
+    name: string
+    email: string
+    avatar: string
+    username?: string // Added username field to user state type
+  } | null>(null)
+  const [projects, setProjects] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [creatingProfile, setCreatingProfile] = useState(false)
+  const [animatedWords, setAnimatedWords] = useState<number[]>([])
+  const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      console.log("[v0] Checking authentication state...")
+      const supabase = createClient()
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      console.log("[v0] Session data:", session)
+
+      if (session?.user) {
+        console.log("[v0] User found in session:", session.user)
+        setIsLoggedIn(true)
+
+        // Get user profile from database
+        const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+
+        console.log("[v0] User profile from database:", profile)
+
+        if (profile) {
+          const userData = {
+            name: profile.display_name,
+            email: session.user.email || "",
+            avatar: profile.avatar_url || "/placeholder.svg",
+            username: profile.username, // Added username from database profile
+          }
+          console.log("[v0] Setting user data:", userData)
+          setUser(userData)
+        } else {
+          if (creatingProfile) {
+            console.log("[v0] Profile creation already in progress, skipping...")
+            return
+          }
+
+          console.log("[v0] No profile found, creating new user profile...")
+          setCreatingProfile(true)
+
+          const newProfile = {
+            id: session.user.id,
+            display_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+            username:
+              session.user.email
+                ?.split("@")[0]
+                ?.toLowerCase()
+                .replace(/[^a-z0-9]/g, "") || `user${Date.now()}`,
+            avatar_url: session.user.user_metadata?.avatar_url || "/placeholder.svg",
+            bio: "",
+            location: "",
+            website: "",
+            github_url: "",
+            twitter_url: "",
+            joined_at: new Date().toISOString(),
+          }
+
+          console.log("[v0] Attempting to insert new profile:", newProfile)
+
+          const { data: createdProfile, error: insertError } = await supabase
+            .from("users")
+            .upsert(newProfile, { onConflict: "id" })
+            .select()
+            .single()
+
+          setCreatingProfile(false)
+
+          if (insertError) {
+            console.error("[v0] Error creating user profile:", insertError)
+            console.error("[v0] Insert error details:", {
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint,
+              code: insertError.code,
+            })
+          } else {
+            console.log("[v0] Successfully created user profile:", createdProfile)
+          }
+
+          const userData = {
+            name: newProfile.display_name,
+            email: session.user.email || "",
+            avatar: newProfile.avatar_url,
+            username: newProfile.username, // Added username from new profile
+          }
+          console.log("[v0] Created and set new user data:", userData)
+          setUser(userData)
+        }
+      } else {
+        console.log("[v0] No session found, user not logged in")
+        setIsLoggedIn(false)
+        setUser(null)
+        setCreatingProfile(false)
+      }
+    }
+
+    const fetchProjects = async () => {
+      const supabase = createClient()
+      const { data: projectsData, error } = await supabase
+        .from("projects")
+        .select(`
+          *,
+          users!projects_author_id_fkey (
+            username,
+            display_name,
+            avatar_url
+          ),
+          likes (count),
+          views (count)
+        `)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching projects:", error)
+        setProjects([])
+      } else {
+        const formattedProjects = projectsData.map((project) => ({
+          id: project.id,
+          title: project.title,
+          image: project.image_url,
+          author: {
+            name: project.users.display_name,
+            username: project.users.username,
+            avatar: project.users.avatar_url || "/placeholder.svg",
+          },
+          likes: project.likes?.[0]?.count || 0,
+          views: project.views?.[0]?.count || 0,
+          category: project.category,
+          website_url: project.website_url,
+        }))
+        setProjects(formattedProjects)
+      }
+      setLoading(false)
+    }
+
+    checkAuth()
+    fetchProjects()
+
+    // Listen for auth changes
+    const supabase = createClient()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[v0] Auth state change:", event, session)
+      if (event === "SIGNED_IN" && session) {
+        console.log("[v0] User signed in, updating state")
+        setIsLoggedIn(true)
+        setTimeout(() => checkAuth(), 100)
+      } else if (event === "SIGNED_OUT") {
+        console.log("[v0] User signed out, clearing state")
+        setIsLoggedIn(false)
+        setUser(null)
+        setCreatingProfile(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const testimonials = [
     {
       text: "Hype Company transformed our startup idea into a $2M ARR SaaS platform. Their technical expertise and business understanding is unmatched.",
       image: "https://github.com/shadcn.png",
       name: "Sarah Chen",
-      role: "TechFlow CEO",
+      role: "CEO, TechFlow",
     },
     {
-      text: "Best development partner we've worked with. They think like founders, not just developers. Our product launched 3 months ahead of schedule.",
-      image: "https://github.com/shadcn.png",
+      text: "Working with Hype was a game-changer. They delivered our MVP in 6 weeks and helped us secure Series A funding.",
+      image: "/professional-woman-dark-hair.png",
       name: "Marcus Rodriguez",
-      role: "StartupLab Founder",
+      role: "Founder, DataSync",
     },
     {
-      text: "Clean code, on-time delivery, zero drama. Exactly what every startup needs. Our MVP scaled to 100K users seamlessly.",
-      image: "https://github.com/shadcn.png",
+      text: "The team's attention to detail and ability to scale our platform from 0 to 100k users was incredible.",
+      image: "/blonde-woman-glasses.png",
       name: "Emma Thompson",
-      role: "DigitalCore CTO",
+      role: "CTO, CloudBase",
     },
     {
-      text: "They don't just build features, they build businesses. Our conversion rate doubled after their redesign and optimization work.",
-      image: "https://github.com/shadcn.png",
+      text: "Hype doesn't just build products, they build businesses. Our revenue grew 300% after their optimization.",
+      image: "/asian-man-short-hair.png",
       name: "David Kim",
-      role: "InnovateLab VP",
+      role: "VP Product, InnovateLab",
     },
     {
-      text: "Hype Company delivered a mobile app that exceeded all expectations. The user experience is flawless and performance is lightning fast.",
-      image: "https://github.com/shadcn.png",
-      name: "Lisa Park",
-      role: "MobileFirst Founder",
-    },
-    {
-      text: "Their full-stack expertise saved us months of development time. From backend architecture to pixel-perfect frontend, they delivered excellence.",
+      text: "From concept to launch in record time. The quality and performance of our application exceeded all expectations.",
       image: "https://github.com/shadcn.png",
       name: "Alex Rivera",
-      role: "CodeCraft CTO",
+      role: "Head of Engineering, StartupX",
     },
     {
-      text: "Working with Hype Company was a game-changer. They understood our vision and brought it to life with incredible attention to detail.",
+      text: "The strategic guidance and technical execution were flawless. They truly understand what it takes to build at scale.",
       image: "https://github.com/shadcn.png",
       name: "Jennifer Walsh",
-      role: "DesignHub CEO",
-    },
-    {
-      text: "The team's ability to solve complex technical challenges while maintaining clean, scalable code is impressive. Highly recommend them.",
-      image: "https://github.com/shadcn.png",
-      name: "Michael Chang",
-      role: "TechScale VP Engineering",
-    },
-    {
-      text: "From concept to launch, Hype Company guided us through every step. Their expertise in modern web technologies is world-class.",
-      image: "https://github.com/shadcn.png",
-      name: "Rachel Green",
-      role: "WebFlow Founder",
-    },
-  ]
-
-  const projects = [
-    {
-      id: 1,
-      title: "Pointer AI landing page",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "Sarah Chen",
-        username: "sarahchen",
-        avatar: "/professional-woman-dark-hair.png",
-      },
-      likes: 88,
-      category: "Landing Page",
-    },
-    {
-      id: 2,
-      title: "Liquid Glass - Navigation Menu",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "Marcus Rodriguez",
-        username: "marcusrodriguez",
-        avatar: "/hispanic-man-beard.png",
-      },
-      likes: 68,
-      category: "Personal Web",
-    },
-    {
-      id: 3,
-      title: "Portfolio - Template by v0",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "Emma Thompson",
-        username: "emmathompson",
-        avatar: "/blonde-woman-glasses.png",
-      },
-      likes: 90,
-      category: "Personal Web",
-    },
-    {
-      id: 4,
-      title: "Marketing Website",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "David Kim",
-        username: "davidkim",
-        avatar: "/asian-man-short-hair.png",
-      },
-      likes: 38,
-      category: "Landing Page",
-    },
-    {
-      id: 5,
-      title: "Cyberpunk dashboard design",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "Alex Rivera",
-        username: "alexrivera",
-        avatar: "https://github.com/shadcn.png",
-      },
-      likes: 50,
-      category: "SaaS",
-    },
-    {
-      id: 6,
-      title: "Chatroom using GPT-5",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/invite-bg-GoB0AHj5ZLt6g7O0aaRA5LzEMiJylB.webp",
-      author: {
-        name: "Jennifer Walsh",
-        username: "jenniferwalsh",
-        avatar: "https://github.com/shadcn.png",
-      },
-      likes: 54,
-      category: "SaaS",
+      role: "Product Manager, GrowthCo",
     },
   ]
 
   const filterOptions = ["All", "Personal Web", "SaaS", "Landing Page"]
   const trendingOptions = ["Trending", "Top", "Newest"]
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
+
+  const handleProfile = () => {
+    if (user) {
+      // Navigate to user profile using their username from database
+      router.push(`/${user.username.toLowerCase().replace(/\s+/g, "")}`)
+    }
+  }
 
   const frameworks = [
     {
@@ -440,25 +508,10 @@ export default function LandingPage() {
     router.push("/user/auth")
   }
 
-  const handleSignOut = () => {
-    setIsLoggedIn(false)
-  }
-
-  const handleProfile = () => {
-    console.log("Navigate to profile")
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      <Navbar
-        showNavigation={true}
-        isLoggedIn={isLoggedIn}
-        user={user}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
-        onProfile={handleProfile}
-        scrollToSection={scrollToSection}
-      />
+      {/* Pass real auth state to Navbar */}
+      <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={user} scrollToSection={scrollToSection} />
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 mt-0 bg-grid-pattern">
@@ -629,87 +682,101 @@ export default function LandingPage() {
 
           {/* Project Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects
-              .filter((project) => selectedFilter === "All" || project.category === selectedFilter)
-              .slice(0, visibleProjects)
-              .map((project) => (
-                <div key={project.id} className="group cursor-pointer py-0 my-4">
-                  {/* Thumbnail Preview Section */}
-                  <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
-                    <img
-                      src={project.image || "/placeholder.svg"}
-                      alt={project.title}
-                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Button
-                        variant="secondary"
-                        className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                        onClick={() => router.push(`/project/${project.id}`)}
-                      >
-                        View Details
-                      </Button>
+            {loading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="group cursor-pointer py-0 my-4">
+                    <div className="relative overflow-hidden rounded-lg bg-muted animate-pulse mb-4">
+                      <div className="w-full h-64 bg-muted"></div>
                     </div>
-
-                    {/* Category Badge */}
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2 py-1 bg-black/70 text-white text-xs rounded-full backdrop-blur-sm">
-                        {project.category}
-                      </span>
+                    <div className="space-y-3">
+                      <div className="h-6 bg-muted rounded animate-pulse"></div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+                          <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                        </div>
+                        <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                      </div>
                     </div>
                   </div>
+                ))
+              : projects
+                  .filter((project) => selectedFilter === "All" || project.category === selectedFilter)
+                  .slice(0, visibleProjects)
+                  .map((project) => (
+                    <div key={project.id} className="group cursor-pointer py-0 my-4">
+                      {/* Thumbnail Preview Section */}
+                      <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
+                        <img
+                          src={project.image || "/placeholder.svg"}
+                          alt={project.title}
+                          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
 
-                  {/* Project Details Section */}
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors duration-300 text-lg py-0">
-                      {project.title}
-                    </h3>
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <Button
+                            variant="secondary"
+                            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                            onClick={() => router.push(`/project/${project.id}`)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
 
-                    {/* Author and Stats */}
-                    <div className="flex items-center justify-between py-0">
-                      <div className="flex items-center gap-2.5">
-                        <Link
-                          href={`/${project.author.username}`}
-                          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-                        >
-                          <img
-                            src={project.author.avatar || "/placeholder.svg"}
-                            alt={project.author.name}
-                            className="w-8 h-8 rounded-full object-cover ring-2 ring-muted"
-                          />
-                          <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
-                        </Link>
+                        {/* Category Badge */}
+                        <div className="absolute top-3 left-3">
+                          <span className="px-2 py-1 bg-black/70 text-white text-xs rounded-full backdrop-blur-sm">
+                            {project.category}
+                          </span>
+                        </div>
                       </div>
 
-                      <HeartButton
-                        initialLikes={project.likes}
-                        onLikeChange={(newLikes, isLiked) => {
-                          console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
-                        }}
-                      />
+                      {/* Project Details Section */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors duration-300 text-lg py-0">
+                          {project.title}
+                        </h3>
+
+                        {/* Author and Stats */}
+                        <div className="flex items-center justify-between py-0">
+                          <div className="flex items-center gap-2.5">
+                            <Link
+                              href={`/${project.author.username}`}
+                              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+                            >
+                              <img
+                                src={project.author.avatar || "/placeholder.svg"}
+                                alt={project.author.name}
+                                className="w-8 h-8 rounded-full object-cover ring-2 ring-muted"
+                              />
+                              <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
+                            </Link>
+                          </div>
+
+                          <HeartButton
+                            projectId={project.id}
+                            initialLikes={project.likes}
+                            onLikeChange={(newLikes, isLiked) => {
+                              console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  ))}
           </div>
 
           {/* Load More button */}
-          {visibleProjects <
-            projects.filter((project) => selectedFilter === "All" || project.category === selectedFilter).length && (
-            <div className="flex justify-center mt-12">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => setVisibleProjects((prev) => prev + 6)}
-                className="bg-background hover:bg-muted border-border text-foreground hover:text-foreground transition-all duration-300"
-              >
-                Load More Projects
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          {!loading &&
+            visibleProjects <
+              projects.filter((project) => selectedFilter === "All" || project.category === selectedFilter).length && (
+              <div className="text-center mt-8">
+                <Button variant="outline" onClick={() => setVisibleProjects((prev) => prev + 6)} className="px-8 py-2">
+                  Load More Projects
+                </Button>
+              </div>
+            )}
         </div>
       </section>
 
