@@ -1,30 +1,126 @@
-# Image Analysis
+# TRAE Community ID
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A modern community platform built with Next.js, Supabase, and Tailwind CSS.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/faiz-intifadas-projects-666b7de0/v0-image-analysis)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/gnIYDY0ZjQl)
+## Features
 
-## Overview
+- 🔐 User authentication with Supabase Auth
+- 👤 User profiles with customizable avatars
+- 📝 Project showcase and management
+- 💬 Comments and interactions
+- 🌙 Dark/Light mode support
+- 📱 Responsive design
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Getting Started
 
-## Deployment
+### Prerequisites
 
-Your project is live at:
+- Node.js 18+ or Bun
+- A Supabase account and project
 
-**[https://vercel.com/faiz-intifadas-projects-666b7de0/v0-image-analysis](https://vercel.com/faiz-intifadas-projects-666b7de0/v0-image-analysis)**
+### Installation
 
-## Build your app
+1. Clone the repository:
+\`\`\`bash
+git clone https://github.com/julianromli/traecommunityid.git
+cd traecommunityid
+\`\`\`
 
-Continue building your app on:
+2. Install dependencies:
+\`\`\`bash
+npm install
+# or
+pnpm install
+# or
+bun install
+\`\`\`
 
-**[https://v0.app/chat/projects/gnIYDY0ZjQl](https://v0.app/chat/projects/gnIYDY0ZjQl)**
+3. Set up environment variables:
+\`\`\`bash
+cp .env.example .env.local
+\`\`\`
 
-## How It Works
+4. Update `.env.local` with your Supabase credentials:
+\`\`\`env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
+\`\`\`
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+5. Set up the database:
+   - Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
+     - `01_create_tables.sql` - Creates the database schema
+     - `02_seed_data.sql` - Adds sample data
+     - `03_create_storage_bucket.sql` - Sets up file storage
+
+6. Run the development server:
+\`\`\`bash
+npm run dev
+# or
+pnpm dev
+# or
+bun dev
+\`\`\`
+
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Database Setup
+
+The project uses Supabase as the backend. You'll need to:
+
+1. Create a new Supabase project
+2. Run the SQL scripts in the `scripts/` folder
+3. Configure Row Level Security (RLS) policies
+4. Set up storage buckets for file uploads
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key | Yes |
+| `NEXT_PUBLIC_SITE_URL` | Your site URL (for production) | Yes |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for development | Yes |
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Radix UI + shadcn/ui
+- **Icons**: Lucide React
+- **Fonts**: Geist Sans & Geist Mono
+- **Language**: TypeScript
+
+## Project Structure
+
+\`\`\`
+├── app/                    # Next.js app directory
+│   ├── [username]/        # Dynamic user profile pages
+│   ├── project/           # Project detail pages
+│   ├── user/              # User authentication pages
+│   └── globals.css        # Global styles
+├── components/            # Reusable components
+│   └── ui/               # UI components
+├── lib/                  # Utility functions
+│   ├── actions.ts        # Server actions
+│   └── supabase/         # Supabase client configuration
+├── scripts/              # Database setup scripts
+└── public/               # Static assets
+\`\`\`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
