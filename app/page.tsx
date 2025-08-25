@@ -85,153 +85,152 @@ export default function LandingPage() {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [currentTime, setCurrentTime] = useState("")
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    setIsMounted(true)
+    const updateTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString())
+    }
+    updateTime()
+    const timeInterval = setInterval(updateTime, 1000)
+
+    return () => clearInterval(timeInterval)
+  }, [])
+
+  // Separate useEffect for authentication
+  useEffect(() => {
+    let isMounted = true
+    
     const checkAuth = async () => {
-      console.log("[v0] Checking authentication state...")
-      const supabase = createClient()
+      try {
+        console.log("[v0] Checking authentication state...")
+        const supabase = createClient()
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      console.log("[v0] Session data:", session)
+        if (!isMounted) return
 
-      if (session?.user) {
-        console.log("[v0] User found in session:", session.user)
-        setIsLoggedIn(true)
+        console.log("[v0] Session data:", session)
 
-        // Get user profile from database
-        const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+        if (session?.user) {
+          console.log("[v0] User found in session:", session.user)
+          setIsLoggedIn(true)
 
-        console.log("[v0] User profile from database:", profile)
+          // Get user profile from database
+          const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
 
-        if (profile) {
-          const userData = {
-            name: profile.display_name,
-            email: session.user.email || "",
-            avatar: profile.avatar_url || "/placeholder.svg",
-            username: profile.username, // Added username from database profile
-          }
-          console.log("[v0] Setting user data:", userData)
-          setUser(userData)
-        } else {
-          if (creatingProfile) {
-            console.log("[v0] Profile creation already in progress, skipping...")
-            return
-          }
+          if (!isMounted) return
 
-          console.log("[v0] No profile found, creating new user profile...")
-          setCreatingProfile(true)
+          console.log("[v0] User profile from database:", profile)
 
-          const newProfile = {
-            id: session.user.id,
-            display_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-            username:
-              session.user.email
-                ?.split("@")[0]
-                ?.toLowerCase()
-                .replace(/[^a-z0-9]/g, "") || `user${Date.now()}`,
-            avatar_url: session.user.user_metadata?.avatar_url || "/placeholder.svg",
-            bio: "",
-            location: "",
-            website: "",
-            github_url: "",
-            twitter_url: "",
-            joined_at: new Date().toISOString(),
-          }
-
-          console.log("[v0] Attempting to insert new profile:", newProfile)
-
-          const { data: createdProfile, error: insertError } = await supabase
-            .from("users")
-            .upsert(newProfile, { onConflict: "id" })
-            .select()
-            .single()
-
-          setCreatingProfile(false)
-
-          if (insertError) {
-            console.error("[v0] Error creating user profile:", insertError)
-            console.error("[v0] Insert error details:", {
-              message: insertError.message,
-              details: insertError.details,
-              hint: insertError.hint,
-              code: insertError.code,
-            })
+          if (profile) {
+            const userData = {
+              name: profile.display_name,
+              email: session.user.email || "",
+              avatar: profile.avatar_url || "/placeholder.svg",
+              username: profile.username,
+            }
+            console.log("[v0] Setting user data:", userData)
+            setUser(userData)
           } else {
-            console.log("[v0] Successfully created user profile:", createdProfile)
-          }
+            if (creatingProfile) {
+              console.log("[v0] Profile creation already in progress, skipping...")
+              return
+            }
 
-          const userData = {
-            name: newProfile.display_name,
-            email: session.user.email || "",
-            avatar: newProfile.avatar_url,
-            username: newProfile.username, // Added username from new profile
+            console.log("[v0] No profile found, creating new user profile...")
+            setCreatingProfile(true)
+
+            const newProfile = {
+              id: session.user.id,
+              display_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+              username:
+                session.user.email
+                  ?.split("@")[0]
+                  ?.toLowerCase()
+                  .replace(/[^a-z0-9]/g, "") || `user${Date.now()}`,
+              avatar_url: session.user.user_metadata?.avatar_url || "/placeholder.svg",
+              bio: "",
+              location: "",
+              website: "",
+              github_url: "",
+              twitter_url: "",
+              joined_at: new Date().toISOString(),
+            }
+
+            console.log("[v0] Attempting to insert new profile:", newProfile)
+
+            try {
+              const { data: createdProfile, error: insertError } = await supabase
+                .from("users")
+                .upsert(newProfile, { onConflict: "id" })
+                .select()
+                .single()
+
+              if (!isMounted) return
+
+              if (insertError) {
+                console.error("[v0] Error creating user profile:", insertError)
+                console.error("[v0] Insert error details:", {
+                  message: insertError.message,
+                  details: insertError.details,
+                  hint: insertError.hint,
+                  code: insertError.code,
+                })
+                setCreatingProfile(false)
+                return
+              }
+
+              console.log("[v0] Successfully created user profile:", createdProfile)
+
+              const userData = {
+                name: newProfile.display_name,
+                email: session.user.email || "",
+                avatar: newProfile.avatar_url,
+                username: newProfile.username,
+              }
+              console.log("[v0] Created and set new user data:", userData)
+              setUser(userData)
+              setCreatingProfile(false)
+            } catch (error) {
+              if (!isMounted) return
+              console.error("[v0] Unexpected error creating profile:", error)
+              setCreatingProfile(false)
+            }
           }
-          console.log("[v0] Created and set new user data:", userData)
-          setUser(userData)
+        } else {
+          console.log("[v0] No session found, user not logged in")
+          setIsLoggedIn(false)
+          setUser(null)
+          setCreatingProfile(false)
         }
-      } else {
-        console.log("[v0] No session found, user not logged in")
+      } catch (error) {
+        if (!isMounted) return
+        console.error("[v0] Error in checkAuth:", error)
         setIsLoggedIn(false)
         setUser(null)
         setCreatingProfile(false)
       }
     }
 
-    const fetchProjects = async () => {
-      const supabase = createClient()
-      const { data: projectsData, error } = await supabase
-        .from("projects")
-        .select(`
-          *,
-          users!projects_author_id_fkey (
-            username,
-            display_name,
-            avatar_url
-          ),
-          likes (count),
-          views (count)
-        `)
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching projects:", error)
-        setProjects([])
-      } else {
-        const formattedProjects = projectsData.map((project) => ({
-          id: project.id,
-          title: project.title,
-          image: project.image_url,
-          author: {
-            name: project.users.display_name,
-            username: project.users.username,
-            avatar: project.users.avatar_url || "/placeholder.svg",
-          },
-          likes: project.likes?.[0]?.count || 0,
-          views: project.views?.[0]?.count || 0,
-          category: project.category,
-          website_url: project.website_url,
-        }))
-        setProjects(formattedProjects)
-      }
-      setLoading(false)
-    }
-
     checkAuth()
-    fetchProjects()
 
     // Listen for auth changes
     const supabase = createClient()
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return
+      
       console.log("[v0] Auth state change:", event, session)
       if (event === "SIGNED_IN" && session) {
         console.log("[v0] User signed in, updating state")
         setIsLoggedIn(true)
-        setTimeout(() => checkAuth(), 100)
+        // Avoid calling checkAuth again to prevent race conditions
       } else if (event === "SIGNED_OUT") {
         console.log("[v0] User signed out, clearing state")
         setIsLoggedIn(false)
@@ -240,7 +239,71 @@ export default function LandingPage() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  // Separate useEffect for fetching projects
+  useEffect(() => {
+    let isMounted = true
+    
+    const fetchProjects = async () => {
+      try {
+        const supabase = createClient()
+        const { data: projectsData, error } = await supabase
+          .from("projects")
+          .select(`
+            *,
+            users!projects_author_id_fkey (
+              username,
+              display_name,
+              avatar_url
+            ),
+            likes (count),
+            views (count)
+          `)
+          .order("created_at", { ascending: false })
+
+        if (!isMounted) return
+
+        if (error) {
+          console.error("Error fetching projects:", error)
+          setProjects([])
+        } else {
+          const formattedProjects = projectsData.map((project) => ({
+            id: project.id,
+            title: project.title,
+            image: project.image_url,
+            author: {
+              name: project.users.display_name,
+              username: project.users.username,
+              avatar: project.users.avatar_url || "/placeholder.svg",
+            },
+            likes: project.likes?.[0]?.count || 0,
+            views: project.views?.[0]?.count || 0,
+            category: project.category,
+            website_url: project.website_url,
+          }))
+          setProjects(formattedProjects)
+        }
+      } catch (error) {
+        if (!isMounted) return
+        console.error("Error in fetchProjects:", error)
+        setProjects([])
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchProjects()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const testimonials = [
@@ -973,7 +1036,7 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-6">
             <p className="text-sm text-muted-foreground mb-4 font-mono tracking-wider">
-              {new Date().toLocaleTimeString()}
+              {isMounted ? currentTime : "--:--:--"}
             </p>
             <h2 className="text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight">
               Join with Another

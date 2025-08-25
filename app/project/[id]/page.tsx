@@ -23,6 +23,11 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   const [loading, setLoading] = useState(true)
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     const initializePage = async () => {
@@ -214,7 +219,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     </span>
                     <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(project.createdAt).toLocaleDateString()}
+                      {isMounted && project?.createdAt ? new Date(project.createdAt).toLocaleDateString() : "Loading..."}
                     </span>
                   </div>
                   <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>

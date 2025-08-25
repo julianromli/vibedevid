@@ -1,8 +1,32 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+
+async function createClient() {
+  const cookieStore = await cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function signIn(prevState: any, formData: FormData) {
   if (!formData) {
@@ -16,8 +40,7 @@ export async function signIn(prevState: any, formData: FormData) {
     return { error: "Email and password are required" }
   }
 
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -70,8 +93,7 @@ export async function signUp(prevState: any, formData: FormData) {
     return { error: "Email and password are required" }
   }
 
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   try {
     const { error } = await supabase.auth.signUp({
@@ -99,8 +121,7 @@ export async function signUp(prevState: any, formData: FormData) {
 }
 
 export async function signOut() {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   await supabase.auth.signOut()
   redirect("/")
@@ -117,8 +138,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
     return { error: "Email is required" }
   }
 
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email.toString(), {
@@ -151,11 +171,11 @@ export async function addComment(formData: FormData) {
     return { error: "Project ID and content are required" }
   }
 
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
+
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   try {
     const { error } = await supabase.from("comments").insert({
@@ -177,8 +197,7 @@ export async function addComment(formData: FormData) {
 }
 
 export async function getComments(projectId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   try {
     const { data: comments, error } = await supabase
@@ -215,8 +234,7 @@ export async function getComments(projectId: string) {
 }
 
 export async function getProject(projectId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   try {
     const { data: project, error } = await supabase
@@ -270,8 +288,7 @@ export async function getProject(projectId: string) {
 }
 
 export async function incrementProjectViews(projectId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -289,8 +306,7 @@ export async function incrementProjectViews(projectId: string) {
 }
 
 export async function toggleLike(projectId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -342,8 +358,7 @@ export async function toggleLike(projectId: string) {
 }
 
 export async function getLikeStatus(projectId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -385,8 +400,7 @@ export async function getLikeStatus(projectId: string) {
 }
 
 export async function signInWithGoogle() {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -406,8 +420,7 @@ export async function signInWithGoogle() {
 }
 
 export async function signInWithGitHub() {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "github",

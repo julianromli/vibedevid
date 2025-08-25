@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
+    "build": "next build --turbopack",
+    "dev": "next dev --turbopack",
     "lint": "next lint",
     "start": "next start",
     "vercel-build": "next build"
@@ -20,7 +20,6 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.2",
-    "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.56.0",
     "@tailwindcss/postcss": "^4.1.9",
@@ -33,7 +32,8 @@
     "react-dom": "^19",
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^4.1.9",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@types/node": "^22",
