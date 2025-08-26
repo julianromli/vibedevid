@@ -503,3 +503,42 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
     return { likesData: {}, error: "Failed to load likes data" }
   }
 }
+
+export async function submitProject(formData: FormData, userId: string) {
+  const supabase = await createClient()
+
+  try {
+    const title = formData.get("title") as string
+    const description = formData.get("description") as string
+    const category = formData.get("category") as string
+    const websiteUrl = formData.get("website_url") as string
+    const imageUrl = formData.get("image_url") as string
+
+    if (!title || !description || !category) {
+      return { success: false, error: "Title, description, and category are required" }
+    }
+
+    const { data: project, error } = await supabase
+      .from("projects")
+      .insert({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        website_url: websiteUrl?.trim() || null,
+        image_url: imageUrl?.trim() || null,
+        author_id: userId,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Submit project error:", error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, projectId: project.id }
+  } catch (error) {
+    console.error("Submit project error:", error)
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}

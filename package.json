@@ -23,9 +23,12 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.56.0",
     "@tailwindcss/postcss": "^4.1.9",
+    "@uploadthing/react": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "express": "latest",
     "geist": "^1.4.2",
+    "h3": "latest",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
     "next-themes": "latest",
@@ -34,6 +37,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^4.1.9",
     "tailwindcss-animate": "^1.0.7",
+    "uploadthing": "latest",
     "vaul": "latest"
   },
   "devDependencies": {

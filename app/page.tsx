@@ -731,6 +731,15 @@ export default function HomePage() {
               </div>
             </div>
 
+            <div className="flex-1 flex justify-center">
+              <Button asChild className="bg-primary hover:bg-primary/90">
+                <Link href="/project/submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Submit Project
+                </Link>
+              </Button>
+            </div>
+
             {/* Trending Dropdown */}
             <div className="relative">
               <Button
