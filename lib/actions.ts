@@ -542,3 +542,114 @@ export async function submitProject(formData: FormData, userId: string) {
     return { success: false, error: "An unexpected error occurred" }
   }
 }
+
+export async function editProject(projectId: string, formData: FormData) {
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session?.user) {
+    return { success: false, error: "You must be logged in to edit projects" }
+  }
+
+  try {
+    // First check if user owns this project
+    const { data: project, error: checkError } = await supabase
+      .from("projects")
+      .select("author_id")
+      .eq("id", Number.parseInt(projectId))
+      .single()
+
+    if (checkError) {
+      return { success: false, error: "Project not found" }
+    }
+
+    if (project.author_id !== session.user.id) {
+      return { success: false, error: "You can only edit your own projects" }
+    }
+
+    const title = formData.get("title") as string
+    const description = formData.get("description") as string
+    const category = formData.get("category") as string
+    const websiteUrl = formData.get("website_url") as string
+    const imageUrl = formData.get("image_url") as string
+
+    if (!title || !description || !category) {
+      return { success: false, error: "Title, description, and category are required" }
+    }
+
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        website_url: websiteUrl?.trim() || null,
+        image_url: imageUrl?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", Number.parseInt(projectId))
+
+    if (updateError) {
+      console.error("Edit project error:", updateError)
+      return { success: false, error: updateError.message }
+    }
+
+    return { success: true, projectId }
+  } catch (error) {
+    console.error("Edit project error:", error)
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+export async function deleteProject(projectId: string) {
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session?.user) {
+    return { success: false, error: "You must be logged in to delete projects" }
+  }
+
+  try {
+    // First check if user owns this project
+    const { data: project, error: checkError } = await supabase
+      .from("projects")
+      .select("author_id")
+      .eq("id", Number.parseInt(projectId))
+      .single()
+
+    if (checkError) {
+      return { success: false, error: "Project not found" }
+    }
+
+    if (project.author_id !== session.user.id) {
+      return { success: false, error: "You can only delete your own projects" }
+    }
+
+    // Delete related records first (comments, likes, views)
+    await Promise.all([
+      supabase.from("comments").delete().eq("project_id", Number.parseInt(projectId)),
+      supabase.from("likes").delete().eq("project_id", Number.parseInt(projectId)),
+      supabase.from("views").delete().eq("project_id", Number.parseInt(projectId)),
+    ])
+
+    // Then delete the project
+    const { error: deleteError } = await supabase
+      .from("projects")
+      .delete()
+      .eq("id", Number.parseInt(projectId))
+
+    if (deleteError) {
+      console.error("Delete project error:", deleteError)
+      return { success: false, error: deleteError.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("Delete project error:", error)
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}

@@ -36,11 +36,14 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setIsLoading(true)
     setError(null)
 
     try {
+      const formData = new FormData(e.currentTarget)
+      
       if (uploadedImageUrl) {
         formData.set("image_url", uploadedImageUrl)
       }
@@ -64,7 +67,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
         <CardTitle>Project Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Project Title *</Label>
             <Input

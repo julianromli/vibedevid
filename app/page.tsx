@@ -261,7 +261,7 @@ export default function HomePage() {
           .from("projects")
           .select(`
             *,
-            users!projects_author_id_fkey (
+            users!author_id (
               username,
               display_name,
               avatar_url

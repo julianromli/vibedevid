@@ -4,15 +4,20 @@ import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
-import { ArrowLeft, ExternalLink, Share2, MessageCircle, Calendar, User, Globe, Tag, Loader2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, ExternalLink, Share2, MessageCircle, Calendar, User, Globe, Tag, Loader2, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/ui/navbar"
 import { createClient } from "@/lib/supabase/client"
-import { addComment, getComments, getProject, incrementProjectViews, signOut } from "@/lib/actions"
+import { addComment, getComments, getProject, incrementProjectViews, signOut, editProject, deleteProject } from "@/lib/actions"
 import { useRouter } from "next/navigation"
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const { id } = use(params)
   const [project, setProject] = useState(null)
   const [newComment, setNewComment] = useState("")
   const [guestName, setGuestName] = useState("")
@@ -24,6 +29,19 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [isProjectOwner, setIsProjectOwner] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    website_url: '',
+    image_url: ''
+  })
 
   useEffect(() => {
     setIsMounted(true)
@@ -31,7 +49,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   useEffect(() => {
     const initializePage = async () => {
-      const { id } = use(params)
 
       // Check authentication
       const supabase = createClient()
@@ -47,6 +64,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
         if (profile) {
           setCurrentUser({
+            id: session.user.id,
             name: profile.display_name,
             avatar: profile.avatar_url || "/placeholder.svg",
           })
@@ -63,6 +81,20 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
       setProject(projectData)
 
+      // Check if current user is project owner
+      if (session?.user && projectData) {
+        const supabase = createClient()
+        const { data: authorData } = await supabase
+          .from("users")
+          .select("id")
+          .eq("username", projectData.author.username)
+          .single()
+        
+        if (authorData && authorData.id === session.user.id) {
+          setIsProjectOwner(true)
+        }
+      }
+
       // Increment view count
       await incrementProjectViews(id)
 
@@ -73,7 +105,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
 
     initializePage()
-  }, [params])
+  }, [id])
 
   const loadComments = async (projectId?: string) => {
     if (!projectId && !project?.id) return
@@ -151,6 +183,76 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   }
 
+  const handleDeleteProject = async () => {
+    if (!project?.id) return
+
+    setIsDeleting(true)
+    const result = await deleteProject(project.id.toString())
+    
+    if (result.success) {
+      // Redirect to home page after successful deletion
+      router.push("/")
+    } else {
+      alert(result.error || "Failed to delete project")
+      setIsDeleting(false)
+    }
+  }
+
+  const handleEditProject = () => {
+    // Pre-fill form with current project data
+    setEditFormData({
+      title: project?.title || '',
+      description: project?.description || '',
+      category: project?.category || '',
+      website_url: project?.url || '',
+      image_url: project?.image || ''
+    })
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!project?.id) return
+
+    setIsSaving(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('title', editFormData.title)
+      formData.append('description', editFormData.description)
+      formData.append('category', editFormData.category)
+      formData.append('website_url', editFormData.website_url)
+      formData.append('image_url', editFormData.image_url)
+
+      const result = await editProject(project.id.toString(), formData)
+      
+      if (result.success) {
+        // Reload project data
+        const { project: updatedProject } = await getProject(project.id.toString())
+        if (updatedProject) {
+          setProject(updatedProject)
+        }
+        setIsEditing(false)
+      } else {
+        alert(result.error || "Failed to update project")
+      }
+    } catch (error) {
+      alert("Failed to update project")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditFormData({
+      title: '',
+      description: '',
+      category: '',
+      website_url: '',
+      image_url: ''
+    })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -223,65 +325,155 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Project Info */}
-            <div className="space-y-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                      {project.category}
-                    </span>
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {isMounted && project?.createdAt
-                        ? new Date(project.createdAt).toLocaleDateString()
-                        : "Loading..."}
-                    </span>
-                  </div>
-                  <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>
-                  <p className="text-lg text-muted-foreground">{project.description}</p>
-                </div>
-              </div>
+            {isEditing ? (
+              // Edit Form
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-6">Edit Project</h3>
+                  <div className="space-y-6">
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-title">Project Title *</Label>
+                      <Input
+                        id="edit-title"
+                        value={editFormData.title}
+                        onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                        placeholder="Enter project title"
+                      />
+                    </div>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full flex items-center gap-1"
-                  >
-                    <Tag className="h-3 w-3" />
-                    {tag}
-                  </span>
-                ))}
-              </div>
+                    {/* Description */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-description">Description *</Label>
+                      <Textarea
+                        id="edit-description"
+                        value={editFormData.description}
+                        onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                        placeholder="Describe your project"
+                        rows={4}
+                      />
+                    </div>
 
-              {/* Full Description */}
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <h3 className="text-xl font-semibold mb-3">About This Project</h3>
-                <p className="text-muted-foreground leading-relaxed">{project.fullDescription}</p>
-              </div>
+                    {/* Category */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-category">Category *</Label>
+                      <Select
+                        value={editFormData.category}
+                        onValueChange={(value) => setEditFormData({...editFormData, category: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Web Development">Web Development</SelectItem>
+                          <SelectItem value="Mobile App">Mobile App</SelectItem>
+                          <SelectItem value="Desktop App">Desktop App</SelectItem>
+                          <SelectItem value="AI/ML">AI/ML</SelectItem>
+                          <SelectItem value="Game Development">Game Development</SelectItem>
+                          <SelectItem value="Design">Design</SelectItem>
+                          <SelectItem value="DevTools">DevTools</SelectItem>
+                          <SelectItem value="Open Source">Open Source</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              {/* Project URL */}
-              {project.url && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Live Project</p>
-                          <p className="text-sm text-muted-foreground">{project.url}</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => window.open(project.url, "_blank")}>
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Visit Site
+                    {/* Website URL */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-website">Website URL</Label>
+                      <Input
+                        id="edit-website"
+                        type="url"
+                        value={editFormData.website_url}
+                        onChange={(e) => setEditFormData({...editFormData, website_url: e.target.value})}
+                        placeholder="https://your-project.com"
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4">
+                      <Button 
+                        onClick={handleSaveEdit} 
+                        disabled={!editFormData.title.trim() || !editFormData.description.trim() || isSaving}
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Save Changes"
+                        )}
+                      </Button>
+                      <Button variant="outline" onClick={handleCancelEdit} disabled={isSaving}>
+                        Cancel
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              // Display Mode  
+              <div className="space-y-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                        {project.category}
+                      </span>
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {isMounted && project?.createdAt
+                          ? new Date(project.createdAt).toLocaleDateString()
+                          : "Loading..."}
+                      </span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>
+                    <p className="text-lg text-muted-foreground">{project.description}</p>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {project.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full flex items-center gap-1"
+                    >
+                      <Tag className="h-3 w-3" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Full Description */}
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  <h3 className="text-xl font-semibold mb-3">About This Project</h3>
+                  <p className="text-muted-foreground leading-relaxed">{project.fullDescription}</p>
+                </div>
+
+                {/* Project URL */}
+                {project.url && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Globe className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">Live Project</p>
+                            <p className="text-sm text-muted-foreground">{project.url}</p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => window.open(project.url, "_blank")}>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Visit Site
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
 
             {/* Comments Section */}
             <div className="space-y-6">
@@ -433,43 +625,82 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               </CardContent>
             </Card>
 
-            {/* Share Button */}
+            {/* Project Actions & Share */}
             <Card>
               <CardContent className="p-6">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    className="w-full bg-transparent"
-                    onClick={() => setShowShareMenu(!showShareMenu)}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share Project
-                  </Button>
-
-                  {showShareMenu && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-10">
-                      <div className="p-2 space-y-1">
-                        <button
-                          onClick={() => handleShare("twitter")}
-                          className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
-                        >
-                          Share on Twitter
-                        </button>
-                        <button
-                          onClick={() => handleShare("linkedin")}
-                          className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
-                        >
-                          Share on LinkedIn
-                        </button>
-                        <button
-                          onClick={() => handleShare("copy")}
-                          className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
-                        >
-                          Copy Link
-                        </button>
-                      </div>
-                    </div>
+                <div className="space-y-4">
+                  {/* Owner Actions */}
+                  {isProjectOwner && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full bg-transparent"
+                        onClick={handleEditProject}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Project
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                            handleDeleteProject()
+                          }
+                        }}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Project
+                          </>
+                        )}
+                      </Button>
+                    </>
                   )}
+
+                  {/* Share Button */}
+                  <div className="relative">
+                    <Button
+                      variant="outline"
+                      className="w-full bg-transparent"
+                      onClick={() => setShowShareMenu(!showShareMenu)}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Project
+                    </Button>
+
+                    {showShareMenu && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-10">
+                        <div className="p-2 space-y-1">
+                          <button
+                            onClick={() => handleShare("twitter")}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+                          >
+                            Share on Twitter
+                          </button>
+                          <button
+                            onClick={() => handleShare("linkedin")}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+                          >
+                            Share on LinkedIn
+                          </button>
+                          <button
+                            onClick={() => handleShare("copy")}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+                          >
+                            Copy Link
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
