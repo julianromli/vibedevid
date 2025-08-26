@@ -24,13 +24,57 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: "Trae Community ID",
-  description: "Join the most innovative developer community in Indonesia",
-  generator: "v0.app",
+  title: {
+    default: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    template: "%s | VibeDev ID",
+  },
+  description:
+    "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+  applicationName: "VibeDev ID",
+  generator: "VibeDev ID",
+  keywords: [
+    "VibeDev ID",
+    "VibeDev",
+    "developer community Indonesia",
+    "Indonesian developers",
+    "vibe coders",
+    "project showcase",
+    "open source collaboration",
+    "Next.js community",
+    "Supabase",
+    "shadcn/ui",
+  ],
+  category: "technology",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    description:
+      "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    siteName: "VibeDev ID",
+    images: [{ url: "/vibedev-guest-avatar.png" }],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    description:
+      "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+    images: ["/vibedev-guest-avatar.png"],
+    creator: "@vibedevid",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
-    icon: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/trae-color-glPzZeyKiOpfe7lJ0rYz78T4WDdPS9.svg",
-    shortcut: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/trae-color-glPzZeyKiOpfe7lJ0rYz78T4WDdPS9.svg",
-    apple: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/trae-color-glPzZeyKiOpfe7lJ0rYz78T4WDdPS9.svg",
+    icon: "/vibedev-guest-avatar.png",
+    shortcut: "/vibedev-guest-avatar.png",
+    apple: "/vibedev-guest-avatar.png",
   },
 }
 

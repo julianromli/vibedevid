@@ -24,7 +24,7 @@ import { signOut } from "@/lib/actions"
 import AnimatedTooltip from "@/components/ui/animated-tooltip"
 import { getBatchLikeStatus } from "@/lib/actions"
 
-const Safari = ({ children, url = "trae.ai" }) => {
+const Safari = ({ children, url = "vibedev.id" }) => {
   return (
     <div className="relative w-full bg-gray-100 rounded-xl shadow-2xl overflow-hidden">
       {/* Browser Chrome */}
@@ -524,9 +524,9 @@ export default function HomePage() {
 
   const faqs = [
     {
-      question: "What is Trae Community ID?",
+      question: "What is VibeDev ID?",
       answer:
-        "Trae Community ID is a vibrant community of developers, AI enthusiasts, and tech innovators who share the same vision and passion for building amazing digital products. We connect like-minded creators to collaborate, learn, and grow together.",
+        "VibeDev ID is a vibrant community of developers, AI enthusiasts, and tech innovators who share the same vision and passion for building amazing digital products. We connect like-minded creators to collaborate, learn, and grow together.",
     },
     {
       question: "How do I join the community?",
@@ -661,7 +661,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <Safari url="trae.ai">
+              <Safari url="vibedev.id">
                 <img
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SOLO-pic-EN.35a702ba-uLVDZsjReIz7K4Ecr3JBrYkLCl8cdm.png"
                   alt="Development environment showing SOLO Builder interface with movie website project documentation"
@@ -1122,7 +1122,7 @@ export default function HomePage() {
                         <section>
                           <h3 className="font-semibold text-base mb-2">1. Information We Collect</h3>
                           <p className="text-muted-foreground mb-2">
-                            At TRAE Community ID, we collect information you provide directly to us, such as when you
+                            At VibeDev ID, we collect information you provide directly to us, such as when you
                             create an account, participate in community discussions, or contact us for support.
                           </p>
                           <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
@@ -1170,7 +1170,7 @@ export default function HomePage() {
                         <section>
                           <h3 className="font-semibold text-base mb-2">5. Community Guidelines</h3>
                           <p className="text-muted-foreground">
-                            As a member of TRAE Community ID, you agree to maintain respectful interactions, share
+                            As a member of VibeDev ID, you agree to maintain respectful interactions, share
                             knowledge constructively, and contribute to a positive learning environment for all
                             developers in our community.
                           </p>
@@ -1191,7 +1191,7 @@ export default function HomePage() {
                           <h3 className="font-semibold text-base mb-2">7. Contact Us</h3>
                           <p className="text-muted-foreground">
                             If you have any questions about this Privacy Policy or our data practices, please contact us
-                            at privacy@traecommunity.id or through our community support channels.
+                            at privacy@vibedev.id or through our community support channels.
                           </p>
                         </section>
                       </div>
