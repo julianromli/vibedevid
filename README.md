@@ -1,15 +1,23 @@
 # VibeDev ID
 
-VibeDev ID is Indonesia’s community for vibe coders and developers. Showcase projects, collaborate on open source, and level up across web, mobile, and AI — built with Next.js, Supabase, and Tailwind CSS.
+**When the Codes Meet the Vibes** 🚀
+
+VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators Indonesia yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Kami menghubungkan creator yang sepikiran untuk kolaborasi, belajar, dan berkembang bareng.
+
+*Indonesia's premier community for developers, vibe coders, and AI enthusiasts. Showcase projects, collaborate, network, and level up your skills in web, mobile, and AI development.*
 
 ## Features
 
-- 🔐 User authentication with Supabase Auth
-- 👤 User profiles with customizable avatars
-- 📝 Project showcase and management
-- 💬 Comments and interactions
-- 🌙 Dark/Light mode support
-- 📱 Responsive design
+- 🔐 **User Authentication** - Secure login with Supabase Auth
+- 👤 **Developer Profiles** - Customizable profiles with bio, skills, and social links
+- 📝 **Project Showcase** - Share dan showcase project keren lo
+- 💬 **Community Interaction** - Comments, likes, dan diskusi project
+- 🤝 **Networking & Collaboration** - Connect sama developer yang sepikiran
+- 🌙 **Dark/Light Mode** - UI theme yang nyaman mata
+- 📱 **Responsive Design** - Perfect di semua device
+- 🏷️ **Project Categories** - Personal Web, SaaS, Landing Page, dan lainnya
+- ❤️ **Like System** - Like project yang lo suka
+- 🔍 **Discovery** - Filter dan cari project berdasarkan kategori
 
 ## Getting Started
 
@@ -21,10 +29,10 @@ VibeDev ID is Indonesia’s community for vibe coders and developers. Showcase p
 ### Installation
 
 1. Clone the repository:
-\`\`\`bash
-git clone https://github.com/julianromli/traecommunityid.git
-cd traecommunityid
-\`\`\`
+```bash
+git clone https://github.com/yourusername/vibedevid_v0.git
+cd vibedevid_v0
+```
 
 2. Install dependencies:
 \`\`\`bash
@@ -115,11 +123,23 @@ The project uses Supabase as the backend. You'll need to:
 
 ## Contributing
 
+Kami welcome kontribusi dari semua developer! 🎉
+
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Test thoroughly
-5. Submit a pull request
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Submit a pull request
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Use Tailwind CSS for styling
+- Write descriptive commit messages
+- Test your changes on both desktop and mobile
+- Maintain the informal but professional Indonesian tone in UI copy
 
 ## License
 

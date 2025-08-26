@@ -4,7 +4,18 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-VibeDev ID is a modern community platform for Indonesian developers built with Next.js 15, Supabase, and Tailwind CSS. It features user authentication, project showcases, comments, likes, and a responsive design with dark/light mode support.
+**VibeDev ID** - When the Codes Meet the Vibes 🚀
+
+VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators Indonesia yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Built with Next.js 15, Supabase, and Tailwind CSS.
+
+### Key Features:
+- Indonesian-focused developer community platform
+- User authentication with Supabase Auth
+- Project showcase dan portfolio management
+- Community interaction (comments, likes, networking)
+- Responsive design with dark/light mode support
+- SEO-optimized Indonesian content with informal but professional tone
+- Real Indonesian developer testimonials from major tech companies
 
 ## Development Commands
 
@@ -107,6 +118,11 @@ The app uses Supabase Auth with custom user profiles:
 - **File Uploads**: Configured with UploadThing for project images
 - **Alert Dialogs**: Professional confirmation dialogs using shadcn/ui Alert Dialog
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Indonesian Localization**: 
+  - SEO/LEO friendly Indonesian copy throughout the platform
+  - Informal but professional tone ("lo", "gue", "bareng") appealing to Indonesian developers
+  - Testimonials from real Indonesian tech companies (Tokopedia, Gojek, Bukalapak, Traveloka)
+  - Hero headline preserved: "When the Codes Meet the Vibes"
 
 ### Database Schema
 - **users** - User profiles extending Supabase auth
@@ -134,6 +150,12 @@ The app uses Supabase Auth with custom user profiles:
 - Server actions handle form submissions and database operations
 - Middleware manages Supabase session state across requests
 - Path aliases configured: `@/*` points to root directory
+- **Recent Updates (Latest):**
+  - Complete Indonesian localization of homepage copy
+  - Updated testimonials with relevant Indonesian developer community content
+  - SEO-optimized content for Indonesian search engines
+  - Maintained technical English terms familiar to developers
+  - Professional UX with informal Indonesian tone
 
 ## Data Login for Testing
 email: 123@gmail.com

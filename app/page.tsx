@@ -316,40 +316,40 @@ export default function HomePage() {
 
   const testimonials = [
     {
-      text: "Hype Company transformed our startup idea into a $2M ARR SaaS platform. Their technical expertise and business understanding is unmatched.",
+      text: "VibeDev ID ngubah cara gue belajar coding! Dari yang tadinya stuck sendirian, sekarang punya temen-temen yang solid buat diskusi dan kolaborasi project. Networking di sini top banget!",
       image: "https://github.com/shadcn.png",
-      name: "Sarah Chen",
-      role: "CEO, TechFlow",
+      name: "Rizki Pratama",
+      role: "Frontend Developer, Tokopedia",
     },
     {
-      text: "Working with Hype was a game-changer. They delivered our MVP in 6 weeks and helped us secure Series A funding.",
+      text: "Komunitas yang benar-benar supportive! Gue berhasil launch startup fintech pertama gue berkat feedback dan mentorship dari senior developer di VibeDev ID. Game changer banget!",
       image: "/professional-woman-dark-hair.png",
-      name: "Marcus Rodriguez",
-      role: "Founder, DataSync",
+      name: "Sari Indrawati",
+      role: "Founder, PayKita",
     },
     {
-      text: "The team's attention to detail and ability to scale our platform from 0 to 100k users was incredible.",
+      text: "Sebagai fresh graduate, VibeDev ID kasih gue exposure ke real-world projects dan code review yang berkualitas. Sekarang gue udah confident kerja di tech company besar.",
       image: "/blonde-woman-glasses.png",
-      name: "Emma Thompson",
-      role: "CTO, CloudBase",
+      name: "Amanda Putri",
+      role: "Backend Developer, Gojek",
     },
     {
-      text: "Hype doesn't just build products, they build businesses. Our revenue grew 300% after their optimization.",
+      text: "Project showcase di VibeDev ID jadi portfolio terbaik gue. Banyak recruiter yang approach gue setelah liat karya-karya yang gue share di platform ini.",
       image: "/asian-man-short-hair.png",
-      name: "David Kim",
-      role: "VP Product, InnovateLab",
+      name: "Budi Santoso",
+      role: "Full Stack Developer, Bukalapak",
     },
     {
-      text: "From concept to launch in record time. The quality and performance of our application exceeded all expectations.",
+      text: "Dari hobby project jadi bisnis yang profitable! Kolaborasi sama member VibeDev ID bikin gue nemuin co-founder yang tepat dan sekarang startup kami udah dapetin seed funding.",
       image: "https://github.com/shadcn.png",
-      name: "Alex Rivera",
-      role: "Head of Engineering, StartupX",
+      name: "Dimas Ardiansyah",
+      role: "CTO, EduTech Solutions",
     },
     {
-      text: "The strategic guidance and technical execution were flawless. They truly understand what it takes to build at scale.",
+      text: "Workshop dan tech talk di VibeDev ID selalu update dengan teknologi terbaru. Gue bisa ngikutin trend React, Next.js, sampai AI development berkat komunitas ini.",
       image: "https://github.com/shadcn.png",
-      name: "Jennifer Walsh",
-      role: "Product Manager, GrowthCo",
+      name: "Maya Sari",
+      role: "Senior React Developer, Traveloka",
     },
   ]
 
@@ -524,44 +524,44 @@ export default function HomePage() {
 
   const faqs = [
     {
-      question: "What is VibeDev ID?",
+      question: "Apa itu VibeDev ID?",
       answer:
-        "VibeDev ID is a vibrant community of developers, AI enthusiasts, and tech innovators who share the same vision and passion for building amazing digital products. We connect like-minded creators to collaborate, learn, and grow together.",
+        "VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Kami menghubungkan creator yang sepikiran untuk kolaborasi, belajar, dan berkembang bareng.",
     },
     {
-      question: "How do I join the community?",
+      question: "Gimana cara gabung komunitas?",
       answer:
-        "Joining is simple! Click the 'Join with Us' button and complete your profile. We welcome developers of all skill levels - from beginners to seasoned professionals. Our community thrives on diversity and shared learning.",
+        "Gabung gampang banget! Klik tombol 'Gabung Bersama Kami' dan lengkapi profil lo. Kami welcome developer dari semua level - dari pemula sampai professional berpengalaman. Komunitas kami berkembang dari keberagaman dan shared learning.",
     },
     {
-      question: "Is there a cost to join?",
+      question: "Ada biaya buat gabung?",
       answer:
-        "Basic membership is completely free! You get access to our community forums, project showcases, and networking opportunities. We also offer premium features for advanced collaboration tools and exclusive workshops.",
+        "Membership basic gratis total! Lo dapet akses ke community forums, project showcases, dan networking opportunities. Kami juga ada premium features untuk advanced collaboration tools dan exclusive workshops.",
     },
     {
-      question: "What kind of projects can I showcase?",
+      question: "Project seperti apa yang bisa di-showcase?",
       answer:
-        "Any digital project you're proud of! Whether it's a personal website, SaaS application, mobile app, or AI experiment - our community loves seeing creative work. We support all tech stacks and encourage innovation.",
+        "Project digital apa aja yang lo banggain! Mau itu personal website, aplikasi SaaS, mobile app, atau eksperimen AI - komunitas kami suka banget liat karya kreatif. Kami support semua tech stack dan encourage innovation.",
     },
     {
-      question: "Can I collaborate with other members?",
+      question: "Bisa kolaborasi sama member lain?",
       answer:
-        "Collaboration is at the heart of our community. Use our project boards to find teammates, join existing projects, or start your own. Many successful startups have emerged from our collaborative environment.",
+        "Kolaborasi itu inti dari komunitas kami. Pakai project boards kami buat cari teammates, join project yang udah ada, atau mulai project lo sendiri. Banyak startup sukses yang lahir dari lingkungan kolaboratif kami.",
     },
     {
-      question: "What technologies do you support?",
+      question: "Teknologi apa aja yang didukung?",
       answer:
-        "We embrace all modern technologies! Our members work with React, Next.js, Vue, Angular, Node.js, Python, AI/ML frameworks, and much more. If it's cutting-edge tech, you'll find experts here to help and collaborate with.",
+        "Kami embrace semua teknologi modern! Member kami kerja dengan React, Next.js, Vue, Angular, Node.js, Python, AI/ML frameworks, dan masih banyak lagi. Kalau itu cutting-edge tech, lo pasti nemu expert di sini yang siap bantuin dan kolaborasi.",
     },
     {
-      question: "How active is the community?",
+      question: "Seberapa aktif komunitasnya?",
       answer:
-        "Very active! With 100+ active members and growing, there's always something happening. Daily discussions, weekly showcases, monthly workshops, and ongoing project collaborations keep our community buzzing with energy.",
+        "Sangat aktif! Dengan 100+ member aktif dan terus bertambah, selalu ada yang happening. Daily discussions, weekly showcases, monthly workshops, dan ongoing project collaborations bikin komunitas kami buzzing with energy.",
     },
     {
-      question: "Do you offer mentorship or learning resources?",
+      question: "Ada mentorship atau learning resources?",
       answer:
-        "Yes! Our experienced members regularly mentor newcomers, and we host workshops, code reviews, and tech talks. Plus, our project showcase serves as a learning resource where you can study real-world implementations.",
+        "Yes! Member berpengalaman kami regularly mentor newcomers, dan kami host workshops, code reviews, dan tech talks. Plus, project showcase kami jadi learning resource di mana lo bisa study real-world implementations.",
     },
   ]
 
@@ -600,7 +600,7 @@ export default function HomePage() {
             <div className="space-y-8 text-left md:text-center lg:text-center">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/30 text-sm shadow-2xl shadow-black/10 animate-glow dark:text-white ring-1 ring-white/10">
                 <span className="w-2 h-2 bg-green-400 rounded-full mr-3 shadow-lg shadow-green-400/60 ring-2 ring-green-400/20"></span>
-                100+ Active Members
+                100+ Developer Aktif
               </div>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground leading-tight leading-10 tracking-tighter">
@@ -638,7 +638,7 @@ export default function HomePage() {
                   subtitleVisible ? "opacity-100 translate-y-0 blur-0" : "opacity-0 translate-y-8 blur-sm"
                 }`}
               >
-                {"Connecting developers, vibe coders, and AI enthusiasts with one vision and shared passion."}
+                {"Menghubungkan developer, vibe coders, dan AI enthusiasts dengan satu visi dan passion yang sama."}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-start md:justify-center lg:justify-center">
@@ -646,15 +646,15 @@ export default function HomePage() {
                   <>
                     <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
                       <ArrowRight className="h-4 w-4" />
-                      Join with Us
+                      Gabung Bersama Kami
                     </Button>
                     <Button size="lg" variant="outline" onClick={handleViewShowcase}>
-                      View Our Showcase
+                      Lihat Showcase Kami
                     </Button>
                   </>
                 ) : (
                   <Button size="lg" variant="outline" onClick={handleViewShowcase}>
-                    View Our Showcase
+                    Lihat Showcase Kami
                   </Button>
                 )}
               </div>
@@ -690,9 +690,9 @@ export default function HomePage() {
       <section className="py-12 bg-muted/30" id="projects">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tighter">Project Showcase</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tighter">Showcase Project</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover amazing projects built by our community of creators and developers
+              Temukan project keren yang dibuat oleh komunitas creator dan developer kami
             </p>
           </div>
 
@@ -706,7 +706,7 @@ export default function HomePage() {
                   onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                   className="flex items-center gap-2"
                 >
-                  Filters
+                  Filter
                   <ChevronDown className={`h-4 w-4 transition-transform ${isFiltersOpen ? "rotate-180" : ""}`} />
                 </Button>
 
@@ -821,7 +821,7 @@ export default function HomePage() {
                             className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
                             onClick={() => router.push(`/project/${project.id}`)}
                           >
-                            View Details
+                            Lihat Detail
                           </Button>
                         </div>
 
@@ -878,7 +878,7 @@ export default function HomePage() {
               projects.filter((project) => selectedFilter === "All" || project.category === selectedFilter).length && (
               <div className="text-center mt-8">
                 <Button variant="outline" onClick={() => setVisibleProjects((prev) => prev + 6)} className="px-8 py-2">
-                  Load More Projects
+                  Muat Project Lainnya
                 </Button>
               </div>
             )}
@@ -890,10 +890,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tighter">
-              What Makes Us Different
+              Apa Yang Membedakan Kami
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We don't just code. We craft digital experiences that drive results.
+              Kami tidak hanya ngoding. Kami menciptakan pengalaman digital yang memberikan hasil nyata.
             </p>
           </div>
 
@@ -905,10 +905,9 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Code className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Collaborative Coding</h3>
+                <h3 className="text-xl font-semibold mb-3">Kolaborasi Coding</h3>
                 <p className="text-muted-foreground">
-                  Code together, learn faster. Share knowledge, review code, and build amazing projects with fellow
-                  developers.
+                  Ngoding bareng, belajar lebih cepat. Share knowledge, review code, dan bikin project keren bareng sesama developer.
                 </p>
               </CardContent>
             </Card>
@@ -920,10 +919,9 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Smartphone className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Modern Tech Stack</h3>
+                <h3 className="text-xl font-semibold mb-3">Tech Stack Modern</h3>
                 <p className="text-muted-foreground">
-                  Stay ahead with cutting-edge technologies. From React to AI, explore the latest tools with expert
-                  guidance.
+                  Selalu terdepan dengan teknologi cutting-edge. Dari React sampai AI, eksplor tools terbaru dengan panduan expert.
                 </p>
               </CardContent>
             </Card>
@@ -935,10 +933,9 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Globe className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Global Community</h3>
+                <h3 className="text-xl font-semibold mb-3">Komunitas Global</h3>
                 <p className="text-muted-foreground">
-                  Connect worldwide with passionate creators. Network, collaborate, and grow your career with diverse
-                  talents.
+                  Koneksi worldwide sama creator yang passionate. Networking, kolaborasi, dan kembangkan karir lo dengan berbagai talent.
                 </p>
               </CardContent>
             </Card>
@@ -950,8 +947,8 @@ export default function HomePage() {
       <section id="reviews" className="py-20 bg-muted/30" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter">What Our Members Say</h2>
-            <p className="text-xl text-muted-foreground">Real results from real founders</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter">Kata Member Kami</h2>
+            <p className="text-xl text-muted-foreground">Hasil nyata dari para founder asli</p>
           </div>
 
           <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[600px] overflow-hidden">
@@ -967,7 +964,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter">Frequently Asked Questions</h2>
-            <p className="text-xl text-muted-foreground">Everything you need to know about joining our community</p>
+            <p className="text-xl text-muted-foreground">Semua yang perlu lo tau tentang gabung di komunitas kami</p>
           </div>
 
           <div className="space-y-4">
@@ -1081,21 +1078,20 @@ export default function HomePage() {
               {isMounted ? currentTime : "--:--:--"}
             </p>
             <h2 className="text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight">
-              Join with Another
+              Gabung Bareng
               <br />
               <span className="bg-gradient-to-r from-primary via-primary/60 to-accent dark:from-primary dark:via-accent-foreground dark:to-primary bg-clip-text text-transparent">
-                Various Developer
+                Developer Kece Lainnya
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Ready to connect with like-minded developers and creators? Join our vibrant community and let's build
-              amazing things together!
+              Siap konek sama developer dan creator yang sepikiran? Gabung komunitas vibrant kami dan ayo bikin hal-hal keren bareng!
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Join Community Now
+              Gabung Komunitas Sekarang
             </Button>
           </div>
         </div>
