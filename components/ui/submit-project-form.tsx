@@ -33,6 +33,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("")
+  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
   const handleSubmit = async (formData: FormData) => {
@@ -167,28 +168,68 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                           console.log("[v0] Upload started for file:", name)
                           setIsUploading(true)
                           setError(null)
+                          
+                          // Clear existing timeout if any
+                          if (uploadTimeout) {
+                            clearTimeout(uploadTimeout)
+                          }
+                          
+                          // Set a fallback timeout to prevent stuck state (30 seconds)
+                          const timeoutId = setTimeout(() => {
+                            console.log("[v0] Upload timeout - resetting state")
+                            setIsUploading(false)
+                            setError("Upload timed out. Please try again.")
+                          }, 30000)
+                          
+                          setUploadTimeout(timeoutId)
                         }}
                         onClientUploadComplete={(res) => {
                           console.log("[v0] Client upload completed:", res)
+                          console.log("[v0] Full response object:", JSON.stringify(res, null, 2))
+                          
+                          // Clear timeout since upload completed
+                          if (uploadTimeout) {
+                            clearTimeout(uploadTimeout)
+                            setUploadTimeout(null)
+                          }
+                          
+                          // Always set uploading to false first
                           setIsUploading(false)
-                          if (res?.[0]?.url) {
-                            console.log("[v0] Setting image URL:", res[0].url)
-                            setUploadedImageUrl(res[0].url)
+                          
+                          // Check if we have a valid response
+                          if (res && Array.isArray(res) && res.length > 0) {
+                            const uploadResult = res[0]
+                            console.log("[v0] Upload result:", uploadResult)
+                            
+                            // Try to get URL from different possible locations
+                            const imageUrl = uploadResult.url || uploadResult.fileUrl || uploadResult.key
+                            
+                            if (imageUrl) {
+                              console.log("[v0] Setting image URL:", imageUrl)
+                              setUploadedImageUrl(imageUrl)
+                            } else {
+                              console.error("[v0] No URL found in upload result:", uploadResult)
+                              setError("Upload completed but no URL received. Please try again.")
+                            }
                           } else {
-                            console.log("[v0] No URL in response:", res)
-                            setError("Upload completed but no URL received")
+                            console.error("[v0] Invalid response format:", res)
+                            setError("Upload completed but response format is invalid. Please try again.")
                           }
                         }}
                         onUploadError={(error: Error) => {
-                          console.log("[v0] Upload error:", error.message)
+                          console.error("[v0] Upload error:", error)
+                          
+                          // Clear timeout since upload failed
+                          if (uploadTimeout) {
+                            clearTimeout(uploadTimeout)
+                            setUploadTimeout(null)
+                          }
+                          
                           setIsUploading(false)
                           setError(`Upload failed: ${error.message}`)
                         }}
                         onUploadProgress={(progress) => {
                           console.log("[v0] Upload progress:", progress)
-                          if (progress === 100) {
-                            console.log("[v0] Upload reached 100%, waiting for completion callback...")
-                          }
                         }}
                         config={{
                           mode: "auto",
