@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-TRAE Community ID is a modern community platform for Indonesian developers built with Next.js 15, Supabase, and Tailwind CSS. It features user authentication, project showcases, comments, likes, and a responsive design with dark/light mode support.
+VibeDev ID is a modern community platform for Indonesian developers built with Next.js 15, Supabase, and Tailwind CSS. It features user authentication, project showcases, comments, likes, and a responsive design with dark/light mode support.
 
 ## Development Commands
 

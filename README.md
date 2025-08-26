@@ -1,6 +1,6 @@
-# TRAE Community ID
+# VibeDev ID
 
-A modern community platform built with Next.js, Supabase, and Tailwind CSS.
+VibeDev ID is Indonesia’s community for vibe coders and developers. Showcase projects, collaborate on open source, and level up across web, mobile, and AI — built with Next.js, Supabase, and Tailwind CSS.
 
 ## Features
 
