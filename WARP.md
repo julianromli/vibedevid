@@ -89,15 +89,23 @@ The app uses Supabase Auth with custom user profiles:
 
 ### UI Components (shadcn/ui)
 - **components/ui/** - Reusable UI components built on Radix UI
+  - **Alert Dialog**: Professional confirmation dialogs (e.g., delete project)
+  - **Button**: Multiple variants with loading states and icons
+  - **Form Components**: Input, Textarea, Select with proper validation
+  - **Heart Button**: Custom like/unlike functionality with animations
+  - **Navbar**: Responsive navigation with user authentication state
 - **components.json** - shadcn/ui configuration using "new-york" style
 - Uses Tailwind CSS v4 with CSS variables for theming
 
 ### Key Features Implementation
 - **User Profiles**: Extended auth.users with custom profile data in `users` table
 - **Project Management**: CRUD operations with Row Level Security policies
+  - **Inline Editing**: Real-time project editing without page navigation
+  - **Loading States**: Professional UX with loading indicators on save operations
 - **Comments System**: Supports both authenticated users and guest comments
 - **Likes System**: User engagement tracking with unique constraints
 - **File Uploads**: Configured with UploadThing for project images
+- **Alert Dialogs**: Professional confirmation dialogs using shadcn/ui Alert Dialog
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 
 ### Database Schema
