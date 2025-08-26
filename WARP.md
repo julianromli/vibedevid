@@ -9,7 +9,7 @@ TRAE Community ID is a modern community platform for Indonesian developers built
 ## Development Commands
 
 ### Setup and Installation
-```bash
+\`\`\`bash
 # Install dependencies (supports npm, pnpm, or bun)
 pnpm install
 # or npm install
@@ -17,20 +17,20 @@ pnpm install
 
 # Set up environment variables
 cp .env.example .env.local
-```
+\`\`\`
 
 ### Development Server
-```bash
+\`\`\`bash
 # Start development server with Turbopack
 pnpm dev
 # or npm run dev
 # or bun dev
 
 # Server runs on http://localhost:3000
-```
+\`\`\`
 
 ### Build and Production
-```bash
+\`\`\`bash
 # Build for production with Turbopack
 pnpm build
 # or npm run build
@@ -42,14 +42,14 @@ pnpm start
 # Build for Vercel deployment
 pnpm vercel-build
 # or npm run vercel-build
-```
+\`\`\`
 
 ### Code Quality
-```bash
+\`\`\`bash
 # Lint the codebase
 pnpm lint
 # or npm run lint
-```
+\`\`\`
 
 ## Database Setup
 
@@ -62,13 +62,13 @@ The project uses Supabase with PostgreSQL. Database schema is defined in SQL scr
 5. **05_add_foreign_key_constraints.sql** - Additional constraints
 
 ### Required Environment Variables
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-```
+\`\`\`
 
 ## Architecture Overview
 

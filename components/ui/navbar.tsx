@@ -113,7 +113,6 @@ export function Navbar({
             ) : (
               <>
                 <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
-                
               </>
             )}
           </div>
@@ -123,7 +122,6 @@ export function Navbar({
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <Link href="/" className="flex items-center gap-3">
                 <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
-                
               </Link>
             </div>
           ) : (
@@ -132,25 +130,25 @@ export function Navbar({
                 <div className="flex items-baseline space-x-8">
                   <button
                     onClick={() => scrollToSection?.("projects")}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Showcase
                   </button>
                   <button
                     onClick={() => scrollToSection?.("features")}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Features
                   </button>
                   <button
                     onClick={() => scrollToSection?.("reviews")}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Reviews
                   </button>
                   <button
                     onClick={() => scrollToSection?.("faq")}
-                    className="text-muted-foreground hover:text-foreground transition-colors text-sm cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                   >
                     FAQ
                   </button>
@@ -174,7 +172,10 @@ export function Navbar({
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full transition-all duration-300 hover:shadow-lg hover:bg-accent/50"
+                    >
                       <UserAvatar user={safeUser} size="md" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -227,7 +228,7 @@ export function Navbar({
                 scrollToSection?.("projects")
                 setIsMenuOpen(false)
               }}
-              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground"
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1"
             >
               Showcase
             </button>
@@ -236,7 +237,7 @@ export function Navbar({
                 scrollToSection?.("features")
                 setIsMenuOpen(false)
               }}
-              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground"
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1"
             >
               Features
             </button>
@@ -245,7 +246,7 @@ export function Navbar({
                 scrollToSection?.("reviews")
                 setIsMenuOpen(false)
               }}
-              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground"
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1"
             >
               Reviews
             </button>
@@ -254,7 +255,7 @@ export function Navbar({
                 scrollToSection?.("faq")
                 setIsMenuOpen(false)
               }}
-              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground"
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1"
             >
               FAQ
             </button>

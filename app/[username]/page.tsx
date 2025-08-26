@@ -65,8 +65,8 @@ async function fetchUserProjects(username: string) {
   const supabase = createClient()
 
   // Single optimized query dengan JOIN dan aggregation
-  const { data: projectsData, error } = await supabase.rpc('get_user_projects_with_stats', {
-    username_param: username
+  const { data: projectsData, error } = await supabase.rpc("get_user_projects_with_stats", {
+    username_param: username,
   })
 
   if (error) {
@@ -87,11 +87,7 @@ async function fetchUserProjectsFallback(username: string) {
   const supabase = createClient()
 
   // Get user ID once
-  const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("username", username)
-    .single()
+  const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
 
   if (userError || !user) {
     console.error("Error fetching user for projects:", userError)
@@ -121,38 +117,41 @@ async function fetchUserProjectsFallback(username: string) {
   }
 
   // Batch count queries untuk semua projects sekaligus
-  const projectIds = projects.map(p => p.id)
-  
+  const projectIds = projects.map((p) => p.id)
+
   const [likesData, viewsData, commentsData] = await Promise.all([
-    supabase
-      .from("likes")
-      .select("project_id")
-      .in("project_id", projectIds),
-    supabase
-      .from("views")
-      .select("project_id")
-      .in("project_id", projectIds),
-    supabase
-      .from("comments")
-      .select("project_id")
-      .in("project_id", projectIds)
+    supabase.from("likes").select("project_id").in("project_id", projectIds),
+    supabase.from("views").select("project_id").in("project_id", projectIds),
+    supabase.from("comments").select("project_id").in("project_id", projectIds),
   ])
 
   // Count stats per project
-  const likeCounts = likesData.data?.reduce((acc, like) => {
-    acc[like.project_id] = (acc[like.project_id] || 0) + 1
-    return acc
-  }, {} as Record<number, number>) || {}
+  const likeCounts =
+    likesData.data?.reduce(
+      (acc, like) => {
+        acc[like.project_id] = (acc[like.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
-  const viewCounts = viewsData.data?.reduce((acc, view) => {
-    acc[view.project_id] = (acc[view.project_id] || 0) + 1
-    return acc
-  }, {} as Record<number, number>) || {}
+  const viewCounts =
+    viewsData.data?.reduce(
+      (acc, view) => {
+        acc[view.project_id] = (acc[view.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
-  const commentCounts = commentsData.data?.reduce((acc, comment) => {
-    acc[comment.project_id] = (acc[comment.project_id] || 0) + 1
-    return acc
-  }, {} as Record<number, number>) || {}
+  const commentCounts =
+    commentsData.data?.reduce(
+      (acc, comment) => {
+        acc[comment.project_id] = (acc[comment.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
   return projects.map((project) => ({
     ...project,
@@ -167,13 +166,17 @@ async function fetchUserProjectsFallback(username: string) {
 async function calculateUserStats(username: string) {
   const supabase = createClient()
 
+  console.log("[v0] Calculating stats for username:", username)
+
   // First get the user ID from username
   const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
 
   if (userError || !user) {
-    console.error("Error fetching user for stats:", userError)
+    console.error("[v0] Error fetching user for stats:", userError)
     return { projects: 0, likes: 0, views: 0 }
   }
+
+  console.log("[v0] Found user ID:", user.id)
 
   // Get projects count
   const { count: projectCount } = await supabase
@@ -181,14 +184,18 @@ async function calculateUserStats(username: string) {
     .select("id", { count: "exact" })
     .eq("author_id", user.id)
 
+  console.log("[v0] Projects count:", projectCount)
+
   // Get all project IDs for this user
   const { data: userProjects } = await supabase.from("projects").select("id").eq("author_id", user.id)
 
   if (!userProjects || userProjects.length === 0) {
+    console.log("[v0] No projects found for user")
     return { projects: projectCount || 0, likes: 0, views: 0 }
   }
 
   const projectIds = userProjects.map((p) => p.id)
+  console.log("[v0] Project IDs:", projectIds)
 
   // Get total likes and views for all user projects
   const [likesResult, viewsResult] = await Promise.all([
@@ -196,11 +203,17 @@ async function calculateUserStats(username: string) {
     supabase.from("views").select("id", { count: "exact" }).in("project_id", projectIds),
   ])
 
-  return {
+  console.log("[v0] Likes count:", likesResult.count)
+  console.log("[v0] Views count:", viewsResult.count)
+
+  const stats = {
     projects: projectCount || 0,
     likes: likesResult.count || 0,
     views: viewsResult.count || 0,
   }
+
+  console.log("[v0] Final calculated stats:", stats)
+  return stats
 }
 
 export default function ProfilePage() {
@@ -218,10 +231,16 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
     const loadProfileData = async () => {
       setLoading(true)
 
       try {
+        console.log("[v0] Loading profile data for username:", username)
+
         // Check current user authentication
         const supabase = createClient()
         const {
@@ -238,18 +257,23 @@ export default function ProfilePage() {
         // Fetch profile user data
         const profileUser = await fetchUserProfile(username)
         if (!profileUser) {
+          console.log("[v0] Profile user not found")
           setLoading(false)
           return
         }
+        console.log("[v0] Profile user loaded:", profileUser.username)
         setUser(profileUser)
 
         // Fetch user projects and stats
         const [projects, stats] = await Promise.all([fetchUserProjects(username), calculateUserStats(username)])
 
+        console.log("[v0] Loaded projects count:", projects.length)
+        console.log("[v0] Loaded stats:", stats)
+
         setUserProjects(projects)
         setUserStats(stats)
       } catch (error) {
-        console.error("Error loading profile data:", error)
+        console.error("[v0] Error loading profile data:", error)
       } finally {
         setLoading(false)
       }
@@ -308,7 +332,7 @@ export default function ProfilePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <div className="flex-1 text-center md:text-left py-0"></div>
               <p className="text-muted-foreground">Loading profile...</p>
             </div>
           </div>
@@ -354,7 +378,8 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row gap-6">
             <UserAvatar user={user} size="xl" className="mx-auto md:mx-0" />
 
-            <div className="flex-1 text-center md:text-left">
+            {/* User Info Section */}
+            <div className="flex-1 text-center md:text-left py-0">
               <h1 className="text-3xl font-bold mb-2">{user.display_name || user.username}</h1>
               <p className="text-muted-foreground text-lg mb-4">@{user.username}</p>
               <p className="text-foreground mb-4 max-w-2xl">{user.bio || "No bio available"}</p>
@@ -397,22 +422,21 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Stats */}
-        <div className="flex gap-4 mb-6 justify-center md:justify-start">
-          <div className="text-center">
-            <div className="font-bold text-xl">{userStats.projects}</div>
-            <div className="text-sm text-muted-foreground">Projects</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold text-xl">{userStats.likes}</div>
-            <div className="text-sm text-muted-foreground">Likes</div>
-          </div>
-          <div className="text-center">
-            <div className="font-bold text-xl">{userStats.views}</div>
-            <div className="text-sm text-muted-foreground">Views</div>
+            <div className="flex md:flex-col gap-6 md:gap-3 justify-center md:justify-start md:items-end">
+              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
+                <div className="font-bold text-2xl text-primary">{userStats.projects}</div>
+                <div className="text-xs text-muted-foreground font-medium">Projects</div>
+              </div>
+              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
+                <div className="font-bold text-2xl text-primary">{userStats.likes}</div>
+                <div className="text-xs text-muted-foreground font-medium">Likes</div>
+              </div>
+              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
+                <div className="font-bold text-2xl text-primary">{userStats.views}</div>
+                <div className="text-xs text-muted-foreground font-medium">Views</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -424,13 +448,13 @@ export default function ProfilePage() {
               <div className="grid md:grid-cols-2 gap-6">
                 {userProjects.map((project) => (
                   <div key={project.id} className="group cursor-pointer">
-                    <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
+                    <div className="relative overflow-hidden rounded-lg bg-muted mb-4 aspect-video">
                       <img
                         src={project.thumbnail_url || "/placeholder.svg"}
                         alt={project.title}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder.svg"
                         }}

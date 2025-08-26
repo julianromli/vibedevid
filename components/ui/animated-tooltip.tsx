@@ -39,7 +39,7 @@ export const AnimatedTooltip = ({
             width={32}
             src={item.image || "/placeholder.svg"}
             alt={item.name}
-            className="object-contain !m-0 !p-0 h-8 w-8 group-hover:scale-110 group-hover:z-30 relative transition duration-300 hover:grayscale-0 cursor-pointer"
+            className="object-contain !m-0 !p-0 h-8 w-8 group-hover:z-30 relative transition duration-300 hover:grayscale-0 cursor-pointer"
           />
         </div>
       ))}

@@ -43,8 +43,8 @@ export function ThemeToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className={`relative w-10 h-10 rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 ${
-        isAnimating ? "scale-95" : "hover:scale-105"
+      className={`relative w-10 h-10 rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:border-border ${
+        isAnimating ? "shadow-inner" : ""
       }`}
     >
       <div className="relative w-5 h-5">
@@ -65,7 +65,7 @@ export function ThemeToggle() {
 
       {/* Glow effect */}
       <div
-        className={`absolute inset-0 rounded-full transition-all duration-300 ${
+        className={`absolute inset-0 rounded-full transition-all duration-500 ${
           isAnimating ? "bg-primary/20 shadow-lg shadow-primary/25" : ""
         }`}
       />

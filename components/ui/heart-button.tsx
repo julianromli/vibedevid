@@ -66,17 +66,23 @@ export function HeartButton({
       variant="ghost"
       size="sm"
       onClick={handleClick}
-      className={`flex items-center px-3 py-1 rounded-full bg-muted/50 hover:bg-muted transition-all duration-200 gap-1 ${
-        isAnimating ? "scale-110" : "scale-100"
-      } ${!isLoggedIn ? "opacity-75" : ""}`}
+      className={`flex items-center px-3 py-1 rounded-full bg-muted/50 hover:bg-muted transition-all duration-300 gap-1 hover:shadow-md ${
+        isAnimating ? "shadow-lg" : ""
+      } ${!isLoggedIn ? "opacity-75" : ""} ${isLiked ? "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800" : ""}`}
       title={!isLoggedIn ? "Sign in to like projects" : isLiked ? "Unlike this project" : "Like this project"}
     >
       <Heart
-        className={`h-4 w-4 transition-all duration-200 ${
-          isLiked ? "text-red-500 fill-red-500 scale-110" : "text-muted-foreground hover:text-red-400"
+        className={`h-4 w-4 transition-all duration-300 ${
+          isLiked ? "text-red-500 fill-red-500" : "text-muted-foreground hover:text-red-400"
         } ${isAnimating ? "animate-pulse" : ""}`}
       />
-      <span className="text-sm font-medium text-muted-foreground">{likes}</span>
+      <span
+        className={`text-sm font-medium transition-all duration-300 ${
+          isLiked ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+        }`}
+      >
+        {likes}
+      </span>
     </Button>
   )
 }

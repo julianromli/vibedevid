@@ -161,7 +161,7 @@ export default function AuthPage() {
                     size="sm"
                     onClick={() => setIsSignUp(false)}
                     className={`rounded-full px-6 py-2 text-sm transition-all duration-300 relative z-10 ${
-                      !isSignUp ? "text-background" : "text-muted-foreground hover:text-foreground"
+                      !isSignUp ? "text-background" : "text-muted-foreground"
                     }`}
                   >
                     Sign in
@@ -171,7 +171,7 @@ export default function AuthPage() {
                     size="sm"
                     onClick={() => setIsSignUp(true)}
                     className={`rounded-full px-6 py-2 text-sm transition-all duration-300 relative z-10 ${
-                      isSignUp ? "text-background" : "text-muted-foreground hover:text-foreground"
+                      isSignUp ? "text-background" : "text-muted-foreground"
                     }`}
                   >
                     Sign up

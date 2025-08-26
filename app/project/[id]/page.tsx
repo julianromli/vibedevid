@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
@@ -8,17 +8,47 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { ArrowLeft, ExternalLink, Share2, MessageCircle, Calendar, User, Globe, Tag, Loader2, Edit, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  ArrowLeft,
+  ExternalLink,
+  Share2,
+  MessageCircle,
+  Calendar,
+  User,
+  Globe,
+  Tag,
+  Loader2,
+  Edit,
+  Trash2,
+} from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/ui/navbar"
 import { createClient } from "@/lib/supabase/client"
-import { addComment, getComments, getProject, incrementProjectViews, signOut, editProject, deleteProject } from "@/lib/actions"
+import {
+  addComment,
+  getComments,
+  getProject,
+  incrementProjectViews,
+  signOut,
+  editProject,
+  deleteProject,
+} from "@/lib/actions"
 import { useRouter } from "next/navigation"
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { id } = use(params)
+  const [projectId, setProjectId] = useState<string | null>(null)
   const [project, setProject] = useState(null)
   const [newComment, setNewComment] = useState("")
   const [guestName, setGuestName] = useState("")
@@ -37,21 +67,40 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editFormData, setEditFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    website_url: '',
-    image_url: ''
+    title: "",
+    description: "",
+    category: "",
+    website_url: "",
+    image_url: "",
   })
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+
+    // Additional scroll after a short delay to ensure page is fully rendered
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [projectId]) // Added projectId dependency to trigger on route changes
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
   useEffect(() => {
-    const initializePage = async () => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setProjectId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
 
-      // Check authentication
+  useEffect(() => {
+    if (!projectId) return
+
+    const initializePage = async () => {
       const supabase = createClient()
       const {
         data: { session },
@@ -60,7 +109,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       if (session?.user) {
         setIsLoggedIn(true)
 
-        // Get user profile
         const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
 
         if (profile) {
@@ -72,8 +120,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         }
       }
 
-      // Load project data
-      const { project: projectData, error: projectError } = await getProject(id)
+      const { project: projectData, error: projectError } = await getProject(projectId)
       if (projectError) {
         console.error("Failed to load project:", projectError)
         setLoading(false)
@@ -82,35 +129,31 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
       setProject(projectData)
 
-      // Check if current user is project owner
       if (session?.user && projectData) {
-        const supabase = createClient()
         const { data: authorData } = await supabase
           .from("users")
           .select("id")
           .eq("username", projectData.author.username)
           .single()
-        
+
         if (authorData && authorData.id === session.user.id) {
           setIsProjectOwner(true)
         }
       }
 
-      // Increment view count
-      await incrementProjectViews(id)
+      await incrementProjectViews(projectId)
 
-      // Load comments
-      await loadComments(id)
+      await loadComments(projectId)
 
       setLoading(false)
     }
 
     initializePage()
-  }, [id])
+  }, [projectId])
 
   const loadComments = async (projectId?: string) => {
     if (!projectId && !project?.id) return
-    
+
     setCommentsLoading(true)
     const { comments: commentsData, error } = await getComments(projectId || project.id)
     if (error) {
@@ -167,7 +210,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       if (!isLoggedIn) {
         setGuestName("")
       }
-      // Reload comments
       await loadComments()
     }
 
@@ -189,9 +231,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
     setIsDeleting(true)
     const result = await deleteProject(project.id.toString())
-    
+
     if (result.success) {
-      // Redirect to home page after successful deletion
       router.push("/")
     } else {
       alert(result.error || "Failed to delete project")
@@ -200,13 +241,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   }
 
   const handleEditProject = () => {
-    // Pre-fill form with current project data
     setEditFormData({
-      title: project?.title || '',
-      description: project?.description || '',
-      category: project?.category || '',
-      website_url: project?.url || '',
-      image_url: project?.image || ''
+      title: project?.title || "",
+      description: project?.description || "",
+      category: project?.category || "",
+      website_url: project?.url || "",
+      image_url: project?.image || "",
     })
     setIsEditing(true)
   }
@@ -218,16 +258,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
     try {
       const formData = new FormData()
-      formData.append('title', editFormData.title)
-      formData.append('description', editFormData.description)
-      formData.append('category', editFormData.category)
-      formData.append('website_url', editFormData.website_url)
-      formData.append('image_url', editFormData.image_url)
+      formData.append("title", editFormData.title)
+      formData.append("description", editFormData.description)
+      formData.append("category", editFormData.category)
+      formData.append("website_url", editFormData.website_url)
+      formData.append("image_url", editFormData.image_url)
 
       const result = await editProject(project.id.toString(), formData)
-      
+
       if (result.success) {
-        // Reload project data
         const { project: updatedProject } = await getProject(project.id.toString())
         if (updatedProject) {
           setProject(updatedProject)
@@ -246,11 +285,11 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditFormData({
-      title: '',
-      description: '',
-      category: '',
-      website_url: '',
-      image_url: ''
+      title: "",
+      description: "",
+      category: "",
+      website_url: "",
+      image_url: "",
     })
   }
 
@@ -313,12 +352,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <div className="lg:col-span-2 space-y-8">
             {/* Project Image */}
             <div className="relative overflow-hidden rounded-xl bg-muted">
-              <img 
-                src={project.image || "/placeholder.svg"} 
-                alt={project.title} 
+              <img
+                src={project.image || "/placeholder.svg"}
+                alt={project.title}
                 loading="eager"
                 decoding="async"
-                className="w-full h-96 object-cover" 
+                className="w-full h-96 object-cover"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg"
                 }}
@@ -327,7 +366,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Project Info */}
             {isEditing ? (
-              // Edit Form
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-6">Edit Project</h3>
@@ -338,7 +376,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       <Input
                         id="edit-title"
                         value={editFormData.title}
-                        onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                        onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                         placeholder="Enter project title"
                       />
                     </div>
@@ -349,7 +387,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       <Textarea
                         id="edit-description"
                         value={editFormData.description}
-                        onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                         placeholder="Describe your project"
                         rows={4}
                       />
@@ -360,7 +398,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       <Label htmlFor="edit-category">Category *</Label>
                       <Select
                         value={editFormData.category}
-                        onValueChange={(value) => setEditFormData({...editFormData, category: value})}
+                        onValueChange={(value) => setEditFormData({ ...editFormData, category: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
@@ -386,15 +424,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         id="edit-website"
                         type="url"
                         value={editFormData.website_url}
-                        onChange={(e) => setEditFormData({...editFormData, website_url: e.target.value})}
+                        onChange={(e) => setEditFormData({ ...editFormData, website_url: e.target.value })}
                         placeholder="https://your-project.com"
                       />
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4">
-                      <Button 
-                        onClick={handleSaveEdit} 
+                      <Button
+                        onClick={handleSaveEdit}
                         disabled={!editFormData.title.trim() || !editFormData.description.trim() || isSaving}
                       >
                         {isSaving ? (
@@ -414,7 +452,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 </CardContent>
               </Card>
             ) : (
-              // Display Mode  
               <div className="space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
@@ -630,24 +667,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             <Card>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {/* Owner Actions */}
                   {isProjectOwner && (
                     <>
-                      <Button
-                        variant="outline"
-                        className="w-full bg-transparent"
-                        onClick={handleEditProject}
-                      >
+                      <Button variant="outline" className="w-full bg-transparent" onClick={handleEditProject}>
                         <Edit className="h-4 w-4 mr-2" />
                         Edit Project
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            className="w-full"
-                            disabled={isDeleting}
-                          >
+                          <Button variant="destructive" className="w-full" disabled={isDeleting}>
                             {isDeleting ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -665,13 +693,13 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                           <AlertDialogHeader>
                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your project 
-                              "{project?.title}" and remove all associated data from our servers.
+                              This action cannot be undone. This will permanently delete your project "{project?.title}"
+                              and remove all associated data from our servers.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
+                            <AlertDialogAction
                               onClick={handleDeleteProject}
                               disabled={isDeleting}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
