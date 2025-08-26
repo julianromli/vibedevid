@@ -126,3 +126,7 @@ The app uses Supabase Auth with custom user profiles:
 - Server actions handle form submissions and database operations
 - Middleware manages Supabase session state across requests
 - Path aliases configured: `@/*` points to root directory
+
+## Data Login for Testing
+email: 123@gmail.com
+password: 123456

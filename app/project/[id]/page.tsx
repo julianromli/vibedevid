@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 import { addComment, getComments, getProject, incrementProjectViews, signOut } from "@/lib/actions"
 import { useRouter } from "next/navigation"
 
-export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [project, setProject] = useState(null)
   const [newComment, setNewComment] = useState("")
@@ -31,6 +31,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
   useEffect(() => {
     const initializePage = async () => {
+      const { id } = use(params)
+
       // Check authentication
       const supabase = createClient()
       const {
@@ -52,7 +54,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       }
 
       // Load project data
-      const { project: projectData, error: projectError } = await getProject(params.id)
+      const { project: projectData, error: projectError } = await getProject(id)
       if (projectError) {
         console.error("Failed to load project:", projectError)
         setLoading(false)
@@ -62,20 +64,22 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       setProject(projectData)
 
       // Increment view count
-      await incrementProjectViews(params.id)
+      await incrementProjectViews(id)
 
       // Load comments
-      await loadComments()
+      await loadComments(id)
 
       setLoading(false)
     }
 
     initializePage()
-  }, [params.id])
+  }, [params])
 
-  const loadComments = async () => {
+  const loadComments = async (projectId?: string) => {
+    if (!projectId && !project?.id) return
+    
     setCommentsLoading(true)
-    const { comments: commentsData, error } = await getComments(params.id)
+    const { comments: commentsData, error } = await getComments(projectId || project.id)
     if (error) {
       console.error("Failed to load comments:", error)
     } else {
@@ -107,14 +111,14 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
   }
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || (!isLoggedIn && !guestName.trim())) {
+    if (!newComment.trim() || (!isLoggedIn && !guestName.trim()) || !project?.id) {
       return
     }
 
     setAddingComment(true)
 
     const formData = new FormData()
-    formData.append("projectId", params.id)
+    formData.append("projectId", project.id)
     formData.append("content", newComment.trim())
     if (!isLoggedIn) {
       formData.append("authorName", guestName.trim())
@@ -206,7 +210,16 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           <div className="lg:col-span-2 space-y-8">
             {/* Project Image */}
             <div className="relative overflow-hidden rounded-xl bg-muted">
-              <img src={project.image || "/placeholder.svg"} alt={project.title} className="w-full h-96 object-cover" />
+              <img 
+                src={project.image || "/placeholder.svg"} 
+                alt={project.title} 
+                loading="eager"
+                decoding="async"
+                className="w-full h-96 object-cover" 
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg"
+                }}
+              />
             </div>
 
             {/* Project Info */}

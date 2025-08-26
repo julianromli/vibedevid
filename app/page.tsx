@@ -92,8 +92,11 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsMounted(true)
+    // Only update time after component is mounted to avoid hydration mismatch
     const updateTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString())
+      if (typeof window !== 'undefined') {
+        setCurrentTime(new Date().toLocaleTimeString())
+      }
     }
     updateTime()
     const timeInterval = setInterval(updateTime, 1000)
@@ -154,7 +157,7 @@ export default function HomePage() {
                 session.user.email
                   ?.split("@")[0]
                   ?.toLowerCase()
-                  .replace(/[^a-z0-9]/g, "") || `user${Date.now()}`,
+                  .replace(/[^a-z0-9]/g, "") || `user${Math.floor(Math.random() * 999999)}`,
               avatar_url: session.user.user_metadata?.avatar_url || "/vibedev-guest-avatar.png",
               bio: "",
               location: "",
@@ -253,43 +256,41 @@ export default function HomePage() {
       try {
         const supabase = createClient()
 
-        const { data: projects, error } = await supabase
+        // Single JOIN query untuk better performance
+        const { data: projectsWithUsers, error } = await supabase
           .from("projects")
-          .select("*")
+          .select(`
+            *,
+            users!projects_author_id_fkey (
+              username,
+              display_name,
+              avatar_url
+            )
+          `)
           .order("created_at", { ascending: false })
+          .limit(20) // Limit initial load
 
         if (error) {
           console.error("Error fetching projects:", error)
           return
         }
 
-        const formattedProjects = []
-        for (const project of projects) {
-          const { data: user } = await supabase
-            .from("users")
-            .select("username, display_name, avatar_url")
-            .eq("id", project.author_id)
-            .single()
-
-          if (user) {
-            formattedProjects.push({
-              id: project.id.toString(),
-              title: project.title,
-              description: project.description,
-              image: project.image_url,
-              author: {
-                name: user.display_name,
-                username: user.username,
-                avatar: user.avatar_url || "/vibedev-guest-avatar.png",
-              },
-              url: project.website_url,
-              category: project.category,
-              likes: 0, // Will be updated by batch likes
-              views: 0,
-              createdAt: project.created_at,
-            })
-          }
-        }
+        const formattedProjects = projectsWithUsers.map((project) => ({
+          id: project.id.toString(),
+          title: project.title,
+          description: project.description,
+          image: project.image_url,
+          author: {
+            name: project.users?.display_name || 'Unknown',
+            username: project.users?.username || 'unknown',
+            avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
+          },
+          url: project.website_url,
+          category: project.category,
+          likes: 0, // Will be updated by batch likes
+          views: 0,
+          createdAt: project.created_at,
+        }))
 
         setProjects(formattedProjects)
 
@@ -311,22 +312,7 @@ export default function HomePage() {
     fetchProjects()
   }, [])
 
-  useEffect(() => {
-    const updateLikesData = async () => {
-      if (projects.length > 0) {
-        const projectIds = projects.map((p) => p.id)
-        const { likesData: batchLikesData, error: likesError } = await getBatchLikeStatus(projectIds)
-
-        if (!likesError && batchLikesData) {
-          setLikesData(batchLikesData)
-        }
-      }
-    }
-
-    if (projects.length > 0) {
-      updateLikesData()
-    }
-  }, [isLoggedIn, projects.length])
+  // Remove redundant likes fetching - already handled in fetchProjects
 
   const testimonials = [
     {
@@ -593,6 +579,14 @@ export default function HomePage() {
     router.push("/user/auth")
   }
 
+  const handleJoinWithUs = () => {
+    router.push("/user/auth")
+  }
+
+  const handleViewShowcase = () => {
+    scrollToSection("projects")
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Pass real auth state to Navbar */}
@@ -648,13 +642,21 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-start md:justify-center lg:justify-center">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <ArrowRight className="h-4 w-4" />
-                  Join with Us
-                </Button>
-                <Button size="lg" variant="outline">
-                  View Our Showcase
-                </Button>
+                {!isLoggedIn ? (
+                  <>
+                    <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
+                      <ArrowRight className="h-4 w-4" />
+                      Join with Us
+                    </Button>
+                    <Button size="lg" variant="outline" onClick={handleViewShowcase}>
+                      View Our Showcase
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="lg" variant="outline" onClick={handleViewShowcase}>
+                    View Our Showcase
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -804,7 +806,12 @@ export default function HomePage() {
                         <img
                           src={project.image || "/vibedev-guest-avatar.png"}
                           alt={project.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => {
+                            e.currentTarget.src = "/vibedev-guest-avatar.png"
+                          }}
                         />
 
                         {/* Hover Overlay */}

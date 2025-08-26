@@ -64,15 +64,41 @@ async function fetchUserProfile(username: string) {
 async function fetchUserProjects(username: string) {
   const supabase = createClient()
 
-  // First get the user ID from username
-  const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
+  // Single optimized query dengan JOIN dan aggregation
+  const { data: projectsData, error } = await supabase.rpc('get_user_projects_with_stats', {
+    username_param: username
+  })
+
+  if (error) {
+    console.warn("RPC not available, falling back to regular queries:", error)
+    // Fallback to regular queries if RPC doesn't exist
+    return await fetchUserProjectsFallback(username)
+  }
+
+  return (projectsData || []).map((project: any) => ({
+    ...project,
+    thumbnail_url: project.image_url,
+    url: project.website_url,
+  }))
+}
+
+// Fallback function dengan optimized queries
+async function fetchUserProjectsFallback(username: string) {
+  const supabase = createClient()
+
+  // Get user ID once
+  const { data: user, error: userError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", username)
+    .single()
 
   if (userError || !user) {
     console.error("Error fetching user for projects:", userError)
     return []
   }
 
-  // Then get projects by author_id
+  // Get projects with basic info
   const { data: projects, error } = await supabase
     .from("projects")
     .select(`
@@ -88,33 +114,54 @@ async function fetchUserProjects(username: string) {
     `)
     .eq("author_id", user.id)
     .order("created_at", { ascending: false })
+    .limit(10) // Limit untuk performance
 
-  if (error) {
-    console.error("Error fetching user projects:", error)
+  if (error || !projects?.length) {
     return []
   }
 
-  // Get likes and views counts for each project
-  const projectsWithStats = await Promise.all(
-    (projects || []).map(async (project) => {
-      const [likesResult, viewsResult, commentsResult] = await Promise.all([
-        supabase.from("likes").select("id", { count: "exact" }).eq("project_id", project.id),
-        supabase.from("views").select("id", { count: "exact" }).eq("project_id", project.id),
-        supabase.from("comments").select("id", { count: "exact" }).eq("project_id", project.id),
-      ])
+  // Batch count queries untuk semua projects sekaligus
+  const projectIds = projects.map(p => p.id)
+  
+  const [likesData, viewsData, commentsData] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("project_id")
+      .in("project_id", projectIds),
+    supabase
+      .from("views")
+      .select("project_id")
+      .in("project_id", projectIds),
+    supabase
+      .from("comments")
+      .select("project_id")
+      .in("project_id", projectIds)
+  ])
 
-      return {
-        ...project,
-        likes_count: likesResult.count || 0,
-        views_count: viewsResult.count || 0,
-        comments_count: commentsResult.count || 0,
-        thumbnail_url: project.image_url, // Use image_url as thumbnail_url
-        url: project.website_url, // Use website_url as url
-      }
-    }),
-  )
+  // Count stats per project
+  const likeCounts = likesData.data?.reduce((acc, like) => {
+    acc[like.project_id] = (acc[like.project_id] || 0) + 1
+    return acc
+  }, {} as Record<number, number>) || {}
 
-  return projectsWithStats
+  const viewCounts = viewsData.data?.reduce((acc, view) => {
+    acc[view.project_id] = (acc[view.project_id] || 0) + 1
+    return acc
+  }, {} as Record<number, number>) || {}
+
+  const commentCounts = commentsData.data?.reduce((acc, comment) => {
+    acc[comment.project_id] = (acc[comment.project_id] || 0) + 1
+    return acc
+  }, {} as Record<number, number>) || {}
+
+  return projects.map((project) => ({
+    ...project,
+    likes_count: likeCounts[project.id] || 0,
+    views_count: viewCounts[project.id] || 0,
+    comments_count: commentCounts[project.id] || 0,
+    thumbnail_url: project.image_url,
+    url: project.website_url,
+  }))
 }
 
 async function calculateUserStats(username: string) {
@@ -381,7 +428,12 @@ export default function ProfilePage() {
                       <img
                         src={project.thumbnail_url || "/placeholder.svg"}
                         alt={project.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <Button variant="secondary" size="sm" asChild>
