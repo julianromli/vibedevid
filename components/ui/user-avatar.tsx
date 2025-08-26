@@ -51,8 +51,7 @@ export function UserAvatar({
         return
       }
 
-      // Use avatar_url or avatar field, with fallback to placeholder
-      const initialUrl = user.avatar_url || user.avatar || "/placeholder.svg"
+      const initialUrl = user.avatar_url || user.avatar || "/vibedev-guest-avatar.png"
 
       // If user has an ID, fetch fresh avatar from database
       if (user.id) {
@@ -96,7 +95,7 @@ export function UserAvatar({
     <div className="relative">
       <Avatar className={cn(sizeClasses[size], className)}>
         <AvatarImage
-          src={avatarUrl || "/placeholder.svg"}
+          src={avatarUrl || "/vibedev-guest-avatar.png"}
           alt={user?.display_name || user?.name || user?.username || "User"}
           className="object-cover"
         />

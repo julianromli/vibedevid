@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { signOut } from "@/lib/actions"
 import AnimatedTooltip from "@/components/ui/animated-tooltip"
+import { getBatchLikeStatus } from "@/lib/actions"
 
 const Safari = ({ children, url = "trae.ai" }) => {
   return (
@@ -55,7 +56,7 @@ const Safari = ({ children, url = "trae.ai" }) => {
   )
 }
 
-export default function LandingPage() {
+export default function HomePage() {
   const router = useRouter()
   const [isVisible, setIsVisible] = useState({
     hero: false,
@@ -87,6 +88,7 @@ export default function LandingPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState("")
   const [isMounted, setIsMounted] = useState(false)
+  const [likesData, setLikesData] = useState<Record<string, { totalLikes: number; isLiked: boolean }>>({})
 
   useEffect(() => {
     setIsMounted(true)
@@ -102,7 +104,7 @@ export default function LandingPage() {
   // Separate useEffect for authentication
   useEffect(() => {
     let isMounted = true
-    
+
     const checkAuth = async () => {
       try {
         console.log("[v0] Checking authentication state...")
@@ -131,7 +133,7 @@ export default function LandingPage() {
             const userData = {
               name: profile.display_name,
               email: session.user.email || "",
-              avatar: profile.avatar_url || "/placeholder.svg",
+              avatar: profile.avatar_url || "/vibedev-guest-avatar.png",
               username: profile.username,
             }
             console.log("[v0] Setting user data:", userData)
@@ -153,7 +155,7 @@ export default function LandingPage() {
                   ?.split("@")[0]
                   ?.toLowerCase()
                   .replace(/[^a-z0-9]/g, "") || `user${Date.now()}`,
-              avatar_url: session.user.user_metadata?.avatar_url || "/placeholder.svg",
+              avatar_url: session.user.user_metadata?.avatar_url || "/vibedev-guest-avatar.png",
               bio: "",
               location: "",
               website: "",
@@ -225,7 +227,7 @@ export default function LandingPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return
-      
+
       console.log("[v0] Auth state change:", event, session)
       if (event === "SIGNED_IN" && session) {
         console.log("[v0] User signed in, updating state")
@@ -247,64 +249,84 @@ export default function LandingPage() {
 
   // Separate useEffect for fetching projects
   useEffect(() => {
-    let isMounted = true
-    
     const fetchProjects = async () => {
       try {
         const supabase = createClient()
-        const { data: projectsData, error } = await supabase
-          .from("projects")
-          .select(`
-            *,
-            users!projects_author_id_fkey (
-              username,
-              display_name,
-              avatar_url
-            ),
-            likes (count),
-            views (count)
-          `)
-          .order("created_at", { ascending: false })
 
-        if (!isMounted) return
+        const { data: projects, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("created_at", { ascending: false })
 
         if (error) {
           console.error("Error fetching projects:", error)
-          setProjects([])
-        } else {
-          const formattedProjects = projectsData.map((project) => ({
-            id: project.id,
-            title: project.title,
-            image: project.image_url,
-            author: {
-              name: project.users.display_name,
-              username: project.users.username,
-              avatar: project.users.avatar_url || "/placeholder.svg",
-            },
-            likes: project.likes?.[0]?.count || 0,
-            views: project.views?.[0]?.count || 0,
-            category: project.category,
-            website_url: project.website_url,
-          }))
-          setProjects(formattedProjects)
+          return
+        }
+
+        const formattedProjects = []
+        for (const project of projects) {
+          const { data: user } = await supabase
+            .from("users")
+            .select("username, display_name, avatar_url")
+            .eq("id", project.author_id)
+            .single()
+
+          if (user) {
+            formattedProjects.push({
+              id: project.id.toString(),
+              title: project.title,
+              description: project.description,
+              image: project.image_url,
+              author: {
+                name: user.display_name,
+                username: user.username,
+                avatar: user.avatar_url || "/vibedev-guest-avatar.png",
+              },
+              url: project.website_url,
+              category: project.category,
+              likes: 0, // Will be updated by batch likes
+              views: 0,
+              createdAt: project.created_at,
+            })
+          }
+        }
+
+        setProjects(formattedProjects)
+
+        if (formattedProjects.length > 0) {
+          const projectIds = formattedProjects.map((p) => p.id)
+          const { likesData: batchLikesData, error: likesError } = await getBatchLikeStatus(projectIds)
+
+          if (!likesError && batchLikesData) {
+            setLikesData(batchLikesData)
+          }
         }
       } catch (error) {
-        if (!isMounted) return
-        console.error("Error in fetchProjects:", error)
-        setProjects([])
+        console.error("Error fetching projects:", error)
       } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
+        setLoading(false)
       }
     }
 
     fetchProjects()
-
-    return () => {
-      isMounted = false
-    }
   }, [])
+
+  useEffect(() => {
+    const updateLikesData = async () => {
+      if (projects.length > 0) {
+        const projectIds = projects.map((p) => p.id)
+        const { likesData: batchLikesData, error: likesError } = await getBatchLikeStatus(projectIds)
+
+        if (!likesError && batchLikesData) {
+          setLikesData(batchLikesData)
+        }
+      }
+    }
+
+    if (projects.length > 0) {
+      updateLikesData()
+    }
+  }, [isLoggedIn, projects.length])
 
   const testimonials = [
     {
@@ -771,7 +793,7 @@ export default function LandingPage() {
                       {/* Thumbnail Preview Section */}
                       <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
                         <img
-                          src={project.image || "/placeholder.svg"}
+                          src={project.image || "/vibedev-guest-avatar.png"}
                           alt={project.title}
                           className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                         />
@@ -809,19 +831,23 @@ export default function LandingPage() {
                               className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
                             >
                               <img
-                                src={project.author.avatar || "/placeholder.svg"}
+                                src={project.author.avatar || "/vibedev-guest-avatar.png"}
                                 alt={project.author.name}
                                 className="w-8 h-8 rounded-full object-cover ring-2 ring-muted"
                               />
                               <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
                             </Link>
                           </div>
-
                           <HeartButton
                             projectId={project.id}
-                            initialLikes={project.likes}
+                            initialLikes={likesData[project.id]?.totalLikes || 0}
+                            initialIsLiked={likesData[project.id]?.isLiked || false}
+                            isLoggedIn={isLoggedIn}
                             onLikeChange={(newLikes, isLiked) => {
-                              console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
+                              setLikesData((prev) => ({
+                                ...prev,
+                                [project.id]: { totalLikes: newLikes, isLiked },
+                              }))
                             }}
                           />
                         </div>
@@ -1063,9 +1089,7 @@ export default function LandingPage() {
       <footer className="py-12 bg-muted/50 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-sm text-muted-foreground mb-4 md:mb-0">
-              © 2025 TRAE Community ID. All Rights Reserved.
-            </div>
+            <div className="text-sm text-muted-foreground mb-4 md:mb-0">© 2025 VibeDev ID. All Rights Reserved.</div>
             <div className="flex space-x-6 text-sm">
               <Drawer open={isPrivacyDrawerOpen} onOpenChange={setIsPrivacyDrawerOpen}>
                 <DrawerTrigger asChild>

@@ -6,26 +6,22 @@ import { redirect } from "next/navigation"
 
 async function createClient() {
   const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
+  })
 }
 
 export async function signIn(prevState: any, formData: FormData) {
@@ -179,9 +175,9 @@ export async function addComment(formData: FormData) {
 
   try {
     const { error } = await supabase.from("comments").insert({
-      project_id: projectId,
-      user_id: session?.user?.id || null,
-      author_name: session?.user ? null : authorName,
+      project_id: Number.parseInt(projectId),
+      user_id: user?.id || null,
+      author_name: user ? null : authorName,
       content: content.trim(),
     })
 
@@ -209,7 +205,7 @@ export async function getComments(projectId: string) {
           avatar_url
         )
       `)
-      .eq("project_id", projectId)
+      .eq("project_id", Number.parseInt(projectId))
       .order("created_at", { ascending: false })
 
     if (error) {
@@ -237,27 +233,37 @@ export async function getProject(projectId: string) {
   const supabase = await createClient()
 
   try {
-    const { data: project, error } = await supabase
+    const { data: project, error: projectError } = await supabase
       .from("projects")
-      .select(`
-        *,
-        users!projects_author_id_fkey (
-          username,
-          display_name,
-          avatar_url,
-          bio,
-          location
-        ),
-        likes (count),
-        views (count)
-      `)
-      .eq("id", projectId)
+      .select("*")
+      .eq("id", Number.parseInt(projectId))
       .single()
 
-    if (error) {
-      console.error("Get project error:", error)
-      return { project: null, error: error.message }
+    if (projectError) {
+      console.error("Get project error:", projectError)
+      return { project: null, error: projectError.message }
     }
+
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("username, display_name, avatar_url, bio, location")
+      .eq("id", project.author_id)
+      .single()
+
+    if (userError) {
+      console.error("Get user error:", userError)
+      return { project: null, error: userError.message }
+    }
+
+    const { count: likesCount } = await supabase
+      .from("likes")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", project.id)
+
+    const { count: viewsCount } = await supabase
+      .from("views")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", project.id)
 
     const formattedProject = {
       id: project.id,
@@ -266,17 +272,17 @@ export async function getProject(projectId: string) {
       fullDescription: project.description, // Use same description for now
       image: project.image_url,
       author: {
-        name: project.users.display_name,
-        username: project.users.username,
-        avatar: project.users.avatar_url || "/placeholder.svg",
-        bio: project.users.bio || "Community member",
-        location: project.users.location || "Unknown location",
+        name: user.display_name,
+        username: user.username,
+        avatar: user.avatar_url || "/placeholder.svg",
+        bio: user.bio || "Community member",
+        location: user.location || "Unknown location",
       },
       url: project.website_url,
       category: project.category,
       tags: ["Next.js", "React", "TypeScript"], // Default tags for now
-      likes: project.likes?.[0]?.count || 0,
-      views: project.views?.[0]?.count || 0,
+      likes: likesCount || 0,
+      views: viewsCount || 0,
       createdAt: project.created_at,
     }
 
@@ -294,9 +300,8 @@ export async function incrementProjectViews(projectId: string) {
   } = await supabase.auth.getSession()
 
   try {
-    // Add a view record
     await supabase.from("views").insert({
-      project_id: projectId,
+      project_id: Number.parseInt(projectId),
       user_id: session?.user?.id || null,
       ip_address: null, // We'll skip IP tracking for now
     })
@@ -316,21 +321,20 @@ export async function toggleLike(projectId: string) {
   }
 
   try {
-    // Check if user already liked this project
+    const projectIdInt = Number.parseInt(projectId)
+
     const { data: existingLike, error: checkError } = await supabase
       .from("likes")
       .select("id")
-      .eq("project_id", projectId)
+      .eq("project_id", projectIdInt)
       .eq("user_id", session.user.id)
       .single()
 
     if (checkError && checkError.code !== "PGRST116") {
-      // PGRST116 is "not found" error, which is expected if no like exists
       return { error: checkError.message }
     }
 
     if (existingLike) {
-      // Unlike: remove the like
       const { error: deleteError } = await supabase.from("likes").delete().eq("id", existingLike.id)
 
       if (deleteError) {
@@ -339,9 +343,8 @@ export async function toggleLike(projectId: string) {
 
       return { success: true, isLiked: false }
     } else {
-      // Like: add a new like
       const { error: insertError } = await supabase.from("likes").insert({
-        project_id: projectId,
+        project_id: projectIdInt,
         user_id: session.user.id,
       })
 
@@ -357,36 +360,50 @@ export async function toggleLike(projectId: string) {
   }
 }
 
-export async function getLikeStatus(projectId: string) {
+export async function getLikeStatus(projectId: string | number) {
   const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   try {
-    // Get total likes count
+    if (
+      !projectId ||
+      (typeof projectId === "string" && projectId.trim() === "") ||
+      (typeof projectId === "number" && isNaN(projectId))
+    ) {
+      console.error("Get like status error: projectId is required")
+      return { totalLikes: 0, isLiked: false, error: "Project ID is required" }
+    }
+
+    const projectIdInt = typeof projectId === "number" ? projectId : Number.parseInt(projectId.toString())
+
+    if (isNaN(projectIdInt)) {
+      console.error("Get like status error: Invalid project ID format:", projectId)
+      return { totalLikes: 0, isLiked: false, error: "Invalid project ID format" }
+    }
+
     const { count: totalLikes, error: countError } = await supabase
       .from("likes")
       .select("*", { count: "exact", head: true })
-      .eq("project_id", projectId)
+      .eq("project_id", projectIdInt)
 
     if (countError) {
-      console.error("Get likes count error:", countError)
+      console.error("Get likes count error:", countError.message, countError.details)
       return { totalLikes: 0, isLiked: false, error: countError.message }
     }
 
-    // Check if current user liked this project (if logged in)
     let isLiked = false
     if (session?.user) {
       const { data: userLike, error: userLikeError } = await supabase
         .from("likes")
         .select("id")
-        .eq("project_id", projectId)
+        .eq("project_id", projectIdInt)
         .eq("user_id", session.user.id)
         .single()
 
       if (userLikeError && userLikeError.code !== "PGRST116") {
-        console.error("Get user like status error:", userLikeError)
+        console.error("Get user like status error:", userLikeError.message, userLikeError.details)
       } else if (userLike) {
         isLiked = true
       }
@@ -436,5 +453,53 @@ export async function signInWithGitHub() {
 
   if (data.url) {
     redirect(data.url)
+  }
+}
+
+export async function getBatchLikeStatus(projectIds: (string | number)[]) {
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  try {
+    if (!projectIds || projectIds.length === 0) {
+      return { likesData: {}, error: null }
+    }
+
+    const projectIdsInt = projectIds
+      .map((id) => (typeof id === "number" ? id : Number.parseInt(id.toString())))
+      .filter((id) => !isNaN(id))
+
+    if (projectIdsInt.length === 0) {
+      return { likesData: {}, error: "No valid project IDs provided" }
+    }
+
+    // Get all likes for these projects in one query
+    const { data: allLikes, error: likesError } = await supabase
+      .from("likes")
+      .select("project_id, user_id")
+      .in("project_id", projectIdsInt)
+
+    if (likesError) {
+      console.error("Get batch likes error:", likesError)
+      return { likesData: {}, error: likesError.message }
+    }
+
+    // Process the data
+    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
+
+    projectIdsInt.forEach((projectId) => {
+      const projectLikes = allLikes?.filter((like) => like.project_id === projectId) || []
+      const totalLikes = projectLikes.length
+      const isLiked = session?.user ? projectLikes.some((like) => like.user_id === session.user.id) : false
+
+      likesData[projectId.toString()] = { totalLikes, isLiked }
+    })
+
+    return { likesData, error: null }
+  } catch (error) {
+    console.error("Get batch like status error:", error)
+    return { likesData: {}, error: "Failed to load likes data" }
   }
 }

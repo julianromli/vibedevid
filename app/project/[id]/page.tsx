@@ -219,7 +219,9 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     </span>
                     <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {isMounted && project?.createdAt ? new Date(project.createdAt).toLocaleDateString() : "Loading..."}
+                      {isMounted && project?.createdAt
+                        ? new Date(project.createdAt).toLocaleDateString()
+                        : "Loading..."}
                     </span>
                   </div>
                   <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>
@@ -338,7 +340,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <img
-                            src={comment.avatar || "/placeholder.svg"}
+                            src={comment.isGuest ? "/vibedev-guest-avatar.png" : comment.avatar || "/placeholder.svg"}
                             alt={comment.author}
                             className="w-8 h-8 rounded-full"
                           />

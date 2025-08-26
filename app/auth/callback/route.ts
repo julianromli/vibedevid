@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
                 ?.split("@")[0]
                 ?.toLowerCase()
                 .replace(/[^a-z0-9]/g, "") || `user${user.id.slice(0, 8)}`,
-            avatar_url: user.user_metadata?.avatar_url || null,
+            avatar_url: user.user_metadata?.avatar_url || "/vibedev-guest-avatar.png",
             created_at: new Date().toISOString(),
           })
         }

@@ -64,48 +64,95 @@ async function fetchUserProfile(username: string) {
 async function fetchUserProjects(username: string) {
   const supabase = createClient()
 
+  // First get the user ID from username
+  const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
+
+  if (userError || !user) {
+    console.error("Error fetching user for projects:", userError)
+    return []
+  }
+
+  // Then get projects by author_id
   const { data: projects, error } = await supabase
     .from("projects")
     .select(`
-      *,
-      users!inner(username)
+      id,
+      title,
+      description,
+      category,
+      website_url,
+      image_url,
+      author_id,
+      created_at,
+      updated_at
     `)
-    .eq("users.username", username)
+    .eq("author_id", user.id)
+    .order("created_at", { ascending: false })
 
   if (error) {
     console.error("Error fetching user projects:", error)
     return []
   }
 
-  return projects || []
+  // Get likes and views counts for each project
+  const projectsWithStats = await Promise.all(
+    (projects || []).map(async (project) => {
+      const [likesResult, viewsResult, commentsResult] = await Promise.all([
+        supabase.from("likes").select("id", { count: "exact" }).eq("project_id", project.id),
+        supabase.from("views").select("id", { count: "exact" }).eq("project_id", project.id),
+        supabase.from("comments").select("id", { count: "exact" }).eq("project_id", project.id),
+      ])
+
+      return {
+        ...project,
+        likes_count: likesResult.count || 0,
+        views_count: viewsResult.count || 0,
+        comments_count: commentsResult.count || 0,
+        thumbnail_url: project.image_url, // Use image_url as thumbnail_url
+        url: project.website_url, // Use website_url as url
+      }
+    }),
+  )
+
+  return projectsWithStats
 }
 
 async function calculateUserStats(username: string) {
   const supabase = createClient()
 
-  // Get user projects with likes and views
-  const { data: projects } = await supabase
-    .from("projects")
-    .select(`
-      id,
-      likes_count,
-      views_count,
-      users!inner(username)
-    `)
-    .eq("users.username", username)
+  // First get the user ID from username
+  const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
 
-  if (!projects) {
+  if (userError || !user) {
+    console.error("Error fetching user for stats:", userError)
     return { projects: 0, likes: 0, views: 0 }
   }
 
-  const totalLikes = projects.reduce((sum, project) => sum + (project.likes_count || 0), 0)
-  const totalViews = projects.reduce((sum, project) => sum + (project.views_count || 0), 0)
-  const projectCount = projects.length
+  // Get projects count
+  const { count: projectCount } = await supabase
+    .from("projects")
+    .select("id", { count: "exact" })
+    .eq("author_id", user.id)
+
+  // Get all project IDs for this user
+  const { data: userProjects } = await supabase.from("projects").select("id").eq("author_id", user.id)
+
+  if (!userProjects || userProjects.length === 0) {
+    return { projects: projectCount || 0, likes: 0, views: 0 }
+  }
+
+  const projectIds = userProjects.map((p) => p.id)
+
+  // Get total likes and views for all user projects
+  const [likesResult, viewsResult] = await Promise.all([
+    supabase.from("likes").select("id", { count: "exact" }).in("project_id", projectIds),
+    supabase.from("views").select("id", { count: "exact" }).in("project_id", projectIds),
+  ])
 
   return {
-    projects: projectCount,
-    likes: totalLikes,
-    views: totalViews,
+    projects: projectCount || 0,
+    likes: likesResult.count || 0,
+    views: viewsResult.count || 0,
   }
 }
 
@@ -338,7 +385,7 @@ export default function ProfilePage() {
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <Button variant="secondary" size="sm" asChild>
-                          <a href={project.url || "#"} target="_blank" rel="noopener noreferrer">
+                          <a href={`/project/${project.id}`}>
                             <ExternalLink className="h-4 w-4 mr-2" />
                             View Project
                           </a>

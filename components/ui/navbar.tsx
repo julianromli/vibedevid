@@ -112,12 +112,8 @@ export function Navbar({
               </Link>
             ) : (
               <>
-                <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/trae-color-glPzZeyKiOpfe7lJ0rYz78T4WDdPS9.svg"
-                  alt="Trae Logo"
-                  className="w-8 h-8"
-                />
-                <div className="text-xl font-semibold text-foreground font-mono tracking-tight">TRAE Community ID</div>
+                <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
+                
               </>
             )}
           </div>
@@ -126,12 +122,8 @@ export function Navbar({
           {showBackButton ? (
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <Link href="/" className="flex items-center gap-3">
-                <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/trae-color-glPzZeyKiOpfe7lJ0rYz78T4WDdPS9.svg"
-                  alt="Trae Community ID Logo"
-                  className="w-8 h-8"
-                />
-                <span className="text-xl font-bold text-foreground font-mono tracking-tight">TRAE Community ID</span>
+                <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
+                
               </Link>
             </div>
           ) : (
