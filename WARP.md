@@ -142,6 +142,74 @@ The app uses Supabase Auth with custom user profiles:
 - Custom CSS variables for consistent theming
 - Support for dark/light mode via next-themes
 - Geist font family (Sans, Mono, and Instrument Serif)
+- **Grid Pattern Background System** - Consistent visual identity across all pages
+
+## UI Design System Rules
+
+### 🎨 **MANDATORY: Background Pattern for All Pages**
+
+**RULE: Every new page MUST use the standardized 3-layer background system**
+
+#### Required Implementation:
+```tsx
+// ALWAYS use this exact pattern for new pages
+<div className="min-h-screen bg-grid-pattern relative">
+  {/* Layer 1: Background Gradient Overlay - MANDATORY */}
+  <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+  
+  {/* Layer 2: Content Container - MANDATORY */}
+  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+    {/* Your page content here */}
+  </div>
+</div>
+```
+
+#### Apply to ALL Page States:
+- ✅ **Main Content** - Primary page view
+- ✅ **Loading States** - Skeleton loaders, loading indicators
+- ✅ **Error States** - 404, user not found, project not found
+- ✅ **Empty States** - No data, no projects, etc.
+
+#### Background System Components:
+1. **Base Layer**: `bg-grid-pattern` - CSS-defined minimalist grid dots
+   - Light mode: Black dots (rgba(0,0,0,0.4))
+   - Dark mode: White dots (rgba(255,255,255,0.3))
+   - Grid size: 20x20px spacing
+
+2. **Overlay Layer**: `bg-gradient-to-br from-background/50 via-muted/30 to-background/80`
+   - Creates depth and softens the grid pattern
+   - Theme-adaptive colors using CSS variables
+
+3. **Content Layer**: `relative` positioning for proper z-index stacking
+
+#### Pages Currently Implemented:
+- ✅ `app/user/auth` (Authentication pages)
+- ✅ `app/project/submit` (Project submission)
+- ✅ `app/project/[id]` (Project details)
+- ✅ `app/[username]` (User profiles)
+
+#### CSS Definition Location:
+```css
+/* Located in app/globals.css lines 231-239 */
+.bg-grid-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.4) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.dark .bg-grid-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.3) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+```
+
+#### Benefits:
+- **Visual Consistency**: Professional, modern aesthetic across all pages
+- **Theme Adaptive**: Automatically works with light/dark mode
+- **Performance**: CSS-only solution, no image assets
+- **Accessibility**: Subtle pattern doesn't interfere with content readability
+- **Brand Identity**: Creates recognizable VibeDev ID visual signature
+
+---
 
 ## Development Notes
 
@@ -156,6 +224,7 @@ The app uses Supabase Auth with custom user profiles:
   - SEO-optimized content for Indonesian search engines
   - Maintained technical English terms familiar to developers
   - Professional UX with informal Indonesian tone
+  - **Background System Standardization** - Grid pattern applied across all pages
 
 ## Data Login for Testing
 email: 123@gmail.com
