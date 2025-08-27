@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { UserAvatar } from "@/components/ui/user-avatar"
+import { AdaptiveLogo } from "@/components/ui/adaptive-logo"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,9 +112,7 @@ export function Navbar({
                 </Button>
               </Link>
             ) : (
-              <>
-                <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
-              </>
+              <AdaptiveLogo />
             )}
           </div>
 
@@ -121,7 +120,7 @@ export function Navbar({
           {showBackButton ? (
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <Link href="/" className="flex items-center gap-3">
-                <img src="/vibedevid-logo.svg" alt="VibeDev ID Logo" className="w-auto h-8" />
+                <AdaptiveLogo />
               </Link>
             </div>
           ) : (
