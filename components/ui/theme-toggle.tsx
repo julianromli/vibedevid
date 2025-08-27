@@ -43,7 +43,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className={`relative w-10 h-10 rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:border-border ${
+      className={`relative w-9 h-9 rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:border-border ${
         isAnimating ? "shadow-inner" : ""
       }`}
     >

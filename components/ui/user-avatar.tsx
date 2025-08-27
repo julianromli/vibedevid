@@ -22,7 +22,7 @@ interface UserAvatarProps {
 
 const sizeClasses = {
   sm: "h-8 w-8",
-  md: "h-10 w-10",
+  md: "h-9 w-9", // Changed from h-10 w-10 to meet 36px max requirement
   lg: "h-16 w-16",
   xl: "h-32 w-32",
 }
