@@ -1,11 +1,21 @@
-# COPY THESE EXACT VALUES TO VERCEL ENVIRONMENT VARIABLES
+# ENVIRONMENT VARIABLES FOR VERCEL DEPLOYMENT
 # Go to Vercel Dashboard > Your Project > Settings > Environment Variables
 
-NEXT_PUBLIC_SUPABASE_URL=https://qabfrhpbfvjcgdrxdlba.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYmZyaHBiZnZqY2dkcnhkbGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MDAxNzcsImV4cCI6MjA3MTI3NjE3N30.hWHOyuuTBbTQx7UhOiUMJcVkMIXzOlxONRvHYkSGJOU
-UPLOADTHING_TOKEN=eyJhcGlLZXkiOiJza19saXZlX2RhNGVjNTdkMWQ4ZWUzYmViMmJjYzI2N2I5MzU2ZGUzOTM1OTg3NjAwYmZhYjViNGRmZTdkOTY3YTEyYjJkNjgiLCJhcHBJZCI6ImVseXFsMXE4YmUiLCJyZWdpb25zIjpbInNlYTEiXX0=
+# Required environment variables:
+# Copy these variable names and add your actual values in Vercel
 
-# IMPORTANT: 
-# 1. Make sure NEXT_PUBLIC_SUPABASE_URL starts with https://
-# 2. Do NOT use any other values like "sb_publishable_..." for the URL
-# 3. Copy these values EXACTLY as shown
+NEXT_PUBLIC_SUPABASE_URL          # Your Supabase project URL (https://xxxx.supabase.co)
+NEXT_PUBLIC_SUPABASE_ANON_KEY     # Your Supabase anonymous key
+UPLOADTHING_TOKEN                 # Your UploadThing API token
+
+# Optional environment variables:
+NEXT_PUBLIC_SITE_URL              # Your production URL (e.g., https://vibedev.id)
+NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL  # OAuth redirect URL
+
+# IMPORTANT NOTES:
+# 1. NEXT_PUBLIC_SUPABASE_URL must be a valid URL starting with https://
+# 2. Do NOT use placeholder values like "sb_publishable_..." for the URL
+# 3. Get your actual values from:
+#    - Supabase: Project Settings > API
+#    - UploadThing: Dashboard > API Keys
+# 4. Keep UPLOADTHING_TOKEN and SUPABASE_SERVICE_ROLE_KEY private (don't expose in client code)

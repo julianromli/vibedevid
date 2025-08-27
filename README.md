@@ -44,18 +44,19 @@ bun install
 \`\`\`
 
 3. Set up environment variables:
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
+```bash
+cp .env.local.example .env.local
+```
 
 4. Update `.env.local` with your Supabase credentials:
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+UPLOADTHING_TOKEN=your-uploadthing-token-here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-\`\`\`
+```
 
 5. Set up the database:
    - Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
@@ -89,7 +90,8 @@ The project uses Supabase as the backend. You'll need to:
 |----------|-------------|----------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (keep secret!) | Yes |
+| `UPLOADTHING_TOKEN` | Your UploadThing API token (keep secret!) | Yes |
 | `NEXT_PUBLIC_SITE_URL` | Your site URL (for production) | Yes |
 | `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for development | Yes |
 
