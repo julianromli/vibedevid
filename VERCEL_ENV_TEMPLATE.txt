@@ -1,0 +1,11 @@
+# COPY THESE EXACT VALUES TO VERCEL ENVIRONMENT VARIABLES
+# Go to Vercel Dashboard > Your Project > Settings > Environment Variables
+
+NEXT_PUBLIC_SUPABASE_URL=https://qabfrhpbfvjcgdrxdlba.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYmZyaHBiZnZqY2dkcnhkbGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MDAxNzcsImV4cCI6MjA3MTI3NjE3N30.hWHOyuuTBbTQx7UhOiUMJcVkMIXzOlxONRvHYkSGJOU
+UPLOADTHING_TOKEN=eyJhcGlLZXkiOiJza19saXZlX2RhNGVjNTdkMWQ4ZWUzYmViMmJjYzI2N2I5MzU2ZGUzOTM1OTg3NjAwYmZhYjViNGRmZTdkOTY3YTEyYjJkNjgiLCJhcHBJZCI6ImVseXFsMXE4YmUiLCJyZWdpb25zIjpbInNlYTEiXX0=
+
+# IMPORTANT: 
+# 1. Make sure NEXT_PUBLIC_SUPABASE_URL starts with https://
+# 2. Do NOT use any other values like "sb_publishable_..." for the URL
+# 3. Copy these values EXACTLY as shown
