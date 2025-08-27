@@ -17,6 +17,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut } from "@/lib/actions"
 import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 
 interface NavbarProps {
   showBackButton?: boolean
@@ -85,8 +86,27 @@ export function Navbar({
     if (onSignOut) {
       onSignOut()
     } else {
-      toast.success("Berhasil keluar! 👋 Sampai jumpa lagi!")
-      await signOut()
+      try {
+        // Use client-side sign out first to trigger auth listeners
+        const supabase = createClient()
+        const { error } = await supabase.auth.signOut()
+        
+        if (error) {
+          console.error("Sign out error:", error)
+          toast.error("Gagal keluar. Coba lagi!")
+          return
+        }
+        
+        toast.success("Berhasil keluar! 👋 Sampai jumpa lagi!")
+        
+        // Small delay to let auth listeners update state before redirect
+        setTimeout(() => {
+          router.push("/")
+        }, 100)
+      } catch (error) {
+        console.error("Unexpected sign out error:", error)
+        toast.error("Terjadi kesalahan saat keluar")
+      }
     }
   }
 

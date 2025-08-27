@@ -230,14 +230,14 @@ export default function HomePage() {
     const supabase = createClient()
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return
 
       console.log("[v0] Auth state change:", event, session)
       if (event === "SIGNED_IN" && session) {
         console.log("[v0] User signed in, updating state")
-        setIsLoggedIn(true)
-        // Avoid calling checkAuth again to prevent race conditions
+        // Re-run checkAuth to get complete user profile
+        await checkAuth()
       } else if (event === "SIGNED_OUT") {
         console.log("[v0] User signed out, clearing state")
         setIsLoggedIn(false)
