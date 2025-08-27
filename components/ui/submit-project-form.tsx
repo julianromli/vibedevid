@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { submitProject } from "@/lib/actions"
 import { Loader2, Upload, X, CheckCircle } from "lucide-react"
 import { UploadButton } from "@uploadthing/react"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 
 interface SubmitProjectFormProps {
   userId: string
@@ -124,11 +125,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               {uploadedImageUrl ? (
                 <div className="space-y-4">
                   <div className="relative">
-                    <img
-                      src={uploadedImageUrl || "/placeholder.svg"}
-                      alt="Project screenshot preview"
-                      className="w-full h-48 object-cover rounded-lg shadow-md"
-                    />
+                    <AspectRatio ratio={16/9}>
+                      <img
+                        src={uploadedImageUrl || "/placeholder.svg"}
+                        alt="Project screenshot preview"
+                        className="w-full h-full object-cover rounded-lg shadow-md"
+                      />
+                    </AspectRatio>
                     <Button
                       type="button"
                       variant="destructive"

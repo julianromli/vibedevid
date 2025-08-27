@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { TestimonialsColumns } from "@/components/ui/testimonials-columns"
 import { HeartButton } from "@/components/ui/heart-button"
 import { Navbar } from "@/components/ui/navbar"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import {
   Drawer,
   DrawerClose,
@@ -803,16 +804,18 @@ export default function HomePage() {
                     <div key={project.id} className="group cursor-pointer py-0 my-4">
                       {/* Thumbnail Preview Section */}
                       <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
-                        <img
-                          src={project.image || "/vibedev-guest-avatar.png"}
-                          alt={project.title}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => {
-                            e.currentTarget.src = "/vibedev-guest-avatar.png"
-                          }}
-                        />
+                        <AspectRatio ratio={16/9}>
+                          <img
+                            src={project.image || "/vibedev-guest-avatar.png"}
+                            alt={project.title}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.src = "/vibedev-guest-avatar.png"
+                            }}
+                          />
+                        </AspectRatio>
 
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

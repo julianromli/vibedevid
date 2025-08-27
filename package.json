@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "latest",
+    "@radix-ui/react-aspect-ratio": "^1.1.7",
     "@radix-ui/react-avatar": "latest",
     "@radix-ui/react-checkbox": "latest",
     "@radix-ui/react-dialog": "latest",

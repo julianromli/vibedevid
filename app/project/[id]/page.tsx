@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -361,16 +362,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <div className="lg:col-span-2 space-y-8">
             {/* Project Image */}
             <div className="relative overflow-hidden rounded-xl bg-muted">
-              <img
-                src={project.image || "/placeholder.svg"}
-                alt={project.title}
-                loading="eager"
-                decoding="async"
-                className="w-full h-96 object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg"
-                }}
-              />
+              <AspectRatio ratio={16/9}>
+                <img
+                  src={project.image || "/placeholder.svg"}
+                  alt={project.title}
+                  loading="eager"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg"
+                  }}
+                />
+              </AspectRatio>
             </div>
 
             {/* Project Info */}

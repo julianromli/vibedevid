@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { UserAvatar } from "@/components/ui/user-avatar"
 import { Navbar } from "@/components/ui/navbar"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { createClient } from "@/lib/supabase/client"
 import { useState, useEffect } from "react"
 import ProfileEditDialog from "@/components/ui/profile-edit-dialog"
@@ -457,17 +458,19 @@ export default function ProfilePage() {
               <div className="grid md:grid-cols-2 gap-6">
                 {userProjects.map((project) => (
                   <div key={project.id} className="group cursor-pointer">
-                    <div className="relative overflow-hidden rounded-lg bg-muted mb-4 aspect-video">
-                      <img
-                        src={project.thumbnail_url || "/placeholder.svg"}
-                        alt={project.title}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg"
-                        }}
-                      />
+                    <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
+                      <AspectRatio ratio={16/9}>
+                        <img
+                          src={project.thumbnail_url || "/placeholder.svg"}
+                          alt={project.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.svg"
+                          }}
+                        />
+                      </AspectRatio>
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <Button variant="secondary" size="sm" asChild>
                           <a href={`/project/${project.id}`}>
