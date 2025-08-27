@@ -235,37 +235,57 @@ export async function getProject(projectId: string) {
   const supabase = await createClient()
 
   try {
-    const { data: project, error: projectError } = await supabase
-      .from("projects")
-      .select("*")
-      .eq("id", Number.parseInt(projectId))
-      .single()
+    // Enhanced analytics queries with unique views counting
+    const [
+      { data: project, error: projectError }, 
+      { count: likesCount }, 
+      { count: totalViews },
+      { count: uniqueViews },
+      { count: todayViews }
+    ] = await Promise.all([
+      supabase
+        .from("projects")
+        .select(`
+          *,
+          users:author_id (
+            username,
+            display_name,
+            avatar_url,
+            bio,
+            location
+          )
+        `)
+        .eq("id", Number.parseInt(projectId))
+        .single(),
+      supabase
+        .from("likes")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", Number.parseInt(projectId)),
+      supabase
+        .from("views")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", Number.parseInt(projectId)),
+      supabase
+        .from("views")
+        .select("session_id", { count: "exact", head: true })
+        .eq("project_id", Number.parseInt(projectId))
+        .not("session_id", "is", null),
+      supabase
+        .from("views")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", Number.parseInt(projectId))
+        .eq("view_date", new Date().toISOString().split('T')[0])
+    ])
 
     if (projectError) {
       console.error("Get project error:", projectError)
       return { project: null, error: projectError.message }
     }
 
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("username, display_name, avatar_url, bio, location")
-      .eq("id", project.author_id)
-      .single()
-
-    if (userError) {
-      console.error("Get user error:", userError)
-      return { project: null, error: userError.message }
+    if (!project?.users) {
+      console.error("Get project error: Author not found")
+      return { project: null, error: "Project author not found" }
     }
-
-    const { count: likesCount } = await supabase
-      .from("likes")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id)
-
-    const { count: viewsCount } = await supabase
-      .from("views")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id)
 
     const formattedProject = {
       id: project.id,
@@ -274,17 +294,19 @@ export async function getProject(projectId: string) {
       fullDescription: project.description, // Use same description for now
       image: project.image_url,
       author: {
-        name: user.display_name,
-        username: user.username,
-        avatar: user.avatar_url || "/placeholder.svg",
-        bio: user.bio || "Community member",
-        location: user.location || "Unknown location",
+        name: project.users.display_name,
+        username: project.users.username,
+        avatar: project.users.avatar_url || "/placeholder.svg",
+        bio: project.users.bio || "Community member",
+        location: project.users.location || "Unknown location",
       },
       url: project.website_url,
       category: project.category,
       tags: ["Next.js", "React", "TypeScript"], // Default tags for now
       likes: likesCount || 0,
-      views: viewsCount || 0,
+      views: totalViews || 0,
+      uniqueViews: uniqueViews || 0,
+      todayViews: todayViews || 0,
       createdAt: project.created_at,
     }
 
@@ -295,20 +317,38 @@ export async function getProject(projectId: string) {
   }
 }
 
-export async function incrementProjectViews(projectId: string) {
+export async function incrementProjectViews(projectId: string, sessionId?: string) {
   const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   try {
-    await supabase.from("views").insert({
+    // Prepare view record with session-based tracking
+    const viewRecord = {
       project_id: Number.parseInt(projectId),
       user_id: session?.user?.id || null,
+      session_id: sessionId || null,
       ip_address: null, // We'll skip IP tracking for now
-    })
+      view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+    }
+
+    // Use upsert to handle unique constraint gracefully
+    const { error } = await supabase
+      .from("views")
+      .upsert(viewRecord, {
+        onConflict: 'project_id,session_id',
+        ignoreDuplicates: true
+      })
+
+    if (error && !error.message.includes('duplicate')) {
+      console.error("Increment views error:", error)
+    }
   } catch (error) {
-    console.error("Increment views error:", error)
+    // Silently handle duplicate key errors (expected for unique sessions)
+    if (!error.message?.includes('duplicate') && !error.message?.includes('unique')) {
+      console.error("Increment views error:", error)
+    }
   }
 }
 

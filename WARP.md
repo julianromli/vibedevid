@@ -13,6 +13,7 @@ VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovato
 - User authentication with Supabase Auth
 - Project showcase dan portfolio management
 - Community interaction (comments, likes, networking)
+- **Session-based Analytics** - Advanced visitor tracking dengan unique session management
 - Responsive design with dark/light mode support
 - SEO-optimized Indonesian content with informal but professional tone
 - Real Indonesian developer testimonials from major tech companies
@@ -71,6 +72,7 @@ The project uses Supabase with PostgreSQL. Database schema is defined in SQL scr
 3. **03_create_storage_bucket.sql** - File storage setup
 4. **04_change_projects_id_to_sequential.sql** - Schema migrations
 5. **05_add_foreign_key_constraints.sql** - Additional constraints
+6. **06_enhance_views_table.sql** - Session-based analytics enhancement with unique visitor tracking
 
 ### Required Environment Variables
 \`\`\`env
@@ -110,12 +112,24 @@ The app uses Supabase Auth with custom user profiles:
 
 ### Key Features Implementation
 - **User Profiles**: Extended auth.users with custom profile data in `users` table
+- **Avatar Management**: Smart auto-cleanup system dengan scheduled deletion
+  - **Auto-Delete Old Avatars**: Automatically removes old avatar files setelah user upload new ones
+  - **10-Second Delay**: Configurable delay before deletion untuk ensure upload success
+  - **Smart URL Filtering**: Only deletes files from own Supabase storage, skips external URLs
+  - **Safe Implementation**: Error handling dan validation untuk prevent accidental deletions
 - **Project Management**: CRUD operations with Row Level Security policies
   - **Inline Editing**: Real-time project editing without page navigation
   - **Loading States**: Professional UX with loading indicators on save operations
 - **Comments System**: Supports both authenticated users and guest comments
 - **Likes System**: User engagement tracking with unique constraints
+- **Advanced Analytics System**: Session-based visitor tracking dengan sophisticated features
+  - **Unique Visitor Detection**: Session-based tracking dengan 30-minute timeout
+  - **Bot Protection**: User agent filtering untuk valid visitors saja
+  - **Duplicate Prevention**: Unique constraint per session per project
+  - **Time-based Analytics**: Daily, weekly, dan custom date range analysis
+  - **Real-time Stats**: Live project statistics dengan optimized queries
 - **File Uploads**: Configured with UploadThing for project images
+- **Avatar Auto-Delete System**: Smart cleanup system untuk avatar lama dengan 10-second delay scheduling
 - **Alert Dialogs**: Professional confirmation dialogs using shadcn/ui Alert Dialog
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Indonesian Localization**: 
@@ -129,7 +143,11 @@ The app uses Supabase Auth with custom user profiles:
 - **projects** - Project showcase with categories and metadata
 - **comments** - Threaded comments on projects
 - **likes** - User likes/hearts on projects
-- **views** - Project view tracking for analytics
+- **views** - Enhanced project view tracking dengan session-based analytics:
+  - `session_id` (TEXT) - Unique session identifier untuk visitor tracking
+  - `view_date` (DATE) - Date column untuk time-based analytics
+  - `ip_address` (INET) - Optional IP tracking
+  - Unique indexes untuk performance dan duplicate prevention
 
 ### Security
 - Row Level Security (RLS) enabled on all tables
@@ -225,6 +243,46 @@ The app uses Supabase Auth with custom user profiles:
   - Maintained technical English terms familiar to developers
   - Professional UX with informal Indonesian tone
   - **Background System Standardization** - Grid pattern applied across all pages
+  - **Session-based Analytics Enhancement** - Advanced visitor tracking system implementation
+  - **Avatar Auto-Delete Implementation** - Smart storage cleanup system dengan scheduled deletion
+    - Automatic cleanup of old avatar files when users upload new profile pictures
+    - 10-second configurable delay untuk ensure upload success sebelum deletion
+    - Smart filtering untuk only delete files from own Supabase storage bucket
+    - Background processing tidak blocking UI dengan proper error handling
+
+## Analytics Implementation Details
+
+### Client-side Analytics (`lib/client-analytics.ts`)
+- **Session Management**: Automatic session creation dengan localStorage persistence
+- **Unique Visitor Detection**: Sophisticated algorithm dengan timeout-based session expiry
+- **Bot Filtering**: User agent validation untuk skip crawlers dan automated requests
+- **View Deduplication**: Client-side prevention untuk duplicate views per session
+- **Performance Optimized**: Minimal overhead dengan efficient localStorage management
+
+### Server-side Implementation (`lib/actions.ts`)
+- **Enhanced Analytics Queries**: Parallel database operations untuk real-time stats
+- **Upsert Mechanism**: Graceful handling untuk duplicate constraint violations
+- **Time-based Filtering**: Support untuk daily, weekly, dan custom date range analytics
+- **Optimized Performance**: Proper indexing dan query optimization untuk scalability
+
+### Analytics Features Available:
+1. **Total Views** - Aggregate view count per project
+2. **Unique Visitors** - Session-based unique visitor counting
+3. **Today's Views** - Real-time daily analytics
+4. **Time-based Analytics** - Historical data dengan date filtering
+5. **Performance Metrics** - Optimized queries dengan proper indexing
+
+### Database Enhancements:
+```sql
+-- Session-based tracking columns
+ALTER TABLE public.views ADD COLUMN session_id TEXT;
+ALTER TABLE public.views ADD COLUMN view_date DATE DEFAULT CURRENT_DATE;
+
+-- Performance indexes
+CREATE UNIQUE INDEX idx_views_project_session ON public.views(project_id, session_id) WHERE session_id IS NOT NULL;
+CREATE INDEX idx_views_date ON public.views(view_date);
+CREATE INDEX idx_views_project_date ON public.views(project_id, view_date);
+```
 
 ## Data Login for Testing
 email: 123@gmail.com

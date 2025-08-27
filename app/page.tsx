@@ -7,6 +7,7 @@ import { TestimonialsColumns } from "@/components/ui/testimonials-columns"
 import { HeartButton } from "@/components/ui/heart-button"
 import { Navbar } from "@/components/ui/navbar"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import {
   Drawer,
   DrawerClose,
@@ -17,7 +18,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { ChevronDown, Code, Smartphone, Globe, ArrowRight, Plus, Minus } from "lucide-react"
+import { ChevronDown, Code, Smartphone, Globe, ArrowRight, Plus, Minus, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -599,12 +600,34 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="space-y-12">
             <div className="space-y-8 text-left md:text-center lg:text-center">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/30 text-sm shadow-2xl shadow-black/10 animate-glow dark:text-white ring-1 ring-white/10">
-                <span className="w-2 h-2 bg-green-400 rounded-full mr-3 shadow-lg shadow-green-400/60 ring-2 ring-green-400/20"></span>
-                100+ Developer Aktif
+              <div
+                className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 backdrop-blur-sm mb-4 relative"
+                style={{
+                  filter: "url(#glass-effect)",
+                }}
+              >
+                <div className="absolute top-0 left-1 right-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
+                <span className="text-foreground/90 text-sm font-medium relative z-10 mr-2">✨</span>
+                <span className="text-foreground/90 text-sm font-medium relative z-10">200+ Active Members</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground leading-tight leading-10 tracking-tighter">
+              {/* Add SVG filter for glass effect */}
+              <svg className="absolute" width="0" height="0">
+                <defs>
+                  <filter id="glass-effect">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                    <feOffset dx="0" dy="1" result="offset" />
+                    <feFlood floodColor="rgba(255,255,255,0.1)" />
+                    <feComposite in2="offset" operator="in" />
+                    <feMerge>
+                      <feMergeNode />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+              </svg>
+
+              <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground leading-tight leading-10 tracking-tight">
                 {["When", "the", "Codes"].map((word, index) => (
                   <span
                     key={index}
@@ -691,7 +714,7 @@ export default function HomePage() {
       <section className="py-12 bg-muted/30" id="projects">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tighter">Showcase Project</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">Showcase Project</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Temukan project keren yang dibuat oleh komunitas creator dan developer kami
             </p>
@@ -819,12 +842,11 @@ export default function HomePage() {
 
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                          <Button
-                            variant="secondary"
-                            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                            onClick={() => router.push(`/project/${project.id}`)}
-                          >
-                            Lihat Detail
+                          <Button variant="secondary" size="sm" asChild>
+                            <a href={`/project/${project.id}`}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              View Project
+                            </a>
                           </Button>
                         </div>
 
@@ -849,10 +871,12 @@ export default function HomePage() {
                               href={`/${project.author.username}`}
                               className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
                             >
-                              <img
-                                src={project.author.avatar || "/vibedev-guest-avatar.png"}
+                              <OptimizedAvatar
+                                src={project.author.avatar}
                                 alt={project.author.name}
-                                className="w-8 h-8 rounded-full object-cover ring-2 ring-muted"
+                                size="sm"
+                                className="ring-2 ring-muted"
+                                showSkeleton={false}
                               />
                               <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
                             </Link>
@@ -892,7 +916,7 @@ export default function HomePage() {
       <section id="features" className="py-20" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tighter">
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Apa Yang Membedakan Kami
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -950,7 +974,7 @@ export default function HomePage() {
       <section id="reviews" className="py-20 bg-muted/30" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter">Kata Member Kami</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Kata Member Kami</h2>
             <p className="text-xl text-muted-foreground">Hasil nyata dari para founder asli</p>
           </div>
 
@@ -966,7 +990,7 @@ export default function HomePage() {
       <section id="faq" className="py-20" data-animate>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tighter">Frequently Asked Questions</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Frequently Asked Questions</h2>
             <p className="text-xl text-muted-foreground">Semua yang perlu lo tau tentang gabung di komunitas kami</p>
           </div>
 

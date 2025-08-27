@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { createClient } from "@/lib/supabase/client"
+import { scheduleOldAvatarDeletion, isOurStorageUrl } from "@/lib/avatar-utils"
 
 interface ProfileEditDialogProps {
   open: boolean
@@ -57,6 +58,10 @@ export default function ProfileEditDialog({
 
     console.log("[v0] Starting avatar upload for file:", file.name)
     setUploadingAvatar(true)
+    
+    // 🔥 Track avatar lama untuk auto-delete
+    const oldAvatarUrl = formData.avatar || defaultValues?.avatar || ""
+    
     try {
       const supabase = createClient()
       const {
@@ -93,6 +98,15 @@ export default function ProfileEditDialog({
         console.log("[v0] Updated formData with avatar:", newData.avatar)
         return newData
       })
+      
+      // 🔥 Schedule deletion avatar lama setelah upload berhasil
+      if (oldAvatarUrl && isOurStorageUrl(oldAvatarUrl)) {
+        console.log("[v0] Scheduling deletion of old avatar:", oldAvatarUrl)
+        scheduleOldAvatarDeletion(oldAvatarUrl, 10000) // 10 detik delay
+      } else if (oldAvatarUrl) {
+        console.log("[v0] Skipping deletion - not our storage URL:", oldAvatarUrl)
+      }
+      
     } catch (error) {
       console.error("[v0] Error uploading avatar:", error)
     } finally {

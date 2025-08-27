@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +35,14 @@ import {
   Trash2,
 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Navbar } from "@/components/ui/navbar"
+import {
+  ProjectImageSkeleton,
+  ProjectInfoSkeleton,
+  CommentsSkeleton,
+  ProjectStatsSkeleton,
+} from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import {
   addComment,
@@ -45,6 +53,11 @@ import {
   editProject,
   deleteProject,
 } from "@/lib/actions"
+import { 
+  getCurrentSessionId, 
+  shouldTrackView, 
+  isValidUserAgent 
+} from "@/lib/client-analytics"
 import { useRouter } from "next/navigation"
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -74,83 +87,101 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     website_url: "",
     image_url: "",
   })
+  // Real-time stats states
+  const [realTimeLikes, setRealTimeLikes] = useState(0)
+  const [realTimeViews, setRealTimeViews] = useState(0)
+  const [realTimeUniqueViews, setRealTimeUniqueViews] = useState(0)
+  const [realTimeTodayViews, setRealTimeTodayViews] = useState(0)
 
+  // Optimized: Single useEffect for all initialization logic
   useEffect(() => {
     window.scrollTo(0, 0)
-
-    // Additional scroll after a short delay to ensure page is fully rendered
-    const timer = setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" })
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [projectId]) // Added projectId dependency to trigger on route changes
-
-  useEffect(() => {
     setIsMounted(true)
-  }, [])
 
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params
-      setProjectId(resolvedParams.id)
-    }
-    getParams()
-  }, [params])
+    const initializePageOptimized = async () => {
+      try {
+        const resolvedParams = await params
+        const currentProjectId = resolvedParams.id
+        setProjectId(currentProjectId)
 
-  useEffect(() => {
-    if (!projectId) return
+        const supabase = createClient()
 
-    const initializePage = async () => {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        // Parallel operations for better performance
+        const [{ data: { session } }, { project: projectData, error: projectError }] = await Promise.all([
+          supabase.auth.getSession(),
+          getProject(currentProjectId)
+        ])
 
-      if (session?.user) {
-        setIsLoggedIn(true)
-
-        const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
-
-        if (profile) {
-          setCurrentUser({
-            id: session.user.id,
-            name: profile.display_name,
-            avatar: profile.avatar_url || "/placeholder.svg",
-          })
+        if (projectError) {
+          console.error("Failed to load project:", projectError)
+          setLoading(false)
+          return
         }
-      }
 
-      const { project: projectData, error: projectError } = await getProject(projectId)
-      if (projectError) {
-        console.error("Failed to load project:", projectError)
+        // Batch state updates to prevent multiple re-renders
+        let authUser = null
+        let isOwner = false
+
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .single()
+
+          if (profile) {
+            authUser = {
+              id: session.user.id,
+              name: profile.display_name,
+              avatar: profile.avatar_url || "/placeholder.svg",
+              username: profile.username,
+            }
+          }
+
+          // Check ownership parallel with profile fetch
+          if (projectData) {
+            const { data: authorData } = await supabase
+              .from("users")
+              .select("id")
+              .eq("username", projectData.author.username)
+              .single()
+
+            isOwner = authorData && authorData.id === session.user.id
+          }
+        }
+
+        // Enhanced view tracking with session-based analytics
+        if (isValidUserAgent() && shouldTrackView(currentProjectId)) {
+          const sessionId = getCurrentSessionId()
+          incrementProjectViews(currentProjectId, sessionId)
+        }
+
+        // Fire and forget operations (non-blocking)
+        loadComments(currentProjectId)
+
+        // Batch all state updates
+        setIsLoggedIn(!!session?.user)
+        if (authUser) setCurrentUser(authUser)
+        setProject(projectData)
+        setIsProjectOwner(isOwner)
+        setRealTimeLikes(projectData?.likes || 0) // Initialize real-time likes
+        setRealTimeViews(projectData?.views || 0) // Initialize real-time views
+        setRealTimeUniqueViews(projectData?.uniqueViews || 0) // Initialize unique views
+        setRealTimeTodayViews(projectData?.todayViews || 0) // Initialize today's views
         setLoading(false)
-        return
+
+        // Smooth scroll after content is loaded
+        setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+        }, 100)
+      } catch (error) {
+        console.error("Page initialization error:", error)
+        setLoading(false)
       }
-
-      setProject(projectData)
-
-      if (session?.user && projectData) {
-        const { data: authorData } = await supabase
-          .from("users")
-          .select("id")
-          .eq("username", projectData.author.username)
-          .single()
-
-        if (authorData && authorData.id === session.user.id) {
-          setIsProjectOwner(true)
-        }
-      }
-
-      await incrementProjectViews(projectId)
-
-      await loadComments(projectId)
-
-      setLoading(false)
     }
 
-    initializePage()
-  }, [projectId])
+    initializePageOptimized()
+  }, [params])
 
   const loadComments = async (projectId?: string) => {
     if (!projectId && !project?.id) return
@@ -222,8 +253,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   }
 
   const handleProfile = () => {
-    if (currentUser && project) {
-      router.push(`/${project.author.username}`)
+    if (currentUser?.username) {
+      router.push(`/${currentUser.username}`)
     }
   }
 
@@ -296,24 +327,26 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
-        {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      <div className="min-h-screen">
         
         <Navbar showBackButton={true} />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Content Skeleton */}
             <div className="lg:col-span-2 space-y-8">
-              <div className="w-full h-96 bg-muted animate-pulse rounded-xl"></div>
-              <div className="space-y-4">
-                <div className="h-8 bg-muted animate-pulse rounded"></div>
-                <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
-                <div className="h-20 bg-muted animate-pulse rounded"></div>
-              </div>
+              {/* Project Image Skeleton */}
+              <ProjectImageSkeleton />
+              
+              {/* Project Info Skeleton */}
+              <ProjectInfoSkeleton />
+              
+              {/* Comments Skeleton */}
+              <CommentsSkeleton />
             </div>
+            
+            {/* Sidebar Skeleton */}
             <div className="space-y-6">
-              <div className="h-48 bg-muted animate-pulse rounded-xl"></div>
-              <div className="h-32 bg-muted animate-pulse rounded-xl"></div>
+              <ProjectStatsSkeleton />
             </div>
           </div>
         </div>
@@ -323,9 +356,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
-        {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      <div className="min-h-screen">
         
         <Navbar showBackButton={true} />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
@@ -344,9 +375,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern relative">
-      {/* Background Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+    <div className="min-h-screen">
       
       <Navbar
         showBackButton={true}
@@ -363,15 +392,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             {/* Project Image */}
             <div className="relative overflow-hidden rounded-xl bg-muted">
               <AspectRatio ratio={16/9}>
-                <img
+                <Image
                   src={project.image || "/placeholder.svg"}
                   alt={project.title}
-                  loading="eager"
-                  decoding="async"
-                  className="w-full h-full object-cover"
+                  fill
+                  priority
+                  className="w-full h-full object-cover transition-opacity duration-300"
                   onError={(e) => {
                     e.currentTarget.src = "/placeholder.svg"
                   }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                 />
               </AspectRatio>
             </div>
@@ -466,7 +498,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             ) : (
               <div className="space-y-6">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
                         {project.category}
@@ -480,6 +512,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     </div>
                     <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>
                     <p className="text-lg text-muted-foreground">{project.description}</p>
+                  </div>
+                  <div className="ml-4 flex-shrink-0">
+                    <HeartButton
+                      projectId={project.id}
+                      initialLikes={project.likes}
+                      isLoggedIn={isLoggedIn}
+                      variant="primary"
+                      onLikeChange={(newLikes, isLiked) => {
+                        console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
+                        setRealTimeLikes(newLikes) // Update real-time likes count
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -594,10 +638,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     <Card key={comment.id}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <img
-                            src={comment.isGuest ? "/vibedev-guest-avatar.png" : comment.avatar || "/placeholder.svg"}
+                          <OptimizedAvatar
+                            src={comment.avatar}
                             alt={comment.author}
-                            className="w-8 h-8 rounded-full"
+                            size="sm"
+                            isGuest={comment.isGuest}
+                            showSkeleton={true}
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -626,11 +672,14 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             <Card>
               <CardContent className="p-6">
                 <div className="text-center space-y-4">
-                  <img
-                    src={project.author.avatar || "/placeholder.svg"}
-                    alt={project.author.name}
-                    className="w-16 h-16 rounded-full mx-auto"
-                  />
+                  <div className="flex justify-center">
+                    <OptimizedAvatar
+                      src={project.author.avatar}
+                      alt={project.author.name}
+                      size="xl"
+                      showSkeleton={true}
+                    />
+                  </div>
                   <div>
                     <h3 className="font-semibold">{project.author.name}</h3>
                     <p className="text-sm text-muted-foreground">{project.author.bio}</p>
@@ -654,18 +703,20 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 <h3 className="font-semibold mb-4">Project Stats</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Views</span>
-                    <span className="font-medium">{project.views.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Total Views</span>
+                    <span className="font-medium">{realTimeViews.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Unique Visitors</span>
+                    <span className="font-medium">{realTimeUniqueViews.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Today's Views</span>
+                    <span className="font-medium">{realTimeTodayViews}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Likes</span>
-                    <HeartButton
-                      projectId={project.id}
-                      initialLikes={project.likes}
-                      onLikeChange={(newLikes, isLiked) => {
-                        console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
-                      }}
-                    />
+                    <span className="font-medium">{realTimeLikes}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Comments</span>

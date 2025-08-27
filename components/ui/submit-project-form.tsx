@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { submitProject } from "@/lib/actions"
 import { Loader2, Upload, X, CheckCircle } from "lucide-react"
 import { UploadButton } from "@uploadthing/react"
+import { toast } from "sonner"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 
 interface SubmitProjectFormProps {
@@ -51,8 +52,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
       const result = await submitProject(formData, userId)
       if (result.success) {
+        toast.success("Mantap! 🚀 Project lo berhasil di-submit!")
         router.push(`/project/${result.projectId}`)
       } else {
+        toast.error("Waduh, ada error nih! 😅 Coba lagi ya!")
         setError(result.error || "Failed to submit project")
       }
     } catch (err) {

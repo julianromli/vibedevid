@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { X, Eye, EyeOff, Mail, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -36,6 +37,7 @@ export default function AuthPage() {
         password,
       })
       if (error) throw error
+      toast.success("Berhasil masuk! 🎉 Selamat datang kembali!")
       router.push("/")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")

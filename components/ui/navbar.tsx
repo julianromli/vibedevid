@@ -16,6 +16,7 @@ import { ArrowLeft, Menu, X, User, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signOut } from "@/lib/actions"
+import { toast } from "sonner"
 
 interface NavbarProps {
   showBackButton?: boolean
@@ -84,6 +85,7 @@ export function Navbar({
     if (onSignOut) {
       onSignOut()
     } else {
+      toast.success("Berhasil keluar! 👋 Sampai jumpa lagi!")
       await signOut()
     }
   }

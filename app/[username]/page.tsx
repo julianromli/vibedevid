@@ -1,5 +1,6 @@
 "use client"
 import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
 import {
   ArrowLeft,
   MapPin,
@@ -18,6 +19,10 @@ import { UserAvatar } from "@/components/ui/user-avatar"
 import { Navbar } from "@/components/ui/navbar"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { createClient } from "@/lib/supabase/client"
+import {
+  ProfileHeaderSkeleton,
+  ProjectGridSkeleton,
+} from "@/components/ui/skeleton"
 import { useState, useEffect } from "react"
 import ProfileEditDialog from "@/components/ui/profile-edit-dialog"
 
@@ -164,57 +169,50 @@ async function fetchUserProjectsFallback(username: string) {
   }))
 }
 
-async function calculateUserStats(username: string) {
+// Optimized: Single query untuk mendapatkan user profile dan stats sekaligus
+async function fetchUserProfileWithStats(username: string) {
   const supabase = createClient()
 
-  console.log("[v0] Calculating stats for username:", username)
+  console.log("[v0] Fetching profile and stats for username:", username)
 
-  // First get the user ID from username
-  const { data: user, error: userError } = await supabase.from("users").select("id").eq("username", username).single()
+  // Single query untuk user profile
+  const { data: user, error: userError } = await supabase.from("users").select("*").eq("username", username).single()
 
   if (userError || !user) {
-    console.error("[v0] Error fetching user for stats:", userError)
-    return { projects: 0, likes: 0, views: 0 }
+    console.error("[v0] Error fetching user:", userError)
+    return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
   }
 
-  console.log("[v0] Found user ID:", user.id)
+  // Parallel operations untuk projects dan stats
+  const [projectsResult, projectsListResult] = await Promise.all([
+    supabase.from("projects").select("id", { count: "exact" }).eq("author_id", user.id),
+    supabase.from("projects").select("id").eq("author_id", user.id)
+  ])
 
-  // Get projects count
-  const { count: projectCount } = await supabase
-    .from("projects")
-    .select("id", { count: "exact" })
-    .eq("author_id", user.id)
+  const projectCount = projectsResult.count || 0
+  const projectIds = projectsListResult.data?.map(p => p.id) || []
 
-  console.log("[v0] Projects count:", projectCount)
-
-  // Get all project IDs for this user
-  const { data: userProjects } = await supabase.from("projects").select("id").eq("author_id", user.id)
-
-  if (!userProjects || userProjects.length === 0) {
-    console.log("[v0] No projects found for user")
-    return { projects: projectCount || 0, likes: 0, views: 0 }
+  if (projectIds.length === 0) {
+    return {
+      user,
+      stats: { projects: projectCount, likes: 0, views: 0 }
+    }
   }
 
-  const projectIds = userProjects.map((p) => p.id)
-  console.log("[v0] Project IDs:", projectIds)
-
-  // Get total likes and views for all user projects
+  // Parallel queries untuk likes dan views
   const [likesResult, viewsResult] = await Promise.all([
     supabase.from("likes").select("id", { count: "exact" }).in("project_id", projectIds),
     supabase.from("views").select("id", { count: "exact" }).in("project_id", projectIds),
   ])
 
-  console.log("[v0] Likes count:", likesResult.count)
-  console.log("[v0] Views count:", viewsResult.count)
-
   const stats = {
-    projects: projectCount || 0,
+    projects: projectCount,
     likes: likesResult.count || 0,
     views: viewsResult.count || 0,
   }
 
-  console.log("[v0] Final calculated stats:", stats)
-  return stats
+  console.log("[v0] Loaded profile and stats:", { username: user.username, stats })
+  return { user, stats }
 }
 
 export default function ProfilePage() {
@@ -227,52 +225,73 @@ export default function ProfilePage() {
   const [userProjects, setUserProjects] = useState<any[]>([])
   const [userStats, setUserStats] = useState({ projects: 0, likes: 0, views: 0 })
   const [isOwner, setIsOwner] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  // Optimized: Single useEffect dengan parallel data loading
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
 
-  useEffect(() => {
-    const loadProfileData = async () => {
+    const loadProfileDataOptimized = async () => {
       setLoading(true)
 
       try {
         console.log("[v0] Loading profile data for username:", username)
-
-        // Check current user authentication
         const supabase = createClient()
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+
+        // Parallel operations untuk auth check dan profile data
+        const [sessionResult, profileWithStatsResult] = await Promise.all([
+          supabase.auth.getSession(),
+          fetchUserProfileWithStats(username)
+        ])
+
+        const { data: { session } } = sessionResult
+        const { user: profileUser, stats } = profileWithStatsResult
+
+        // Handle authentication state
+        let authUser = null
+        let isOwnerCheck = false
 
         if (session?.user) {
-          const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
-
-          setCurrentUser(profile)
-          setIsOwner(profile?.username === username)
+          const { data: profile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .single()
+          
+          if (profile) {
+            authUser = profile
+            isOwnerCheck = profile.username === username
+          }
         }
 
-        // Fetch profile user data
-        const profileUser = await fetchUserProfile(username)
+        // Check if profile user exists
         if (!profileUser) {
           console.log("[v0] Profile user not found")
           setLoading(false)
           return
         }
+
         console.log("[v0] Profile user loaded:", profileUser.username)
-        setUser(profileUser)
-
-        // Fetch user projects and stats
-        const [projects, stats] = await Promise.all([fetchUserProjects(username), calculateUserStats(username)])
-
-        console.log("[v0] Loaded projects count:", projects.length)
         console.log("[v0] Loaded stats:", stats)
 
-        setUserProjects(projects)
+        // Load projects in parallel (non-blocking)
+        const projectsPromise = fetchUserProjects(username)
+        
+        // Batch all state updates
+        setIsLoggedIn(!!session?.user)
+        if (authUser) setCurrentUser(authUser)
+        setIsOwner(isOwnerCheck)
+        setUser(profileUser)
         setUserStats(stats)
+
+        // Wait for projects and update state
+        const projects = await projectsPromise
+        console.log("[v0] Loaded projects count:", projects.length)
+        setUserProjects(projects)
+
       } catch (error) {
         console.error("[v0] Error loading profile data:", error)
       } finally {
@@ -280,11 +299,23 @@ export default function ProfilePage() {
       }
     }
 
-    loadProfileData()
+    loadProfileDataOptimized()
   }, [username])
 
   const handleEdit = () => {
     setShowEditDialog(true)
+  }
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+  }
+
+  const handleProfile = () => {
+    if (currentUser?.username) {
+      router.push(`/${currentUser.username}`)
+    }
   }
 
   const handleSaveProfile = async (profileData: any) => {
@@ -332,12 +363,22 @@ export default function ProfilePage() {
         {/* Background Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
         
-        <Navbar showBackButton={true} />
+        <Navbar
+          showBackButton={true}
+          isLoggedIn={isLoggedIn}
+          user={currentUser || undefined}
+          onSignOut={handleSignOut}
+          onProfile={handleProfile}
+        />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="flex-1 text-center md:text-left py-0"></div>
-              <p className="text-muted-foreground">Loading profile...</p>
+          <div className="space-y-8">
+            {/* Profile Header Skeleton */}
+            <ProfileHeaderSkeleton />
+            
+            {/* Projects Section Skeleton */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="h-7 bg-muted animate-pulse rounded w-32 mb-6"></div>
+              <ProjectGridSkeleton count={6} columns={2} />
             </div>
           </div>
         </div>
@@ -351,7 +392,13 @@ export default function ProfilePage() {
         {/* Background Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
         
-        <Navbar showBackButton={true} />
+        <Navbar
+          showBackButton={true}
+          isLoggedIn={isLoggedIn}
+          user={currentUser || undefined}
+          onSignOut={handleSignOut}
+          onProfile={handleProfile}
+        />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
@@ -371,7 +418,13 @@ export default function ProfilePage() {
       {/* Background Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
       
-      <Navbar showBackButton={true} />
+      <Navbar
+        showBackButton={true}
+        isLoggedIn={isLoggedIn}
+        user={currentUser || undefined}
+        onSignOut={handleSignOut}
+        onProfile={handleProfile}
+      />
 
       {/* Profile Header */}
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
@@ -460,15 +513,17 @@ export default function ProfilePage() {
                   <div key={project.id} className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
                       <AspectRatio ratio={16/9}>
-                        <img
+                        <Image
                           src={project.thumbnail_url || "/placeholder.svg"}
                           alt={project.title}
-                          loading="lazy"
-                          decoding="async"
+                          fill
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => {
                             e.currentTarget.src = "/placeholder.svg"
                           }}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </AspectRatio>
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
