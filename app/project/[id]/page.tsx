@@ -295,9 +295,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Background Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <div className="w-full h-96 bg-muted animate-pulse rounded-xl"></div>
@@ -319,9 +322,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Background Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Project Not Found</h1>
             <Link href="/">
@@ -337,7 +343,10 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-grid-pattern relative">
+      {/* Background Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      
       <Navbar
         showBackButton={true}
         isLoggedIn={isLoggedIn}
@@ -346,7 +355,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         onProfile={handleProfile}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">

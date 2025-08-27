@@ -327,9 +327,12 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Background Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="flex-1 text-center md:text-left py-0"></div>
@@ -343,9 +346,12 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Background Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
             <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
@@ -360,11 +366,14 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-grid-pattern relative">
+      {/* Background Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      
       <Navbar showBackButton={true} />
 
       {/* Profile Header */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <div className="bg-card rounded-xl border border-border p-8 mb-8">
           {isOwner && (
             <div className="flex justify-end mb-4">
