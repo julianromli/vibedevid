@@ -8,6 +8,7 @@ import { HeartButton } from "@/components/ui/heart-button"
 import { Navbar } from "@/components/ui/navbar"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
+import { ProgressiveImage } from "@/components/ui/progressive-image"
 import {
   Drawer,
   DrawerClose,
@@ -686,10 +687,20 @@ export default function HomePage() {
 
             <div className="relative">
               <Safari url="vibedev.id">
-                <img
+                <ProgressiveImage
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SOLO-pic-EN.35a702ba-uLVDZsjReIz7K4Ecr3JBrYkLCl8cdm.png"
                   alt="Development environment showing SOLO Builder interface with movie website project documentation"
+                  width={1200}
+                  height={675}
                   className="w-full h-auto object-cover"
+                  priority={true}
+                  enableBlurPlaceholder={true}
+                  quality={90}
+                  responsiveSizes={{
+                    mobile: "100vw",
+                    tablet: "100vw", 
+                    desktop: "100vw"
+                  }}
                 />
               </Safari>
             </div>
