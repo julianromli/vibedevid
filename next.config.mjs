@@ -19,12 +19,6 @@ const nextConfig = {
         '.mjs',
         '.json',
       ],
-      resolveAlias: {
-        // Avoid issues with native modules in Turbopack
-        'sharp': false,
-        'detect-libc': false,
-        'plaiceholder': false,
-      },
     },
   },
   // Webpack configuration (for production builds and regular dev)
