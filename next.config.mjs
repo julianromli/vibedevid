@@ -6,45 +6,31 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Exclude sharp and related packages from client bundle
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Externalize all native node modules for client build
-      config.externals.push({
-        sharp: 'commonjs sharp',
-        'detect-libc': 'commonjs detect-libc',
-        'node:child_process': 'commonjs child_process',
-        'child_process': 'commonjs child_process',
-        'plaiceholder': 'commonjs plaiceholder',
-        'node:fs': 'commonjs fs',
-        'fs': 'commonjs fs',
-        'path': 'commonjs path',
-        'node:path': 'commonjs path',
-        'node:buffer': 'commonjs buffer',
-        'buffer': 'commonjs buffer',
-        'node:stream': 'commonjs stream',
-        'stream': 'commonjs stream',
-        'os': 'commonjs os',
-        'node:os': 'commonjs os',
-        'util': 'commonjs util',
-        'node:util': 'commonjs util'
-      })
-      
-      // Also ensure these modules are resolved as external
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        buffer: false,
-        stream: false,
-        os: false,
-        util: false,
-        'child_process': false,
-        'detect-libc': false,
-        sharp: false,
-        plaiceholder: false
-      }
+  // Safer webpack configuration for client builds
+  webpack: (config, { isServer, dev }) => {
+    // Only apply external fallbacks, don't force externalize modules
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      child_process: false,
     }
+    
+    // Ignore specific modules that cause issues in client builds
+    if (!isServer) {
+      config.externals = config.externals || []
+      
+      // Only externalize if really necessary and safely
+      config.externals.push(function (context, request, callback) {
+        // Skip sharp and native modules entirely in client builds
+        if (/^(sharp|detect-libc|plaiceholder)$/.test(request)) {
+          return callback(null, `commonjs ${request}`)
+        }
+        callback()
+      })
+    }
+    
     return config
   },
   images: {
@@ -111,6 +97,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'utfs.io',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.traecommunity.id',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'traecommunity.id',
         port: '',
         pathname: '/**',
       }
