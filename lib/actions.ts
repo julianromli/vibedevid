@@ -500,12 +500,10 @@ export async function signInWithGitHub() {
 
 export async function getBatchLikeStatus(projectIds: (string | number)[]) {
   const supabase = await createClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
+  
   try {
     if (!projectIds || projectIds.length === 0) {
+      console.log("[v0] getBatchLikeStatus: No project IDs provided")
       return { likesData: {}, error: null }
     }
 
@@ -514,8 +512,24 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
       .filter((id) => !isNaN(id))
 
     if (projectIdsInt.length === 0) {
+      console.log("[v0] getBatchLikeStatus: No valid project IDs after parsing")
       return { likesData: {}, error: "No valid project IDs provided" }
     }
+
+    console.log("[v0] getBatchLikeStatus: Fetching likes for projects:", projectIdsInt)
+
+    // Get session safely
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.error("[v0] getBatchLikeStatus: Session error:", sessionError)
+      // Continue without session - we can still get total likes
+    }
+
+    console.log("[v0] getBatchLikeStatus: Session status:", session ? "logged in" : "anonymous")
 
     // Get all likes for these projects in one query
     const { data: allLikes, error: likesError } = await supabase
@@ -524,9 +538,16 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
       .in("project_id", projectIdsInt)
 
     if (likesError) {
-      console.error("Get batch likes error:", likesError)
-      return { likesData: {}, error: likesError.message }
+      console.error("[v0] getBatchLikeStatus: Likes fetch error:", likesError)
+      // Return empty data instead of error to not break UI
+      const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
+      projectIdsInt.forEach((projectId) => {
+        emptyLikesData[projectId.toString()] = { totalLikes: 0, isLiked: false }
+      })
+      return { likesData: emptyLikesData, error: null }
     }
+
+    console.log("[v0] getBatchLikeStatus: Raw likes data:", allLikes?.length || 0, "likes found")
 
     // Process the data
     const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
@@ -539,10 +560,21 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
       likesData[projectId.toString()] = { totalLikes, isLiked }
     })
 
+    console.log("[v0] getBatchLikeStatus: Processed likes data:", likesData)
     return { likesData, error: null }
   } catch (error) {
-    console.error("Get batch like status error:", error)
-    return { likesData: {}, error: "Failed to load likes data" }
+    console.error("[v0] getBatchLikeStatus: Unexpected error:", error)
+    // Return safe fallback data to prevent UI breaks
+    const fallbackLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
+    if (projectIds && projectIds.length > 0) {
+      projectIds.forEach((id) => {
+        const projectIdStr = id.toString()
+        if (projectIdStr && projectIdStr.trim() !== '') {
+          fallbackLikesData[projectIdStr] = { totalLikes: 0, isLiked: false }
+        }
+      })
+    }
+    return { likesData: fallbackLikesData, error: null }
   }
 }
 

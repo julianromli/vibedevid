@@ -85,6 +85,7 @@ export default function HomePage() {
   } | null>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [authReady, setAuthReady] = useState(false)
   const [creatingProfile, setCreatingProfile] = useState(false)
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
@@ -116,9 +117,15 @@ export default function HomePage() {
         console.log("[v0] Checking authentication state...")
         const supabase = createClient()
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        )
+
+        const sessionPromise = supabase.auth.getSession()
+        
+        const result = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: any }, error?: any }
+        const { data: { session } } = result
 
         if (!isMounted) return
 
@@ -222,6 +229,9 @@ export default function HomePage() {
         setIsLoggedIn(false)
         setUser(null)
         setCreatingProfile(false)
+      } finally {
+        // Mark auth as ready regardless of success/failure
+        setAuthReady(true)
       }
     }
 
@@ -236,14 +246,16 @@ export default function HomePage() {
 
       console.log("[v0] Auth state change:", event, session)
       if (event === "SIGNED_IN" && session) {
-        console.log("[v0] User signed in, updating state")
-        // Re-run checkAuth to get complete user profile
-        await checkAuth()
+        console.log("[v0] User signed in via auth state change")
+        // Don't re-run checkAuth here, it causes double execution
+        // Just update the auth ready state
+        setAuthReady(true)
       } else if (event === "SIGNED_OUT") {
         console.log("[v0] User signed out, clearing state")
         setIsLoggedIn(false)
         setUser(null)
         setCreatingProfile(false)
+        setAuthReady(true)
       }
     })
 
@@ -253,10 +265,11 @@ export default function HomePage() {
     }
   }, [])
 
-  // Separate useEffect for fetching projects
+  // Separate useEffect for fetching projects - now depends on auth state
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        console.log("[v0] Fetching projects... Auth state:", { isLoggedIn, authReady })
         const supabase = createClient()
 
         // Single JOIN query untuk better performance
@@ -274,9 +287,11 @@ export default function HomePage() {
           .limit(20) // Limit initial load
 
         if (error) {
-          console.error("Error fetching projects:", error)
+          console.error("[v0] Error fetching projects:", error)
           return
         }
+
+        console.log("[v0] Projects fetched:", projectsWithUsers.length)
 
         const formattedProjects = projectsWithUsers.map((project) => ({
           id: project.id.toString(),
@@ -296,24 +311,32 @@ export default function HomePage() {
         }))
 
         setProjects(formattedProjects)
+        console.log("[v0] Projects state updated with:", formattedProjects.length, "projects")
 
         if (formattedProjects.length > 0) {
           const projectIds = formattedProjects.map((p) => p.id)
+          console.log("[v0] Fetching likes data for projects:", projectIds)
           const { likesData: batchLikesData, error: likesError } = await getBatchLikeStatus(projectIds)
 
           if (!likesError && batchLikesData) {
+            console.log("[v0] Likes data fetched:", batchLikesData)
             setLikesData(batchLikesData)
+          } else if (likesError) {
+            console.error("[v0] Error fetching likes data:", likesError)
           }
         }
       } catch (error) {
-        console.error("Error fetching projects:", error)
+        console.error("[v0] Error fetching projects:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProjects()
-  }, [])
+    // Fetch projects when auth state changes OR on mount
+    if (authReady) {
+      fetchProjects()
+    }
+  }, [authReady, isLoggedIn]) // Add isLoggedIn dependency to re-fetch when login state changes
 
   // Remove redundant likes fetching - already handled in fetchProjects
 
