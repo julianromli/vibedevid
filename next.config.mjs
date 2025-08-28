@@ -6,7 +6,28 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Safer webpack configuration for client builds
+  // Turbopack configuration (for development with --turbopack)
+  experimental: {
+    turbo: {
+      // Turbo-specific configuration
+      resolveExtensions: [
+        '.mdx',
+        '.tsx',
+        '.ts',
+        '.jsx',
+        '.js',
+        '.mjs',
+        '.json',
+      ],
+      resolveAlias: {
+        // Avoid issues with native modules in Turbopack
+        'sharp': false,
+        'detect-libc': false,
+        'plaiceholder': false,
+      },
+    },
+  },
+  // Webpack configuration (for production builds and regular dev)
   webpack: (config, { isServer, dev }) => {
     // Only apply external fallbacks, don't force externalize modules
     config.resolve.fallback = {
