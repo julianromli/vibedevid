@@ -15,23 +15,21 @@ import {
 } from "@/components/ui/alert-dialog"
 import { getLikeStatusClient, toggleLikeClient } from "@/lib/client-likes"
 
-export interface HeartButtonProps {
+export interface ProminentLikeButtonProps {
   projectId: string
   initialLikes?: number
   initialIsLiked?: boolean
   isLoggedIn?: boolean
   onLikeChange?: (likes: number, isLiked: boolean) => void
-  variant?: "default" | "with-text" | "primary" // Added primary variant
 }
 
-export function HeartButton({
+export function ProminentLikeButton({
   projectId,
   initialLikes = 0,
   initialIsLiked = false,
   isLoggedIn = false,
   onLikeChange,
-  variant = "default",
-}: HeartButtonProps) {
+}: ProminentLikeButtonProps) {
   const [isLiked, setIsLiked] = React.useState(initialIsLiked)
   const [likes, setLikes] = React.useState(initialLikes)
   const [isAnimating, setIsAnimating] = React.useState(false)
@@ -59,7 +57,7 @@ export function HeartButton({
     }
 
     syncLikeStatus()
-  }, [projectId, isLoggedIn]) // Re-sync when login status changes
+  }, [projectId, isLoggedIn])
 
   // Fallback to initial props if database sync fails
   React.useEffect(() => {
@@ -101,52 +99,24 @@ export function HeartButton({
     setTimeout(() => setIsAnimating(false), 300)
   }
 
-  // Primary variant styling for prominent placement
-  const isPrimary = variant === "primary"
-  const buttonVariant = "ghost"
-  const buttonClasses = isPrimary
-    ? `flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
-        isAnimating ? "animate-heart-beat" : ""
-      } ${!isLoggedIn ? "opacity-75" : ""}`
-    : `flex items-center gap-1 transition-all duration-300 hover:scale-105 ${
-        isAnimating ? "" : ""
-      } ${!isLoggedIn ? "opacity-75" : ""}`
-
-  const heartClasses = isPrimary
-    ? `h-5 w-5 transition-all duration-300 ${
-        isLiked ? "text-red-500 fill-red-500 animate-heart-pulse" : "text-muted-foreground hover:text-red-400"
-      } ${isAnimating ? "animate-heart-beat" : ""}`
-    : `h-4 w-4 transition-all duration-300 ${
-        isLiked ? "text-red-500 fill-red-500" : "text-muted-foreground hover:text-red-400"
-      } ${isAnimating ? "animate-pulse" : ""}`
-
-  const textClasses = isPrimary
-    ? `text-sm font-semibold transition-all duration-300 ${
-        isLiked ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
-      }`
-    : `text-sm font-medium transition-all duration-300 ${
-        isLiked ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
-      }`
-
   return (
     <>
-      <Button
-        variant={buttonVariant}
-        size="sm"
+      <Button 
+        className="py-0 pe-0" 
+        variant="default"
         onClick={handleClick}
-        className={buttonClasses}
         title={!isLoggedIn ? "Sign in to like projects" : isLiked ? "Unlike this project" : "Like this project"}
       >
-        <Heart className={heartClasses} />
-        {variant === "with-text" || variant === "primary" ? (
-          <span className={textClasses}>
-            Like • {likes}
-          </span>
-        ) : (
-          <span className={textClasses}>
-            {likes}
-          </span>
-        )}
+        <Heart 
+          className={`me-2 ${isLiked ? 'text-red-500 fill-red-500' : 'text-primary-foreground opacity-80'} transition-all duration-300 ${isAnimating ? 'animate-pulse scale-110' : ''}`} 
+          size={16} 
+          strokeWidth={2} 
+          aria-hidden="true" 
+        />
+        Like
+        <span className="relative ms-3 inline-flex h-full items-center justify-center rounded-full px-3 text-xs font-medium text-primary-foreground/80 before:absolute before:inset-0 before:left-0 before:w-px before:bg-primary-foreground/20">
+          {likes}
+        </span>
       </Button>
 
       {/* Auth Required Dialog */}

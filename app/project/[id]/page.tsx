@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
+import { ProminentLikeButton } from "@/components/ui/prominent-like-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -514,11 +515,10 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     <p className="text-lg text-muted-foreground">{project.description}</p>
                   </div>
                   <div className="ml-4 flex-shrink-0">
-                    <HeartButton
+                    <ProminentLikeButton
                       projectId={project.id}
                       initialLikes={project.likes}
                       isLoggedIn={isLoggedIn}
-                      variant="primary"
                       onLikeChange={(newLikes, isLiked) => {
                         console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
                         setRealTimeLikes(newLikes) // Update real-time likes count

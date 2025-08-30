@@ -105,7 +105,8 @@ The app uses Supabase Auth with custom user profiles:
   - **Alert Dialog**: Professional confirmation dialogs (e.g., delete project)
   - **Button**: Multiple variants with loading states and icons
   - **Form Components**: Input, Textarea, Select with proper validation
-  - **Heart Button**: Custom like/unlike functionality with animations
+  - **Heart Button**: Clean like/unlike functionality with minimal styling (homepage cards)
+  - **Prominent Like Button**: Stand-out like button with primary styling for project detail pages
   - **Navbar**: Responsive navigation with user authentication state
 - **components.json** - shadcn/ui configuration using "new-york" style
 - Uses Tailwind CSS v4 with CSS variables for theming
@@ -501,6 +502,14 @@ Before deployment, ensure:
     - Error handling dan fallback systems
     - Responsive image sizing dengan art direction support
     - Production-ready implementation dengan 100% test coverage
+  - **💗 DUAL LIKE BUTTON SYSTEM** - UI component improvements untuk enhanced user engagement:
+    - **HeartButton**: Clean minimal design untuk homepage project cards (no background)
+    - **ProminentLikeButton**: Primary-styled button untuk project detail pages dengan prominent visibility
+    - Consistent heart icon usage across both variants (red-500 for liked state)
+    - Real-time sync with database dan session-based like tracking
+    - Proper authentication handling dengan modal dialogs untuk guests
+    - Smooth animations dengan pulse effects dan hover states
+    - Based on 21st dev components design patterns dengan VibeDev customization
 
 ## Analytics Implementation Details
 
