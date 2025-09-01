@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  },
+  "playwright": {
+    "headless": false,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "ignoreHTTPSErrors": true,
+    "outputDir": "./playwright-output",
+    "saveTrace": true,
+    "saveSession": false
+  }
+}
