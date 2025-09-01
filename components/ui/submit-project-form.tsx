@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,22 +13,65 @@ import { Loader2, Upload, X, CheckCircle } from "lucide-react"
 import { UploadButton } from "@uploadthing/react"
 import { toast } from "sonner"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { getCategories, type Category } from "@/lib/categories"
+import MultipleSelector, { Option } from "@/components/ui/multiselect"
+import { getFaviconUrl } from "@/lib/favicon-utils"
+
+// Common tech stack options for the multiselect
+const techOptions: Option[] = [
+  { value: "next.js", label: "Next.js" },
+  { value: "react", label: "React" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "vue", label: "Vue.js" },
+  { value: "angular", label: "Angular" },
+  { value: "svelte", label: "Svelte" },
+  { value: "tailwindcss", label: "Tailwind CSS" },
+  { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "nodejs", label: "Node.js" },
+  { value: "express", label: "Express.js" },
+  { value: "fastify", label: "Fastify" },
+  { value: "nestjs", label: "NestJS" },
+  { value: "python", label: "Python" },
+  { value: "django", label: "Django" },
+  { value: "flask", label: "Flask" },
+  { value: "fastapi", label: "FastAPI" },
+  { value: "java", label: "Java" },
+  { value: "spring", label: "Spring Boot" },
+  { value: "csharp", label: "C#" },
+  { value: "dotnet", label: ".NET" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "php", label: "PHP" },
+  { value: "laravel", label: "Laravel" },
+  { value: "mongodb", label: "MongoDB" },
+  { value: "postgresql", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "sqlite", label: "SQLite" },
+  { value: "redis", label: "Redis" },
+  { value: "supabase", label: "Supabase" },
+  { value: "firebase", label: "Firebase" },
+  { value: "aws", label: "AWS" },
+  { value: "vercel", label: "Vercel" },
+  { value: "netlify", label: "Netlify" },
+  { value: "docker", label: "Docker" },
+  { value: "kubernetes", label: "Kubernetes" },
+  { value: "graphql", label: "GraphQL" },
+  { value: "apollo", label: "Apollo" },
+  { value: "trpc", label: "tRPC" },
+  { value: "prisma", label: "Prisma" },
+  { value: "drizzle", label: "Drizzle" },
+  { value: "shadcn", label: "shadcn/ui" },
+  { value: "chakra", label: "Chakra UI" },
+  { value: "mantine", label: "Mantine" },
+  { value: "antd", label: "Ant Design" },
+  { value: "material-ui", label: "Material-UI" }
+]
 
 interface SubmitProjectFormProps {
   userId: string
 }
-
-const categories = [
-  "Web Development",
-  "Mobile App",
-  "Desktop App",
-  "AI/ML",
-  "Game Development",
-  "Design",
-  "DevTools",
-  "Open Source",
-  "Other",
-]
 
 export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -36,7 +79,30 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("")
   const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [selectedTags, setSelectedTags] = useState<Option[]>([])
+  const [websiteUrl, setWebsiteUrl] = useState<string>("")
+  const [faviconUrl, setFaviconUrl] = useState<string>("/default-favicon.svg")
   const router = useRouter()
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true)
+        const dbCategories = await getCategories()
+        setCategories(dbCategories)
+      } catch (error) {
+        console.error("Failed to fetch categories:", error)
+        setError("Failed to load categories. Please refresh the page.")
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -48,6 +114,15 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
       
       if (uploadedImageUrl) {
         formData.set("image_url", uploadedImageUrl)
+      }
+
+      // Add selected tags as JSON string
+      const tagsValues = selectedTags.map(tag => tag.value)
+      formData.set("tags", JSON.stringify(tagsValues))
+      
+      // Add website URL to form data (for backend favicon fetching)
+      if (websiteUrl) {
+        formData.set("website_url", websiteUrl)
       }
 
       const result = await submitProject(formData, userId)
@@ -84,6 +159,19 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="tagline">Tagline</Label>
+            <Input
+              id="tagline"
+              name="tagline"
+              placeholder="A short tagline that describes your project in one sentence"
+              disabled={isLoading || isUploading}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Tagline singkat yang describe project lo dalam satu kalimat! ✨
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
@@ -102,24 +190,82 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {loadingCategories ? (
+                  <SelectItem value="loading" disabled>
+                    Loading categories...
                   </SelectItem>
-                ))}
+                ) : categories.length > 0 ? (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.display_name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-categories" disabled>
+                    No categories available
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="website_url">Website URL</Label>
-            <Input
-              id="website_url"
-              name="website_url"
-              type="url"
-              placeholder="https://your-project.com"
+            <div className="flex items-center gap-2">
+              {faviconUrl && (
+                <img 
+                  src={faviconUrl} 
+                  alt="Website favicon" 
+                  className="w-4 h-4 flex-shrink-0"
+                  onError={() => setFaviconUrl("/default-favicon.svg")}
+                />
+              )}
+              <Input
+                id="website_url"
+                name="website_url"
+                type="url"
+                placeholder="https://your-project.com"
+                value={websiteUrl}
+                onChange={(e) => {
+                  const url = e.target.value
+                  setWebsiteUrl(url)
+                  // Auto-update favicon preview when URL changes
+                  if (url.trim()) {
+                    setFaviconUrl(getFaviconUrl(url.trim()))
+                  } else {
+                    setFaviconUrl("/default-favicon.svg")
+                  }
+                }}
+                disabled={isLoading || isUploading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Favicon akan otomatis ke-fetch dari website ini! 🌐
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tech Stack / Tags</Label>
+            <MultipleSelector
+              value={selectedTags}
+              onChange={setSelectedTags}
+              defaultOptions={techOptions}
+              placeholder="Select technologies used in your project..."
+              emptyIndicator={
+                <p className="text-center text-sm text-muted-foreground">
+                  No technologies found.
+                </p>
+              }
+              creatable
+              maxSelected={10}
               disabled={isLoading || isUploading}
+              commandProps={{
+                label: "Select tech stack",
+              }}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri kalau gak ada! 🚀
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -202,8 +348,9 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                             setUploadTimeout(null)
                           }
                           
-                          // Always set uploading to false first
+                          // Always set uploading to false first and clear any previous errors
                           setIsUploading(false)
+                          setError(null)
                           
                           // Check if we have a valid response
                           if (res && Array.isArray(res) && res.length > 0) {

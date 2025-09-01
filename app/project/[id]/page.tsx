@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import MultipleSelector, { Option } from "@/components/ui/multiselect"
+import { UploadButton } from "@uploadthing/react"
+import { getFaviconUrl } from "@/lib/favicon-utils"
+import { getCategories, type Category } from "@/lib/categories"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import {
@@ -34,6 +38,9 @@ import {
   Loader2,
   Edit,
   Trash2,
+  Upload,
+  X,
+  CheckCircle,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -61,6 +68,58 @@ import {
 } from "@/lib/client-analytics"
 import { useRouter } from "next/navigation"
 
+// Common tech stack options for the multiselect
+const techOptions: Option[] = [
+  { value: "next.js", label: "Next.js" },
+  { value: "react", label: "React" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "vue", label: "Vue.js" },
+  { value: "angular", label: "Angular" },
+  { value: "svelte", label: "Svelte" },
+  { value: "tailwindcss", label: "Tailwind CSS" },
+  { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "nodejs", label: "Node.js" },
+  { value: "express", label: "Express.js" },
+  { value: "fastify", label: "Fastify" },
+  { value: "nestjs", label: "NestJS" },
+  { value: "python", label: "Python" },
+  { value: "django", label: "Django" },
+  { value: "flask", label: "Flask" },
+  { value: "fastapi", label: "FastAPI" },
+  { value: "java", label: "Java" },
+  { value: "spring", label: "Spring Boot" },
+  { value: "csharp", label: "C#" },
+  { value: "dotnet", label: ".NET" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "php", label: "PHP" },
+  { value: "laravel", label: "Laravel" },
+  { value: "mongodb", label: "MongoDB" },
+  { value: "postgresql", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "sqlite", label: "SQLite" },
+  { value: "redis", label: "Redis" },
+  { value: "supabase", label: "Supabase" },
+  { value: "firebase", label: "Firebase" },
+  { value: "aws", label: "AWS" },
+  { value: "vercel", label: "Vercel" },
+  { value: "netlify", label: "Netlify" },
+  { value: "docker", label: "Docker" },
+  { value: "kubernetes", label: "Kubernetes" },
+  { value: "graphql", label: "GraphQL" },
+  { value: "apollo", label: "Apollo" },
+  { value: "trpc", label: "tRPC" },
+  { value: "prisma", label: "Prisma" },
+  { value: "drizzle", label: "Drizzle" },
+  { value: "shadcn", label: "shadcn/ui" },
+  { value: "chakra", label: "Chakra UI" },
+  { value: "mantine", label: "Mantine" },
+  { value: "antd", label: "Ant Design" },
+  { value: "material-ui", label: "Material-UI" }
+]
+
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [projectId, setProjectId] = useState<string | null>(null)
@@ -84,10 +143,20 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
+    tagline: "",
     category: "",
     website_url: "",
     image_url: "",
   })
+  // Edit form specific states
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
+  const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([])
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>("")
+  const [editFaviconUrl, setEditFaviconUrl] = useState<string>("/default-favicon.svg")
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
+  
   // Real-time stats states
   const [realTimeLikes, setRealTimeLikes] = useState(0)
   const [realTimeViews, setRealTimeViews] = useState(0)
@@ -273,14 +342,38 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   }
 
-  const handleEditProject = () => {
+  const handleEditProject = async () => {
+    // Load categories if not already loaded
+    if (categories.length === 0) {
+      setLoadingCategories(true)
+      try {
+        const dbCategories = await getCategories()
+        setCategories(dbCategories)
+      } catch (error) {
+        console.error("Failed to load categories:", error)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    // Initialize form data with existing project data
     setEditFormData({
       title: project?.title || "",
       description: project?.description || "",
-      category: project?.category || "",
+      tagline: project?.tagline || "",
+      category: project?.categoryRaw || "", // Use raw category name for form select
       website_url: project?.url || "",
       image_url: project?.image || "",
     })
+
+    // Initialize tech stack tags
+    const existingTags = project?.tags ? project.tags.map(tag => ({ value: tag, label: tag })) : []
+    setSelectedEditTags(existingTags)
+
+    // Initialize website URL and favicon
+    setEditWebsiteUrl(project?.url || "")
+    setEditFaviconUrl(project?.faviconUrl || "/default-favicon.svg")
+
     setIsEditing(true)
   }
 
@@ -293,9 +386,14 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       const formData = new FormData()
       formData.append("title", editFormData.title)
       formData.append("description", editFormData.description)
+      formData.append("tagline", editFormData.tagline)
       formData.append("category", editFormData.category)
-      formData.append("website_url", editFormData.website_url)
+      formData.append("website_url", editWebsiteUrl)
       formData.append("image_url", editFormData.image_url)
+
+      // Add selected tags as JSON string
+      const tagsValues = selectedEditTags.map(tag => tag.value)
+      formData.append("tags", JSON.stringify(tagsValues))
 
       const result = await editProject(project.id.toString(), formData)
 
@@ -305,6 +403,10 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           setProject(updatedProject)
         }
         setIsEditing(false)
+        // Reset edit form states
+        setSelectedEditTags([])
+        setEditWebsiteUrl("")
+        setEditFaviconUrl("/default-favicon.svg")
       } else {
         alert(result.error || "Failed to update project")
       }
@@ -423,7 +525,23 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         value={editFormData.title}
                         onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                         placeholder="Enter project title"
+                        disabled={isSaving}
                       />
+                    </div>
+
+                    {/* Tagline */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-tagline">Tagline</Label>
+                      <Input
+                        id="edit-tagline"
+                        value={editFormData.tagline}
+                        onChange={(e) => setEditFormData({ ...editFormData, tagline: e.target.value })}
+                        placeholder="A short tagline that describes your project in one sentence"
+                        disabled={isSaving}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tagline singkat yang describe project lo dalam satu kalimat! ✨
+                      </p>
                     </div>
 
                     {/* Description */}
@@ -433,8 +551,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         id="edit-description"
                         value={editFormData.description}
                         onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                        placeholder="Describe your project"
+                        placeholder="Describe your project, its features, and what makes it special"
                         rows={4}
+                        disabled={isSaving}
                       />
                     </div>
 
@@ -444,34 +563,221 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       <Select
                         value={editFormData.category}
                         onValueChange={(value) => setEditFormData({ ...editFormData, category: value })}
+                        disabled={isSaving || loadingCategories}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Web Development">Web Development</SelectItem>
-                          <SelectItem value="Mobile App">Mobile App</SelectItem>
-                          <SelectItem value="Desktop App">Desktop App</SelectItem>
-                          <SelectItem value="AI/ML">AI/ML</SelectItem>
-                          <SelectItem value="Game Development">Game Development</SelectItem>
-                          <SelectItem value="Design">Design</SelectItem>
-                          <SelectItem value="DevTools">DevTools</SelectItem>
-                          <SelectItem value="Open Source">Open Source</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          {loadingCategories ? (
+                            <SelectItem value="loading" disabled>
+                              Loading categories...
+                            </SelectItem>
+                          ) : categories.length > 0 ? (
+                            categories.map((category) => (
+                              <SelectItem key={category.id} value={category.name}>
+                                {category.display_name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-categories" disabled>
+                              No categories available
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Website URL */}
+                    {/* Website URL with Favicon Preview */}
                     <div className="space-y-2">
                       <Label htmlFor="edit-website">Website URL</Label>
-                      <Input
-                        id="edit-website"
-                        type="url"
-                        value={editFormData.website_url}
-                        onChange={(e) => setEditFormData({ ...editFormData, website_url: e.target.value })}
-                        placeholder="https://your-project.com"
+                      <div className="flex items-center gap-2">
+                        {editFaviconUrl && (
+                          <img 
+                            src={editFaviconUrl} 
+                            alt="Website favicon" 
+                            className="w-4 h-4 flex-shrink-0"
+                            onError={() => setEditFaviconUrl("/default-favicon.svg")}
+                          />
+                        )}
+                        <Input
+                          id="edit-website"
+                          type="url"
+                          value={editWebsiteUrl}
+                          onChange={(e) => {
+                            const url = e.target.value
+                            setEditWebsiteUrl(url)
+                            setEditFormData({ ...editFormData, website_url: url })
+                            // Auto-update favicon preview when URL changes
+                            if (url.trim()) {
+                              setEditFaviconUrl(getFaviconUrl(url.trim()))
+                            } else {
+                              setEditFaviconUrl("/default-favicon.svg")
+                            }
+                          }}
+                          placeholder="https://your-project.com"
+                          disabled={isSaving}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Favicon akan otomatis ke-fetch dari website ini! 🌐
+                      </p>
+                    </div>
+
+                    {/* Tech Stack / Tags */}
+                    <div className="space-y-2">
+                      <Label>Tech Stack / Tags</Label>
+                      <MultipleSelector
+                        value={selectedEditTags}
+                        onChange={setSelectedEditTags}
+                        defaultOptions={techOptions}
+                        placeholder="Select technologies used in your project..."
+                        emptyIndicator={
+                          <p className="text-center text-sm text-muted-foreground">
+                            No technologies found.
+                          </p>
+                        }
+                        creatable
+                        maxSelected={10}
+                        disabled={isSaving}
+                        commandProps={{
+                          label: "Select tech stack",
+                        }}
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri kalau gak ada! 🚀
+                      </p>
+                    </div>
+
+                    {/* Project Image Upload */}
+                    <div className="space-y-2">
+                      <Label>Project Screenshot</Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+                        {editFormData.image_url ? (
+                          <div className="space-y-4">
+                            <div className="relative">
+                              <AspectRatio ratio={16/9}>
+                                <img
+                                  src={editFormData.image_url || "/placeholder.svg"}
+                                  alt="Project screenshot preview"
+                                  className="w-full h-full object-cover rounded-lg shadow-md"
+                                />
+                              </AspectRatio>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2"
+                                onClick={() => {
+                                  setEditFormData({ ...editFormData, image_url: "" })
+                                }}
+                                disabled={isSaving}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Image uploaded successfully!</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            {isUploading ? (
+                              <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+                            ) : (
+                              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            )}
+                            <div className="mt-4">
+                              {isUploading ? (
+                                <div className="space-y-2">
+                                  <div className="bg-primary text-primary-foreground px-4 py-2 rounded-md">
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin inline" />
+                                    Uploading...
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">Please wait while your image is being uploaded</p>
+                                </div>
+                              ) : (
+                                <UploadButton
+                                  endpoint="projectImageUploader"
+                                  onUploadBegin={(name) => {
+                                    console.log("[v0] Upload started for file:", name)
+                                    setIsUploading(true)
+                                    
+                                    // Clear existing timeout if any
+                                    if (uploadTimeout) {
+                                      clearTimeout(uploadTimeout)
+                                    }
+                                    
+                                    // Set a fallback timeout to prevent stuck state (30 seconds)
+                                    const timeoutId = setTimeout(() => {
+                                      console.log("[v0] Upload timeout - resetting state")
+                                      setIsUploading(false)
+                                    }, 30000)
+                                    
+                                    setUploadTimeout(timeoutId)
+                                  }}
+                                  onClientUploadComplete={(res) => {
+                                    console.log("[v0] Client upload completed:", res)
+                                    
+                                    // Clear timeout since upload completed
+                                    if (uploadTimeout) {
+                                      clearTimeout(uploadTimeout)
+                                      setUploadTimeout(null)
+                                    }
+                                    
+                                    // Always set uploading to false first
+                                    setIsUploading(false)
+                                    
+                                    // Check if we have a valid response
+                                    if (res && Array.isArray(res) && res.length > 0) {
+                                      const uploadResult = res[0]
+                                      const imageUrl = uploadResult.url || uploadResult.fileUrl || uploadResult.key
+                                      
+                                      if (imageUrl) {
+                                        console.log("[v0] Setting image URL:", imageUrl)
+                                        setEditFormData(prevData => ({ ...prevData, image_url: imageUrl }))
+                                      }
+                                    }
+                                  }}
+                                  onUploadError={(error: Error) => {
+                                    console.error("[v0] Upload error:", error)
+                                    
+                                    // Clear timeout since upload failed
+                                    if (uploadTimeout) {
+                                      clearTimeout(uploadTimeout)
+                                      setUploadTimeout(null)
+                                    }
+                                    
+                                    setIsUploading(false)
+                                  }}
+                                  config={{
+                                    mode: "auto",
+                                  }}
+                                  content={{
+                                    button({ ready }) {
+                                      if (ready) return <div>Choose File</div>
+                                      return "Getting ready..."
+                                    },
+                                    allowedContent({ ready, fileTypes, isUploading }) {
+                                      if (!ready) return "Checking what you allow"
+                                      if (isUploading) return "Uploading..."
+                                      return `Image (${fileTypes.join(", ")})`
+                                    },
+                                  }}
+                                  appearance={{
+                                    button: "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                                    allowedContent: "text-sm text-muted-foreground mt-2",
+                                  }}
+                                />
+                              )}
+                            </div>
+                            <p className="mt-2 text-sm text-gray-500">
+                              {isUploading ? "Uploading your screenshot..." : "Upload a screenshot of your project (max 4MB)"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Action Buttons */}
@@ -498,36 +804,64 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               </Card>
             ) : (
               <div className="space-y-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                        {project.category}
-                      </span>
-                      <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {isMounted && project?.createdAt
-                          ? new Date(project.createdAt).toLocaleDateString()
-                          : "Loading..."}
-                      </span>
+                {/* Header Info */}
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                    {project.category}
+                  </span>
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {isMounted && project?.createdAt
+                      ? new Date(project.createdAt).toLocaleDateString()
+                      : "Loading..."}
+                  </span>
+                </div>
+                
+                {/* Favicon + Title + Tagline with Like Button */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={project.faviconUrl || "/default-favicon.svg"} 
+                        alt="Project favicon" 
+                        className="w-12 h-12 rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.src = "/default-favicon.svg"
+                        }}
+                      />
                     </div>
-                    <h1 className="text-3xl font-bold text-foreground">{project.title}</h1>
-                    <p className="text-lg text-muted-foreground">{project.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-3xl font-bold text-foreground leading-tight mb-1">
+                        {project.title}
+                      </h1>
+                      {project.tagline && (
+                        <p className="text-lg text-muted-foreground leading-relaxed">
+                          {project.tagline}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="ml-4 flex-shrink-0">
+                  
+                  {/* Like Button - positioned on the right */}
+                  <div className="flex-shrink-0 self-start">
                     <ProminentLikeButton
                       projectId={project.id}
                       initialLikes={project.likes}
                       isLoggedIn={isLoggedIn}
                       onLikeChange={(newLikes, isLiked) => {
                         console.log(`Project ${project.id} ${isLiked ? "liked" : "unliked"}: ${newLikes} likes`)
-                        setRealTimeLikes(newLikes) // Update real-time likes count
+                        setRealTimeLikes(newLikes)
                       }}
                     />
                   </div>
                 </div>
+                
+                {/* Description */}
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed text-base">{project.description}</p>
+                </div>
 
-                {/* Tags */}
+                {/* Tech Stack Tags */}
                 <div className="flex flex-wrap gap-2">
                   {project.tags.map((tag, index) => (
                     <span
@@ -538,12 +872,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       {tag}
                     </span>
                   ))}
-                </div>
-
-                {/* Full Description */}
-                <div className="prose prose-neutral dark:prose-invert max-w-none">
-                  <h3 className="text-xl font-semibold mb-3">About This Project</h3>
-                  <p className="text-muted-foreground leading-relaxed">{project.fullDescription}</p>
                 </div>
 
                 {/* Project URL */}

@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { getSupabaseConfig } from "./env-config"
+import { fetchFavicon } from "./favicon-utils"
+import { getCategoryDisplayName } from "./categories"
 
 async function createClient() {
   const cookieStore = await cookies()
@@ -287,6 +289,9 @@ export async function getProject(projectId: string) {
       return { project: null, error: "Project author not found" }
     }
 
+    // Get the display name for the category
+    const categoryDisplayName = await getCategoryDisplayName(project.category)
+
     const formattedProject = {
       id: project.id,
       title: project.title,
@@ -301,8 +306,11 @@ export async function getProject(projectId: string) {
         location: project.users.location || "Unknown location",
       },
       url: project.website_url,
-      category: project.category,
-      tags: ["Next.js", "React", "TypeScript"], // Default tags for now
+      category: categoryDisplayName, // Use display name for UI display
+      categoryRaw: project.category, // Keep raw category name for edit forms
+      tagline: project.tagline || "",
+      faviconUrl: project.favicon_url || "/default-favicon.svg",
+      tags: project.tags || [], // Use actual tags from database
       likes: likesCount || 0,
       views: totalViews || 0,
       uniqueViews: uniqueViews || 0,
@@ -587,6 +595,28 @@ export async function submitProject(formData: FormData, userId: string) {
     const category = formData.get("category") as string
     const websiteUrl = formData.get("website_url") as string
     const imageUrl = formData.get("image_url") as string
+    const tagline = formData.get("tagline") as string
+    const tagsString = formData.get("tags") as string
+
+    // Parse tags from JSON string to array
+    let tags: string[] = []
+    if (tagsString) {
+      try {
+        tags = JSON.parse(tagsString)
+      } catch (e) {
+        console.warn("Failed to parse tags, using empty array", e)
+      }
+    }
+
+    // Auto-fetch favicon if website URL is provided
+    let faviconUrl = "/default-favicon.svg"
+    if (websiteUrl?.trim()) {
+      try {
+        faviconUrl = await fetchFavicon(websiteUrl.trim())
+      } catch (e) {
+        console.warn("Failed to fetch favicon, using default", e)
+      }
+    }
 
     if (!title || !description || !category) {
       return { success: false, error: "Title, description, and category are required" }
@@ -600,7 +630,10 @@ export async function submitProject(formData: FormData, userId: string) {
         category,
         website_url: websiteUrl?.trim() || null,
         image_url: imageUrl?.trim() || null,
+        tagline: tagline?.trim() || null,
+        favicon_url: faviconUrl,
         author_id: userId,
+        tags: tags,
       })
       .select()
       .single()
@@ -648,6 +681,28 @@ export async function editProject(projectId: string, formData: FormData) {
     const category = formData.get("category") as string
     const websiteUrl = formData.get("website_url") as string
     const imageUrl = formData.get("image_url") as string
+    const tagline = formData.get("tagline") as string
+    const tagsString = formData.get("tags") as string
+
+    // Parse tags from JSON string to array
+    let tags: string[] = []
+    if (tagsString) {
+      try {
+        tags = JSON.parse(tagsString)
+      } catch (e) {
+        console.warn("Failed to parse tags, using empty array", e)
+      }
+    }
+
+    // Auto-fetch favicon if website URL changed
+    let faviconUrl: string | undefined
+    if (websiteUrl?.trim()) {
+      try {
+        faviconUrl = await fetchFavicon(websiteUrl.trim())
+      } catch (e) {
+        console.warn("Failed to fetch favicon, keeping existing", e)
+      }
+    }
 
     if (!title || !description || !category) {
       return { success: false, error: "Title, description, and category are required" }
@@ -661,6 +716,9 @@ export async function editProject(projectId: string, formData: FormData) {
         category,
         website_url: websiteUrl?.trim() || null,
         image_url: imageUrl?.trim() || null,
+        tagline: tagline?.trim() || null,
+        ...(faviconUrl && { favicon_url: faviconUrl }),
+        tags: tags,
         updated_at: new Date().toISOString(),
       })
       .eq("id", Number.parseInt(projectId))

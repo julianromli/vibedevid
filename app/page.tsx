@@ -9,6 +9,7 @@ import { Navbar } from "@/components/ui/navbar"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
 import { ProgressiveImage } from "@/components/ui/progressive-image"
+import { getCategories, getCategoryDisplayName } from "@/lib/categories"
 import {
   Drawer,
   DrawerClose,
@@ -93,6 +94,22 @@ export default function HomePage() {
   const [currentTime, setCurrentTime] = useState("")
   const [isMounted, setIsMounted] = useState(false)
   const [likesData, setLikesData] = useState<Record<string, { totalLikes: number; isLiked: boolean }>>({})
+  const [filterOptions, setFilterOptions] = useState<string[]>(["All"])
+
+  // Fetch categories for filter options
+  useEffect(() => {
+    const fetchFilterCategories = async () => {
+      try {
+        const categories = await getCategories()
+        const categoryDisplayNames = categories.map(cat => cat.display_name)
+        setFilterOptions(["All", ...categoryDisplayNames])
+      } catch (error) {
+        console.error("Failed to fetch categories for filters:", error)
+      }
+    }
+
+    fetchFilterCategories()
+  }, [])
 
   useEffect(() => {
     setIsMounted(true)
@@ -293,21 +310,26 @@ export default function HomePage() {
 
         console.log("[v0] Projects fetched:", projectsWithUsers.length)
 
-        const formattedProjects = projectsWithUsers.map((project) => ({
-          id: project.id.toString(),
-          title: project.title,
-          description: project.description,
-          image: project.image_url,
-          author: {
-            name: project.users?.display_name || 'Unknown',
-            username: project.users?.username || 'unknown',
-            avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
-          },
-          url: project.website_url,
-          category: project.category,
-          likes: 0, // Will be updated by batch likes
-          views: 0,
-          createdAt: project.created_at,
+        const formattedProjects = await Promise.all(projectsWithUsers.map(async (project) => {
+          // Get display name for category
+          const categoryDisplayName = await getCategoryDisplayName(project.category)
+          
+          return {
+            id: project.id.toString(),
+            title: project.title,
+            description: project.description,
+            image: project.image_url,
+            author: {
+              name: project.users?.display_name || 'Unknown',
+              username: project.users?.username || 'unknown',
+              avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
+            },
+            url: project.website_url,
+            category: categoryDisplayName, // Use display name instead of raw category
+            likes: 0, // Will be updated by batch likes
+            views: 0,
+            createdAt: project.created_at,
+          }
         }))
 
         setProjects(formattedProjects)
@@ -379,7 +401,6 @@ export default function HomePage() {
     },
   ]
 
-  const filterOptions = ["All", "Personal Web", "SaaS", "Landing Page"]
   const trendingOptions = ["Trending", "Top", "Newest"]
 
   const handleSignOut = async () => {

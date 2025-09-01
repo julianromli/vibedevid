@@ -510,6 +510,13 @@ Before deployment, ensure:
     - Proper authentication handling dengan modal dialogs untuk guests
     - Smooth animations dengan pulse effects dan hover states
     - Based on 21st dev components design patterns dengan VibeDev customization
+  - **📝 FORM UX IMPROVEMENTS** - Enhanced user experience untuk project submission dan editing:
+    - **Field Order Optimization**: Tukar urutan Description dengan Tagline untuk better logical flow
+    - **Submit Form**: Title → Tagline → Description → Category (lebih intuitive UX)
+    - **Edit Form**: Consistent field ordering dengan submit form untuk familiar experience
+    - **Upload Bug Fix**: Fixed timeout error message tidak hilang setelah successful upload
+    - **Error Handling**: Improved error state management dengan proper cleanup di onClientUploadComplete
+    - **User Flow**: Optimized form progression untuk faster project creation dan editing
 
 ## Analytics Implementation Details
 
