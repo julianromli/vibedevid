@@ -73,7 +73,7 @@ interface SubmitProjectFormProps {
   userId: string
 }
 
-const MAX_DESCRIPTION_LENGTH = 160
+const MAX_DESCRIPTION_LENGTH = 300
 
 export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -189,12 +189,12 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             />
             <div className="flex items-center justify-between text-sm">
               <p className="text-xs text-muted-foreground mt-1">
-                Description maksimal 160 karakter untuk konsistensi! 📝
+                Description maksimal 300 karakter untuk konsistensi! 📝
               </p>
               <span className={`font-medium ${
                 description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-500' :
-                description.length > 140 ? 'text-yellow-500' :
-                'text-xs text-muted-foreground mt-1'
+                description.length > 250 ? 'text-yellow-500' :
+                'text-muted-foreground'
               }`}>
                 {description.length}/{MAX_DESCRIPTION_LENGTH}
               </span>

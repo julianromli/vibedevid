@@ -69,7 +69,7 @@ import {
 import { useRouter } from "next/navigation"
 
 // Common tech stack options for the multiselect
-const MAX_DESCRIPTION_LENGTH = 160
+const MAX_DESCRIPTION_LENGTH = 300
 
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
@@ -561,11 +561,11 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       />
                       <div className="flex items-center justify-between text-sm">
                         <p className="text-muted-foreground">
-                          Description maksimal 160 karakter untuk konsistensi! 📝
+                          Description maksimal 300 karakter untuk konsistensi! 📝
                         </p>
                         <span className={`font-medium ${
                           editFormData.description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-500' :
-                          editFormData.description.length > 140 ? 'text-yellow-500' :
+                          editFormData.description.length > 250 ? 'text-yellow-500' :
                           'text-muted-foreground'
                         }`}>
                           {editFormData.description.length}/{MAX_DESCRIPTION_LENGTH}
