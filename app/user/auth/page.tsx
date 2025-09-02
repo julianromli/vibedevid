@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useTransition, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -11,6 +11,7 @@ import { X, Eye, EyeOff, Mail, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { signIn, signUp, resetPassword } from "@/lib/actions"
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -24,23 +25,55 @@ export default function AuthPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const searchParams = useSearchParams()
+
+  // Handle URL parameters on mount
+  useEffect(() => {
+    const successParam = searchParams.get('success')
+    const errorParam = searchParams.get('error')
+    
+    if (successParam) {
+      setSuccess(decodeURIComponent(successParam))
+    }
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam))
+    }
+  }, [searchParams])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
-
+    
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', password)
+    
+    console.log('[Frontend] Calling server action signIn with:', { email })
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      toast.success("Berhasil masuk! 🎉 Selamat datang kembali!")
-      router.push("/")
+      const result = await signIn(null, formData)
+      console.log('[Frontend] Server action result:', result)
+      
+      if (result?.error) {
+        console.log('[Frontend] Sign in error:', result.error, 'emailNotConfirmed:', result.emailNotConfirmed)
+        setError(result.error)
+        if (result.emailNotConfirmed) {
+          // Redirect to email confirmation page if email not confirmed
+          console.log('[Frontend] Redirecting to confirm email page')
+          router.push(`/user/auth/confirm-email?email=${encodeURIComponent(email)}`)
+        }
+      } else if (result?.success) {
+        console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
+        toast.success("Berhasil masuk! 🎉 Selamat datang kembali!")
+        router.push(result.redirect || "/")
+      } else {
+        console.log('[Frontend] Unexpected result structure:', result)
+      }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      console.error('[Frontend] Sign in error:', error)
+      setError(error instanceof Error ? error.message : "An unexpected error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -65,7 +98,9 @@ export default function AuthPage() {
         },
       })
       if (error) throw error
-      setSuccess("Please check your email to verify your account.")
+      
+      // Redirect to email confirmation page
+      router.push(`/user/auth/confirm-email?email=${encodeURIComponent(email)}`)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
@@ -75,18 +110,22 @@ export default function AuthPage() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
-
+    
+    const formData = new FormData()
+    formData.append('email', email)
+    
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/user/auth`,
-      })
-      if (error) throw error
-      setSuccess("Check your email for the reset link!")
+      const result = await resetPassword(null, formData)
+      
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.success) {
+        setSuccess(result.success)
+      }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An unexpected error occurred")
     } finally {
       setIsLoading(false)
     }

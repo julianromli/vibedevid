@@ -99,6 +99,11 @@ The app uses Supabase Auth with custom user profiles:
 - **lib/actions.ts** - Server actions for sign in/up, password reset, comments
 - **middleware.ts** - Supabase middleware for session management
 - **lib/supabase/** - Client/server Supabase configuration
+- **Email Confirmation Flow** - Enhanced redirect system untuk better UX:
+  - **Confirm Email → Login Page**: Users redirected ke login page setelah email confirmation
+  - **Success Message Display**: Green success banner dengan "Email confirmed successfully! You can now sign in."
+  - **Security-First Approach**: User di-signout setelah confirmation untuk force proper login
+  - **URL Parameter Handling**: Login page reads success/error messages dari URL parameters
 
 ### UI Components (shadcn/ui)
 - **components/ui/** - Reusable UI components built on Radix UI
@@ -527,6 +532,15 @@ Before deployment, ensure:
     - **Performance Optimized**: Parallel analytics queries dengan proper indexing untuk scalability
     - **Testing Validated**: ✅ MCP Playwright testing dengan multiple user accounts (faiz@gmail.com, 123@gmail.com)
     - **Production Ready**: Server actions dengan proper error handling dan upsert mechanisms
+  - **📧 EMAIL CONFIRMATION FLOW ENHANCEMENT** - Security-first redirect system implementation:
+    - **Enhanced User Experience**: Email confirmation redirects to login page instead of home
+    - **Success Message Display**: Clear green banner with "Email confirmed successfully! You can now sign in."
+    - **Security Enforcement**: User automatically signed out after confirmation untuk force proper login
+    - **URL Parameter Integration**: Login page dynamically handles success/error messages from URL
+    - **Auth Callback Route**: Modified `/auth/callback/route.ts` untuk redirect ke `/user/auth`
+    - **Login Page Enhancement**: Added useEffect untuk handle URL parameters dan display messages
+    - **Flow Optimization**: Streamlined registration → confirmation → login process
+    - **Consistent UX**: Maintains design consistency dengan existing auth pages
 
 ## Analytics Implementation Details
 

@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
 
   try {
     const { url, anonKey } = getSupabaseConfig()
+    const requestUrl = new URL(request.url)
 
     const supabase = createServerClient(
       url,
@@ -36,6 +37,30 @@ export async function middleware(request: NextRequest) {
     const {
       data: { user },
     } = await supabase.auth.getUser()
+
+    // Check for email confirmation requirements
+    const isAuthPath = requestUrl.pathname.startsWith('/user/auth')
+    const isConfirmEmailPath = requestUrl.pathname.includes('/confirm-email')
+    const isCallbackPath = requestUrl.pathname.includes('/auth/callback')
+    
+    // If user is logged in but email is not confirmed
+    if (user && !user.email_confirmed_at && !isAuthPath && !isCallbackPath) {
+      console.log('[Middleware] Redirecting unconfirmed user:', user.email, 'from:', requestUrl.pathname)
+      
+      // Sign out unconfirmed user and redirect
+      await supabase.auth.signOut()
+      
+      return NextResponse.redirect(
+        new URL(`/user/auth/confirm-email?email=${encodeURIComponent(user.email || '')}&from=${encodeURIComponent(requestUrl.pathname)}`, requestUrl.origin)
+      )
+    }
+
+    // Prevent confirmed users from accessing confirm-email page unless they have a specific email param
+    if (user && user.email_confirmed_at && isConfirmEmailPath && !requestUrl.searchParams.get('email')) {
+      console.log('[Middleware] Redirecting confirmed user away from confirm-email page')
+      return NextResponse.redirect(new URL('/', requestUrl.origin))
+    }
+
   } catch (error) {
     console.error('Middleware error:', error)
     // Continue without authentication if there's an error

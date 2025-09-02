@@ -29,12 +29,16 @@ async function createClient() {
 }
 
 export async function signIn(prevState: any, formData: FormData) {
+  console.log('[Server Action] signIn called')
+  
   if (!formData) {
     return { error: "Form data is missing" }
   }
 
   const email = formData.get("email")
   const password = formData.get("password")
+  
+  console.log('[Server Action] signIn with email:', email)
 
   if (!email || !password) {
     return { error: "Email and password are required" }
@@ -52,15 +56,33 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: error.message }
     }
 
-    // Create or update user profile
+    // Get user and check email confirmation status
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    
     if (user) {
+      console.log('[Server Action] User found:', { id: user.id, email: user.email, email_confirmed_at: user.email_confirmed_at })
+      
+      // Check if email is confirmed
+      if (!user.email_confirmed_at) {
+        console.log('[Server Action] Email not confirmed, signing out and returning error')
+        // Sign out the user since email is not confirmed
+        await supabase.auth.signOut()
+        return { 
+          error: "Please confirm your email address before signing in. Check your inbox for the confirmation link.",
+          emailNotConfirmed: true 
+        }
+      }
+      
+      console.log('[Server Action] Email confirmed, proceeding with profile creation')
+      
+      // Create or update user profile only if email is confirmed
       const { error: profileError } = await supabase
         .from("users")
         .upsert({
           id: user.id,
+          email: user.email,
           username: user.email?.split("@")[0] || "user",
           display_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
           updated_at: new Date().toISOString(),
@@ -154,6 +176,41 @@ export async function resetPassword(prevState: any, formData: FormData) {
     return { success: "Password reset email sent. Check your inbox." }
   } catch (error) {
     console.error("Password reset error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
+  }
+}
+
+export async function resendConfirmationEmail(prevState: any, formData: FormData) {
+  if (!formData) {
+    return { error: "Form data is missing" }
+  }
+
+  const email = formData.get("email")
+
+  if (!email) {
+    return { error: "Email is required" }
+  }
+
+  const supabase = await createClient()
+
+  try {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.toString(),
+      options: {
+        emailRedirectTo:
+          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+          `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}`,
+      }
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: "Confirmation email sent. Check your inbox." }
+  } catch (error) {
+    console.error("Resend confirmation error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }
