@@ -322,37 +322,46 @@ function AuthPageContent() {
               </div>
 
               {/* Email Field */}
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => {
-                    const val = e.target.value
-                    setEmail(val)
-                    if (isSignUp) {
-                      if (!val) {
-                        setEmailDomainError(null)
-                      } else if (!isEmailDomainAllowed(val)) {
-                        const domain = getEmailDomain(val)
-                        setEmailDomainError(
-                          domain
-                            ? `Email domain ${domain} tidak diizinkan. Hanya Gmail, Yahoo, atau Outlook yang boleh.`
-                            : "Format email nggak valid. Pastikan ada '@' dan domainnya ya."
-                        )
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-200" />
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setEmail(val)
+                      if (isSignUp) {
+                        if (!val) {
+                          setEmailDomainError(null)
+                        } else if (!isEmailDomainAllowed(val)) {
+                          const domain = getEmailDomain(val)
+                          setEmailDomainError(
+                            domain
+                              ? `Domain ${domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook ya cuy.`
+                              : "Format email nggak valid. Pastikan ada '@' dan domainnya ya."
+                          )
+                        } else {
+                          setEmailDomainError(null)
+                        }
                       } else {
                         setEmailDomainError(null)
                       }
-                    } else {
-                      setEmailDomainError(null)
-                    }
-                  }}
-                  required
-                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
-                />
+                    }}
+                    required
+                    className={`bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200 ${
+                      isSignUp && emailDomainError ? 'border-red-500/50' : ''
+                    }`}
+                  />
+                </div>
                 {isSignUp && emailDomainError && (
-                  <p className="text-xs text-red-500 mt-1">{emailDomainError}</p>
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                    <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                      <span className="text-red-500">⚠️</span>
+                      {emailDomainError}
+                    </p>
+                  </div>
                 )}
               </div>
 
