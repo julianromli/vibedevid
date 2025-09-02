@@ -122,6 +122,12 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.ufs.sh',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.traecommunity.id',
         port: '',
         pathname: '/**',

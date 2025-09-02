@@ -17,10 +17,9 @@ function extractDomain(url: string): string | null {
 }
 
 /**
- * Fetch favicon from website URL
- * Simple approach: try common favicon paths
+ * Internal helper to fetch favicon with individual request timeouts
  */
-export async function fetchFavicon(websiteUrl: string): Promise<string> {
+async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
   if (!websiteUrl) return DEFAULT_FAVICON
   
   const domain = extractDomain(websiteUrl)
@@ -35,24 +34,60 @@ export async function fetchFavicon(websiteUrl: string): Promise<string> {
     `${domain}/apple-touch-icon-180x180.png`
   ]
 
-  // Try each favicon path
+  // Try each favicon path with timeout to prevent stuck
   for (const faviconUrl of faviconPaths) {
     try {
+      // Create AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 2000) // 2 second timeout per request
+      
       const response = await fetch(faviconUrl, { 
         method: 'HEAD',
-        mode: 'no-cors' // Avoid CORS issues
+        mode: 'no-cors', // Avoid CORS issues
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
       
       // If request doesn't fail, assume favicon exists
       // Note: with no-cors, we can't check response.ok, but lack of error means likely success
       return faviconUrl
-    } catch {
+    } catch (error) {
+      // Log timeout errors for debugging but continue to next URL
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log(`[favicon] Timeout fetching: ${faviconUrl}`)
+      }
       continue
     }
   }
 
   // If all fails, use favicon service as fallback
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
+}
+
+/**
+ * Fetch favicon from website URL with overall timeout to prevent submit blocking
+ * Simple approach: try common favicon paths with total 8s timeout
+ */
+export async function fetchFavicon(websiteUrl: string): Promise<string> {
+  try {
+    // Race between favicon fetch and overall timeout
+    const result = await Promise.race([
+      _fetchFaviconWithTimeout(websiteUrl),
+      new Promise<string>((_, reject) => 
+        setTimeout(() => reject(new Error('Overall timeout')), 8000)
+      )
+    ])
+    return result
+  } catch (error) {
+    console.log(`[favicon] Overall timeout or error, using fallback:`, error)
+    // Return fallback URL if everything fails
+    const domain = extractDomain(websiteUrl)
+    if (domain) {
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
+    }
+    return DEFAULT_FAVICON
+  }
 }
 
 /**

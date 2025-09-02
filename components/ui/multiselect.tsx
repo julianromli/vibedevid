@@ -626,6 +626,9 @@ const MultipleSelector = React.forwardRef<
                                   const newOptions = [...selected, option]
                                   setSelected(newOptions)
                                   onChange?.(newOptions)
+                                  // Auto-close dropdown after selection
+                                  setOpen(false)
+                                  inputRef?.current?.blur()
                                 }}
                                 className={cn(
                                   "cursor-pointer",

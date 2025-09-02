@@ -577,6 +577,23 @@ Before deployment, ensure:
     - **Production Ready**: Verified dengan `pnpm run vercel-build` command
     - **Error Prevention**: Prevents "useSearchParams() should be wrapped in a suspense boundary" build failures
     - **Best Practice**: Following Next.js 15 App Router recommendations untuk client-side hooks
+  - **🚀 PROJECT SUBMIT TIMEOUT FIX** - Critical submit project stuck issue resolution:
+    - **Favicon Fetch Timeout**: Fixed infinite loading saat submit project dengan website URL
+    - **AbortController Implementation**: Added 2-second timeout per favicon request dengan proper cleanup
+    - **Overall Timeout Wrapper**: 8-second maximum total time untuk fetchFavicon function
+    - **Promise.race() Pattern**: Prevents blocking submission process dengan graceful fallbacks
+    - **Error Handling Enhancement**: Comprehensive timeout error logging untuk debugging
+    - **Fallback System**: Google favicon service sebagai reliable fallback option
+    - **User Experience**: Submit process tidak stuck lagi, immediate feedback untuk users
+    - **Production Ready**: Tested dengan real website URLs dan verified working
+  - **📸 UPLOADTHING DOMAIN CONFIGURATION** - Next.js Image optimization untuk new UploadThing domains:
+    - **Remote Pattern Addition**: Added `**.ufs.sh` wildcard pattern untuk UploadThing subdomains
+    - **Image Loading Fix**: Resolved "hostname not configured" error untuk uploaded project images
+    - **Next.js 15 Compatibility**: Full support untuk latest Next.js Image optimization
+    - **Subdomain Support**: Handles dynamic UploadThing subdomains (elyql1q8be.ufs.sh, etc.)
+    - **Existing Pattern Retention**: Maintained support untuk utfs.io domain
+    - **Performance Optimized**: AVIF/WebP conversion untuk uploaded project screenshots
+    - **Production Deployed**: Configuration active dan working untuk all new image uploads
 
 ## Analytics Implementation Details
 
