@@ -541,7 +541,7 @@ Before deployment, ensure:
     - **Login Page Enhancement**: Added useEffect untuk handle URL parameters dan display messages
     - **Flow Optimization**: Streamlined registration → confirmation → login process
     - **Consistent UX**: Maintains design consistency dengan existing auth pages
-    - **Custom Email Template**: Professional HTML email template dengan VibeDev ID branding:
+  - **Custom Email Template**: Professional HTML email template dengan VibeDev ID branding:
       - **Light Theme Only**: Clean design menggunakan exact color scheme dari `globals.css`
       - **Brand Consistency**: Logo, tagline, dan primary green color (#10b981) match website
       - **Indonesian Copywriting**: Friendly tone dengan "lo/gue" language style
@@ -551,6 +551,16 @@ Before deployment, ensure:
       - **User Benefits**: Highlighted features dan value proposition VibeDev community
       - **Security Information**: 24-hour validity dan single-use link explanation
       - **Backup Link**: Manual copy-paste option untuk better deliverability
+  - **🔧 NEXT.JS 15 SUSPENSE BOUNDARY FIX** - Critical build error resolution untuk Vercel deployment:
+    - **useSearchParams() Wrapper**: Fixed missing Suspense boundary error di halaman auth
+    - **Component Separation**: Memisahkan components yang menggunakan useSearchParams() ke separate functions
+    - **Suspense Implementation**: Added proper `<Suspense fallback={<LoadingSkeleton />}>` wrapper
+    - **Loading Skeletons**: Professional loading states dengan consistent design pattern
+    - **Fixed Pages**: `/user/auth` dan `/user/auth/confirm-email` 
+    - **Build Success**: Next.js build completed successfully tanpa prerendering errors
+    - **Production Ready**: Verified dengan `pnpm run vercel-build` command
+    - **Error Prevention**: Prevents "useSearchParams() should be wrapped in a suspense boundary" build failures
+    - **Best Practice**: Following Next.js 15 App Router recommendations untuk client-side hooks
 
 ## Analytics Implementation Details
 

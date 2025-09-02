@@ -129,8 +129,7 @@ export function Navbar({
             {showBackButton ? (
               <Link href="/">
                 <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
             ) : (

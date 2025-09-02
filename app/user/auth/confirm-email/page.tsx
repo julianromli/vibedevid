@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,8 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
-export default function ConfirmEmailPage() {
+// Component yang menggunakan useSearchParams
+function ConfirmEmailContent() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
@@ -202,5 +203,39 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Loading component untuk fallback
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-grid-pattern flex items-center justify-center p-4">
+      {/* Background Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      
+      {/* Loading Modal */}
+      <div className="relative w-full max-w-md">
+        <div className="bg-background/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-border">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 mx-auto bg-muted/20 rounded-full flex items-center justify-center">
+              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-muted/20 rounded-lg animate-pulse"></div>
+              <div className="h-3 bg-muted/15 rounded-lg animate-pulse w-3/4 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Main page component dengan Suspense boundary
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <ConfirmEmailContent />
+    </Suspense>
   )
 }

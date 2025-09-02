@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,8 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { signIn, signUp, resetPassword } from "@/lib/actions"
 
-export default function AuthPage() {
+// Component yang menggunakan useSearchParams
+function AuthPageContent() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -456,5 +457,50 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Loading component untuk fallback
+function AuthLoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-grid-pattern flex items-center justify-center p-4">
+      {/* Background Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+      
+      {/* Loading Modal */}
+      <div className="relative w-full max-w-md">
+        <div className="bg-background/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-border">
+          <div className="text-center space-y-6">
+            {/* Header skeleton */}
+            <div className="space-y-3">
+              <div className="h-8 bg-muted/20 rounded-lg animate-pulse w-2/3 mx-auto"></div>
+              <div className="h-4 bg-muted/15 rounded-lg animate-pulse w-1/2 mx-auto"></div>
+            </div>
+            
+            {/* Form skeleton */}
+            <div className="space-y-4">
+              <div className="h-12 bg-muted/20 rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-muted/20 rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-muted/20 rounded-xl animate-pulse"></div>
+            </div>
+            
+            {/* Buttons skeleton */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="h-12 bg-muted/15 rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-muted/15 rounded-xl animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Main page component dengan Suspense boundary
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<AuthLoadingSkeleton />}>
+      <AuthPageContent />
+    </Suspense>
   )
 }
