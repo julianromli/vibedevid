@@ -65,7 +65,7 @@ export default function AuthPage() {
         },
       })
       if (error) throw error
-      setSuccess("Thank you for Registering!")
+      setSuccess("Please check your email to verify your account.")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
