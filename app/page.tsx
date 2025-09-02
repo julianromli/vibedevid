@@ -923,10 +923,13 @@ export default function HomePage() {
                         {/* Author and Stats */}
                         <div className="flex items-center justify-between py-0">
                           <div className="flex items-center gap-2.5">
-                            <Link
-                              href={`/${project.author.username}`}
-                              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity z-10 relative"
-                              onClick={(e) => e.stopPropagation()}
+                            <div
+                              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity z-10 relative cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                router.push(`/${project.author.username}`)
+                              }}
                             >
                               <OptimizedAvatar
                                 src={project.author.avatar}
@@ -936,7 +939,7 @@ export default function HomePage() {
                                 showSkeleton={false}
                               />
                               <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
-                            </Link>
+                            </div>
                           </div>
                           <div 
                             onClick={(e) => {

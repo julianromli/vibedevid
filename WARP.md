@@ -649,6 +649,19 @@ Before deployment, ensure:
       - **Proper Spacing**: `space-y-2` container untuk clean separation antara input dan error message
       - **Dark Mode Support**: Theme-adaptive error colors untuk consistent experience
       - **Compact Messaging**: Shortened error text untuk better readability tanpa overwhelming user
+  - **🔗 NESTED ANCHOR TAGS FIX** - Critical HTML hydration error resolution untuk homepage projects:
+    - **Problem**: Nested `<Link>` components creating invalid `<a><a></a></a>` HTML structure
+    - **Root Cause**: Author profile links (inner Link) nested inside project card links (outer Link)
+    - **Solution**: Replaced inner Link dengan div + router.push() programmatic navigation
+    - **Implementation Details**:
+      - **Project Card Link**: Outer Link (`href="/project/{id}"`) untuk navigate ke project details
+      - **Author Profile**: Inner div dengan onClick handler untuk `router.push("/{username}")`
+      - **Event Handling**: `e.preventDefault()` dan `e.stopPropagation()` untuk proper click isolation
+      - **Visual Consistency**: Maintained cursor-pointer dan hover effects untuk UX consistency
+    - **Error Prevention**: Eliminates "<a> cannot be a descendant of <a>" React hydration warnings
+    - **Browser Compatibility**: Valid HTML structure across all browsers dan SSR environments
+    - **UX Maintained**: Author profile navigation tetap functional dengan same user experience
+    - **Production Ready**: Tested dan verified tidak ada hydration errors di homepage projects section
 
 ## Analytics Implementation Details
 
