@@ -527,6 +527,17 @@ Before deployment, ensure:
     - Proper authentication handling dengan modal dialogs untuk guests
     - Smooth animations dengan pulse effects dan hover states
     - Based on 21st dev components design patterns dengan VibeDev customization
+  - **🎯 CLICKABLE CARD UX IMPROVEMENTS** - Enhanced mobile-friendly interaction patterns:
+    - **Full Card Clickability**: Entire project card area clickable untuk navigate to project details
+    - **Event Propagation Control**: Advanced click handling dengan preventDefault() dan stopPropagation()
+    - **Enhanced Click Areas**: Improved HeartButton clickable area dengan z-index positioning:
+      - **Expanded Target**: Larger click area (p-3 -m-3) untuk easier mobile interaction
+      - **Z-index Isolation**: Elevated z-20 positioning untuk proper event layer separation
+      - **Cursor Indication**: Clear pointer cursor untuk better user feedback
+    - **Author Link Protection**: Author profile links tetap clickable dengan proper event handling
+    - **Mobile UX Focused**: Specifically designed untuk improve mobile user experience
+    - **Consistent Behavior**: Uniform click behavior across homepage dan profile page cards
+    - **Interactive Feedback**: Hover states dan visual feedback maintained untuk desktop users
   - **📝 FORM UX IMPROVEMENTS** - Enhanced user experience untuk project submission dan editing:
     - **Field Order Optimization**: Tukar urutan Description dengan Tagline untuk better logical flow
     - **Submit Form**: Title → Tagline → Description → Category (lebih intuitive UX)

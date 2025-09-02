@@ -890,7 +890,7 @@ export default function HomePage() {
                   .filter((project) => selectedFilter === "All" || project.category === selectedFilter)
                   .slice(0, visibleProjects)
                   .map((project) => (
-                    <div key={project.id} className="group cursor-pointer py-0 my-4">
+                    <Link key={project.id} href={`/project/${project.id}`} className="group cursor-pointer py-0 my-4 block">
                       {/* Thumbnail Preview Section */}
                       <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
                         <AspectRatio ratio={16/9}>
@@ -905,16 +905,6 @@ export default function HomePage() {
                             }}
                           />
                         </AspectRatio>
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                          <Button variant="secondary" size="sm" asChild>
-                            <a href={`/project/${project.id}`}>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              View Project
-                            </a>
-                          </Button>
-                        </div>
 
                         {/* Category Badge */}
                         <div className="absolute top-3 left-3">
@@ -935,7 +925,8 @@ export default function HomePage() {
                           <div className="flex items-center gap-2.5">
                             <Link
                               href={`/${project.author.username}`}
-                              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+                              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity z-10 relative"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <OptimizedAvatar
                                 src={project.author.avatar}
@@ -947,21 +938,29 @@ export default function HomePage() {
                               <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
                             </Link>
                           </div>
-                          <HeartButton
-                            projectId={project.id}
-                            initialLikes={likesData[project.id]?.totalLikes || 0}
-                            initialIsLiked={likesData[project.id]?.isLiked || false}
-                            isLoggedIn={isLoggedIn}
-                            onLikeChange={(newLikes, isLiked) => {
-                              setLikesData((prev) => ({
-                                ...prev,
-                                [project.id]: { totalLikes: newLikes, isLiked },
-                              }))
+                          <div 
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                             }}
-                          />
+                            className="relative z-20 p-3 -m-3 rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
+                          >
+                            <HeartButton
+                              projectId={project.id}
+                              initialLikes={likesData[project.id]?.totalLikes || 0}
+                              initialIsLiked={likesData[project.id]?.isLiked || false}
+                              isLoggedIn={isLoggedIn}
+                              onLikeChange={(newLikes, isLiked) => {
+                                setLikesData((prev) => ({
+                                  ...prev,
+                                  [project.id]: { totalLikes: newLikes, isLiked },
+                                }))
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
           </div>
 

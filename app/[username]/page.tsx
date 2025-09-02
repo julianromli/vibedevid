@@ -1,6 +1,7 @@
 "use client"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 import {
   ArrowLeft,
   MapPin,
@@ -510,7 +511,7 @@ export default function ProfilePage() {
             {userProjects.length > 0 ? (
               <div className="grid md:grid-cols-2 gap-6">
                 {userProjects.map((project) => (
-                  <div key={project.id} className="group cursor-pointer">
+                  <Link key={project.id} href={`/project/${project.id}`} className="group cursor-pointer block">
                     <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
                       <AspectRatio ratio={16/9}>
                         <Image
@@ -526,17 +527,9 @@ export default function ProfilePage() {
                           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </AspectRatio>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <Button variant="secondary" size="sm" asChild>
-                          <a href={`/project/${project.id}`}>
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View Project
-                          </a>
-                        </Button>
-                      </div>
                     </div>
 
-                    <h3 className="font-semibold text-lg mb-2">{project.title}</h3>
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">{project.title}</h3>
                     <p className="text-muted-foreground text-sm mb-3">{project.description}</p>
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -549,7 +542,7 @@ export default function ProfilePage() {
                         {project.comments_count || 0}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
