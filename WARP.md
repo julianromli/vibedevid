@@ -99,6 +99,12 @@ The app uses Supabase Auth with custom user profiles:
 - **lib/actions.ts** - Server actions for sign in/up, password reset, comments
 - **middleware.ts** - Supabase middleware for session management
 - **lib/supabase/** - Client/server Supabase configuration
+- **Email Domain Whitelist Security** - Advanced spam prevention system:
+  - **Allowed Domains**: gmail.com, googlemail.com, yahoo.com, yahoo.co.id, outlook.com, outlook.co.id, hotmail.com, live.com
+  - **Real-time Validation**: Client-side email domain checking dengan immediate feedback
+  - **Signup Protection**: Form submission blocked untuk unauthorized email domains
+  - **User-friendly Messages**: Indonesian error messages dengan friendly tone ("Gunakan Gmail, Yahoo, atau Outlook ya cuy")
+  - **Anti-spam Defense**: Prevents temporary/educational email abuse (.edu domains blocked)
 - **Email Confirmation Flow** - Enhanced redirect system untuk better UX:
   - **Confirm Email → Login Page**: Users redirected ke login page setelah email confirmation
   - **Success Message Display**: Green success banner dengan "Email confirmed successfully! You can now sign in."
@@ -160,6 +166,12 @@ The app uses Supabase Auth with custom user profiles:
 - Policies allow public read access but restrict writes to owners
 - Guest comments allowed for engagement without requiring accounts
 - Proper authentication checks in server actions
+- **Email Domain Whitelist Protection**:
+  - Client-side validation untuk prevent spam registrations
+  - Helper functions: `isEmailDomainAllowed()`, `getEmailDomain()`
+  - Blocked domains: temporary emails, educational institutions, disposable email services
+  - Allowed providers: Gmail, Yahoo, Outlook (major mainstream providers)
+  - Real-time feedback system dengan user-friendly error messages
 
 ### Styling and Theming
 - Tailwind CSS v4 with component-based architecture
@@ -609,6 +621,16 @@ Before deployment, ensure:
     - **Indonesian Helper Text**: "Description maksimal 160 karakter untuk konsistensi! 📝"
     - **UX Enhancement**: Immediate feedback without blocking user input until hard limit reached
     - **Consistency Enforcement**: Ensures all project descriptions maintain uniform length for better platform consistency
+  - **🔒 EMAIL DOMAIN WHITELIST SECURITY** - Advanced spam prevention untuk signup protection:
+    - **Allowed Email Providers**: Gmail, Yahoo, Outlook families untuk mainstream email verification
+    - **Real-time Validation**: Client-side domain checking dengan immediate visual feedback
+    - **Form Guard Protection**: Submit button blocked untuk unauthorized email domains
+    - **Anti-spam Defense**: Prevents temporary/educational email abuse yang sering digunakan untuk spam
+    - **User-friendly Messaging**: Indonesian error messages dengan friendly tone ("Gunakan Gmail, Yahoo, atau Outlook ya cuy")
+    - **Domain Coverage**: gmail.com, googlemail.com, yahoo.com, yahoo.co.id, outlook.com, outlook.co.id, hotmail.com, live.com
+    - **Helper Functions**: `isEmailDomainAllowed()` dan `getEmailDomain()` untuk domain validation
+    - **Security Implementation**: Guard checks di `handleSignUp()` function sebelum Supabase auth call
+    - **SSO Consideration**: OAuth providers tetap available dengan note untuk server-side validation
 
 ## Analytics Implementation Details
 

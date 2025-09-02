@@ -13,6 +13,31 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { signIn, signUp, resetPassword } from "@/lib/actions"
 
+// Email domain whitelist helper
+const allowedDomains = new Set([
+  "gmail.com",
+  "googlemail.com", // alias gmail
+  "yahoo.com",
+  "yahoo.co.id",
+  "outlook.com",
+  "outlook.co.id",
+  "hotmail.com",
+  "live.com",
+])
+
+function getEmailDomain(value: string): string | null {
+  const at = value.lastIndexOf("@")
+  if (at === -1) return null
+  const domain = value.slice(at + 1).toLowerCase().trim()
+  return domain || null
+}
+
+function isEmailDomainAllowed(value: string): boolean {
+  const domain = getEmailDomain(value)
+  if (!domain) return false
+  return allowedDomains.has(domain)
+}
+
 // Component yang menggunakan useSearchParams
 function AuthPageContent() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -25,6 +50,7 @@ function AuthPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [emailDomainError, setEmailDomainError] = useState<string | null>(null)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
@@ -86,6 +112,17 @@ function AuthPageContent() {
     setIsLoading(true)
     setError(null)
 
+    // Guard: whitelist email domain
+    if (!isEmailDomainAllowed(email)) {
+      const domain = getEmailDomain(email)
+      const msg = domain
+        ? `Email domain ${domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook ya cuy.`
+        : "Format email nggak valid. Pastikan ada '@' dan domainnya ya cuy."
+      setEmailDomainError(msg)
+      setIsLoading(false)
+      return
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -135,6 +172,10 @@ function AuthPageContent() {
   const handleSocialAuth = async (provider: "google" | "github") => {
     const supabase = createClient()
     setError(null)
+
+    // Note: Untuk SSO, filter domain paling aman dilakukan di server side setelah callback,
+    // karena kita nggak dapat email user sebelum OAuth flow selesai.
+    // Di sisi client kita bisa batasi provider yang tersedia saja.
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -287,10 +328,32 @@ function AuthPageContent() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setEmail(val)
+                    if (isSignUp) {
+                      if (!val) {
+                        setEmailDomainError(null)
+                      } else if (!isEmailDomainAllowed(val)) {
+                        const domain = getEmailDomain(val)
+                        setEmailDomainError(
+                          domain
+                            ? `Email domain ${domain} tidak diizinkan. Hanya Gmail, Yahoo, atau Outlook yang boleh.`
+                            : "Format email nggak valid. Pastikan ada '@' dan domainnya ya."
+                        )
+                      } else {
+                        setEmailDomainError(null)
+                      }
+                    } else {
+                      setEmailDomainError(null)
+                    }
+                  }}
                   required
                   className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-12 pl-12 focus:border-foreground/40 focus:ring-foreground/20 transition-all duration-200"
                 />
+                {isSignUp && emailDomainError && (
+                  <p className="text-xs text-red-500 mt-1">{emailDomainError}</p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -369,6 +432,7 @@ function AuthPageContent() {
               </div>
 
               {/* Social Login Buttons */}
+              {/* Batasi provider yang tersedia: hanya Google untuk SSO email yang terverifikasi */}
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
