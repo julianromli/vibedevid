@@ -16,19 +16,27 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser()
 
       if (user) {
-        // Check if email is confirmed - this is crucial for security
-        if (!user.email_confirmed_at) {
-          console.log("[Callback] User email not confirmed:", user.email)
+        // Detect if user signed in via OAuth (Google, GitHub, etc.)
+        const isOAuthUser = user.identities && user.identities.some(identity => 
+          identity.provider !== 'email' && identity.provider !== 'phone'
+        )
+        
+        console.log(`[Callback] User login detected - Email: ${user.email}, OAuth: ${isOAuthUser}, Provider(s): ${user.identities?.map(i => i.provider).join(', ')}`)
+
+        // Only check email confirmation for email/password signup users
+        // OAuth users (Google, GitHub, etc.) are already verified by their providers
+        if (!isOAuthUser && !user.email_confirmed_at) {
+          console.log("[Callback] Email/password user email not confirmed:", user.email)
           // Sign out the user and redirect to auth page with message
           await supabase.auth.signOut()
           return NextResponse.redirect(`${origin}/user/auth?error=Email not confirmed. Please check your inbox and click the confirmation link.`)
         }
 
-        // Only create profile if email is confirmed
+        // Create profile for all authenticated users (OAuth or email confirmed)
         const { data: existingProfile } = await supabase.from("users").select("id").eq("id", user.id).single()
 
         if (!existingProfile) {
-          console.log("[Callback] Creating profile for confirmed user:", user.email)
+          console.log(`[Callback] Creating profile for ${isOAuthUser ? 'OAuth' : 'email confirmed'} user:`, user.email)
           const { error: insertError } = await supabase.from("users").insert({
             id: user.id,
             email: user.email,
@@ -50,20 +58,37 @@ export async function GET(request: NextRequest) {
         
         console.log("[Callback] User authenticated successfully:", user.email)
         
-        // Sign out user after successful email confirmation to make them sign in again
-        // This ensures they use the login page after email confirmation
-        await supabase.auth.signOut()
-      }
-
-      const forwardedHost = request.headers.get("x-forwarded-host")
-      const isLocalEnv = process.env.NODE_ENV === "development"
-
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}?success=Email confirmed successfully! You can now sign in.`)
-      } else {
-        return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
+        // Handle different flows based on auth method
+        if (isOAuthUser) {
+          // OAuth users: Keep them signed in and redirect to home
+          console.log("[Callback] OAuth user login successful, redirecting to home")
+          const forwardedHost = request.headers.get("x-forwarded-host")
+          const isLocalEnv = process.env.NODE_ENV === "development"
+          
+          if (isLocalEnv) {
+            return NextResponse.redirect(`${origin}/`)
+          } else if (forwardedHost) {
+            return NextResponse.redirect(`https://${forwardedHost}/`)
+          } else {
+            return NextResponse.redirect(`${origin}/`)
+          }
+        } else {
+          // Email/password users: Sign out after email confirmation to force proper login
+          console.log("[Callback] Email confirmed user, signing out for security")
+          await supabase.auth.signOut()
+          
+          // Redirect email/password users to auth page with success message
+          const forwardedHost = request.headers.get("x-forwarded-host")
+          const isLocalEnv = process.env.NODE_ENV === "development"
+          
+          if (isLocalEnv) {
+            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
+          } else if (forwardedHost) {
+            return NextResponse.redirect(`https://${forwardedHost}${next}?success=Email confirmed successfully! You can now sign in.`)
+          } else {
+            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
+          }
+        }
       }
     } else {
       console.error("[Callback] Exchange code error:", error)
