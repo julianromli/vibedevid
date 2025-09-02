@@ -128,7 +128,7 @@ export function Navbar({
           <div className="flex items-center gap-3">
             {showBackButton ? (
               <Link href="/">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:shadow-none">
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
