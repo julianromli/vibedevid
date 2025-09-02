@@ -69,6 +69,8 @@ import {
 import { useRouter } from "next/navigation"
 
 // Common tech stack options for the multiselect
+const MAX_DESCRIPTION_LENGTH = 160
+
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
   { value: "react", label: "React" },
@@ -555,7 +557,20 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         placeholder="Describe your project, its features, and what makes it special"
                         rows={4}
                         disabled={isSaving}
+                        maxLength={MAX_DESCRIPTION_LENGTH}
                       />
+                      <div className="flex items-center justify-between text-sm">
+                        <p className="text-muted-foreground">
+                          Description maksimal 160 karakter untuk konsistensi! 📝
+                        </p>
+                        <span className={`font-medium ${
+                          editFormData.description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-500' :
+                          editFormData.description.length > 140 ? 'text-yellow-500' :
+                          'text-muted-foreground'
+                        }`}>
+                          {editFormData.description.length}/{MAX_DESCRIPTION_LENGTH}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Category */}
@@ -785,7 +800,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     <div className="flex gap-3 pt-4">
                       <Button
                         onClick={handleSaveEdit}
-                        disabled={!editFormData.title.trim() || !editFormData.description.trim() || isSaving}
+                        disabled={
+                          !editFormData.title.trim() || 
+                          !editFormData.description.trim() || 
+                          editFormData.description.length > MAX_DESCRIPTION_LENGTH || 
+                          isSaving
+                        }
                       >
                         {isSaving ? (
                           <>

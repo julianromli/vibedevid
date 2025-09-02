@@ -73,6 +73,8 @@ interface SubmitProjectFormProps {
   userId: string
 }
 
+const MAX_DESCRIPTION_LENGTH = 160
+
 export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -84,6 +86,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [selectedTags, setSelectedTags] = useState<Option[]>([])
   const [websiteUrl, setWebsiteUrl] = useState<string>("")
   const [faviconUrl, setFaviconUrl] = useState<string>("/default-favicon.svg")
+  const [description, setDescription] = useState<string>("")
   const router = useRouter()
 
   // Fetch categories from database
@@ -176,11 +179,26 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             <Textarea
               id="description"
               name="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe your project, its features, and what makes it special"
               rows={4}
               required
               disabled={isLoading || isUploading}
+              maxLength={MAX_DESCRIPTION_LENGTH}
             />
+            <div className="flex items-center justify-between text-sm">
+              <p className="text-xs text-muted-foreground mt-1">
+                Description maksimal 160 karakter untuk konsistensi! 📝
+              </p>
+              <span className={`font-medium ${
+                description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-500' :
+                description.length > 140 ? 'text-yellow-500' :
+                'text-xs text-muted-foreground mt-1'
+              }`}>
+                {description.length}/{MAX_DESCRIPTION_LENGTH}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-2">
