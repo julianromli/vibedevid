@@ -329,12 +329,12 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                             clearTimeout(uploadTimeout)
                           }
                           
-                          // Set a fallback timeout to prevent stuck state (30 seconds)
+                          // Set a fallback timeout to prevent stuck state (2 minutes)
                           const timeoutId = setTimeout(() => {
                             console.log("[v0] Upload timeout - resetting state")
                             setIsUploading(false)
                             setError("Upload timed out. Please try again.")
-                          }, 30000)
+                          }, 120000)
                           
                           setUploadTimeout(timeoutId)
                         }}
@@ -357,8 +357,8 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                             const uploadResult = res[0]
                             console.log("[v0] Upload result:", uploadResult)
                             
-                            // Try to get URL from different possible locations
-                            const imageUrl = uploadResult.url || uploadResult.fileUrl || uploadResult.key
+                            // Try to get URL from different possible locations (prioritize new ufsUrl)
+                            const imageUrl = uploadResult.ufsUrl || uploadResult.url || uploadResult.fileUrl || uploadResult.key
                             
                             if (imageUrl) {
                               console.log("[v0] Setting image URL:", imageUrl)

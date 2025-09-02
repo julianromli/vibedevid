@@ -522,6 +522,13 @@ Before deployment, ensure:
     - **Upload Bug Fix**: Fixed timeout error message tidak hilang setelah successful upload
     - **Error Handling**: Improved error state management dengan proper cleanup di onClientUploadComplete
     - **User Flow**: Optimized form progression untuk faster project creation dan editing
+  - **🔧 UPLOADTHING BUG FIXES** - Critical image upload issues resolved:
+    - **Deprecated Properties Fix**: Updated from deprecated `file.url`/`file.appUrl` to new `file.ufsUrl`
+    - **Timeout Extension**: Increased upload timeout from 30 seconds to 2 minutes (120s) for better reliability
+    - **Response Handling**: Fixed image URL extraction with proper fallback chain: ufsUrl → url → fileUrl → key
+    - **UploadThing V9 Compatibility**: Prepared for upcoming UploadThing version 9 migration
+    - **Error Prevention**: Eliminated "Upload timeout - resetting state" issues
+    - **Upload Success Rate**: Improved upload completion rate for larger images and slower connections
   - **📊 VIEWS TRACKING SYSTEM** - Complete analytics implementation dengan comprehensive testing:
     - **Session-based Unique Visitor Detection**: 30-minute session timeout dengan localStorage persistence
     - **Real-time Analytics Display**: Total Views, Unique Visitors, Today's Views di project detail pages
