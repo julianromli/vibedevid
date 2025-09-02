@@ -41,23 +41,24 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={toggleTheme}
-      className={`relative w-9 h-9 rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:border-border ${
+      aria-label="Toggle theme"
+      className={`relative rounded-full bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:border-border shadow-none hover:shadow-none ${
         isAnimating ? "shadow-inner" : ""
       }`}
     >
-      <div className="relative w-5 h-5">
+      <div className="relative grid size-5 place-items-center">
         {/* Sun Icon */}
         <Sun
-          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ${
+          className={`pointer-events-none absolute size-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${
             isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
           }`}
         />
 
         {/* Moon Icon */}
         <Moon
-          className={`absolute inset-0 h-5 w-5 transition-all duration-500 ${
+          className={`pointer-events-none absolute size-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${
             isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
           }`}
         />

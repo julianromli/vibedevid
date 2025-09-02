@@ -671,6 +671,18 @@ Before deployment, ensure:
     - **Visual Consistency**: Cleaner appearance untuk navigation buttons without distracting shadow effects
     - **User Experience**: Reduced visual noise pada navigation elements untuk better focus on content
     - **Design System**: Aligns dengan VibeDev ID minimalist design principles
+  - **🌗 THEME TOGGLE ICON ALIGNMENT** - Ikon Sun/Moon sekarang benar-benar center dan simetris:
+    - **Centering Fix**: Wrapper diubah ke `grid place-items-center` dan ikon diposisikan `left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2`
+    - **Button Sizing**: Gunakan `size="icon"` di `Button` agar container konsisten 36px
+    - **Accessibility**: Tambah `aria-label="Toggle theme"`
+    - **File**: `components/ui/theme-toggle.tsx`
+  - **🧹 HOVER SHADOW REMOVAL** - Bersihin bayangan hover biar UI lebih clean dan konsisten:
+    - **Theme Toggle Button**: Hilangkan hover shadow dengan `shadow-none hover:shadow-none` pada className tombol
+    - **Avatar Dropdown Trigger**: Hilangkan hover shadow pada trigger avatar di navbar
+    - **Files**: 
+      - `components/ui/theme-toggle.tsx`
+      - `components/ui/navbar.tsx` (DropdownMenuTrigger Button)
+    - Tetap jaga feedback hover via `hover:bg-accent/50`, tanpa efek bayangan
 
 ## Analytics Implementation Details
 
