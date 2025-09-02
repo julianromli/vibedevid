@@ -6,6 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Performance optimizations
+  swcMinify: true,
+  poweredByHeader: false,
+  generateEtags: false,
+  compress: true,
   // Turbopack configuration (for development with --turbopack)
   experimental: {
     turbo: {

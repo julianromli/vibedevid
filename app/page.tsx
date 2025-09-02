@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { TestimonialsColumns } from "@/components/ui/testimonials-columns"
 import { HeartButton } from "@/components/ui/heart-button"
 import { Navbar } from "@/components/ui/navbar"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
@@ -25,8 +24,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { signOut } from "@/lib/actions"
-import AnimatedTooltip from "@/components/ui/animated-tooltip"
 import { getBatchLikeStatus } from "@/lib/actions"
+
+// Lazy load heavy components untuk better FCP
+const TestimonialsColumns = lazy(() => import("@/components/ui/testimonials-columns").then(module => ({ default: module.TestimonialsColumns })))
+const AnimatedTooltip = lazy(() => import("@/components/ui/animated-tooltip"))
 
 const Safari = ({ children, url = "vibedev.id" }) => {
   return (
@@ -136,7 +138,7 @@ export default function HomePage() {
 
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+          setTimeout(() => reject(new Error('Auth check timeout')), 3000)
         )
 
         const sessionPromise = supabase.auth.getSession()
@@ -739,19 +741,28 @@ export default function HomePage() {
                   className="w-full h-auto object-cover"
                   priority={true}
                   enableBlurPlaceholder={true}
-                  quality={90}
+                  quality={75}
                   responsiveSizes={{
                     mobile: "100vw",
                     tablet: "100vw", 
-                    desktop: "100vw"
+                    desktop: "1200px"
                   }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
                 />
               </Safari>
             </div>
 
             <div className="relative mb-8 mt-12">
               <div className="flex justify-center items-center opacity-90 my-0">
-                <AnimatedTooltip items={frameworks} />
+                <Suspense fallback={
+                  <div className="flex justify-center items-center space-x-2">
+                    {frameworks.slice(0, 6).map((_, idx) => (
+                      <div key={idx} className="w-12 h-12 bg-muted/20 rounded-lg animate-pulse" />
+                    ))}
+                  </div>
+                }>
+                  <AnimatedTooltip items={frameworks} />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -1034,9 +1045,28 @@ export default function HomePage() {
           </div>
 
           <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[600px] overflow-hidden">
-            <TestimonialsColumns testimonials={testimonials.slice(0, 3)} duration={15} />
-            <TestimonialsColumns testimonials={testimonials.slice(3, 6)} className="hidden md:block" duration={19} />
-            <TestimonialsColumns testimonials={testimonials.slice(6, 9)} className="hidden lg:block" duration={17} />
+            <Suspense fallback={
+              <div className="flex justify-center gap-6">
+                <div className="flex flex-col space-y-4">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="w-80 p-4 bg-muted/20 rounded-lg animate-pulse">
+                      <div className="h-20 bg-muted/30 rounded mb-3"></div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-muted/30 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-muted/30 rounded w-3/4"></div>
+                          <div className="h-3 bg-muted/20 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            }>
+              <TestimonialsColumns testimonials={testimonials.slice(0, 3)} duration={15} />
+              <TestimonialsColumns testimonials={testimonials.slice(3, 6)} className="hidden md:block" duration={19} />
+              <TestimonialsColumns testimonials={testimonials.slice(6, 9)} className="hidden lg:block" duration={17} />
+            </Suspense>
           </div>
         </div>
       </section>
