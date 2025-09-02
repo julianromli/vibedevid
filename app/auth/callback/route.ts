@@ -37,23 +37,66 @@ export async function GET(request: NextRequest) {
 
         if (!existingProfile) {
           console.log(`[Callback] Creating profile for ${isOAuthUser ? 'OAuth' : 'email confirmed'} user:`, user.email)
-          const { error: insertError } = await supabase.from("users").insert({
+          
+          // Generate unique username with fallback for collisions
+          const baseUsername = user.email
+            ?.split("@")[0]
+            ?.toLowerCase()
+            .replace(/[^a-z0-9]/g, "") || `user${user.id.slice(0, 8)}`
+          
+          let username = baseUsername
+          let attempts = 0
+          const maxAttempts = 5
+          
+          // Check for username collisions and generate unique one
+          while (attempts < maxAttempts) {
+            const { data: existingUser } = await supabase
+              .from("users")
+              .select("username")
+              .eq("username", username)
+              .single()
+            
+            if (!existingUser) {
+              break // Username is available
+            }
+            
+            attempts++
+            username = `${baseUsername}${attempts}`
+          }
+          
+          // Final fallback if all attempts fail
+          if (attempts >= maxAttempts) {
+            username = `${baseUsername}${Math.floor(Math.random() * 1000)}`
+          }
+          
+          const profileData = {
             id: user.id,
-            email: user.email,
-            display_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-            username:
-              user.email
-                ?.split("@")[0]
-                ?.toLowerCase()
-                .replace(/[^a-z0-9]/g, "") || `user${user.id.slice(0, 8)}`,
-            avatar_url: user.user_metadata?.avatar_url || "/vibedev-guest-avatar.png",
-            created_at: new Date().toISOString(),
+            username: username,
+            display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User",
+            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || "/vibedev-guest-avatar.png",
+            bio: null,
+            location: null,
+            website: null,
+            github_url: null,
+            twitter_url: null,
+          }
+          
+          console.log(`[Callback] Attempting to create profile with data:`, {
+            id: profileData.id,
+            username: profileData.username,
+            display_name: profileData.display_name,
+            email: user.email
           })
+          
+          const { error: insertError } = await supabase.from("users").insert(profileData)
           
           if (insertError) {
             console.error("[Callback] Profile creation error:", insertError)
-            return NextResponse.redirect(`${origin}/user/auth?error=Failed to create user profile`)
+            console.error("[Callback] Failed profile data:", profileData)
+            return NextResponse.redirect(`${origin}/user/auth?error=Failed to create user profile: ${insertError.message}`)
           }
+          
+          console.log(`[Callback] Profile created successfully for user: ${user.email} with username: ${username}`)
         }
         
         console.log("[Callback] User authenticated successfully:", user.email)
