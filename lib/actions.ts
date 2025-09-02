@@ -341,22 +341,26 @@ export async function incrementProjectViews(projectId: string, sessionId?: strin
       view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     }
 
-    // Use upsert to handle unique constraint gracefully
-    const { error } = await supabase
-      .from("views")
-      .upsert(viewRecord, {
-        onConflict: 'project_id,session_id',
-        ignoreDuplicates: true
-      })
+    console.log('[Server] Incrementing view for project:', projectId, 'Session:', sessionId)
 
-    if (error && !error.message.includes('duplicate')) {
-      console.error("Increment views error:", error)
+    // Try to insert first
+    const { data, error } = await supabase
+      .from("views")
+      .insert(viewRecord)
+      .select()
+
+    if (error) {
+      // If it's a duplicate key error, that's expected (user already viewed in this session)
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        console.log('[Server] View already tracked for this session')
+      } else {
+        console.error("[Server] Increment views error:", error)
+      }
+    } else {
+      console.log('[Server] View tracked successfully:', data)
     }
   } catch (error) {
-    // Silently handle duplicate key errors (expected for unique sessions)
-    if (!error.message?.includes('duplicate') && !error.message?.includes('unique')) {
-      console.error("Increment views error:", error)
-    }
+    console.error("[Server] Increment views error:", error)
   }
 }
 

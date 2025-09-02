@@ -223,7 +223,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         // Enhanced view tracking with session-based analytics
         if (isValidUserAgent() && shouldTrackView(currentProjectId)) {
           const sessionId = getCurrentSessionId()
-          incrementProjectViews(currentProjectId, sessionId)
+          console.log('[View Tracking] Tracking view for project:', currentProjectId, 'Session:', sessionId)
+          await incrementProjectViews(currentProjectId, sessionId)
         }
 
         // Fire and forget operations (non-blocking)
