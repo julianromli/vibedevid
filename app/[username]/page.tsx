@@ -431,7 +431,7 @@ export default function ProfilePage() {
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <div className="bg-card rounded-xl border border-border p-8 mb-8">
           {isOwner && (
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-center md:justify-end mb-4">
               <Button onClick={handleEdit} variant="outline" size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile

@@ -286,9 +286,22 @@ export function Navbar({
                 </Button>
               ) : (
                 <div className="flex items-center gap-3 p-2">
-                  <UserAvatar user={safeUser} size="sm" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{safeUser.name}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0 h-auto rounded-full hover:bg-accent/50 transition-colors"
+                    onClick={() => {
+                      handleProfile()
+                      setIsMenuOpen(false)
+                    }}
+                  >
+                    <UserAvatar user={safeUser} size="sm" />
+                  </Button>
+                  <div className="flex-1 cursor-pointer" onClick={() => {
+                    handleProfile()
+                    setIsMenuOpen(false)
+                  }}>
+                    <p className="text-sm font-medium hover:text-primary transition-colors">{safeUser.name}</p>
                     <p className="text-xs text-muted-foreground">{safeUser.email}</p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={handleSignOut}>
