@@ -689,6 +689,15 @@ Before deployment, ensure:
     - **6 AI Tools Featured**: Lovable, v0.app, OpenAI Codex, Cursor, Warp (custom logo), Trae
     - **Developer Workflow**: Complete coverage untuk code editors, terminals, AI assistants
     - **Grid Layout**: Responsive design dengan consistent white containers
+  - **🎨 DROPDOWN MENU SHADOW REMOVAL** - Cleaner hover effects untuk dropdown menu items:
+    - **Problem**: Profile dan Sign Out menu items memiliki shadow effect pas hover yang mengganggu visual
+    - **Solution**: Removed `hover:shadow-sm` dari `DropdownMenuItem` component styling
+    - **Implementation**: Updated `components/ui/dropdown-menu.tsx` line 60, menghapus shadow effect
+    - **Result**: Dropdown menu items sekarang hover dengan background color change saja tanpa shadow
+    - **User Experience**: Cleaner appearance dengan reduced visual noise pada navigation interactions
+    - **Design Consistency**: Aligns dengan VibeDev ID minimalist design principles untuk consistent UI
+    - **Component Affected**: All dropdown menus using DropdownMenuItem (navbar profile menu, dll)
+    - **Visual Impact**: Cleaner hover states dengan maintained transition duration (200ms)
 
 ## Analytics Implementation Details
 
