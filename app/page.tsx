@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, lazy, Suspense } from "react"
+import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartButton } from "@/components/ui/heart-button"
@@ -577,8 +578,8 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    const titlePart1 = ["When", "the", "Codes"]
-    const titlePart2 = ["Meet", "the", "Vibes"]
+    const titlePart1 = ["Komunitas", "Vibe", "Coding"]
+    const titlePart2 = ["No.", "1", "di", "Indonesia"]
     const words = [...titlePart1, ...titlePart2]
 
     words.forEach((word, index) => {
@@ -603,42 +604,27 @@ export default function HomePage() {
     {
       question: "Apa itu VibeDev ID?",
       answer:
-        "VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Kami menghubungkan creator yang sepikiran untuk kolaborasi, belajar, dan berkembang bareng.",
+        "VibeDev ID adalah komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators yang punya visi sama untuk bikin produk digital keren. Kami menghubungkan vibe coder Indonesia yang sepikiran untuk kolaborasi, belajar coding pake AI, dan berkembang bareng.",
     },
     {
-      question: "Gimana cara gabung komunitas?",
+      question: "Gimana cara gabung komunitas vibe coding ini?",
       answer:
-        "Gabung gampang banget! Klik tombol 'Gabung Bersama Kami' dan lengkapi profil lo. Kami welcome developer dari semua level - dari pemula sampai professional berpengalaman. Komunitas kami berkembang dari keberagaman dan shared learning.",
+        "Gabung komunitas vibe coding Indonesia gampang banget! Klik tombol 'Gabung Komunitas Gratis' dan lengkapi profil lo. Kami welcome developer dari semua level - dari pemula yang baru belajar coding pake AI sampai professional berpengalaman.",
     },
     {
-      question: "Ada biaya buat gabung?",
+      question: "Ada biaya untuk join komunitas vibe coding Indonesia?",
       answer:
-        "Membership basic gratis total! Lo dapet akses ke community forums, project showcases, dan networking opportunities. Kami juga ada premium features untuk advanced collaboration tools dan exclusive workshops.",
+        "Membership basic di komunitas vibe coding kami 100% gratis! Lo dapet akses ke community forums, project showcases, networking opportunities, dan belajar coding pake AI bareng member lain. Semua fitur inti gratis untuk semua vibe coder Indonesia.",
     },
     {
-      question: "Project seperti apa yang bisa di-showcase?",
+      question: "Bisa kolaborasi project dengan member lain?",
       answer:
-        "Project digital apa aja yang lo banggain! Mau itu personal website, aplikasi SaaS, mobile app, atau eksperimen AI - komunitas kami suka banget liat karya kreatif. Kami support semua tech stack dan encourage innovation.",
+        "Kolaborasi itu inti dari komunitas vibe coding kami! Lo bisa cari teammates untuk coding pake AI, join project open source yang udah ada, atau mulai project lo sendiri. Banyak vibe coder Indonesia di sini yang udah sukses bikin startup bareng.",
     },
     {
-      question: "Bisa kolaborasi sama member lain?",
+      question: "Teknologi dan AI tools apa aja yang didukung?",
       answer:
-        "Kolaborasi itu inti dari komunitas kami. Pakai project boards kami buat cari teammates, join project yang udah ada, atau mulai project lo sendiri. Banyak startup sukses yang lahir dari lingkungan kolaboratif kami.",
-    },
-    {
-      question: "Teknologi apa aja yang didukung?",
-      answer:
-        "Kami embrace semua teknologi modern! Member kami kerja dengan React, Next.js, Vue, Angular, Node.js, Python, AI/ML frameworks, dan masih banyak lagi. Kalau itu cutting-edge tech, lo pasti nemu expert di sini yang siap bantuin dan kolaborasi.",
-    },
-    {
-      question: "Seberapa aktif komunitasnya?",
-      answer:
-        "Sangat aktif! Dengan 100+ member aktif dan terus bertambah, selalu ada yang happening. Daily discussions, weekly showcases, monthly workshops, dan ongoing project collaborations bikin komunitas kami buzzing with energy.",
-    },
-    {
-      question: "Ada mentorship atau learning resources?",
-      answer:
-        "Yes! Member berpengalaman kami regularly mentor newcomers, dan kami host workshops, code reviews, dan tech talks. Plus, project showcase kami jadi learning resource di mana lo bisa study real-world implementations.",
+        "Komunitas vibe coding Indonesia kami embrace semua teknologi modern! Member aktif kerja dengan React, Next.js, Python, AI/ML frameworks, dan tools untuk coding pake AI seperti GitHub Copilot, ChatGPT, dan Claude. Kalau itu cutting-edge tech, lo pasti nemu expert vibe coder di sini.",
     },
   ]
 
@@ -666,6 +652,68 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* JSON-LD Schema Markup for SEO */}
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "VibeDev ID",
+            "alternateName": ["Komunitas Vibe Coding Indonesia", "VibeDev Indonesia"],
+            "url": "https://vibedevid.com",
+            "logo": "https://vibedevid.com/vibedev-logo.png",
+            "description": "Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.",
+            "foundingDate": "2024",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "ID",
+              "addressRegion": "Indonesia"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "Community Support",
+              "email": "hello@vibedevid.com"
+            },
+            "sameAs": [
+              "https://github.com/vibedevid",
+              "https://twitter.com/vibedevid",
+              "https://linkedin.com/company/vibedevid"
+            ],
+            "memberOf": {
+              "@type": "Organization",
+              "name": "Indonesian Developer Community"
+            },
+            "keywords": ["vibe coding", "komunitas vibe coding", "komunitas vibe coding indonesia", "vibe coder indonesia", "coding pake AI", "AI untuk coding", "developer indonesia", "open source indonesia"],
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Developers, AI Enthusiasts, Tech Innovators",
+              "geographicArea": "Indonesia"
+            }
+          })
+        }}
+      />
+      
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqs.map(faq => ({
+              "@type": "Question",
+              "name": faq.question,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": faq.answer
+              }
+            }))
+          })
+        }}
+      />
+      
       {/* Pass real auth state to Navbar */}
       <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={user} scrollToSection={scrollToSection} />
 
@@ -683,7 +731,7 @@ export default function HomePage() {
               >
                 <div className="absolute top-0 left-1 right-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
                 <span className="text-foreground/90 text-sm font-medium relative z-10 mr-2">✨</span>
-                <span className="text-foreground/90 text-sm font-medium relative z-10">200+ Active Members</span>
+                <span className="text-foreground/90 text-sm font-medium relative z-10">300+ Active Members</span>
               </div>
 
               {/* Add SVG filter for glass effect */}
@@ -703,7 +751,7 @@ export default function HomePage() {
               </svg>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground leading-tight leading-10 tracking-tight">
-                {["When", "the", "Codes"].map((word, index) => (
+                {["Komunitas", "Vibe", "Coding"].map((word, index) => (
                   <span
                     key={index}
                     className={`inline-block mr-3 transition-all duration-700 ease-out leading-3 ${
@@ -717,7 +765,7 @@ export default function HomePage() {
                   </span>
                 ))}
                 <br />
-                {["Meet", "the", "Vibes"].map((word, index) => (
+                {["No.", "1", "di", "Indonesia"].map((word, index) => (
                   <span
                     key={index + 3}
                     className={`inline-block mr-3 transition-all duration-700 ease-out leading-3 ${
@@ -737,7 +785,7 @@ export default function HomePage() {
                   subtitleVisible ? "opacity-100 translate-y-0 blur-0" : "opacity-0 translate-y-8 blur-sm"
                 }`}
               >
-                {"Menghubungkan developer, vibe coders, dan AI enthusiasts dengan satu visi dan passion yang sama."}
+                Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project open source, dan sharing session tiap minggunya.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-start md:justify-center lg:justify-center">
@@ -745,10 +793,10 @@ export default function HomePage() {
                   <>
                     <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
                       <ArrowRight className="h-4 w-4" />
-                      Gabung Bersama Kami
+                      Gabung Komunitas Gratis
                     </Button>
                     <Button size="lg" variant="outline" onClick={handleViewShowcase}>
-                      Lihat Showcase Kami
+                      Lihat Project & Event
                     </Button>
                   </>
                 ) : (
@@ -760,7 +808,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <Safari url="vibedev.id">
+              <Safari url="vibedevid.com">
                 <ProgressiveImage
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SOLO-pic-EN.35a702ba-uLVDZsjReIz7K4Ecr3JBrYkLCl8cdm.png"
                   alt="Development environment showing SOLO Builder interface with movie website project documentation"
@@ -808,9 +856,9 @@ export default function HomePage() {
       <section className="py-12 bg-muted/30" id="projects">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">Showcase Project</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">Showcase Project Developer Indonesia</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Temukan project keren yang dibuat oleh komunitas creator dan developer kami
+              Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.
             </p>
           </div>
 
@@ -1013,10 +1061,10 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Recommended AI Coding Tools
+              AI untuk Coding & Development Tools
             </h2>
             <p className="text-muted-foreground mt-6 text-xl max-w-2xl mx-auto">
-              Integrasikan seamlessly dengan AI coding agents dan IDE favorit untuk enhance workflow development lo.
+              Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.
             </p>
           </div>
 
@@ -1088,8 +1136,8 @@ export default function HomePage() {
       <section id="reviews" className="py-20 bg-muted/30" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Kata Member Kami</h2>
-            <p className="text-xl text-muted-foreground">Hasil nyata dari para founder asli</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Review Member Komunitas Vibe Coding</h2>
+            <p className="text-xl text-muted-foreground">Testimoni asli dari developer Indonesia yang udah join komunitas kami</p>
           </div>
 
           <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[600px] overflow-hidden">
@@ -1123,8 +1171,8 @@ export default function HomePage() {
       <section id="faq" className="py-20" data-animate>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Frequently Asked Questions</h2>
-            <p className="text-xl text-muted-foreground">Semua yang perlu lo tau tentang gabung di komunitas kami</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">FAQ Komunitas Vibe Coding Indonesia</h2>
+            <p className="text-xl text-muted-foreground">Semua yang perlu lo tau tentang gabung di komunitas vibe coder Indonesia terbesar</p>
           </div>
 
           <div className="space-y-4">
@@ -1238,20 +1286,20 @@ export default function HomePage() {
               {isMounted ? currentTime : "--:--:--"}
             </p>
             <h2 className="text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight">
-              Gabung Bareng
+              Siap Jadi Bagian
               <br />
-              <span className="bg-gradient-to-r from-primary via-primary/60 to-accent dark:from-primary dark:via-accent-foreground dark:to-primary bg-clip-text text-transparent">
-                Developer Kece Lainnya
+              <span className="bg-gradient-to-r from-slate-800 via-slate-600 to-slate-900 dark:from-primary dark:via-accent-foreground dark:to-primary bg-clip-text text-transparent font-extrabold">
+                Komunitas Vibe Coding Indonesia?
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Siap konek sama developer dan creator yang sepikiran? Gabung komunitas vibrant kami dan ayo bikin hal-hal keren bareng!
+              Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Gabung Komunitas Sekarang
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
+              Gabung Vibe Dev ID Sekarang
             </Button>
           </div>
         </div>
@@ -1261,7 +1309,9 @@ export default function HomePage() {
       <footer className="py-12 bg-muted/50 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-sm text-muted-foreground mb-4 md:mb-0">© 2025 VibeDev ID. All Rights Reserved.</div>
+            <div className="text-sm text-muted-foreground mb-4 md:mb-0">
+              © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.
+            </div>
             <div className="flex space-x-6 text-sm">
               <Drawer open={isPrivacyDrawerOpen} onOpenChange={setIsPrivacyDrawerOpen}>
                 <DrawerTrigger asChild>

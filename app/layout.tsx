@@ -28,24 +28,25 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    default: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
     template: "%s | VibeDev ID",
   },
   description:
-    "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+    "Gabung VibeDev ID, komunitas vibe coding Indonesia. Belajar coding pake AI, kolab di project open source, dan ketemu vibe coder Indonesia. Event rutin + support komunitas.",
   applicationName: "VibeDev ID",
   generator: "VibeDev ID",
   keywords: [
-    "VibeDev ID",
-    "VibeDev",
-    "developer community Indonesia",
-    "Indonesian developers",
-    "vibe coders",
-    "project showcase",
-    "open source collaboration",
-    "Next.js community",
-    "Supabase",
-    "shadcn/ui",
+    "vibe coding",
+    "komunitas vibe coding", 
+    "komunitas vibe coding indonesia",
+    "vibe coder indonesia",
+    "coding pake AI",
+    "AI untuk coding",
+    "komunitas developer indonesia",
+    "open source indonesia",
+    "belajar coding AI",
+    "developer community indonesia",
+    "project showcase indonesia",
   ],
   category: "technology",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -53,20 +54,25 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia",
     description:
-      "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+      "Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.",
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
     siteName: "VibeDev ID",
-    images: [{ url: "/vibedev-guest-avatar.png" }],
-    locale: "en_US",
+    images: [{ 
+      url: "/vibedev-guest-avatar.png",
+      width: 1200,
+      height: 630,
+      alt: "Komunitas Vibe Coding Indonesia"
+    }],
+    locale: "id_ID",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "VibeDev ID — Indonesia’s Vibe Coders & Developer Community",
+    card: "summary_large_image", 
+    title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia",
     description:
-      "VibeDev ID is Indonesia’s home for vibe coders and developers. Showcase projects, get feedback, collaborate on open source, and level up across web, mobile, and AI.",
+      "Belajar coding pake AI bareng komunitas vibe coding Indonesia.",
     images: ["/vibedev-guest-avatar.png"],
     creator: "@vibedevid",
   },
@@ -76,7 +82,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/vibedev-guest-avatar.png",
-    shortcut: "/vibedev-guest-avatar.png",
+    shortcut: "/vibedev-guest-avatar.png", 
     apple: "/vibedev-guest-avatar.png",
   },
 }
