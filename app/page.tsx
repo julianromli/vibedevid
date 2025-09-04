@@ -61,6 +61,34 @@ const Safari = ({ children, url = "vibedev.id" }) => {
     </div>
   )
 }
+const IntegrationCard = ({ title, description, children, link = '#' }: { title: string; description: string; children: React.ReactNode; link?: string }) => {
+  return (
+    <Card className="p-6">
+      <div className="relative">
+        <div className="*:size-10">{children}</div>
+
+        <div className="space-y-2 py-6">
+          <h3 className="text-base font-medium">{title}</h3>
+          <p className="text-muted-foreground line-clamp-2 text-sm">{description}</p>
+        </div>
+
+        <div className="flex gap-3 border-t border-dashed pt-6">
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            className="gap-1 pr-2 shadow-none"
+          >
+            <Link href={link} target="_blank" rel="noopener noreferrer">
+              Learn More
+              <ExternalLink className="ml-0 !size-3.5 opacity-50" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
 
 export default function HomePage() {
   const router = useRouter()
@@ -980,60 +1008,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20" data-animate>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+      {/* AI Coding Tools Integration Section */}
+      <section id="integrations" className="py-20" data-animate>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Apa Yang Membedakan Kami
+              Recommended AI Coding Tools
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Kami tidak hanya ngoding. Kami menciptakan pengalaman digital yang memberikan hasil nyata.
+            <p className="text-muted-foreground mt-6 text-xl max-w-2xl mx-auto">
+              Integrasikan seamlessly dengan AI coding agents dan IDE favorit untuk enhance workflow development lo.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card
-              className={`transition-all duration-700 ${isVisible.features ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <IntegrationCard
+              title="Lovable"
+              description="AI co-engineer yang build full-stack apps dari single prompt. Integrates dengan auth, payments, dan databases otomatis."
+              link="https://lovable.dev/"
             >
-              <CardContent className="p-8 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Code className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Kolaborasi Coding</h3>
-                <p className="text-muted-foreground">
-                  Ngoding bareng, belajar lebih cepat. Share knowledge, review code, dan bikin project keren bareng sesama developer.
-                </p>
-              </CardContent>
-            </Card>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/lovable.svg" alt="Lovable" />
+              </div>
+            </IntegrationCard>
 
-            <Card
-              className={`transition-all duration-700 delay-150 ${isVisible.features ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            <IntegrationCard
+              title="v0.app"
+              description="AI-powered design-to-code platform yang convert ideas jadi functional apps. Rapid prototyping dengan visual interface builder."
+              link="https://v0.app/"
             >
-              <CardContent className="p-8 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Smartphone className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Tech Stack Modern</h3>
-                <p className="text-muted-foreground">
-                  Selalu terdepan dengan teknologi cutting-edge. Dari React sampai AI, eksplor tools terbaru dengan panduan expert.
-                </p>
-              </CardContent>
-            </Card>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/v0.svg" alt="v0" />
+              </div>
+            </IntegrationCard>
 
-            <Card
-              className={`transition-all duration-700 delay-300 ${isVisible.features ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            <IntegrationCard
+              title="OpenAI Codex"
+              description="AI programming assistant yang bisa generate, explain, dan debug code. Supports multiple languages dengan natural language interface."
+              link="https://github.com/openai/codex"
             >
-              <CardContent className="p-8 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Globe className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Komunitas Global</h3>
-                <p className="text-muted-foreground">
-                  Koneksi worldwide sama creator yang passionate. Networking, kolaborasi, dan kembangkan karir lo dengan berbagai talent.
-                </p>
-              </CardContent>
-            </Card>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg" alt="OpenAI Codex" />
+              </div>
+            </IntegrationCard>
+
+            <IntegrationCard
+              title="Cursor"
+              description="AI-powered code editor yang understand codebase lo. Natural language to code dengan intelligent completion dan real-time suggestions."
+              link="https://cursor.com/"
+            >
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/cursor.svg" alt="Cursor" />
+              </div>
+            </IntegrationCard>
+
+            <IntegrationCard
+              title="Warp"
+              description="Modern terminal dengan Active AI features, command suggestions, dan intelligent autocompletion untuk workflow yang lebih efficient."
+              link="https://warp.dev/"
+            >
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="/warpdev.jpg" alt="Warp" />
+              </div>
+            </IntegrationCard>
+
+            <IntegrationCard
+              title="Trae"
+              description="AI-powered development framework yang accelerate project creation dengan intelligent code generation dan automation tools."
+              link="https://trae.ai/"
+            >
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/trae.svg" alt="Trae" />
+              </div>
+            </IntegrationCard>
           </div>
         </div>
       </section>

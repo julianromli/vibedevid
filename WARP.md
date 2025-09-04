@@ -683,6 +683,12 @@ Before deployment, ensure:
       - `components/ui/theme-toggle.tsx`
       - `components/ui/navbar.tsx` (DropdownMenuTrigger Button)
     - Tetap jaga feedback hover via `hover:bg-accent/50`, tanpa efek bayangan
+  - **🛠️ AI TOOLS INTEGRATION SECTION** - Modern tools showcase dengan professional icons:
+    - **Section Update**: Replaced "Apa Yang Membedakan Kami" dengan "Tools AI Coding Yang Kami Support"
+    - **LobeHub Icons**: Professional CDN icons dari `@lobehub/icons-static-svg`
+    - **6 AI Tools Featured**: Lovable, v0.app, OpenAI Codex, Cursor, Warp (custom logo), Trae
+    - **Developer Workflow**: Complete coverage untuk code editors, terminals, AI assistants
+    - **Grid Layout**: Responsive design dengan consistent white containers
 
 ## Analytics Implementation Details
 
