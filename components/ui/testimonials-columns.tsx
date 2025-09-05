@@ -1,20 +1,21 @@
-"use client"
-import React, { useEffect, useRef } from "react"
+"use client";
+import Image from "next/image";
+import React, { useEffect, useRef } from "react";
 
 export const TestimonialsColumns = (props: {
-  className?: string
-  testimonials: typeof testimonials
-  duration?: number
+  className?: string;
+  testimonials: typeof testimonials;
+  duration?: number;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const element = scrollRef.current
-    if (!element) return
+    const element = scrollRef.current;
+    if (!element) return;
 
-    const duration = props.duration || 10
-    element.style.animation = `scroll-up ${duration}s linear infinite`
-  }, [props.duration])
+    const duration = props.duration || 10;
+    element.style.animation = `scroll-up ${duration}s linear infinite`;
+  }, [props.duration]);
 
   return (
     <div className={props.className}>
@@ -23,19 +24,19 @@ export const TestimonialsColumns = (props: {
         className="flex flex-col gap-6 pb-6 animate-scroll-up bg-transparent"
         style={{
           animationDuration: `${props.duration || 10}s`,
-        }}
-      >
+        }}>
         {[
           ...new Array(2).fill(0).map((_, index) => (
             <React.Fragment key={index}>
               {props.testimonials.map(({ text, image, name, role }, i) => (
                 <div
                   className="p-8 rounded-2xl border shadow-lg shadow-primary/5 max-w-xs w-full bg-background"
-                  key={i}
-                >
-                  <div className="text-sm text-muted-foreground leading-relaxed mb-4">{text}</div>
+                  key={i}>
+                  <div className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {text}
+                  </div>
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
                       width={40}
                       height={40}
                       src={image || "/placeholder.svg"}
@@ -43,8 +44,12 @@ export const TestimonialsColumns = (props: {
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div className="flex flex-col">
-                      <div className="font-semibold tracking-tight leading-5 text-sm">{name}</div>
-                      <div className="leading-5 text-muted-foreground tracking-tight text-xs">{role}</div>
+                      <div className="font-semibold tracking-tight leading-5 text-sm">
+                        {name}
+                      </div>
+                      <div className="leading-5 text-muted-foreground tracking-tight text-xs">
+                        {role}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -54,8 +59,8 @@ export const TestimonialsColumns = (props: {
         ]}
       </div>
     </div>
-  )
-}
+  );
+};
 
 const testimonials = [
   {
@@ -148,4 +153,4 @@ const testimonials = [
     name: "Aisha Johnson",
     role: "APIHub CTO",
   },
-]
+];
