@@ -1128,6 +1128,8 @@ export default function HomePage() {
                           <Image
                             src={project.image || "/vibedev-guest-avatar.png"}
                             alt={project.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             loading="lazy"
                             decoding="async"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

@@ -7,24 +7,20 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   // Performance optimizations
-  swcMinify: true,
   poweredByHeader: false,
   generateEtags: false,
   compress: true,
-  // Turbopack configuration (for development with --turbopack)
-  experimental: {
-    turbo: {
-      // Turbo-specific configuration
-      resolveExtensions: [
-        ".mdx",
-        ".tsx",
-        ".ts",
-        ".jsx",
-        ".js",
-        ".mjs",
-        ".json",
-      ],
-    },
+  // Turbopack configuration (for development with --turbo flag)
+  turbopack: {
+    resolveExtensions: [
+      ".mdx",
+      ".tsx",
+      ".ts",
+      ".jsx",
+      ".js",
+      ".mjs",
+      ".json",
+    ],
   },
   // Webpack configuration (for production builds and regular dev)
   webpack: (config, { isServer, dev }) => {
@@ -147,6 +143,12 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "unpkg.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
         port: "",
         pathname: "/**",
       },
