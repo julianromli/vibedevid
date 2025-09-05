@@ -1034,3 +1034,139 @@ npm run build
 - **Maintenance**: Future-proof configuration mengikuti latest Next.js standards
 
 This update ensures VibeDev ID runs with the latest Next.js 15 best practices and provides a clean, warning-free development experience.
+
+### 🌐 **FAVICON MANUAL INPUT SYSTEM** - Enhanced User Control & Removed Automatic Fetching (5 January 2025)
+
+#### 🎯 **System Overview:**
+Completely replaced automatic favicon fetching with manual user input for better reliability and user control. Users now input favicon URLs manually in both project submission and project editing flows.
+
+#### 🔧 **Implementation Details:**
+
+**1. Submit Project Form (`components/ui/submit-project-form.tsx`):**
+- ❌ **Removed**: `getFaviconUrl` import and automatic favicon fetching logic
+- ❌ **Removed**: Auto-fetch message "Favicon akan otomatis ke-fetch dari website ini! 🌐"
+- ✅ **Added**: Separate manual favicon URL input field with real-time preview
+- ✅ **Added**: User-friendly placeholder: "https://example.com/favicon.ico atau https://example.com/favicon.svg"
+- ✅ **Added**: Enhanced helper text: "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"
+- ✅ **Separated**: Website URL and Favicon URL into distinct form fields for clarity
+
+**2. Project Edit Form (`app/project/[id]/page.tsx`):**
+- ❌ **Removed**: `getFaviconUrl` import and automatic fetching in edit mode
+- ❌ **Removed**: Auto-update favicon preview when URL changes
+- ✅ **Added**: Manual favicon URL input field in edit mode with preview
+- ✅ **Added**: Proper form handling to include `favicon_url` in edit submission
+- ✅ **Enhanced**: Form data structure to support manual favicon input
+- ✅ **Updated**: Error handling for invalid favicon URLs with graceful fallbacks
+
+**3. Form Handling & Backend Integration:**
+```typescript
+// Enhanced form handling with favicon_url field
+formData.append("website_url", websiteUrl);
+formData.append("favicon_url", faviconUrl);  // ✅ Manual favicon URL
+formData.append("image_url", editFormData.image_url);
+```
+
+#### 🎨 **UI/UX Improvements:**
+
+**Field Separation:**
+- **Website URL**: Clean standalone field untuk project website
+- **Favicon URL**: Dedicated field dengan preview functionality
+- **Visual Preview**: Real-time favicon preview beside input field
+- **Error Handling**: Graceful fallback when favicon fails to load
+
+**User Experience Enhancements:**
+- **Clear Instructions**: Indonesian copy explaining what a favicon is
+- **Input Validation**: URL type validation for proper favicon URLs
+- **Preview System**: Immediate visual feedback untuk favicon appearance
+- **Placeholder Examples**: Clear examples showing .ico and .svg formats
+- **Form Flow**: Logical field ordering untuk intuitive user experience
+
+#### 🔍 **Technical Implementation:**
+
+**State Management:**
+```typescript
+// Separated state variables for better control
+const [websiteUrl, setWebsiteUrl] = useState<string>("");
+const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
+```
+
+**Form Field Structure:**
+```tsx
+{/* Website URL - Clean standalone field */}
+<div className="space-y-2">
+  <Label htmlFor="website_url">Website URL</Label>
+  <Input
+    type="url"
+    value={websiteUrl}
+    onChange={(e) => setWebsiteUrl(e.target.value)}
+    placeholder="https://your-project.com"
+  />
+</div>
+
+{/* Favicon URL - Separate manual input with preview */}
+<div className="space-y-2">
+  <Label htmlFor="favicon_url">Favicon URL</Label>
+  <div className="flex items-center gap-2">
+    {faviconUrl && (
+      <Image
+        src={faviconUrl}
+        alt="Website favicon"
+        className="w-4 h-4 flex-shrink-0"
+        onError={() => setFaviconUrl("")}
+      />
+    )}
+    <Input
+      type="url"
+      value={faviconUrl}
+      onChange={(e) => setFaviconUrl(e.target.value)}
+      placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
+    />
+  </div>
+  <p className="text-xs text-muted-foreground">
+    Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
+  </p>
+</div>
+```
+
+#### 🎯 **Benefits Achieved:**
+
+**Reliability Improvements:**
+- ✅ **No More Timeout Issues**: Eliminates automatic favicon fetching timeouts
+- ✅ **User Control**: Users have complete control over favicon appearance
+- ✅ **Faster Submission**: No waiting for automatic favicon requests
+- ✅ **Predictable Results**: No more failed automatic favicon fetches
+
+**User Experience Benefits:**
+- ✅ **Transparency**: Clear understanding of what favicon will be displayed
+- ✅ **Flexibility**: Users can choose any favicon URL they prefer
+- ✅ **Immediate Feedback**: Real-time preview shows favicon appearance
+- ✅ **Error Prevention**: No surprise blank favicons from failed fetches
+
+**Developer Benefits:**
+- ✅ **Cleaner Code**: Removed complex favicon fetching logic
+- ✅ **Better Error Handling**: Simplified error states and fallbacks
+- ✅ **Maintainability**: Less complex async favicon handling
+- ✅ **Performance**: Faster form submissions without network requests
+
+#### 📝 **Migration Notes:**
+
+**Backward Compatibility:**
+- Existing projects with automatically fetched favicons remain unaffected
+- Edit flow allows users to update favicon URLs manually
+- Database schema supports both old and new favicon URL formats
+
+**User Education:**
+- Helper text explains favicon concept for new users
+- Placeholder examples show proper favicon URL formats
+- Indonesian copy maintains friendly, accessible tone
+
+#### 🚀 **Implementation Status:**
+- ✅ **Submit Project Form**: Manual favicon input fully implemented
+- ✅ **Edit Project Form**: Manual favicon input fully implemented
+- ✅ **Form Handling**: Backend integration completed
+- ✅ **Preview System**: Real-time favicon preview working
+- ✅ **Error Handling**: Graceful fallbacks implemented
+- ✅ **UI Polish**: Indonesian copy and user-friendly messaging
+- ✅ **Testing Ready**: Components ready for user testing
+
+This implementation provides users with complete control over favicon appearance while eliminating reliability issues from automatic favicon fetching, resulting in a more predictable and user-friendly project submission experience.

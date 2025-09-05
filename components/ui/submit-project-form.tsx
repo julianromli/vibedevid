@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { getCategories, type Category } from "@/lib/categories";
 import MultipleSelector, { Option } from "@/components/ui/multiselect";
-import { getFaviconUrl } from "@/lib/favicon-utils";
 import Image from "next/image";
 
 // Common tech stack options for the multiselect
@@ -94,7 +93,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedTags, setSelectedTags] = useState<Option[]>([]);
   const [websiteUrl, setWebsiteUrl] = useState<string>("");
-  const [faviconUrl, setFaviconUrl] = useState<string>("/default-favicon.svg");
+  const [faviconUrl, setFaviconUrl] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const router = useRouter();
 
@@ -246,38 +245,42 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="website_url">Website URL</Label>
+            <Input
+              id="website_url"
+              name="website_url"
+              type="url"
+              placeholder="https://your-project.com"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              disabled={isLoading || isUploading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="favicon_url">Favicon URL</Label>
             <div className="flex items-center gap-2">
               {faviconUrl && (
                 <Image
                   src={faviconUrl}
                   alt="Website favicon"
                   className="w-4 h-4 flex-shrink-0"
-                  onError={() => setFaviconUrl("/default-favicon.svg")}
+                  onError={() => setFaviconUrl("")}
                   width={16}
                   height={16}
                 />
               )}
               <Input
-                id="website_url"
-                name="website_url"
+                id="favicon_url"
+                name="favicon_url"
                 type="url"
-                placeholder="https://your-project.com"
-                value={websiteUrl}
-                onChange={(e) => {
-                  const url = e.target.value;
-                  setWebsiteUrl(url);
-                  // Auto-update favicon preview when URL changes
-                  if (url.trim()) {
-                    setFaviconUrl(getFaviconUrl(url.trim()));
-                  } else {
-                    setFaviconUrl("/default-favicon.svg");
-                  }
-                }}
+                placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
+                value={faviconUrl}
+                onChange={(e) => setFaviconUrl(e.target.value)}
                 disabled={isLoading || isUploading}
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Favicon akan otomatis ke-fetch dari website ini! 🌐
+              Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
             </p>
           </div>
 

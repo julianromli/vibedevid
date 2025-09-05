@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 import MultipleSelector, { Option } from "@/components/ui/multiselect";
 import { UploadButton } from "@uploadthing/react";
-import { getFaviconUrl } from "@/lib/favicon-utils";
 import { getCategories, type Category } from "@/lib/categories";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
@@ -165,9 +164,7 @@ export default function ProjectDetailsPage({
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([]);
   const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>("");
-  const [editFaviconUrl, setEditFaviconUrl] = useState<string>(
-    "/default-favicon.svg"
-  );
+  const [editFaviconUrl, setEditFaviconUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(
     null
@@ -414,7 +411,7 @@ export default function ProjectDetailsPage({
 
     // Initialize website URL and favicon
     setEditWebsiteUrl(project?.url || "");
-    setEditFaviconUrl(project?.faviconUrl || "/default-favicon.svg");
+    setEditFaviconUrl(project?.faviconUrl || "");
 
     setIsEditing(true);
   };
@@ -432,6 +429,7 @@ export default function ProjectDetailsPage({
       formData.append("category", editFormData.category);
       formData.append("website_url", editWebsiteUrl);
       formData.append("image_url", editFormData.image_url);
+      formData.append("favicon_url", editFaviconUrl);
 
       // Add selected tags as JSON string
       const tagsValues = selectedEditTags.map((tag) => tag.value);
@@ -450,7 +448,7 @@ export default function ProjectDetailsPage({
         // Reset edit form states
         setSelectedEditTags([]);
         setEditWebsiteUrl("");
-        setEditFaviconUrl("/default-favicon.svg");
+        setEditFaviconUrl("");
       } else {
         alert(result.error || "Failed to update project");
       }
@@ -669,44 +667,51 @@ export default function ProjectDetailsPage({
                       </Select>
                     </div>
 
-                    {/* Website URL with Favicon Preview */}
+                    {/* Website URL */}
                     <div className="space-y-2">
                       <Label htmlFor="edit-website">Website URL</Label>
+                      <Input
+                        id="edit-website"
+                        type="url"
+                        value={editWebsiteUrl}
+                        onChange={(e) => {
+                          const url = e.target.value;
+                          setEditWebsiteUrl(url);
+                          setEditFormData({
+                            ...editFormData,
+                            website_url: url,
+                          });
+                        }}
+                        placeholder="https://your-project.com"
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    {/* Favicon URL with Preview */}
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-favicon">Favicon URL</Label>
                       <div className="flex items-center gap-2">
                         {editFaviconUrl && (
                           <Image
                             src={editFaviconUrl}
                             alt="Website favicon"
                             className="w-4 h-4 flex-shrink-0"
-                            onError={() =>
-                              setEditFaviconUrl("/default-favicon.svg")
-                            }
+                            onError={() => setEditFaviconUrl("")}
+                            width={16}
+                            height={16}
                           />
                         )}
                         <Input
-                          id="edit-website"
+                          id="edit-favicon"
                           type="url"
-                          value={editWebsiteUrl}
-                          onChange={(e) => {
-                            const url = e.target.value;
-                            setEditWebsiteUrl(url);
-                            setEditFormData({
-                              ...editFormData,
-                              website_url: url,
-                            });
-                            // Auto-update favicon preview when URL changes
-                            if (url.trim()) {
-                              setEditFaviconUrl(getFaviconUrl(url.trim()));
-                            } else {
-                              setEditFaviconUrl("/default-favicon.svg");
-                            }
-                          }}
-                          placeholder="https://your-project.com"
+                          value={editFaviconUrl}
+                          onChange={(e) => setEditFaviconUrl(e.target.value)}
+                          placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
                           disabled={isSaving}
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Favicon akan otomatis ke-fetch dari website ini! 🌐
+                        Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
                       </p>
                     </div>
 
