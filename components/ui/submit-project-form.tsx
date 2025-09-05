@@ -1,21 +1,28 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { submitProject } from "@/lib/actions"
-import { Loader2, Upload, X, CheckCircle } from "lucide-react"
-import { UploadButton } from "@uploadthing/react"
-import { toast } from "sonner"
-import { AspectRatio } from "@/components/ui/aspect-ratio"
-import { getCategories, type Category } from "@/lib/categories"
-import MultipleSelector, { Option } from "@/components/ui/multiselect"
-import { getFaviconUrl } from "@/lib/favicon-utils"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { submitProject } from "@/lib/actions";
+import { Loader2, Upload, X, CheckCircle } from "lucide-react";
+import { UploadButton } from "@uploadthing/react";
+import { toast } from "sonner";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { getCategories, type Category } from "@/lib/categories";
+import MultipleSelector, { Option } from "@/components/ui/multiselect";
+import { getFaviconUrl } from "@/lib/favicon-utils";
+import Image from "next/image";
 
 // Common tech stack options for the multiselect
 const techOptions: Option[] = [
@@ -66,82 +73,84 @@ const techOptions: Option[] = [
   { value: "chakra", label: "Chakra UI" },
   { value: "mantine", label: "Mantine" },
   { value: "antd", label: "Ant Design" },
-  { value: "material-ui", label: "Material-UI" }
-]
+  { value: "material-ui", label: "Material-UI" },
+];
 
 interface SubmitProjectFormProps {
-  userId: string
+  userId: string;
 }
 
-const MAX_DESCRIPTION_LENGTH = 300
+const MAX_DESCRIPTION_LENGTH = 300;
 
 export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("")
-  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loadingCategories, setLoadingCategories] = useState(true)
-  const [selectedTags, setSelectedTags] = useState<Option[]>([])
-  const [websiteUrl, setWebsiteUrl] = useState<string>("")
-  const [faviconUrl, setFaviconUrl] = useState<string>("/default-favicon.svg")
-  const [description, setDescription] = useState<string>("")
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
+  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(
+    null,
+  );
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [selectedTags, setSelectedTags] = useState<Option[]>([]);
+  const [websiteUrl, setWebsiteUrl] = useState<string>("");
+  const [faviconUrl, setFaviconUrl] = useState<string>("/default-favicon.svg");
+  const [description, setDescription] = useState<string>("");
+  const router = useRouter();
 
   // Fetch categories from database
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setLoadingCategories(true)
-        const dbCategories = await getCategories()
-        setCategories(dbCategories)
+        setLoadingCategories(true);
+        const dbCategories = await getCategories();
+        setCategories(dbCategories);
       } catch (error) {
-        console.error("Failed to fetch categories:", error)
-        setError("Failed to load categories. Please refresh the page.")
+        console.error("Failed to fetch categories:", error);
+        setError("Failed to load categories. Please refresh the page.");
       } finally {
-        setLoadingCategories(false)
+        setLoadingCategories(false);
       }
-    }
+    };
 
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const formData = new FormData(e.currentTarget)
-      
+      const formData = new FormData(e.currentTarget);
+
       if (uploadedImageUrl) {
-        formData.set("image_url", uploadedImageUrl)
+        formData.set("image_url", uploadedImageUrl);
       }
 
       // Add selected tags as JSON string
-      const tagsValues = selectedTags.map(tag => tag.value)
-      formData.set("tags", JSON.stringify(tagsValues))
-      
+      const tagsValues = selectedTags.map((tag) => tag.value);
+      formData.set("tags", JSON.stringify(tagsValues));
+
       // Add website URL to form data (for backend favicon fetching)
       if (websiteUrl) {
-        formData.set("website_url", websiteUrl)
+        formData.set("website_url", websiteUrl);
       }
 
-      const result = await submitProject(formData, userId)
+      const result = await submitProject(formData, userId);
       if (result.success) {
-        toast.success("Mantap! 🚀 Project lo berhasil di-submit!")
-        router.push(`/project/${result.projectId}`)
+        toast.success("Mantap! 🚀 Project lo berhasil di-submit!");
+        router.push(`/project/${result.projectId}`);
       } else {
-        toast.error("Waduh, ada error nih! 😅 Coba lagi ya!")
-        setError(result.error || "Failed to submit project")
+        toast.error("Waduh, ada error nih! 😅 Coba lagi ya!");
+        setError(result.error || "Failed to submit project");
       }
     } catch (err) {
-      setError("An unexpected error occurred")
+      setError("An unexpected error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -191,11 +200,15 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               <p className="text-xs text-muted-foreground mt-1">
                 Description maksimal 300 karakter untuk konsistensi! 📝
               </p>
-              <span className={`font-medium ${
-                description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-500' :
-                description.length > 250 ? 'text-yellow-500' :
-                'text-muted-foreground'
-              }`}>
+              <span
+                className={`font-medium ${
+                  description.length > MAX_DESCRIPTION_LENGTH
+                    ? "text-red-500"
+                    : description.length > 250
+                      ? "text-yellow-500"
+                      : "text-muted-foreground"
+                }`}
+              >
                 {description.length}/{MAX_DESCRIPTION_LENGTH}
               </span>
             </div>
@@ -203,7 +216,11 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="category">Category *</Label>
-            <Select name="category" required disabled={isLoading || isUploading}>
+            <Select
+              name="category"
+              required
+              disabled={isLoading || isUploading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -231,11 +248,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             <Label htmlFor="website_url">Website URL</Label>
             <div className="flex items-center gap-2">
               {faviconUrl && (
-                <img 
-                  src={faviconUrl} 
-                  alt="Website favicon" 
+                <Image
+                  src={faviconUrl}
+                  alt="Website favicon"
                   className="w-4 h-4 flex-shrink-0"
                   onError={() => setFaviconUrl("/default-favicon.svg")}
+                  width={16}
+                  height={16}
                 />
               )}
               <Input
@@ -245,13 +264,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                 placeholder="https://your-project.com"
                 value={websiteUrl}
                 onChange={(e) => {
-                  const url = e.target.value
-                  setWebsiteUrl(url)
+                  const url = e.target.value;
+                  setWebsiteUrl(url);
                   // Auto-update favicon preview when URL changes
                   if (url.trim()) {
-                    setFaviconUrl(getFaviconUrl(url.trim()))
+                    setFaviconUrl(getFaviconUrl(url.trim()));
                   } else {
-                    setFaviconUrl("/default-favicon.svg")
+                    setFaviconUrl("/default-favicon.svg");
                   }
                 }}
                 disabled={isLoading || isUploading}
@@ -282,7 +301,8 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               }}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri kalau gak ada! 🚀
+              Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri
+              kalau gak ada! 🚀
             </p>
           </div>
 
@@ -292,11 +312,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               {uploadedImageUrl ? (
                 <div className="space-y-4">
                   <div className="relative">
-                    <AspectRatio ratio={16/9}>
-                      <img
+                    <AspectRatio ratio={16 / 9}>
+                      <Image
                         src={uploadedImageUrl || "/placeholder.svg"}
                         alt="Project screenshot preview"
                         className="w-full h-full object-cover rounded-lg shadow-md"
+                        width={16}
+                        height={16}
                       />
                     </AspectRatio>
                     <Button
@@ -305,8 +327,8 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                       size="sm"
                       className="absolute top-2 right-2"
                       onClick={() => {
-                        setUploadedImageUrl("")
-                        setError(null)
+                        setUploadedImageUrl("");
+                        setError(null);
                       }}
                       disabled={isLoading}
                     >
@@ -332,112 +354,142 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                           <Loader2 className="h-4 w-4 mr-2 animate-spin inline" />
                           Uploading...
                         </div>
-                        <p className="text-sm text-muted-foreground">Please wait while your image is being uploaded</p>
+                        <p className="text-sm text-muted-foreground">
+                          Please wait while your image is being uploaded
+                        </p>
                       </div>
                     ) : (
                       <UploadButton
                         endpoint="projectImageUploader"
                         onUploadBegin={(name) => {
-                          console.log("[v0] Upload started for file:", name)
-                          setIsUploading(true)
-                          setError(null)
-                          
+                          console.log("[v0] Upload started for file:", name);
+                          setIsUploading(true);
+                          setError(null);
+
                           // Clear existing timeout if any
                           if (uploadTimeout) {
-                            clearTimeout(uploadTimeout)
+                            clearTimeout(uploadTimeout);
                           }
-                          
+
                           // Set a fallback timeout to prevent stuck state (2 minutes)
                           const timeoutId = setTimeout(() => {
-                            console.log("[v0] Upload timeout - resetting state")
-                            setIsUploading(false)
-                            setError("Upload timed out. Please try again.")
-                          }, 120000)
-                          
-                          setUploadTimeout(timeoutId)
+                            console.log(
+                              "[v0] Upload timeout - resetting state",
+                            );
+                            setIsUploading(false);
+                            setError("Upload timed out. Please try again.");
+                          }, 120000);
+
+                          setUploadTimeout(timeoutId);
                         }}
                         onClientUploadComplete={(res) => {
-                          console.log("[v0] Client upload completed:", res)
-                          console.log("[v0] Full response object:", JSON.stringify(res, null, 2))
-                          
+                          console.log("[v0] Client upload completed:", res);
+                          console.log(
+                            "[v0] Full response object:",
+                            JSON.stringify(res, null, 2),
+                          );
+
                           // Clear timeout since upload completed
                           if (uploadTimeout) {
-                            clearTimeout(uploadTimeout)
-                            setUploadTimeout(null)
+                            clearTimeout(uploadTimeout);
+                            setUploadTimeout(null);
                           }
-                          
+
                           // Always set uploading to false first and clear any previous errors
-                          setIsUploading(false)
-                          setError(null)
-                          
+                          setIsUploading(false);
+                          setError(null);
+
                           // Check if we have a valid response
                           if (res && Array.isArray(res) && res.length > 0) {
-                            const uploadResult = res[0]
-                            console.log("[v0] Upload result:", uploadResult)
-                            
+                            const uploadResult = res[0];
+                            console.log("[v0] Upload result:", uploadResult);
+
                             // Try to get URL from different possible locations (prioritize new ufsUrl)
-                            const imageUrl = uploadResult.ufsUrl || uploadResult.url || uploadResult.fileUrl || uploadResult.key
-                            
+                            const imageUrl =
+                              uploadResult.ufsUrl ||
+                              uploadResult.url ||
+                              uploadResult.fileUrl ||
+                              uploadResult.key;
+
                             if (imageUrl) {
-                              console.log("[v0] Setting image URL:", imageUrl)
-                              setUploadedImageUrl(imageUrl)
+                              console.log("[v0] Setting image URL:", imageUrl);
+                              setUploadedImageUrl(imageUrl);
                             } else {
-                              console.error("[v0] No URL found in upload result:", uploadResult)
-                              setError("Upload completed but no URL received. Please try again.")
+                              console.error(
+                                "[v0] No URL found in upload result:",
+                                uploadResult,
+                              );
+                              setError(
+                                "Upload completed but no URL received. Please try again.",
+                              );
                             }
                           } else {
-                            console.error("[v0] Invalid response format:", res)
-                            setError("Upload completed but response format is invalid. Please try again.")
+                            console.error("[v0] Invalid response format:", res);
+                            setError(
+                              "Upload completed but response format is invalid. Please try again.",
+                            );
                           }
                         }}
                         onUploadError={(error: Error) => {
-                          console.error("[v0] Upload error:", error)
-                          
+                          console.error("[v0] Upload error:", error);
+
                           // Clear timeout since upload failed
                           if (uploadTimeout) {
-                            clearTimeout(uploadTimeout)
-                            setUploadTimeout(null)
+                            clearTimeout(uploadTimeout);
+                            setUploadTimeout(null);
                           }
-                          
-                          setIsUploading(false)
-                          setError(`Upload failed: ${error.message}`)
+
+                          setIsUploading(false);
+                          setError(`Upload failed: ${error.message}`);
                         }}
                         onUploadProgress={(progress) => {
-                          console.log("[v0] Upload progress:", progress)
+                          console.log("[v0] Upload progress:", progress);
                         }}
                         config={{
                           mode: "auto",
                         }}
                         content={{
                           button({ ready }) {
-                            if (ready) return <div>Choose File</div>
-                            return "Getting ready..."
+                            if (ready) return <div>Choose File</div>;
+                            return "Getting ready...";
                           },
                           allowedContent({ ready, fileTypes, isUploading }) {
-                            if (!ready) return "Checking what you allow"
-                            if (isUploading) return "Uploading..."
-                            return `Image (${fileTypes.join(", ")})`
+                            if (!ready) return "Checking what you allow";
+                            if (isUploading) return "Uploading...";
+                            return `Image (${fileTypes.join(", ")})`;
                           },
                         }}
                         appearance={{
-                          button: "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                          button:
+                            "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
                           allowedContent: "text-sm text-muted-foreground mt-2",
                         }}
                       />
                     )}
                   </div>
                   <p className="mt-2 text-sm text-gray-500">
-                    {isUploading ? "Uploading your screenshot..." : "Upload a screenshot of your project (max 4MB)"}
+                    {isUploading
+                      ? "Uploading your screenshot..."
+                      : "Upload a screenshot of your project (max 4MB)"}
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          {error && <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-3 rounded-md">{error}</div>}
+          {error && (
+            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-3 rounded-md">
+              {error}
+            </div>
+          )}
 
           <div className="flex gap-4">
-            <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading || isUploading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isLoading || isUploading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading || isUploading}>
@@ -454,5 +506,5 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect, lazy, Suspense } from "react"
-import Script from "next/script"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { HeartButton } from "@/components/ui/heart-button"
-import { Navbar } from "@/components/ui/navbar"
-import { AspectRatio } from "@/components/ui/aspect-ratio"
-import { OptimizedAvatar } from "@/components/ui/optimized-avatar"
-import { ProgressiveImage } from "@/components/ui/progressive-image"
-import { getCategories, getCategoryDisplayName } from "@/lib/categories"
+import { useState, useEffect, lazy, Suspense } from "react";
+import Script from "next/script";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { HeartButton } from "@/components/ui/heart-button";
+import { Navbar } from "@/components/ui/navbar";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+import { ProgressiveImage } from "@/components/ui/progressive-image";
+import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import {
   Drawer,
   DrawerClose,
@@ -19,19 +19,39 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import { ChevronDown, Code, Smartphone, Globe, ArrowRight, Plus, Minus, ExternalLink } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { signOut } from "@/lib/actions"
-import { getBatchLikeStatus } from "@/lib/actions"
+} from "@/components/ui/drawer";
+import {
+  ChevronDown,
+  Code,
+  Smartphone,
+  Globe,
+  ArrowRight,
+  Plus,
+  Minus,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/lib/actions";
+import { getBatchLikeStatus } from "@/lib/actions";
+import Image from "next/image";
 
 // Lazy load heavy components untuk better FCP
-const TestimonialsColumns = lazy(() => import("@/components/ui/testimonials-columns").then(module => ({ default: module.TestimonialsColumns })))
-const AnimatedTooltip = lazy(() => import("@/components/ui/animated-tooltip"))
+const TestimonialsColumns = lazy(() =>
+  import("@/components/ui/testimonials-columns").then((module) => ({
+    default: module.TestimonialsColumns,
+  })),
+);
+const AnimatedTooltip = lazy(() => import("@/components/ui/animated-tooltip"));
 
-const Safari = ({ children, url = "vibedev.id" }) => {
+const Safari = ({
+  children,
+  url = "vibedevid.com",
+}: {
+  children: React.ReactNode;
+  url?: string;
+}) => {
   return (
     <div className="relative w-full bg-gray-100 rounded-xl shadow-2xl overflow-hidden">
       {/* Browser Chrome */}
@@ -42,15 +62,13 @@ const Safari = ({ children, url = "vibedev.id" }) => {
           <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
         </div>
-
         {/* Address Bar */}
         <div className="flex-1 mx-4">
           <div className="bg-white rounded-md px-3 py-1 text-sm text-gray-600 border border-gray-300">
             <span className="text-green-600">🔒</span> {url}
           </div>
         </div>
-
-        {/* Browser Controls */}
+        {/* Browser Controls */}``
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-gray-300 rounded"></div>
           <div className="w-6 h-6 bg-gray-300 rounded"></div>
@@ -60,9 +78,19 @@ const Safari = ({ children, url = "vibedev.id" }) => {
       {/* Content Area */}
       <div className="bg-white">{children}</div>
     </div>
-  )
-}
-const IntegrationCard = ({ title, description, children, link = '#' }: { title: string; description: string; children: React.ReactNode; link?: string }) => {
+  );
+};
+const IntegrationCard = ({
+  title,
+  description,
+  children,
+  link = "#",
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  link?: string;
+}) => {
   return (
     <Card className="p-6">
       <div className="relative">
@@ -70,7 +98,9 @@ const IntegrationCard = ({ title, description, children, link = '#' }: { title: 
 
         <div className="space-y-2 py-6">
           <h3 className="text-base font-medium">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm">{description}</p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">
+            {description}
+          </p>
         </div>
 
         <div className="flex gap-3 border-t border-dashed pt-6">
@@ -88,11 +118,11 @@ const IntegrationCard = ({ title, description, children, link = '#' }: { title: 
         </div>
       </div>
     </Card>
-  )
-}
+  );
+};
 
 export default function HomePage() {
-  const router = useRouter()
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState({
     hero: false,
     features: false,
@@ -100,95 +130,106 @@ export default function HomePage() {
     testimonials: false,
     cta: false,
     faq: false,
-  })
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
-  const [isTrendingOpen, setIsTrendingOpen] = useState(false)
-  const [selectedFilter, setSelectedFilter] = useState("All")
-  const [selectedTrending, setSelectedTrending] = useState("Trending")
-  const [visibleProjects, setVisibleProjects] = useState(6)
-  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false)
+  });
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isTrendingOpen, setIsTrendingOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedTrending, setSelectedTrending] = useState("Trending");
+  const [visibleProjects, setVisibleProjects] = useState(6);
+  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{
-    name: string
-    email: string
-    avatar: string
-    username?: string // Added username field to user state type
-  } | null>(null)
-  const [projects, setProjects] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [authReady, setAuthReady] = useState(false)
-  const [creatingProfile, setCreatingProfile] = useState(false)
-  const [animatedWords, setAnimatedWords] = useState<number[]>([])
-  const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const [currentTime, setCurrentTime] = useState("")
-  const [isMounted, setIsMounted] = useState(false)
-  const [likesData, setLikesData] = useState<Record<string, { totalLikes: number; isLiked: boolean }>>({})
-  const [filterOptions, setFilterOptions] = useState<string[]>(["All"])
+    name: string;
+    email: string;
+    avatar: string;
+    username?: string; // Added username field to user state type
+  } | null>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [creatingProfile, setCreatingProfile] = useState(false);
+  const [animatedWords, setAnimatedWords] = useState<number[]>([]);
+  const [subtitleVisible, setSubtitleVisible] = useState(false);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  const [likesData, setLikesData] = useState<
+    Record<string, { totalLikes: number; isLiked: boolean }>
+  >({});
+  const [filterOptions, setFilterOptions] = useState<string[]>(["All"]);
 
   // Fetch categories for filter options
   useEffect(() => {
     const fetchFilterCategories = async () => {
       try {
-        const categories = await getCategories()
-        const categoryDisplayNames = categories.map(cat => cat.display_name)
-        setFilterOptions(["All", ...categoryDisplayNames])
+        const categories = await getCategories();
+        const categoryDisplayNames = categories.map((cat) => cat.display_name);
+        setFilterOptions(["All", ...categoryDisplayNames]);
       } catch (error) {
-        console.error("Failed to fetch categories for filters:", error)
+        console.error("Failed to fetch categories for filters:", error);
       }
-    }
+    };
 
-    fetchFilterCategories()
-  }, [])
+    fetchFilterCategories();
+  }, []);
 
   useEffect(() => {
-    setIsMounted(true)
+    setIsMounted(true);
     // Only update time after component is mounted to avoid hydration mismatch
     const updateTime = () => {
-      if (typeof window !== 'undefined') {
-        setCurrentTime(new Date().toLocaleTimeString())
+      if (typeof window !== "undefined") {
+        setCurrentTime(new Date().toLocaleTimeString());
       }
-    }
-    updateTime()
-    const timeInterval = setInterval(updateTime, 1000)
+    };
+    updateTime();
+    const timeInterval = setInterval(updateTime, 1000);
 
-    return () => clearInterval(timeInterval)
-  }, [])
+    return () => clearInterval(timeInterval);
+  }, []);
 
   // Separate useEffect for authentication
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
     const checkAuth = async () => {
       try {
-        console.log("[v0] Checking authentication state...")
-        const supabase = createClient()
+        console.log("[v0] Checking authentication state...");
+        const supabase = createClient();
 
         // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth check timeout')), 3000)
-        )
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Auth check timeout")), 3000),
+        );
 
-        const sessionPromise = supabase.auth.getSession()
-        
-        const result = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: any }, error?: any }
-        const { data: { session } } = result
+        const sessionPromise = supabase.auth.getSession();
 
-        if (!isMounted) return
+        const result = (await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ])) as { data: { session: any }; error?: any };
+        const {
+          data: { session },
+        } = result;
 
-        console.log("[v0] Session data:", session)
+        if (!isMounted) return;
+
+        console.log("[v0] Session data:", session);
 
         if (session?.user) {
-          console.log("[v0] User found in session:", session.user)
-          setIsLoggedIn(true)
+          console.log("[v0] User found in session:", session.user);
+          setIsLoggedIn(true);
 
           // Get user profile from database
-          const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
+          const { data: profile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
 
-          if (!isMounted) return
+          if (!isMounted) return;
 
-          console.log("[v0] User profile from database:", profile)
+          console.log("[v0] User profile from database:", profile);
 
           if (profile) {
             const userData = {
@@ -196,200 +237,227 @@ export default function HomePage() {
               email: session.user.email || "",
               avatar: profile.avatar_url || "/vibedev-guest-avatar.png",
               username: profile.username,
-            }
-            console.log("[v0] Setting user data:", userData)
-            setUser(userData)
+            };
+            console.log("[v0] Setting user data:", userData);
+            setUser(userData);
           } else {
             if (creatingProfile) {
-              console.log("[v0] Profile creation already in progress, skipping...")
-              return
+              console.log(
+                "[v0] Profile creation already in progress, skipping...",
+              );
+              return;
             }
 
-            console.log("[v0] No profile found, creating new user profile...")
-            setCreatingProfile(true)
+            console.log("[v0] No profile found, creating new user profile...");
+            setCreatingProfile(true);
 
             const newProfile = {
               id: session.user.id,
-              display_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+              display_name:
+                session.user.user_metadata?.full_name ||
+                session.user.email?.split("@")[0] ||
+                "User",
               username:
                 session.user.email
                   ?.split("@")[0]
                   ?.toLowerCase()
-                  .replace(/[^a-z0-9]/g, "") || `user${Math.floor(Math.random() * 999999)}`,
-              avatar_url: session.user.user_metadata?.avatar_url || "/vibedev-guest-avatar.png",
+                  .replace(/[^a-z0-9]/g, "") ||
+                `user${Math.floor(Math.random() * 999999)}`,
+              avatar_url:
+                session.user.user_metadata?.avatar_url ||
+                "/vibedev-guest-avatar.png",
               bio: "",
               location: "",
               website: "",
               github_url: "",
               twitter_url: "",
               joined_at: new Date().toISOString(),
-            }
+            };
 
-            console.log("[v0] Attempting to insert new profile:", newProfile)
+            console.log("[v0] Attempting to insert new profile:", newProfile);
 
             try {
-              const { data: createdProfile, error: insertError } = await supabase
-                .from("users")
-                .upsert(newProfile, { onConflict: "id" })
-                .select()
-                .single()
+              const { data: createdProfile, error: insertError } =
+                await supabase
+                  .from("users")
+                  .upsert(newProfile, { onConflict: "id" })
+                  .select()
+                  .single();
 
-              if (!isMounted) return
+              if (!isMounted) return;
 
               if (insertError) {
-                console.error("[v0] Error creating user profile:", insertError)
+                console.error("[v0] Error creating user profile:", insertError);
                 console.error("[v0] Insert error details:", {
                   message: insertError.message,
                   details: insertError.details,
                   hint: insertError.hint,
                   code: insertError.code,
-                })
-                setCreatingProfile(false)
-                return
+                });
+                setCreatingProfile(false);
+                return;
               }
 
-              console.log("[v0] Successfully created user profile:", createdProfile)
+              console.log(
+                "[v0] Successfully created user profile:",
+                createdProfile,
+              );
 
               const userData = {
                 name: newProfile.display_name,
                 email: session.user.email || "",
                 avatar: newProfile.avatar_url,
                 username: newProfile.username,
-              }
-              console.log("[v0] Created and set new user data:", userData)
-              setUser(userData)
-              setCreatingProfile(false)
+              };
+              console.log("[v0] Created and set new user data:", userData);
+              setUser(userData);
+              setCreatingProfile(false);
             } catch (error) {
-              if (!isMounted) return
-              console.error("[v0] Unexpected error creating profile:", error)
-              setCreatingProfile(false)
+              if (!isMounted) return;
+              console.error("[v0] Unexpected error creating profile:", error);
+              setCreatingProfile(false);
             }
           }
         } else {
-          console.log("[v0] No session found, user not logged in")
-          setIsLoggedIn(false)
-          setUser(null)
-          setCreatingProfile(false)
+          console.log("[v0] No session found, user not logged in");
+          setIsLoggedIn(false);
+          setUser(null);
+          setCreatingProfile(false);
         }
       } catch (error) {
-        if (!isMounted) return
-        console.error("[v0] Error in checkAuth:", error)
-        setIsLoggedIn(false)
-        setUser(null)
-        setCreatingProfile(false)
+        if (!isMounted) return;
+        console.error("[v0] Error in checkAuth:", error);
+        setIsLoggedIn(false);
+        setUser(null);
+        setCreatingProfile(false);
       } finally {
         // Mark auth as ready regardless of success/failure
-        setAuthReady(true)
+        setAuthReady(true);
       }
-    }
+    };
 
-    checkAuth()
+    checkAuth();
 
     // Listen for auth changes
-    const supabase = createClient()
+    const supabase = createClient();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isMounted) return
+      if (!isMounted) return;
 
-      console.log("[v0] Auth state change:", event, session)
+      console.log("[v0] Auth state change:", event, session);
       if (event === "SIGNED_IN" && session) {
-        console.log("[v0] User signed in via auth state change")
+        console.log("[v0] User signed in via auth state change");
         // Don't re-run checkAuth here, it causes double execution
         // Just update the auth ready state
-        setAuthReady(true)
+        setAuthReady(true);
       } else if (event === "SIGNED_OUT") {
-        console.log("[v0] User signed out, clearing state")
-        setIsLoggedIn(false)
-        setUser(null)
-        setCreatingProfile(false)
-        setAuthReady(true)
+        console.log("[v0] User signed out, clearing state");
+        setIsLoggedIn(false);
+        setUser(null);
+        setCreatingProfile(false);
+        setAuthReady(true);
       }
-    })
+    });
 
     return () => {
-      isMounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Separate useEffect for fetching projects - now depends on auth state
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        console.log("[v0] Fetching projects... Auth state:", { isLoggedIn, authReady })
-        const supabase = createClient()
+        console.log("[v0] Fetching projects... Auth state:", {
+          isLoggedIn,
+          authReady,
+        });
+        const supabase = createClient();
 
         // Single JOIN query untuk better performance
         const { data: projectsWithUsers, error } = await supabase
           .from("projects")
-          .select(`
+          .select(
+            `
             *,
             users!author_id (
               username,
               display_name,
               avatar_url
             )
-          `)
+          `,
+          )
           .order("created_at", { ascending: false })
-          .limit(20) // Limit initial load
+          .limit(20); // Limit initial load
 
         if (error) {
-          console.error("[v0] Error fetching projects:", error)
-          return
+          console.error("[v0] Error fetching projects:", error);
+          return;
         }
 
-        console.log("[v0] Projects fetched:", projectsWithUsers.length)
+        console.log("[v0] Projects fetched:", projectsWithUsers.length);
 
-        const formattedProjects = await Promise.all(projectsWithUsers.map(async (project) => {
-          // Get display name for category
-          const categoryDisplayName = await getCategoryDisplayName(project.category)
-          
-          return {
-            id: project.id.toString(),
-            title: project.title,
-            description: project.description,
-            image: project.image_url,
-            author: {
-              name: project.users?.display_name || 'Unknown',
-              username: project.users?.username || 'unknown',
-              avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
-            },
-            url: project.website_url,
-            category: categoryDisplayName, // Use display name instead of raw category
-            likes: 0, // Will be updated by batch likes
-            views: 0,
-            createdAt: project.created_at,
-          }
-        }))
+        const formattedProjects = await Promise.all(
+          projectsWithUsers.map(async (project) => {
+            // Get display name for category
+            const categoryDisplayName = await getCategoryDisplayName(
+              project.category,
+            );
 
-        setProjects(formattedProjects)
-        console.log("[v0] Projects state updated with:", formattedProjects.length, "projects")
+            return {
+              id: project.id.toString(),
+              title: project.title,
+              description: project.description,
+              image: project.image_url,
+              author: {
+                name: project.users?.display_name || "Unknown",
+                username: project.users?.username || "unknown",
+                avatar:
+                  project.users?.avatar_url || "/vibedev-guest-avatar.png",
+              },
+              url: project.website_url,
+              category: categoryDisplayName, // Use display name instead of raw category
+              likes: 0, // Will be updated by batch likes
+              views: 0,
+              createdAt: project.created_at,
+            };
+          }),
+        );
+
+        setProjects(formattedProjects);
+        console.log(
+          "[v0] Projects state updated with:",
+          formattedProjects.length,
+          "projects",
+        );
 
         if (formattedProjects.length > 0) {
-          const projectIds = formattedProjects.map((p) => p.id)
-          console.log("[v0] Fetching likes data for projects:", projectIds)
-          const { likesData: batchLikesData, error: likesError } = await getBatchLikeStatus(projectIds)
+          const projectIds = formattedProjects.map((p) => p.id);
+          console.log("[v0] Fetching likes data for projects:", projectIds);
+          const { likesData: batchLikesData, error: likesError } =
+            await getBatchLikeStatus(projectIds);
 
           if (!likesError && batchLikesData) {
-            console.log("[v0] Likes data fetched:", batchLikesData)
-            setLikesData(batchLikesData)
+            console.log("[v0] Likes data fetched:", batchLikesData);
+            setLikesData(batchLikesData);
           } else if (likesError) {
-            console.error("[v0] Error fetching likes data:", likesError)
+            console.error("[v0] Error fetching likes data:", likesError);
           }
         }
       } catch (error) {
-        console.error("[v0] Error fetching projects:", error)
+        console.error("[v0] Error fetching projects:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     // Fetch projects when auth state changes OR on mount
     if (authReady) {
-      fetchProjects()
+      fetchProjects();
     }
-  }, [authReady, isLoggedIn]) // Add isLoggedIn dependency to re-fetch when login state changes
+  }, [authReady, isLoggedIn]); // Add isLoggedIn dependency to re-fetch when login state changes
 
   // Remove redundant likes fetching - already handled in fetchProjects
 
@@ -430,131 +498,149 @@ export default function HomePage() {
       name: "Maya Sari",
       role: "Senior React Developer, Traveloka",
     },
-  ]
+  ];
 
-  const trendingOptions = ["Trending", "Top", "Newest"]
+  const trendingOptions = ["Trending", "Top", "Newest"];
 
   const handleSignOut = async () => {
-    await signOut()
-  }
+    await signOut();
+  };
 
   const handleProfile = () => {
     if (user) {
       // Navigate to user profile using their username from database
-      router.push(`/${user.username.toLowerCase().replace(/\s+/g, "")}`)
+      router.push(`/${user.username?.toLowerCase().replace(/\s+/g, "")}`);
     }
-  }
+  };
 
   const frameworks = [
     {
       id: 1,
       name: "React",
       designation: "18.3",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
     },
     {
       id: 2,
       name: "Next.js",
       designation: "15.3",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
     },
     {
       id: 3,
       name: "Vue.js",
       designation: "3.4",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
     },
     {
       id: 4,
       name: "Angular",
       designation: "18.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg",
     },
     {
       id: 5,
       name: "Svelte",
       designation: "5.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg",
     },
     {
       id: 6,
       name: "Tailwind CSS",
       designation: "4.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg",
     },
     {
       id: 7,
       name: "TypeScript",
       designation: "5.6",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
     },
     {
       id: 8,
       name: "Node.js",
       designation: "22.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
     },
     {
       id: 9,
       name: "Express.js",
       designation: "4.19",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg",
     },
     {
       id: 10,
       name: "MongoDB",
       designation: "7.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
     },
     {
       id: 11,
       name: "PostgreSQL",
       designation: "16.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
     },
     {
       id: 12,
       name: "Docker",
       designation: "25.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
     },
     {
       id: 13,
       name: "AWS",
       designation: "Cloud",
-      image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+      image:
+        "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
     },
     {
       id: 14,
       name: "Firebase",
       designation: "10.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
     },
     {
       id: 15,
       name: "Vite",
       designation: "5.0",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg",
     },
     {
       id: 16,
       name: "Figma",
       designation: "Design",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg",
     },
     {
       id: 17,
       name: "Vercel",
       designation: "Deploy",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg",
     },
     {
       id: 18,
       name: "Git",
       designation: "2.45",
-      image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+      image:
+        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
     },
-  ]
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -564,41 +650,41 @@ export default function HomePage() {
             setIsVisible((prev) => ({
               ...prev,
               [entry.target.id]: true,
-            }))
+            }));
           }
-        })
+        });
       },
       { threshold: 0.1 },
-    )
+    );
 
-    const sections = document.querySelectorAll("[data-animate]")
-    sections.forEach((section) => observer.observe(section))
+    const sections = document.querySelectorAll("[data-animate]");
+    sections.forEach((section) => observer.observe(section));
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    const titlePart1 = ["Komunitas", "Vibe", "Coding"]
-    const titlePart2 = ["No.", "1", "di", "Indonesia"]
-    const words = [...titlePart1, ...titlePart2]
+    const titlePart1 = ["Komunitas", "Vibe", "Coding"];
+    const titlePart2 = ["No.", "1", "di", "Indonesia"];
+    const words = [...titlePart1, ...titlePart2];
 
     words.forEach((word, index) => {
       setTimeout(() => {
-        setAnimatedWords((prev) => [...prev, index])
-      }, index * 100)
-    })
+        setAnimatedWords((prev) => [...prev, index]);
+      }, index * 100);
+    });
 
     setTimeout(
       () => {
-        setSubtitleVisible(true)
+        setSubtitleVisible(true);
       },
       words.length * 100 + 200,
-    )
-  }, [])
+    );
+  }, []);
 
-  const toggleFAQ = (index) => {
-    setOpenFAQ(openFAQ === index ? null : index)
-  }
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index);
+  };
 
   const faqs = [
     {
@@ -626,29 +712,29 @@ export default function HomePage() {
       answer:
         "Komunitas vibe coding Indonesia kami embrace semua teknologi modern! Member aktif kerja dengan React, Next.js, Python, AI/ML frameworks, dan tools untuk coding pake AI seperti GitHub Copilot, ChatGPT, dan Claude. Kalau itu cutting-edge tech, lo pasti nemu expert vibe coder di sini.",
     },
-  ]
+  ];
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",
         block: "start",
-      })
+      });
     }
-  }
+  };
 
   const handleSignIn = () => {
-    router.push("/user/auth")
-  }
+    router.push("/user/auth");
+  };
 
   const handleJoinWithUs = () => {
-    router.push("/user/auth")
-  }
+    router.push("/user/auth");
+  };
 
   const handleViewShowcase = () => {
-    scrollToSection("projects")
-  }
+    scrollToSection("projects");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -660,41 +746,54 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": "VibeDev ID",
-            "alternateName": ["Komunitas Vibe Coding Indonesia", "VibeDev Indonesia"],
-            "url": "https://vibedevid.com",
-            "logo": "https://vibedevid.com/vibedev-logo.png",
-            "description": "Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.",
-            "foundingDate": "2024",
-            "address": {
+            name: "VibeDev ID",
+            alternateName: [
+              "Komunitas Vibe Coding Indonesia",
+              "VibeDev Indonesia",
+            ],
+            url: "https://vibedevid.com",
+            logo: "https://vibedevid.com/vibedev-logo.png",
+            description:
+              "Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.",
+            foundingDate: "2024",
+            address: {
               "@type": "PostalAddress",
-              "addressCountry": "ID",
-              "addressRegion": "Indonesia"
+              addressCountry: "ID",
+              addressRegion: "Indonesia",
             },
-            "contactPoint": {
+            contactPoint: {
               "@type": "ContactPoint",
-              "contactType": "Community Support",
-              "email": "hello@vibedevid.com"
+              contactType: "Community Support",
+              email: "hello@vibedevid.com",
             },
-            "sameAs": [
+            sameAs: [
               "https://github.com/vibedevid",
               "https://twitter.com/vibedevid",
-              "https://linkedin.com/company/vibedevid"
+              "https://linkedin.com/company/vibedevid",
             ],
-            "memberOf": {
+            memberOf: {
               "@type": "Organization",
-              "name": "Indonesian Developer Community"
+              name: "Indonesian Developer Community",
             },
-            "keywords": ["vibe coding", "komunitas vibe coding", "komunitas vibe coding indonesia", "vibe coder indonesia", "coding pake AI", "AI untuk coding", "developer indonesia", "open source indonesia"],
-            "audience": {
+            keywords: [
+              "vibe coding",
+              "komunitas vibe coding",
+              "komunitas vibe coding indonesia",
+              "vibe coder indonesia",
+              "coding pake AI",
+              "AI untuk coding",
+              "developer indonesia",
+              "open source indonesia",
+            ],
+            audience: {
               "@type": "Audience",
-              "audienceType": "Developers, AI Enthusiasts, Tech Innovators",
-              "geographicArea": "Indonesia"
-            }
-          })
+              audienceType: "Developers, AI Enthusiasts, Tech Innovators",
+              geographicArea: "Indonesia",
+            },
+          }),
         }}
       />
-      
+
       <Script
         id="faq-schema"
         type="application/ld+json"
@@ -702,20 +801,25 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            "mainEntity": faqs.map(faq => ({
+            mainEntity: faqs.map((faq) => ({
               "@type": "Question",
-              "name": faq.question,
-              "acceptedAnswer": {
+              name: faq.question,
+              acceptedAnswer: {
                 "@type": "Answer",
-                "text": faq.answer
-              }
-            }))
-          })
+                text: faq.answer,
+              },
+            })),
+          }),
         }}
       />
-      
+
       {/* Pass real auth state to Navbar */}
-      <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={user} scrollToSection={scrollToSection} />
+      <Navbar
+        showNavigation={true}
+        isLoggedIn={isLoggedIn}
+        user={user ?? undefined}
+        scrollToSection={scrollToSection}
+      />
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 mt-0 bg-grid-pattern">
@@ -730,8 +834,12 @@ export default function HomePage() {
                 }}
               >
                 <div className="absolute top-0 left-1 right-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
-                <span className="text-foreground/90 text-sm font-medium relative z-10 mr-2">✨</span>
-                <span className="text-foreground/90 text-sm font-medium relative z-10">300+ Active Members</span>
+                <span className="text-foreground/90 text-sm font-medium relative z-10 mr-2">
+                  ✨
+                </span>
+                <span className="text-foreground/90 text-sm font-medium relative z-10">
+                  300+ Active Members
+                </span>
               </div>
 
               {/* Add SVG filter for glass effect */}
@@ -782,25 +890,41 @@ export default function HomePage() {
 
               <p
                 className={`text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto md:mx-auto lg:mx-auto transition-all duration-700 ease-out ${
-                  subtitleVisible ? "opacity-100 translate-y-0 blur-0" : "opacity-0 translate-y-8 blur-sm"
+                  subtitleVisible
+                    ? "opacity-100 translate-y-0 blur-0"
+                    : "opacity-0 translate-y-8 blur-sm"
                 }`}
               >
-                Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project open source, dan sharing session tiap minggunya.
+                Komunitas vibe coding Indonesia buat lo yang pengen naik level,
+                belajar coding pake AI, kolaborasi project open source, dan
+                sharing session tiap minggunya.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-start md:justify-center lg:justify-center">
                 {!isLoggedIn ? (
                   <>
-                    <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
+                    <Button
+                      size="lg"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={handleJoinWithUs}
+                    >
                       <ArrowRight className="h-4 w-4" />
                       Gabung Komunitas Gratis
                     </Button>
-                    <Button size="lg" variant="outline" onClick={handleViewShowcase}>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={handleViewShowcase}
+                    >
                       Lihat Project & Event
                     </Button>
                   </>
                 ) : (
-                  <Button size="lg" variant="outline" onClick={handleViewShowcase}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleViewShowcase}
+                  >
                     Lihat Showcase Kami
                   </Button>
                 )}
@@ -820,8 +944,8 @@ export default function HomePage() {
                   quality={75}
                   responsiveSizes={{
                     mobile: "100vw",
-                    tablet: "100vw", 
-                    desktop: "1200px"
+                    tablet: "100vw",
+                    desktop: "1200px",
                   }}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
                 />
@@ -830,13 +954,18 @@ export default function HomePage() {
 
             <div className="relative mb-8 mt-12">
               <div className="flex justify-center items-center opacity-90 my-0">
-                <Suspense fallback={
-                  <div className="flex justify-center items-center space-x-2">
-                    {frameworks.slice(0, 6).map((_, idx) => (
-                      <div key={idx} className="w-12 h-12 bg-muted/20 rounded-lg animate-pulse" />
-                    ))}
-                  </div>
-                }>
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center items-center space-x-2">
+                      {frameworks.slice(0, 6).map((_, idx) => (
+                        <div
+                          key={idx}
+                          className="w-12 h-12 bg-muted/20 rounded-lg animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  }
+                >
                   <AnimatedTooltip items={frameworks} />
                 </Suspense>
               </div>
@@ -847,7 +976,9 @@ export default function HomePage() {
         {/* Trust Indicators */}
         <div className="mt-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden">{/* Framework logos moved above Safari mockup */}</div>
+            <div className="relative overflow-hidden">
+              {/* Framework logos moved above Safari mockup */}
+            </div>
           </div>
         </div>
       </section>
@@ -856,9 +987,13 @@ export default function HomePage() {
       <section className="py-12 bg-muted/30" id="projects">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">Showcase Project Developer Indonesia</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+              Showcase Project Developer Indonesia
+            </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.
+              Temukan project keren yang dibuat oleh komunitas vibe coder
+              Indonesia. Dari AI tools sampai open source projects, semua karya
+              developer terbaik ada di sini.
             </p>
           </div>
 
@@ -873,7 +1008,11 @@ export default function HomePage() {
                   className="flex items-center gap-2"
                 >
                   Filter
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isFiltersOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isFiltersOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </Button>
 
                 {isFiltersOpen && (
@@ -883,11 +1022,13 @@ export default function HomePage() {
                         <button
                           key={option}
                           onClick={() => {
-                            setSelectedFilter(option)
-                            setIsFiltersOpen(false)
+                            setSelectedFilter(option);
+                            setIsFiltersOpen(false);
                           }}
                           className={`w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors ${
-                            selectedFilter === option ? "bg-muted text-foreground" : "text-muted-foreground"
+                            selectedFilter === option
+                              ? "bg-muted text-foreground"
+                              : "text-muted-foreground"
                           }`}
                         >
                           {option}
@@ -916,7 +1057,11 @@ export default function HomePage() {
                 className="flex items-center gap-2"
               >
                 {selectedTrending}
-                <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${
+                    isTrendingOpen ? "rotate-180" : ""
+                  }`}
+                />
               </Button>
 
               {isTrendingOpen && (
@@ -926,11 +1071,13 @@ export default function HomePage() {
                       <button
                         key={option}
                         onClick={() => {
-                          setSelectedTrending(option)
-                          setIsTrendingOpen(false)
+                          setSelectedTrending(option);
+                          setIsTrendingOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors ${
-                          selectedTrending === option ? "bg-muted text-foreground" : "text-muted-foreground"
+                          selectedTrending === option
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground"
                         }`}
                       >
                         {option}
@@ -963,21 +1110,29 @@ export default function HomePage() {
                   </div>
                 ))
               : projects
-                  .filter((project) => selectedFilter === "All" || project.category === selectedFilter)
+                  .filter(
+                    (project) =>
+                      selectedFilter === "All" ||
+                      project.category === selectedFilter,
+                  )
                   .slice(0, visibleProjects)
                   .map((project) => (
-                    <Link key={project.id} href={`/project/${project.id}`} className="group cursor-pointer py-0 my-4 block">
+                    <Link
+                      key={project.id}
+                      href={`/project/${project.id}`}
+                      className="group cursor-pointer py-0 my-4 block"
+                    >
                       {/* Thumbnail Preview Section */}
                       <div className="relative overflow-hidden rounded-lg bg-background shadow-md hover:shadow-xl transition-all duration-300 mb-4">
-                        <AspectRatio ratio={16/9}>
-                          <img
+                        <AspectRatio ratio={16 / 9}>
+                          <Image
                             src={project.image || "/vibedev-guest-avatar.png"}
                             alt={project.title}
                             loading="lazy"
                             decoding="async"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             onError={(e) => {
-                              e.currentTarget.src = "/vibedev-guest-avatar.png"
+                              e.currentTarget.src = "/vibedev-guest-avatar.png";
                             }}
                           />
                         </AspectRatio>
@@ -1002,9 +1157,9 @@ export default function HomePage() {
                             <div
                               className="flex items-center gap-2.5 hover:opacity-80 transition-opacity z-10 relative cursor-pointer"
                               onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                router.push(`/${project.author.username}`)
+                                e.preventDefault();
+                                e.stopPropagation();
+                                router.push(`/${project.author.username}`);
                               }}
                             >
                               <OptimizedAvatar
@@ -1014,26 +1169,35 @@ export default function HomePage() {
                                 className="ring-2 ring-muted"
                                 showSkeleton={false}
                               />
-                              <span className="text-sm font-medium text-muted-foreground">{project.author.name}</span>
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {project.author.name}
+                              </span>
                             </div>
                           </div>
-                          <div 
+                          <div
                             onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
+                              e.preventDefault();
+                              e.stopPropagation();
                             }}
                             className="relative z-20 p-3 -m-3 rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
                           >
                             <HeartButton
                               projectId={project.id}
-                              initialLikes={likesData[project.id]?.totalLikes || 0}
-                              initialIsLiked={likesData[project.id]?.isLiked || false}
+                              initialLikes={
+                                likesData[project.id]?.totalLikes || 0
+                              }
+                              initialIsLiked={
+                                likesData[project.id]?.isLiked || false
+                              }
                               isLoggedIn={isLoggedIn}
                               onLikeChange={(newLikes, isLiked) => {
                                 setLikesData((prev) => ({
                                   ...prev,
-                                  [project.id]: { totalLikes: newLikes, isLiked },
-                                }))
+                                  [project.id]: {
+                                    totalLikes: newLikes,
+                                    isLiked,
+                                  },
+                                }));
                               }}
                             />
                           </div>
@@ -1046,9 +1210,17 @@ export default function HomePage() {
           {/* Load More button */}
           {!loading &&
             visibleProjects <
-              projects.filter((project) => selectedFilter === "All" || project.category === selectedFilter).length && (
+              projects.filter(
+                (project) =>
+                  selectedFilter === "All" ||
+                  project.category === selectedFilter,
+              ).length && (
               <div className="text-center mt-8">
-                <Button variant="outline" onClick={() => setVisibleProjects((prev) => prev + 6)} className="px-8 py-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setVisibleProjects((prev) => prev + 6)}
+                  className="px-8 py-2"
+                >
                   Muat Project Lainnya
                 </Button>
               </div>
@@ -1064,7 +1236,9 @@ export default function HomePage() {
               AI untuk Coding & Development Tools
             </h2>
             <p className="text-muted-foreground mt-6 text-xl max-w-2xl mx-auto">
-              Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.
+              Explore tools AI terbaru untuk coding pake AI yang lebih efisien.
+              Integrasikan AI coding agents favorit untuk workflow development
+              yang next-level.
             </p>
           </div>
 
@@ -1075,7 +1249,13 @@ export default function HomePage() {
               link="https://lovable.dev/"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/lovable.svg" alt="Lovable" />
+                <Image
+                  className="h-8 w-8"
+                  src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/lovable.svg"
+                  alt="Lovable"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
 
@@ -1085,7 +1265,13 @@ export default function HomePage() {
               link="https://v0.app/"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/v0.svg" alt="v0" />
+                <Image
+                  className="h-8 w-8"
+                  src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/v0.svg"
+                  alt="v0"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
 
@@ -1095,7 +1281,13 @@ export default function HomePage() {
               link="https://github.com/openai/codex"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg" alt="OpenAI Codex" />
+                <Image
+                  className="h-8 w-8"
+                  src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg"
+                  alt="OpenAI Codex"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
 
@@ -1105,7 +1297,13 @@ export default function HomePage() {
               link="https://cursor.com/"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/cursor.svg" alt="Cursor" />
+                <Image
+                  className="h-8 w-8"
+                  src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/cursor.svg"
+                  alt="Cursor"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
 
@@ -1115,7 +1313,13 @@ export default function HomePage() {
               link="https://warp.dev/"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="/warpdev.jpg" alt="Warp" />
+                <Image
+                  className="h-8 w-8"
+                  src="/warpdev.jpg"
+                  alt="Warp"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
 
@@ -1125,7 +1329,13 @@ export default function HomePage() {
               link="https://trae.ai/"
             >
               <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <img className="h-8 w-8" src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/trae.svg" alt="Trae" />
+                <Image
+                  className="h-8 w-8"
+                  src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/trae.svg"
+                  alt="Trae"
+                  width={32}
+                  height={32}
+                />
               </div>
             </IntegrationCard>
           </div>
@@ -1136,32 +1346,53 @@ export default function HomePage() {
       <section id="reviews" className="py-20 bg-muted/30" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">Review Member Komunitas Vibe Coding</h2>
-            <p className="text-xl text-muted-foreground">Testimoni asli dari developer Indonesia yang udah join komunitas kami</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
+              Review Member Komunitas Vibe Coding
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Testimoni asli dari developer Indonesia yang udah join komunitas
+              kami
+            </p>
           </div>
 
           <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[600px] overflow-hidden">
-            <Suspense fallback={
-              <div className="flex justify-center gap-6">
-                <div className="flex flex-col space-y-4">
-                  {Array.from({ length: 3 }).map((_, idx) => (
-                    <div key={idx} className="w-80 p-4 bg-muted/20 rounded-lg animate-pulse">
-                      <div className="h-20 bg-muted/30 rounded mb-3"></div>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-muted/30 rounded-full"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-muted/30 rounded w-3/4"></div>
-                          <div className="h-3 bg-muted/20 rounded w-1/2"></div>
+            <Suspense
+              fallback={
+                <div className="flex justify-center gap-6">
+                  <div className="flex flex-col space-y-4">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="w-80 p-4 bg-muted/20 rounded-lg animate-pulse"
+                      >
+                        <div className="h-20 bg-muted/30 rounded mb-3"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-muted/30 rounded-full"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-muted/30 rounded w-3/4"></div>
+                            <div className="h-3 bg-muted/20 rounded w-1/2"></div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            }>
-              <TestimonialsColumns testimonials={testimonials.slice(0, 3)} duration={15} />
-              <TestimonialsColumns testimonials={testimonials.slice(3, 6)} className="hidden md:block" duration={19} />
-              <TestimonialsColumns testimonials={testimonials.slice(6, 9)} className="hidden lg:block" duration={17} />
+              }
+            >
+              <TestimonialsColumns
+                testimonials={testimonials.slice(0, 3)}
+                duration={15}
+              />
+              <TestimonialsColumns
+                testimonials={testimonials.slice(3, 6)}
+                className="hidden md:block"
+                duration={19}
+              />
+              <TestimonialsColumns
+                testimonials={testimonials.slice(6, 9)}
+                className="hidden lg:block"
+                duration={17}
+              />
             </Suspense>
           </div>
         </div>
@@ -1171,15 +1402,24 @@ export default function HomePage() {
       <section id="faq" className="py-20" data-animate>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">FAQ Komunitas Vibe Coding Indonesia</h2>
-            <p className="text-xl text-muted-foreground">Semua yang perlu lo tau tentang gabung di komunitas vibe coder Indonesia terbesar</p>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
+              FAQ Komunitas Vibe Coding Indonesia
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Semua yang perlu lo tau tentang gabung di komunitas vibe coder
+              Indonesia terbesar
+            </p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <Card
                 key={index}
-                className={`transition-all duration-700 cursor-pointer hover:shadow-md ${isVisible.faq ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                className={`transition-all duration-700 cursor-pointer hover:shadow-md ${
+                  isVisible.faq
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
+                }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
                 onClick={() => toggleFAQ(index)}
               >
@@ -1197,10 +1437,14 @@ export default function HomePage() {
 
                   <div
                     className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                      openFAQ === index ? "max-h-96 opacity-100 mt-4" : "max-h-0 opacity-0"
+                      openFAQ === index
+                        ? "max-h-96 opacity-100 mt-4"
+                        : "max-h-0 opacity-0"
                     }`}
                   >
-                    <p className="text-muted-foreground leading-relaxed text-left">{faq.answer}</p>
+                    <p className="text-muted-foreground leading-relaxed text-left">
+                      {faq.answer}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -1210,7 +1454,10 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-32 bg-muted text-foreground overflow-hidden" data-animate>
+      <section
+        className="relative py-32 bg-muted text-foreground overflow-hidden"
+        data-animate
+      >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-20">
           <div
@@ -1293,12 +1540,17 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!
+              Join sekarang dan nikmatin vibe coding terbaik bareng developer
+              Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleJoinWithUs}>
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleJoinWithUs}
+            >
               Gabung Vibe Dev ID Sekarang
             </Button>
           </div>
@@ -1310,81 +1562,141 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-sm text-muted-foreground mb-4 md:mb-0">
-              © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.
+              © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar
+              untuk developer masa depan.
             </div>
             <div className="flex space-x-6 text-sm">
-              <Drawer open={isPrivacyDrawerOpen} onOpenChange={setIsPrivacyDrawerOpen}>
+              <Drawer
+                open={isPrivacyDrawerOpen}
+                onOpenChange={setIsPrivacyDrawerOpen}
+              >
                 <DrawerTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground">Privacy Policy</button>
+                  <button className="text-muted-foreground hover:text-foreground">
+                    Privacy Policy
+                  </button>
                 </DrawerTrigger>
                 <DrawerContent>
                   <div className="mx-auto w-full max-w-4xl">
                     <DrawerHeader>
                       <DrawerTitle>Privacy Policy</DrawerTitle>
-                      <DrawerDescription>Last updated: August 2025</DrawerDescription>
+                      <DrawerDescription>
+                        Last updated: August 2025
+                      </DrawerDescription>
                     </DrawerHeader>
                     <div className="p-4 pb-0 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-track-muted scrollbar-thumb-muted-foreground hover:scrollbar-thumb-foreground scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
                       <div className="space-y-6 text-sm">
                         <section>
-                          <h3 className="font-semibold text-base mb-2">1. Information We Collect</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            1. Information We Collect
+                          </h3>
                           <p className="text-muted-foreground mb-2">
-                            At VibeDev ID, we collect information you provide directly to us, such as when you
-                            create an account, participate in community discussions, or contact us for support.
+                            At VibeDev ID, we collect information you provide
+                            directly to us, such as when you create an account,
+                            participate in community discussions, or contact us
+                            for support.
                           </p>
                           <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
-                            <li>Account information (username, email address, profile details)</li>
-                            <li>Community contributions (posts, comments, project submissions)</li>
-                            <li>Communication data when you contact our support team</li>
+                            <li>
+                              Account information (username, email address,
+                              profile details)
+                            </li>
+                            <li>
+                              Community contributions (posts, comments, project
+                              submissions)
+                            </li>
+                            <li>
+                              Communication data when you contact our support
+                              team
+                            </li>
                           </ul>
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">2. How We Use Your Information</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            2. How We Use Your Information
+                          </h3>
                           <p className="text-muted-foreground mb-2">
-                            We use the information we collect to provide, maintain, and improve our community platform:
+                            We use the information we collect to provide,
+                            maintain, and improve our community platform:
                           </p>
                           <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
-                            <li>Facilitate community interactions and project collaborations</li>
-                            <li>Send important updates about platform changes or community events</li>
-                            <li>Provide customer support and respond to your inquiries</li>
-                            <li>Improve our services based on usage patterns and feedback</li>
+                            <li>
+                              Facilitate community interactions and project
+                              collaborations
+                            </li>
+                            <li>
+                              Send important updates about platform changes or
+                              community events
+                            </li>
+                            <li>
+                              Provide customer support and respond to your
+                              inquiries
+                            </li>
+                            <li>
+                              Improve our services based on usage patterns and
+                              feedback
+                            </li>
                           </ul>
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">3. Information Sharing</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            3. Information Sharing
+                          </h3>
                           <p className="text-muted-foreground mb-2">
-                            We do not sell, trade, or otherwise transfer your personal information to third parties
-                            without your consent, except in the following circumstances:
+                            We do not sell, trade, or otherwise transfer your
+                            personal information to third parties without your
+                            consent, except in the following circumstances:
                           </p>
                           <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
-                            <li>With your explicit consent for specific integrations or features</li>
-                            <li>To comply with legal obligations or protect our rights</li>
-                            <li>With trusted service providers who assist in operating our platform</li>
+                            <li>
+                              With your explicit consent for specific
+                              integrations or features
+                            </li>
+                            <li>
+                              To comply with legal obligations or protect our
+                              rights
+                            </li>
+                            <li>
+                              With trusted service providers who assist in
+                              operating our platform
+                            </li>
                           </ul>
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">4. Data Security</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            4. Data Security
+                          </h3>
                           <p className="text-muted-foreground">
-                            We implement appropriate security measures to protect your personal information against
-                            unauthorized access, alteration, disclosure, or destruction. However, no method of
-                            transmission over the internet is 100% secure.
+                            We implement appropriate security measures to
+                            protect your personal information against
+                            unauthorized access, alteration, disclosure, or
+                            destruction. However, no method of transmission over
+                            the internet is 100% secure.
                           </p>
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">5. Community Guidelines</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            5. Community Guidelines
+                          </h3>
                           <p className="text-muted-foreground">
-                            As a member of VibeDev ID, you agree to maintain respectful interactions, share
-                            knowledge constructively, and contribute to a positive learning environment for all
-                            developers in our community.
+                            As a member of VibeDev ID, you agree to maintain
+                            respectful interactions, share knowledge
+                            constructively, and contribute to a positive
+                            learning environment for all developers in our
+                            community.
                           </p>
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">6. Your Rights</h3>
-                          <p className="text-muted-foreground mb-2">You have the right to:</p>
+                          <h3 className="font-semibold text-base mb-2">
+                            6. Your Rights
+                          </h3>
+                          <p className="text-muted-foreground mb-2">
+                            You have the right to:
+                          </p>
                           <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
                             <li>Access and update your personal information</li>
                             <li>Delete your account and associated data</li>
@@ -1394,10 +1706,14 @@ export default function HomePage() {
                         </section>
 
                         <section>
-                          <h3 className="font-semibold text-base mb-2">7. Contact Us</h3>
+                          <h3 className="font-semibold text-base mb-2">
+                            7. Contact Us
+                          </h3>
                           <p className="text-muted-foreground">
-                            If you have any questions about this Privacy Policy or our data practices, please contact us
-                            at privacy@vibedev.id or through our community support channels.
+                            If you have any questions about this Privacy Policy
+                            or our data practices, please contact us at
+                            privacy@vibedev.id or through our community support
+                            channels.
                           </p>
                         </section>
                       </div>
@@ -1415,5 +1731,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
