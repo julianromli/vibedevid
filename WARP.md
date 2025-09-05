@@ -510,6 +510,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 **🚨 Critical Issues Resolved:**
 - ✅ **`ReferenceError: require is not defined`** - Fixed webpack externalization
 - ✅ **Vercel deployment lockfile mismatch** - Synchronized pnpm-lock.yaml
+- ✅ **`ERR_PNPM_OUTDATED_LOCKFILE`** - Removed conflicting pnpm-lock.yaml, uses npm exclusively
 - ✅ **Turbopack configuration warning** - Added experimental.turbo config
 - ✅ **Native module conflicts** - Removed sharp/plaiceholder dependencies
 - ✅ **Remote pattern coverage** - Enhanced domain support for all CDNs
@@ -520,6 +521,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - **Enhanced Remote Patterns**: Complete domain coverage (jsdelivr, traecommunity.id, utfs.io)
 - **Client-Safe Implementation**: Zero native modules in client bundle
 - **Performance Optimization**: AVIF/WebP with 1-year cache TTL
+- **Package Manager Strategy**: npm-exclusive untuk Vercel compatibility
 
 ---
 
@@ -588,10 +590,12 @@ webpack: (config, { isServer }) => {
 
 **Issue 2: `ERR_PNPM_OUTDATED_LOCKFILE`**
 ```bash
-# Cause: Dependencies removed but lockfile not updated
-# Solution: Run pnpm install to sync lockfile
-pnpm install
-git add pnpm-lock.yaml
+# Cause: Conflicting pnpm-lock.yaml vs package-lock.json
+# Solution: Remove pnpm-lock.yaml, use npm exclusively (FIXED)
+rm pnpm-lock.yaml
+npm install
+git add package-lock.json
+git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 ```
 
 **Issue 3: Native Module Conflicts**
