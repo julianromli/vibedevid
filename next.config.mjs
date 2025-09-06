@@ -152,6 +152,43 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      // Favicon support for any domain
+      {
+        protocol: "https",
+        hostname: "www.google.com",
+        port: "",
+        pathname: "/s2/favicons**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+        port: "",
+        pathname: "/favicon.ico",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+        port: "",
+        pathname: "/favicon.ico",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+        port: "",
+        pathname: "/favicon.png",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+        port: "",
+        pathname: "/favicon.svg",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+        port: "",
+        pathname: "/apple-touch-icon.png",
+      },
     ],
 
     // Loader configuration (default Next.js loader)

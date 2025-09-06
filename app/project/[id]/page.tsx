@@ -66,6 +66,7 @@ import {
   editProject,
   deleteProject,
 } from "@/lib/actions";
+import { getFaviconUrl } from "@/lib/favicon-utils";
 import {
   getCurrentSessionId,
   shouldTrackView,
@@ -560,7 +561,7 @@ export default function ProjectDetailsPage({
                   <div className="space-y-6">
                     {/* Title */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-title">Project Title *</Label>
+                      <Label htmlFor="edit-title" className="form-label-enhanced">Project Title *</Label>
                       <Input
                         id="edit-title"
                         value={editFormData.title}
@@ -571,13 +572,14 @@ export default function ProjectDetailsPage({
                           })
                         }
                         placeholder="Enter project title"
+                        className="form-input-enhanced"
                         disabled={isSaving}
                       />
                     </div>
 
                     {/* Tagline */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-tagline">Tagline</Label>
+                      <Label htmlFor="edit-tagline" className="form-label-enhanced">Tagline</Label>
                       <Input
                         id="edit-tagline"
                         value={editFormData.tagline}
@@ -588,9 +590,10 @@ export default function ProjectDetailsPage({
                           })
                         }
                         placeholder="A short tagline that describes your project in one sentence"
+                        className="form-input-enhanced"
                         disabled={isSaving}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs form-helper-text mt-1">
                         Tagline singkat yang describe project lo dalam satu
                         kalimat! ✨
                       </p>
@@ -598,7 +601,7 @@ export default function ProjectDetailsPage({
 
                     {/* Description */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-description">Description *</Label>
+                      <Label htmlFor="edit-description" className="form-label-enhanced">Description *</Label>
                       <Textarea
                         id="edit-description"
                         value={editFormData.description}
@@ -609,6 +612,7 @@ export default function ProjectDetailsPage({
                           })
                         }
                         placeholder="Describe your project, its features, and what makes it special"
+                        className="form-input-enhanced"
                         rows={4}
                         disabled={isSaving}
                         maxLength={MAX_DESCRIPTION_LENGTH}
@@ -691,9 +695,9 @@ export default function ProjectDetailsPage({
                     <div className="space-y-2">
                       <Label htmlFor="edit-favicon">Favicon URL</Label>
                       <div className="flex items-center gap-2">
-                        {editFaviconUrl && (
+                        {(editFaviconUrl || (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
                           <Image
-                            src={editFaviconUrl}
+                            src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
                             alt="Website favicon"
                             className="w-4 h-4 flex-shrink-0"
                             onError={() => setEditFaviconUrl("")}
@@ -706,12 +710,14 @@ export default function ProjectDetailsPage({
                           type="url"
                           value={editFaviconUrl}
                           onChange={(e) => setEditFaviconUrl(e.target.value)}
-                          placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
+                          placeholder={editWebsiteUrl ? "Auto-fetch dari website atau manual URL" : "https://example.com/favicon.ico atau https://example.com/favicon.svg"}
                           disabled={isSaving}
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
+                        {editWebsiteUrl 
+                          ? "Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override."
+                          : "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"}
                       </p>
                     </div>
 
@@ -754,6 +760,8 @@ export default function ProjectDetailsPage({
                                     editFormData.image_url || "/placeholder.svg"
                                   }
                                   alt="Project screenshot preview"
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 50vw"
                                   className="w-full h-full object-cover rounded-lg shadow-md"
                                 />
                               </AspectRatio>
@@ -965,6 +973,8 @@ export default function ProjectDetailsPage({
                         onError={(e) => {
                           e.currentTarget.src = "/default-favicon.svg";
                         }}
+                        width={16}
+                        height={16}
                       />
                     </div>
                     <div className="flex-1 min-w-0">

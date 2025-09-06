@@ -199,6 +199,30 @@ body {
   animation: scroll-up 10s linear infinite;
 }
 
+/* Enhanced form input readability and contrast */
+.form-input-enhanced {
+  @apply placeholder:text-muted-foreground/70 text-foreground;
+}
+
+.form-input-enhanced::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.7 !important;
+  font-weight: 400;
+}
+
+.form-input-enhanced:focus::placeholder {
+  opacity: 0.5 !important;
+}
+
+/* Better visual hierarchy for form labels and helper text */
+.form-label-enhanced {
+  @apply text-foreground font-medium;
+}
+
+.form-helper-text {
+  @apply text-muted-foreground/80;
+}
+
 /* Added heart button animation keyframes */
 @keyframes heart-beat {
   0%,

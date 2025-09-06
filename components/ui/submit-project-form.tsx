@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { getCategories, type Category } from "@/lib/categories";
 import MultipleSelector, { Option } from "@/components/ui/multiselect";
+import { getFaviconUrl } from "@/lib/favicon-utils";
 import Image from "next/image";
 
 // Common tech stack options for the multiselect
@@ -159,44 +160,47 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Project Title *</Label>
+            <Label htmlFor="title" className="form-label-enhanced">Project Title *</Label>
             <Input
               id="title"
               name="title"
               placeholder="Enter your project title"
+              className="form-input-enhanced"
               required
               disabled={isLoading || isUploading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tagline">Tagline</Label>
+            <Label htmlFor="tagline" className="form-label-enhanced">Tagline</Label>
             <Input
               id="tagline"
               name="tagline"
               placeholder="A short tagline that describes your project in one sentence"
+              className="form-input-enhanced"
               disabled={isLoading || isUploading}
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs form-helper-text mt-1">
               Tagline singkat yang describe project lo dalam satu kalimat! ✨
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description" className="form-label-enhanced">Description *</Label>
             <Textarea
               id="description"
               name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe your project, its features, and what makes it special"
+              className="form-input-enhanced"
               rows={4}
               required
               disabled={isLoading || isUploading}
               maxLength={MAX_DESCRIPTION_LENGTH}
             />
             <div className="flex items-center justify-between text-sm">
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs form-helper-text mt-1">
                 Description maksimal 300 karakter untuk konsistensi! 📝
               </p>
               <span
@@ -214,7 +218,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
+            <Label htmlFor="category" className="form-label-enhanced">Category *</Label>
             <Select
               name="category"
               required
@@ -244,12 +248,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website_url">Website URL</Label>
+            <Label htmlFor="website_url" className="form-label-enhanced">Website URL</Label>
             <Input
               id="website_url"
               name="website_url"
               type="url"
               placeholder="https://your-project.com"
+              className="form-input-enhanced"
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
               disabled={isLoading || isUploading}
@@ -257,11 +262,11 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="favicon_url">Favicon URL</Label>
+            <Label htmlFor="favicon_url" className="form-label-enhanced">Favicon URL</Label>
             <div className="flex items-center gap-2">
-              {faviconUrl && (
+              {(faviconUrl || (websiteUrl && getFaviconUrl(websiteUrl))) && (
                 <Image
-                  src={faviconUrl}
+                  src={faviconUrl || getFaviconUrl(websiteUrl)}
                   alt="Website favicon"
                   className="w-4 h-4 flex-shrink-0"
                   onError={() => setFaviconUrl("")}
@@ -273,19 +278,22 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                 id="favicon_url"
                 name="favicon_url"
                 type="url"
-                placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
+                placeholder={websiteUrl ? "Auto-fetch dari website atau manual URL" : "https://example.com/favicon.ico atau https://example.com/favicon.svg"}
+                className="form-input-enhanced"
                 value={faviconUrl}
                 onChange={(e) => setFaviconUrl(e.target.value)}
                 disabled={isLoading || isUploading}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
+            <p className="text-xs form-helper-text mt-1">
+              {websiteUrl 
+                ? "Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override."
+                : "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Tech Stack / Tags</Label>
+            <Label className="form-label-enhanced">Tech Stack / Tags</Label>
             <MultipleSelector
               value={selectedTags}
               onChange={setSelectedTags}
@@ -303,14 +311,14 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                 label: "Select tech stack",
               }}
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs form-helper-text mt-1">
               Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri
               kalau gak ada! 🚀
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Project Screenshot</Label>
+            <Label className="form-label-enhanced">Project Screenshot</Label>
             <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
               {uploadedImageUrl ? (
                 <div className="space-y-4">
