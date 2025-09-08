@@ -50,6 +50,52 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/ui/navbar";
+
+// Safe favicon component with error state tracking
+const ProjectFavicon = ({
+  src,
+  alt,
+  className,
+  width,
+  height,
+}: {
+  src?: string;
+  alt: string;
+  className?: string;
+  width: number;
+  height: number;
+}) => {
+  const [hasError, setHasError] = useState(false);
+  const [imgSrc, setImgSrc] = useState(src || "/default-favicon.svg");
+
+  // Reset error state when src changes
+  useEffect(() => {
+    if (src && src !== imgSrc) {
+      setHasError(false);
+      setImgSrc(src);
+    }
+  }, [src]);
+
+  const handleError = () => {
+    if (!hasError) {
+      console.log('[Favicon Error] Failed to load:', imgSrc, 'falling back to default');
+      setHasError(true);
+      setImgSrc("/default-favicon.svg");
+    }
+  };
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      width={width}
+      height={height}
+      onError={handleError}
+      priority={false}
+    />
+  );
+};
 import {
   ProjectImageSkeleton,
   ProjectInfoSkeleton,
@@ -986,18 +1032,15 @@ export default function ProjectDetailsPage({
                 </div>
 
                 {/* Favicon + Title + Tagline with Like Button */}
-                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1">
                     <div className="flex-shrink-0">
-                      <Image
-                        src={project.faviconUrl || "/default-favicon.svg"}
+                      <ProjectFavicon
+                        src={project.faviconUrl}
                         alt="Project favicon"
                         className="w-12 h-12 rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.src = "/default-favicon.svg";
-                        }}
-                        width={16}
-                        height={16}
+                        width={48}
+                        height={48}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1015,12 +1058,12 @@ export default function ProjectDetailsPage({
                   {/* Like Button - positioned on the right */}
                   <div className="flex-shrink-0 self-start">
                     <ProminentLikeButton
-                      projectId={project.id}
+                      projectId={project.slug}
                       initialLikes={project.likes}
                       isLoggedIn={isLoggedIn}
                       onLikeChange={(newLikes, isLiked) => {
                         console.log(
-                          `Project ${project.id} ${
+                          `Project ${project.slug} ${
                             isLiked ? "liked" : "unliked"
                           }: ${newLikes} likes`
                         );
