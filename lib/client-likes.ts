@@ -2,22 +2,39 @@
 
 import { createClient } from "@/lib/supabase/client"
 
-export async function getLikeStatusClient(projectId: string) {
+export async function getLikeStatusClient(projectIdentifier: string) {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
   try {
-    const projectIdInt = Number.parseInt(projectId)
+    let projectId: string;
     
-    if (isNaN(projectIdInt)) {
-      return { totalLikes: 0, isLiked: false, error: "Invalid project ID" }
+    // Check if it's a UUID or slug
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    if (uuidRegex.test(projectIdentifier)) {
+      // It's a UUID, use directly
+      projectId = projectIdentifier;
+    } else {
+      // It's a slug, resolve to project ID
+      const { data: project, error: projectError } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("slug", projectIdentifier)
+        .single();
+      
+      if (projectError || !project) {
+        return { totalLikes: 0, isLiked: false, error: "Project not found" };
+      }
+      
+      projectId = project.id;
     }
 
-    // Get total likes count
+    // Get total likes count using UUID
     const { count: totalLikes, error: countError } = await supabase
       .from("likes")
       .select("*", { count: "exact", head: true })
-      .eq("project_id", projectIdInt)
+      .eq("project_id", projectId)
 
     if (countError) {
       console.error("Get likes count error:", countError)
@@ -30,7 +47,7 @@ export async function getLikeStatusClient(projectId: string) {
       const { data: userLike, error: userLikeError } = await supabase
         .from("likes")
         .select("id")
-        .eq("project_id", projectIdInt)
+        .eq("project_id", projectId)
         .eq("user_id", session.user.id)
         .single()
 
@@ -48,7 +65,7 @@ export async function getLikeStatusClient(projectId: string) {
   }
 }
 
-export async function toggleLikeClient(projectId: string) {
+export async function toggleLikeClient(projectIdentifier: string) {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
@@ -57,13 +74,34 @@ export async function toggleLikeClient(projectId: string) {
   }
 
   try {
-    const projectIdInt = Number.parseInt(projectId)
+    let projectId: string;
+    
+    // Check if it's a UUID or slug
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    if (uuidRegex.test(projectIdentifier)) {
+      // It's a UUID, use directly
+      projectId = projectIdentifier;
+    } else {
+      // It's a slug, resolve to project ID
+      const { data: project, error: projectError } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("slug", projectIdentifier)
+        .single();
+      
+      if (projectError || !project) {
+        return { error: "Project not found" };
+      }
+      
+      projectId = project.id;
+    }
 
     // Check if user already liked this project
     const { data: existingLike, error: checkError } = await supabase
       .from("likes")
       .select("id")
-      .eq("project_id", projectIdInt)
+      .eq("project_id", projectId)
       .eq("user_id", session.user.id)
       .single()
 
@@ -88,7 +126,7 @@ export async function toggleLikeClient(projectId: string) {
       const { error: insertError } = await supabase
         .from("likes")
         .insert({
-          project_id: projectIdInt,
+          project_id: projectId,
           user_id: session.user.id,
         })
 

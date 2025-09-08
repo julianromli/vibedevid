@@ -58,11 +58,10 @@ import {
 } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import {
-  addComment,
+  getProjectBySlug,
   getComments,
-  getProject,
+  addComment,
   incrementProjectViews,
-  signOut,
   editProject,
   deleteProject,
 } from "@/lib/actions";
@@ -131,10 +130,10 @@ const techOptions: Option[] = [
 export default function ProjectDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
   const router = useRouter();
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectSlug, setProjectSlug] = useState<string | null>(null);
   const [project, setProject] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -185,8 +184,35 @@ export default function ProjectDetailsPage({
     const initializePageOptimized = async () => {
       try {
         const resolvedParams = await params;
-        const currentProjectId = resolvedParams.id;
-        setProjectId(currentProjectId);
+        const slugOrId = resolvedParams.slug;
+        
+        // Check if this is a legacy UUID redirect
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        
+        if (uuidRegex.test(slugOrId)) {
+          // This is a legacy UUID, redirect to slug
+          console.log('[Legacy Redirect] Detected UUID:', slugOrId);
+          const supabase = createClient();
+          const { data: project } = await supabase
+            .from("projects")
+            .select("slug")
+            .eq("id", slugOrId)
+            .single();
+          
+          if (project?.slug) {
+            console.log('[Legacy Redirect] Redirecting to slug:', project.slug);
+            router.replace(`/project/${project.slug}`);
+            return;
+          } else {
+            console.log('[Legacy Redirect] Project not found, redirecting to home');
+            router.replace("/");
+            return;
+          }
+        }
+        
+        // Normal slug flow
+        const currentProjectSlug = slugOrId;
+        setProjectSlug(currentProjectSlug);
 
         const supabase = createClient();
 
@@ -198,7 +224,7 @@ export default function ProjectDetailsPage({
           { project: projectData, error: projectError },
         ] = await Promise.all([
           await supabase.auth.getSession(),
-          getProject(currentProjectId),
+          getProjectBySlug(currentProjectSlug),
         ]);
 
         if (projectError) {
@@ -240,19 +266,19 @@ export default function ProjectDetailsPage({
         }
 
         // Enhanced view tracking with session-based analytics
-        if (isValidUserAgent() && shouldTrackView(currentProjectId)) {
+        if (isValidUserAgent() && shouldTrackView(currentProjectSlug)) {
           const sessionId = getCurrentSessionId();
           console.log(
             "[View Tracking] Tracking view for project:",
-            currentProjectId,
+            currentProjectSlug,
             "Session:",
             sessionId
           );
-          await incrementProjectViews(currentProjectId, sessionId);
+          await incrementProjectViews(currentProjectSlug, sessionId);
         }
 
         // Fire and forget operations (non-blocking)
-        loadComments(currentProjectId);
+        loadComments(currentProjectSlug);
 
         // Batch all state updates
         setIsLoggedIn(!!session?.user);
@@ -278,13 +304,12 @@ export default function ProjectDetailsPage({
     initializePageOptimized();
   }, [params]);
 
-  const loadComments = async (projectId?: string) => {
-    if (!projectId && !project?.id) return;
+  const loadComments = async (projectSlugParam?: string) => {
+    const slugToUse = projectSlugParam || projectSlug;
+    if (!slugToUse) return;
 
     setCommentsLoading(true);
-    const { comments: commentsData, error } = await getComments(
-      projectId || project.id
-    );
+    const { comments: commentsData, error } = await getComments(slugToUse);
     if (error) {
       console.error("Failed to load comments:", error);
     } else {
@@ -326,7 +351,7 @@ export default function ProjectDetailsPage({
     if (
       !newComment.trim() ||
       (!isLoggedIn && !guestName.trim()) ||
-      !project?.id
+      !projectSlug
     ) {
       return;
     }
@@ -334,7 +359,7 @@ export default function ProjectDetailsPage({
     setAddingComment(true);
 
     const formData = new FormData();
-    formData.append("projectId", project.id);
+    formData.append("projectSlug", projectSlug);
     formData.append("content", newComment.trim());
     if (!isLoggedIn) {
       formData.append("authorName", guestName.trim());
@@ -367,10 +392,10 @@ export default function ProjectDetailsPage({
   };
 
   const handleDeleteProject = async () => {
-    if (!project?.id) return;
+    if (!projectSlug) return;
 
     setIsDeleting(true);
-    const result = await deleteProject(project.id.toString());
+    const result = await deleteProject(projectSlug);
 
     if (result.success) {
       router.push("/");
@@ -418,7 +443,7 @@ export default function ProjectDetailsPage({
   };
 
   const handleSaveEdit = async () => {
-    if (!project?.id) return;
+    if (!projectSlug) return;
 
     setIsSaving(true);
 
@@ -436,12 +461,10 @@ export default function ProjectDetailsPage({
       const tagsValues = selectedEditTags.map((tag) => tag.value);
       formData.append("tags", JSON.stringify(tagsValues));
 
-      const result = await editProject(project.id.toString(), formData);
+      const result = await editProject(projectSlug, formData);
 
       if (result.success) {
-        const { project: updatedProject } = await getProject(
-          project.id.toString()
-        );
+        const { project: updatedProject } = await getProjectBySlug(projectSlug);
         if (updatedProject) {
           setProject(updatedProject);
         }

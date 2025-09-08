@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { getSupabaseConfig } from "./env-config"
 import { fetchFavicon } from "./favicon-utils"
 import { getCategoryDisplayName } from "./categories"
+import { slugifyTitle, ensureUniqueSlug, getProjectIdBySlug } from "./slug"
 
 async function createClient() {
   const cookieStore = await cookies()
@@ -220,12 +221,18 @@ export async function addComment(formData: FormData) {
     return { error: "Form data is required" }
   }
 
-  const projectId = formData.get("projectId") as string
+  const projectSlug = formData.get("projectSlug") as string
   const content = formData.get("content") as string
   const authorName = formData.get("authorName") as string
 
-  if (!projectId || !content) {
-    return { error: "Project ID and content are required" }
+  if (!projectSlug || !content) {
+    return { error: "Project slug and content are required" }
+  }
+
+  // Resolve project ID from slug
+  const projectId = await getProjectIdBySlug(projectSlug.trim())
+  if (!projectId) {
+    return { error: "Project not found" }
   }
 
   const supabase = await createClient()
@@ -236,9 +243,9 @@ export async function addComment(formData: FormData) {
 
   try {
     const { error } = await supabase.from("comments").insert({
-      project_id: Number.parseInt(projectId),
+      project_id: projectId, // Use UUID directly, no parseInt
       user_id: user?.id || null,
-      author_name: user ? null : authorName,
+      author_name: user ? null : authorName || "Anonymous",
       content: content.trim(),
     })
 
@@ -253,7 +260,17 @@ export async function addComment(formData: FormData) {
   }
 }
 
-export async function getComments(projectId: string) {
+export async function getComments(projectSlug: string) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    return { comments: [], error: "Project slug is required" }
+  }
+
+  // Resolve project ID from slug
+  const projectId = await getProjectIdBySlug(projectSlug.trim())
+  if (!projectId) {
+    return { comments: [], error: "Project not found" }
+  }
+
   const supabase = await createClient()
 
   try {
@@ -266,7 +283,7 @@ export async function getComments(projectId: string) {
           avatar_url
         )
       `)
-      .eq("project_id", Number.parseInt(projectId))
+      .eq("project_id", projectId) // Use UUID directly, no parseInt
       .order("created_at", { ascending: false })
 
     if (error) {
@@ -285,22 +302,23 @@ export async function getComments(projectId: string) {
 
     return { comments: formattedComments, error: null }
   } catch (error) {
-    console.error("Get comments error:", error)
+    console.error("Get comments by slug error:", error)
     return { comments: [], error: "Failed to load comments" }
   }
 }
 
-export async function getProject(projectId: string) {
+export async function getProjectBySlug(slug: string) {
   const supabase = await createClient()
 
   try {
+    if (!slug || typeof slug !== "string" || slug.trim() === "") {
+      return { project: null, error: "Project slug is required" }
+    }
+
     // Enhanced analytics queries with unique views counting
     const [
       { data: project, error: projectError }, 
-      { count: likesCount }, 
-      { count: totalViews },
-      { count: uniqueViews },
-      { count: todayViews }
+      projectForCounts // Get project ID for subsequent queries
     ] = await Promise.all([
       supabase
         .from("projects")
@@ -314,30 +332,17 @@ export async function getProject(projectId: string) {
             location
           )
         `)
-        .eq("id", Number.parseInt(projectId))
+        .eq("slug", slug.trim())
         .single(),
       supabase
-        .from("likes")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", Number.parseInt(projectId)),
-      supabase
-        .from("views")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", Number.parseInt(projectId)),
-      supabase
-        .from("views")
-        .select("session_id", { count: "exact", head: true })
-        .eq("project_id", Number.parseInt(projectId))
-        .not("session_id", "is", null),
-      supabase
-        .from("views")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", Number.parseInt(projectId))
-        .eq("view_date", new Date().toISOString().split('T')[0])
+        .from("projects")
+        .select("id")
+        .eq("slug", slug.trim())
+        .single()
     ])
 
     if (projectError) {
-      console.error("Get project error:", projectError)
+      console.error("Get project by slug error:", projectError)
       return { project: null, error: projectError.message }
     }
 
@@ -346,11 +351,42 @@ export async function getProject(projectId: string) {
       return { project: null, error: "Project author not found" }
     }
 
+    // Use project.id (UUID/string) directly without parseInt
+    const projectPk = project.id
+    
+    // Run analytics queries in parallel
+    const [
+      { count: likesCount }, 
+      { count: totalViews },
+      { count: uniqueViews },
+      { count: todayViews }
+    ] = await Promise.all([
+      supabase
+        .from("likes")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", projectPk),
+      supabase
+        .from("views")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", projectPk),
+      supabase
+        .from("views")
+        .select("session_id", { count: "exact", head: true })
+        .eq("project_id", projectPk)
+        .not("session_id", "is", null),
+      supabase
+        .from("views")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", projectPk)
+        .eq("view_date", new Date().toISOString().split('T')[0])
+    ])
+
     // Get the display name for the category
     const categoryDisplayName = await getCategoryDisplayName(project.category)
 
     const formattedProject = {
       id: project.id,
+      slug: project.slug, // Add slug to returned object
       title: project.title,
       description: project.description,
       fullDescription: project.description, // Use same description for now
@@ -377,12 +413,49 @@ export async function getProject(projectId: string) {
 
     return { project: formattedProject, error: null }
   } catch (error) {
-    console.error("Get project error:", error)
+    console.error("Get project by slug error:", error)
     return { project: null, error: "Failed to load project" }
   }
 }
 
-export async function incrementProjectViews(projectId: string, sessionId?: string) {
+// Legacy function for backward compatibility (will be removed after migration)
+export async function getProject(projectId: string) {
+  console.warn("[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.")
+  
+  // For backward compatibility during migration phase
+  const supabase = await createClient()
+  
+  try {
+    const { data, error } = await supabase
+      .from("projects")
+      .select("slug")
+      .eq("id", projectId)
+      .single()
+    
+    if (error || !data?.slug) {
+      return { project: null, error: "Project not found" }
+    }
+    
+    return getProjectBySlug(data.slug)
+  } catch (error) {
+    console.error("Legacy getProject error:", error)
+    return { project: null, error: "Failed to load project" }
+  }
+}
+
+export async function incrementProjectViews(projectSlug: string, sessionId?: string) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    console.error("[Server] incrementProjectViews: projectSlug is required")
+    return
+  }
+
+  // Resolve project ID from slug
+  const projectId = await getProjectIdBySlug(projectSlug.trim())
+  if (!projectId) {
+    console.error("[Server] incrementProjectViews: Project not found for slug:", projectSlug)
+    return
+  }
+
   const supabase = await createClient()
   const {
     data: { session },
@@ -391,14 +464,14 @@ export async function incrementProjectViews(projectId: string, sessionId?: strin
   try {
     // Prepare view record with session-based tracking
     const viewRecord = {
-      project_id: Number.parseInt(projectId),
+      project_id: projectId, // Use UUID directly, no parseInt
       user_id: session?.user?.id || null,
       session_id: sessionId || null,
       ip_address: null, // We'll skip IP tracking for now
       view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     }
 
-    console.log('[Server] Incrementing view for project:', projectId, 'Session:', sessionId)
+    console.log('[Server] Incrementing view for project slug:', projectSlug, 'ID:', projectId, 'Session:', sessionId)
 
     // Try to insert first
     const { data, error } = await supabase
@@ -431,13 +504,16 @@ export async function toggleLike(projectId: string) {
     return { error: "You must be logged in to like projects" }
   }
 
-  try {
-    const projectIdInt = Number.parseInt(projectId)
+  if (!projectId || typeof projectId !== "string" || projectId.trim() === "") {
+    return { error: "Project ID is required" }
+  }
 
+  try {
+    // Use UUID directly, no parseInt
     const { data: existingLike, error: checkError } = await supabase
       .from("likes")
       .select("id")
-      .eq("project_id", projectIdInt)
+      .eq("project_id", projectId.trim())
       .eq("user_id", session.user.id)
       .single()
 
@@ -455,7 +531,7 @@ export async function toggleLike(projectId: string) {
       return { success: true, isLiked: false }
     } else {
       const { error: insertError } = await supabase.from("likes").insert({
-        project_id: projectIdInt,
+        project_id: projectId.trim(), // Use UUID directly
         user_id: session.user.id,
       })
 
@@ -471,33 +547,25 @@ export async function toggleLike(projectId: string) {
   }
 }
 
-export async function getLikeStatus(projectId: string | number) {
+export async function getLikeStatus(projectId: string) {
   const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   try {
-    if (
-      !projectId ||
-      (typeof projectId === "string" && projectId.trim() === "") ||
-      (typeof projectId === "number" && isNaN(projectId))
-    ) {
+    if (!projectId || typeof projectId !== "string" || projectId.trim() === "") {
       console.error("Get like status error: projectId is required")
       return { totalLikes: 0, isLiked: false, error: "Project ID is required" }
     }
 
-    const projectIdInt = typeof projectId === "number" ? projectId : Number.parseInt(projectId.toString())
-
-    if (isNaN(projectIdInt)) {
-      console.error("Get like status error: Invalid project ID format:", projectId)
-      return { totalLikes: 0, isLiked: false, error: "Invalid project ID format" }
-    }
+    // Use UUID directly, no parseInt
+    const cleanProjectId = projectId.trim()
 
     const { count: totalLikes, error: countError } = await supabase
       .from("likes")
       .select("*", { count: "exact", head: true })
-      .eq("project_id", projectIdInt)
+      .eq("project_id", cleanProjectId)
 
     if (countError) {
       console.error("Get likes count error:", countError.message, countError.details)
@@ -509,7 +577,7 @@ export async function getLikeStatus(projectId: string | number) {
       const { data: userLike, error: userLikeError } = await supabase
         .from("likes")
         .select("id")
-        .eq("project_id", projectIdInt)
+        .eq("project_id", cleanProjectId)
         .eq("user_id", session.user.id)
         .single()
 
@@ -567,7 +635,7 @@ export async function signInWithGitHub() {
   }
 }
 
-export async function getBatchLikeStatus(projectIds: (string | number)[]) {
+export async function getBatchLikeStatus(projectIds: string[]) {
   const supabase = await createClient()
   
   try {
@@ -576,16 +644,17 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
       return { likesData: {}, error: null }
     }
 
-    const projectIdsInt = projectIds
-      .map((id) => (typeof id === "number" ? id : Number.parseInt(id.toString())))
-      .filter((id) => !isNaN(id))
+    // Convert integers to strings properly
+    const cleanProjectIds = projectIds
+      .filter(id => id !== null && id !== undefined && String(id).trim() !== "")
+      .map(id => String(id).trim())
 
-    if (projectIdsInt.length === 0) {
-      console.log("[v0] getBatchLikeStatus: No valid project IDs after parsing")
+    if (cleanProjectIds.length === 0) {
+      console.log("[v0] getBatchLikeStatus: No valid project IDs after cleaning")
       return { likesData: {}, error: "No valid project IDs provided" }
     }
 
-    console.log("[v0] getBatchLikeStatus: Fetching likes for projects:", projectIdsInt)
+    console.log("[v0] getBatchLikeStatus: Fetching likes for projects:", cleanProjectIds)
 
     // Get session safely
     const {
@@ -604,14 +673,14 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
     const { data: allLikes, error: likesError } = await supabase
       .from("likes")
       .select("project_id, user_id")
-      .in("project_id", projectIdsInt)
+      .in("project_id", cleanProjectIds)
 
     if (likesError) {
       console.error("[v0] getBatchLikeStatus: Likes fetch error:", likesError)
       // Return empty data instead of error to not break UI
       const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
-      projectIdsInt.forEach((projectId) => {
-        emptyLikesData[projectId.toString()] = { totalLikes: 0, isLiked: false }
+      cleanProjectIds.forEach((projectId) => {
+        emptyLikesData[projectId] = { totalLikes: 0, isLiked: false }
       })
       return { likesData: emptyLikesData, error: null }
     }
@@ -621,12 +690,12 @@ export async function getBatchLikeStatus(projectIds: (string | number)[]) {
     // Process the data
     const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
 
-    projectIdsInt.forEach((projectId) => {
+    cleanProjectIds.forEach((projectId) => {
       const projectLikes = allLikes?.filter((like) => like.project_id === projectId) || []
       const totalLikes = projectLikes.length
       const isLiked = session?.user ? projectLikes.some((like) => like.user_id === session.user.id) : false
 
-      likesData[projectId.toString()] = { totalLikes, isLiked }
+      likesData[projectId] = { totalLikes, isLiked }
     })
 
     console.log("[v0] getBatchLikeStatus: Processed likes data:", likesData)
@@ -683,6 +752,12 @@ export async function submitProject(formData: FormData, userId: string) {
       return { success: false, error: "Title, description, and category are required" }
     }
 
+    // Generate slug from title
+    const baseSlug = slugifyTitle(title.trim())
+    const slug = await ensureUniqueSlug(baseSlug)
+
+    console.log('[Submit Project] Generated slug:', slug, 'from title:', title.trim())
+
     const { data: project, error } = await supabase
       .from("projects")
       .insert({
@@ -695,23 +770,71 @@ export async function submitProject(formData: FormData, userId: string) {
         favicon_url: faviconUrl,
         author_id: userId,
         tags: tags,
+        slug: slug, // Add slug column
       })
-      .select()
+      .select("slug")
       .single()
 
     if (error) {
       console.error("Submit project error:", error)
+      
+      // Handle unique constraint violation (collision during race condition)
+      if (error.code === '23505' && error.message?.includes('slug')) {
+        console.log('[Submit Project] Slug collision detected, retrying...')
+        
+        // Retry with incremented slug
+        try {
+          const retrySlug = await ensureUniqueSlug(baseSlug)
+          const { data: retryProject, error: retryError } = await supabase
+            .from("projects")
+            .insert({
+              title: title.trim(),
+              description: description.trim(),
+              category,
+              website_url: websiteUrl?.trim() || null,
+              image_url: imageUrl?.trim() || null,
+              tagline: tagline?.trim() || null,
+              favicon_url: faviconUrl,
+              author_id: userId,
+              tags: tags,
+              slug: retrySlug,
+            })
+            .select("slug")
+            .single()
+
+          if (retryError) {
+            console.error("Submit project retry error:", retryError)
+            return { success: false, error: retryError.message }
+          }
+
+          return { success: true, slug: retryProject.slug }
+        } catch (retryErr) {
+          console.error("Submit project retry failed:", retryErr)
+          return { success: false, error: "Failed to generate unique slug. Please try again." }
+        }
+      }
+      
       return { success: false, error: error.message }
     }
 
-    return { success: true, projectId: project.id }
+    return { success: true, slug: project.slug }
   } catch (error) {
     console.error("Submit project error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
 
-export async function editProject(projectId: string, formData: FormData) {
+export async function editProject(projectSlug: string, formData: FormData) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    return { success: false, error: "Project slug is required" }
+  }
+
+  // Resolve project ID from slug
+  const projectId = await getProjectIdBySlug(projectSlug.trim())
+  if (!projectId) {
+    return { success: false, error: "Project not found" }
+  }
+
   const supabase = await createClient()
   const {
     data: { session },
@@ -726,7 +849,7 @@ export async function editProject(projectId: string, formData: FormData) {
     const { data: project, error: checkError } = await supabase
       .from("projects")
       .select("author_id")
-      .eq("id", Number.parseInt(projectId))
+      .eq("id", projectId) // Use UUID directly, no parseInt
       .single()
 
     if (checkError) {
@@ -769,6 +892,7 @@ export async function editProject(projectId: string, formData: FormData) {
       return { success: false, error: "Title, description, and category are required" }
     }
 
+    // Note: Don't auto-update slug when title changes (slug stays stable for SEO)
     const { error: updateError } = await supabase
       .from("projects")
       .update({
@@ -781,22 +905,33 @@ export async function editProject(projectId: string, formData: FormData) {
         ...(faviconUrl && { favicon_url: faviconUrl }),
         tags: tags,
         updated_at: new Date().toISOString(),
+        // Slug remains unchanged for stability
       })
-      .eq("id", Number.parseInt(projectId))
+      .eq("id", projectId) // Use UUID directly, no parseInt
 
     if (updateError) {
       console.error("Edit project error:", updateError)
       return { success: false, error: updateError.message }
     }
 
-    return { success: true, projectId }
+    return { success: true, slug: projectSlug } // Return slug instead of projectId
   } catch (error) {
     console.error("Edit project error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
 
-export async function deleteProject(projectId: string) {
+export async function deleteProject(projectSlug: string) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    return { success: false, error: "Project slug is required" }
+  }
+
+  // Resolve project ID from slug
+  const projectId = await getProjectIdBySlug(projectSlug.trim())
+  if (!projectId) {
+    return { success: false, error: "Project not found" }
+  }
+
   const supabase = await createClient()
   const {
     data: { session },
@@ -811,7 +946,7 @@ export async function deleteProject(projectId: string) {
     const { data: project, error: checkError } = await supabase
       .from("projects")
       .select("author_id")
-      .eq("id", Number.parseInt(projectId))
+      .eq("id", projectId) // Use UUID directly, no parseInt
       .single()
 
     if (checkError) {
@@ -822,24 +957,26 @@ export async function deleteProject(projectId: string) {
       return { success: false, error: "You can only delete your own projects" }
     }
 
-    // Delete related records first (comments, likes, views)
+    // Delete related records first (comments, likes, views) - CASCADE should handle this automatically
+    // But we'll do it explicitly for safety
     await Promise.all([
-      supabase.from("comments").delete().eq("project_id", Number.parseInt(projectId)),
-      supabase.from("likes").delete().eq("project_id", Number.parseInt(projectId)),
-      supabase.from("views").delete().eq("project_id", Number.parseInt(projectId)),
+      supabase.from("comments").delete().eq("project_id", projectId), // Use UUID directly
+      supabase.from("likes").delete().eq("project_id", projectId), // Use UUID directly
+      supabase.from("views").delete().eq("project_id", projectId), // Use UUID directly
     ])
 
     // Then delete the project
     const { error: deleteError } = await supabase
       .from("projects")
       .delete()
-      .eq("id", Number.parseInt(projectId))
+      .eq("id", projectId) // Use UUID directly, no parseInt
 
     if (deleteError) {
       console.error("Delete project error:", deleteError)
       return { success: false, error: deleteError.message }
     }
 
+    console.log('[Delete Project] Successfully deleted project with slug:', projectSlug)
     return { success: true }
   } catch (error) {
     console.error("Delete project error:", error)
