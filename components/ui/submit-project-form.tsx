@@ -140,7 +140,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
       const result = await submitProject(formData, userId);
       if (result.success) {
         toast.success("Mantap! 🚀 Project lo berhasil di-submit!");
-        router.push(`/project/${result.projectId}`);
+        router.push(`/project/${result.slug}`);
       } else {
         toast.error("Waduh, ada error nih! 😅 Coba lagi ya!");
         setError(result.error || "Failed to submit project");

@@ -118,6 +118,7 @@ async function fetchUserProjectsFallback(username: string) {
     .select(
       `
       id,
+      slug,
       title,
       description,
       category,
@@ -574,7 +575,7 @@ export default function ProfilePage() {
                 {userProjects.map((project) => (
                   <Link
                     key={project.id}
-                    href={`/project/${project.id}`}
+                    href={`/project/${project.slug}`}
                     className="group cursor-pointer block">
                     <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
                       <AspectRatio ratio={16 / 9}>

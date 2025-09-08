@@ -407,7 +407,8 @@ export default function HomePage() {
             );
 
             return {
-              id: project.id.toString(),
+              id: project.id, // Keep as UUID string, no need toString()
+              slug: project.slug,
               title: project.title,
               description: project.description,
               image: project.image_url,
@@ -1119,7 +1120,7 @@ export default function HomePage() {
                   .map((project) => (
                     <Link
                       key={project.id}
-                      href={`/project/${project.id}`}
+                      href={`/project/${project.slug}`}
                       className="group cursor-pointer py-0 my-4 block"
                     >
                       {/* Thumbnail Preview Section */}
@@ -1184,7 +1185,7 @@ export default function HomePage() {
                             className="relative z-20 p-3 -m-3 rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
                           >
                             <HeartButton
-                              projectId={project.id}
+                              projectId={project.slug}
                               initialLikes={
                                 likesData[project.id]?.totalLikes || 0
                               }
