@@ -18,6 +18,7 @@ export function AdaptiveLogo({
         className={`${className} block dark:hidden transition-opacity duration-300`}
         width={120}
         height={40}
+        priority={true}
       />
 
       {/* Dark mode logo - hidden in light mode, visible in dark mode */}
@@ -28,6 +29,7 @@ export function AdaptiveLogo({
         aria-hidden="true"
         width={120}
         height={40}
+        priority={true}
       />
     </div>
   );
