@@ -91,6 +91,7 @@ async function fetchUserProjects(username: string) {
 
   return (projectsData || []).map((project: any) => ({
     ...project,
+    likes: project.likes_count || project.likes || 0, // Handle both field names for backward compatibility
     thumbnail_url: project.image_url,
     url: project.website_url,
   }));
@@ -167,7 +168,7 @@ async function fetchUserProjectsFallback(username: string) {
 
   return projects.map((project) => ({
     ...project,
-    likes_count: likeCounts[project.id] || 0,
+    likes: likeCounts[project.id] || 0, // Changed from likes_count to likes for consistency
     views_count: viewCounts[project.id] || 0,
     comments_count: commentCounts[project.id] || 0,
     thumbnail_url: project.image_url,
@@ -604,7 +605,7 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Heart className="h-4 w-4" />
-                        {project.likes_count || 0}
+                        {project.likes || 0}
                       </div>
                       <div className="flex items-center gap-1">
                         <MessageCircle className="h-4 w-4" />

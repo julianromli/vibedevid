@@ -4,7 +4,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { HeartButton } from "@/components/ui/heart-button";
+import { HeartButtonDisplay } from "@/components/ui/heart-button-display";
 import { Navbar } from "@/components/ui/navbar";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
@@ -33,8 +33,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { signOut } from "@/lib/actions";
-import { getBatchLikeStatus } from "@/lib/actions";
+import { signOut, fetchProjectsWithSorting } from "@/lib/actions";
 import Image from "next/image";
 
 // Advanced Lazy Loading untuk Mobile Performance Optimization
@@ -168,9 +167,6 @@ export default function HomePage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const [likesData, setLikesData] = useState<
-    Record<string, { totalLikes: number; isLiked: boolean }>
-  >({});
   const [filterOptions, setFilterOptions] = useState<string[]>(["All"]);
 
   // Fetch categories for filter options
@@ -380,87 +376,48 @@ export default function HomePage() {
     };
   }, []);
 
-  // Separate useEffect for fetching projects - now depends on auth state
+  // Fetch projects with sorting - now depends on auth state AND sorting/filter changes
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        console.log("[v0] Fetching projects... Auth state:", {
-          isLoggedIn,
+        console.log("[v0] Fetching projects with sorting:", {
+          selectedTrending,
+          selectedFilter,
           authReady,
         });
-        const supabase = createClient();
-
-        // Single JOIN query untuk better performance
-        const { data: projectsWithUsers, error } = await supabase
-          .from("projects")
-          .select(
-            `
-            *,
-            users!author_id (
-              username,
-              display_name,
-              avatar_url
-            )
-          `,
-          )
-          .order("created_at", { ascending: false })
-          .limit(20); // Limit initial load
-
+        
+        setLoading(true);
+        
+        // Convert selectedTrending to sortBy parameter
+        let sortBy: "trending" | "top" | "newest" = "newest";
+        switch (selectedTrending) {
+          case "Trending":
+            sortBy = "trending";
+            break;
+          case "Top":
+            sortBy = "top";
+            break;
+          case "Newest":
+          default:
+            sortBy = "newest";
+            break;
+        }
+        
+        // Fetch projects with new sorting function
+        const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
+          sortBy,
+          selectedFilter === "All" ? undefined : selectedFilter,
+          20 // limit
+        );
+        
         if (error) {
           console.error("[v0] Error fetching projects:", error);
           return;
         }
-
-        console.log("[v0] Projects fetched:", projectsWithUsers.length);
-
-        const formattedProjects = await Promise.all(
-          projectsWithUsers.map(async (project) => {
-            // Get display name for category
-            const categoryDisplayName = await getCategoryDisplayName(
-              project.category,
-            );
-
-            return {
-              id: project.id, // Keep as UUID string, no need toString()
-              slug: project.slug,
-              title: project.title,
-              description: project.description,
-              image: project.image_url,
-              author: {
-                name: project.users?.display_name || "Unknown",
-                username: project.users?.username || "unknown",
-                avatar:
-                  project.users?.avatar_url || "/vibedev-guest-avatar.png",
-              },
-              url: project.website_url,
-              category: categoryDisplayName, // Use display name instead of raw category
-              likes: 0, // Will be updated by batch likes
-              views: 0,
-              createdAt: project.created_at,
-            };
-          }),
-        );
-
-        setProjects(formattedProjects);
-        console.log(
-          "[v0] Projects state updated with:",
-          formattedProjects.length,
-          "projects",
-        );
-
-        if (formattedProjects.length > 0) {
-          const projectIds = formattedProjects.map((p) => p.id);
-          console.log("[v0] Fetching likes data for projects:", projectIds);
-          const { likesData: batchLikesData, error: likesError } =
-            await getBatchLikeStatus(projectIds);
-
-          if (!likesError && batchLikesData) {
-            console.log("[v0] Likes data fetched:", batchLikesData);
-            setLikesData(batchLikesData);
-          } else if (likesError) {
-            console.error("[v0] Error fetching likes data:", likesError);
-          }
-        }
+        
+        console.log("[v0] Projects fetched with sorting:", fetchedProjects.length);
+        setProjects(fetchedProjects || []);
+        
       } catch (error) {
         console.error("[v0] Error fetching projects:", error);
       } finally {
@@ -468,11 +425,11 @@ export default function HomePage() {
       }
     };
 
-    // Fetch projects when auth state changes OR on mount
+    // Fetch projects when auth state changes OR when sorting/filter changes
     if (authReady) {
       fetchProjects();
     }
-  }, [authReady, isLoggedIn]); // Add isLoggedIn dependency to re-fetch when login state changes
+  }, [authReady, selectedTrending, selectedFilter]); // Add sorting and filter dependencies
 
   // Remove redundant likes fetching - already handled in fetchProjects
 
@@ -1125,11 +1082,6 @@ export default function HomePage() {
                   </div>
                 ))
               : projects
-                  .filter(
-                    (project) =>
-                      selectedFilter === "All" ||
-                      project.category === selectedFilter,
-                  )
                   .slice(0, visibleProjects)
                   .map((project) => (
                     <Link
@@ -1191,31 +1143,10 @@ export default function HomePage() {
                               </span>
                             </div>
                           </div>
-                          <div
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            className="relative z-20 p-3 -m-3 rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
-                          >
-                            <HeartButton
-                              projectId={project.slug}
-                              initialLikes={
-                                likesData[project.id]?.totalLikes || 0
-                              }
-                              initialIsLiked={
-                                likesData[project.id]?.isLiked || false
-                              }
-                              isLoggedIn={isLoggedIn}
-                              onLikeChange={(newLikes, isLiked) => {
-                                setLikesData((prev) => ({
-                                  ...prev,
-                                  [project.id]: {
-                                    totalLikes: newLikes,
-                                    isLiked,
-                                  },
-                                }));
-                              }}
+                          <div className="relative z-20">
+                            <HeartButtonDisplay
+                              likes={project.likes || 0}
+                              variant="default"
                             />
                           </div>
                         </div>
@@ -1225,23 +1156,17 @@ export default function HomePage() {
           </div>
 
           {/* Load More button */}
-          {!loading &&
-            visibleProjects <
-              projects.filter(
-                (project) =>
-                  selectedFilter === "All" ||
-                  project.category === selectedFilter,
-              ).length && (
-              <div className="text-center mt-8">
-                <Button
-                  variant="outline"
-                  onClick={() => setVisibleProjects((prev) => prev + 6)}
-                  className="px-8 py-2"
-                >
-                  Muat Project Lainnya
-                </Button>
-              </div>
-            )}
+          {!loading && visibleProjects < projects.length && (
+            <div className="text-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setVisibleProjects((prev) => prev + 6)}
+                className="px-8 py-2"
+              >
+                Muat Project Lainnya
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 

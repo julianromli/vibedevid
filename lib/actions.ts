@@ -921,6 +921,135 @@ export async function editProject(projectSlug: string, formData: FormData) {
   }
 }
 
+export async function fetchProjectsWithSorting(
+  sortBy: "trending" | "top" | "newest" = "newest",
+  category?: string,
+  limit: number = 20
+) {
+  const supabase = await createClient()
+  
+  try {
+    let query = supabase
+      .from("projects")
+      .select(`
+        *,
+        users!author_id (
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+    
+    // Apply category filter if specified
+    if (category && category !== "All") {
+      // For now, we'll filter client-side since we need to handle display name conversion
+      // The category parameter here should be the display name from the filter
+      // We'll filter after fetching to handle the display name conversion properly
+    }
+    
+    // Apply sorting based on sortBy parameter
+    switch (sortBy) {
+      case "trending":
+        // For trending: projects with most likes in the last 7 days
+        // We'll approximate by recent likes using a subquery approach
+        // For now, let's sort by created_at desc and likes (we'll improve this)
+        query = query.order("created_at", { ascending: false })
+        break
+        
+      case "top":
+        // For top: we'll need to join with likes count
+        // For now, let's sort by created_at desc and we'll add likes count after
+        query = query.order("created_at", { ascending: false })
+        break
+        
+      case "newest":
+      default:
+        query = query.order("created_at", { ascending: false })
+        break
+    }
+    
+    query = query.limit(limit)
+    
+    const { data: projectsWithUsers, error } = await query
+    
+    if (error) {
+      console.error("[fetchProjectsWithSorting] Error fetching projects:", error)
+      return { projects: [], error: error.message }
+    }
+    
+    if (!projectsWithUsers || projectsWithUsers.length === 0) {
+      return { projects: [], error: null }
+    }
+    
+    // Get likes count for all projects in parallel
+    const projectIds = projectsWithUsers.map(p => p.id)
+    const { likesData, error: likesError } = await getBatchLikeStatus(projectIds)
+    
+    if (likesError) {
+      console.error("[fetchProjectsWithSorting] Error fetching likes:", likesError)
+      // Continue without likes data
+    }
+    
+    // Format projects with all required data
+    const formattedProjects = await Promise.all(
+      projectsWithUsers.map(async (project) => {
+        // Get display name for category
+        const categoryDisplayName = await getCategoryDisplayName(project.category)
+        
+        const projectLikesData = (likesData && likesData[project.id]) || { totalLikes: 0, isLiked: false }
+        
+        return {
+          id: project.id,
+          slug: project.slug,
+          title: project.title,
+          description: project.description,
+          image: project.image_url,
+          author: {
+            name: project.users?.display_name || "Unknown",
+            username: project.users?.username || "unknown",
+            avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
+          },
+          url: project.website_url,
+          category: categoryDisplayName,
+          likes: projectLikesData.totalLikes,
+          views: 0, // We'll add views later if needed
+          createdAt: project.created_at,
+        }
+      })
+    )
+    
+    // Apply category filter after formatting (client-side filtering)
+    let filteredProjects = formattedProjects
+    if (category && category !== "All") {
+      filteredProjects = formattedProjects.filter(project => project.category === category)
+    }
+    
+    // Apply post-processing sorting based on likes for trending and top
+    let sortedProjects = [...filteredProjects]
+    
+    if (sortBy === "trending" || sortBy === "top") {
+      // Sort by likes descending, then by creation date for tie-breaking
+      sortedProjects.sort((a, b) => {
+        if (b.likes !== a.likes) {
+          return b.likes - a.likes
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+      
+      // For trending, we could add more sophisticated logic here
+      // like weighing recent likes more heavily, but for now this works
+    }
+    
+    console.log(`[fetchProjectsWithSorting] Fetched ${sortedProjects.length} projects with sorting: ${sortBy}, category: ${category || 'All'}`)
+    
+    return { projects: sortedProjects, error: null }
+    
+  } catch (error) {
+    console.error("[fetchProjectsWithSorting] Unexpected error:", error)
+    return { projects: [], error: "Failed to fetch projects" }
+  }
+}
+
 export async function deleteProject(projectSlug: string) {
   if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
     return { success: false, error: "Project slug is required" }
