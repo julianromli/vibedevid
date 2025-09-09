@@ -37,13 +37,27 @@ import { signOut } from "@/lib/actions";
 import { getBatchLikeStatus } from "@/lib/actions";
 import Image from "next/image";
 
-// Lazy load heavy components untuk better FCP
+// Advanced Lazy Loading untuk Mobile Performance Optimization
 const TestimonialsColumns = lazy(() =>
   import("@/components/ui/testimonials-columns").then((module) => ({
     default: module.TestimonialsColumns,
   })),
 );
 const AnimatedTooltip = lazy(() => import("@/components/ui/animated-tooltip"));
+
+// Lazy load Safari component yang heavy untuk LCP improvement
+const SafariLazy = lazy(() => Promise.resolve({ default: Safari }));
+
+// Lazy load IntegrationCard dengan delay untuk non-critical sections
+const IntegrationCardLazy = lazy(() => Promise.resolve({ default: IntegrationCard }));
+
+// Performance-optimized loading skeleton untuk mobile
+const MobileOptimizedSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+    <div className="h-4 bg-muted rounded w-1/2"></div>
+  </div>
+);
 
 const Safari = ({
   children,

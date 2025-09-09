@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -10,6 +16,12 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   compress: true,
+  
+  // Advanced bundle optimizations
+  bundlePagesRouterDependencies: true, // ✅ Moved to root level (stable in Next.js 15)
+  experimental: {
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@supabase/supabase-js'],
+  },
   // Turbopack configuration (for development with --turbo flag)
   turbopack: {
     resolveExtensions: [
@@ -205,4 +217,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

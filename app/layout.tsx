@@ -7,23 +7,35 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import "./globals.css"
 
+// Critical font - load with highest priority
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
   display: "swap",
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: true,
 })
 
+// Secondary font - lazy load untuk performance
 const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-geist-mono", 
   display: "swap",
+  preload: false,
+  fallback: ['menlo', 'monaco', 'consolas'],
+  adjustFontFallback: true,
 })
 
+// Optional font - lazy load untuk reduce initial payload
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   variable: "--font-serif",
   display: "swap",
+  preload: false,
+  fallback: ['georgia', 'times'],
+  adjustFontFallback: true,
 })
 
 export const metadata: Metadata = {
@@ -94,11 +106,47 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}>
+      <head>
+        {/* Critical Resource Hints untuk faster LCP */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://qabfrhpbfvjcgdrxdlba.supabase.co" />
+        <link rel="preconnect" href="https://vercel.live" />
+        
+        {/* Critical images preload */}
+        <link rel="preload" href="/vibedevid_final_black.svg" as="image" type="image/svg+xml" />
+        <link rel="preload" href="/vibedevid_final_white.svg" as="image" type="image/svg+xml" />
+        <link rel="preload" href="/vibedev-guest-avatar.png" as="image" />
+        
+        {/* DNS prefetch untuk external resources */}
+        <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
+        <link rel="dns-prefetch" href="//utfs.io" />
+        <link rel="dns-prefetch" href="//lh3.googleusercontent.com" />
+      </head>
       <body suppressHydrationWarning={true}>
         {children}
         <Toaster />
         <Analytics />
         <SpeedInsights />
+        
+        {/* Service Worker Registration untuk Mobile Performance */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator && typeof window !== 'undefined') {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                      console.log('[SW] Registration successful:', registration.scope);
+                    })
+                    .catch(function(error) {
+                      console.log('[SW] Registration failed:', error);
+                    });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )

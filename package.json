@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build --turbopack",
+    "build": "next build",
     "dev": "next dev --turbopack",
     "lint": "next lint",
     "start": "next start",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "analyze": "ANALYZE=true npm run build",
+    "build:analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "latest",
@@ -51,13 +53,16 @@
     "vaul": "latest"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.5.2",
     "@playwright/test": "^1.55.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.0.0",
     "eslint": "^9.34.0",
     "eslint-config-next": "15.5.2",
     "postcss": "^8.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }
