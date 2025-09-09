@@ -691,10 +691,13 @@ export async function getBatchLikeStatus(projectIds: string[]) {
     const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
 
     cleanProjectIds.forEach((projectId) => {
-      const projectLikes = allLikes?.filter((like) => like.project_id === projectId) || []
+      // Convert projectId string to number for comparison since database returns integers
+      const projectIdNum = parseInt(projectId)
+      const projectLikes = allLikes?.filter((like) => like.project_id === projectIdNum) || []
       const totalLikes = projectLikes.length
       const isLiked = session?.user ? projectLikes.some((like) => like.user_id === session.user.id) : false
 
+      // Store using original string key for consistency
       likesData[projectId] = { totalLikes, isLiked }
     })
 
