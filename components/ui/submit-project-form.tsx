@@ -80,10 +80,13 @@ interface SubmitProjectFormProps {
   userId: string;
 }
 
-const MAX_DESCRIPTION_LENGTH = 300;
+const MAX_DESCRIPTION_LENGTH = 1600;
 
 export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
+  // Ensure client-only blocks don't render on the server to avoid hydration mismatch
+  const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
@@ -93,13 +96,17 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedTags, setSelectedTags] = useState<Option[]>([]);
+  const [title, setTitle] = useState<string>("");
+  const [tagline, setTagline] = useState<string>("");
   const [websiteUrl, setWebsiteUrl] = useState<string>("");
   const [faviconUrl, setFaviconUrl] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [githubRepoUrl, setGithubRepoUrl] = useState<string>("");
   const router = useRouter();
 
   // Fetch categories from database
   useEffect(() => {
+    setMounted(true);
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
@@ -123,6 +130,11 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
     try {
       const formData = new FormData(e.currentTarget);
+
+      // Ensure controlled fields are reflected in formData
+      if (title) formData.set("title", title);
+      if (tagline) formData.set("tagline", tagline);
+      if (description) formData.set("description", description);
 
       if (uploadedImageUrl) {
         formData.set("image_url", uploadedImageUrl);
@@ -159,12 +171,96 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* GitHub Import (client-only to avoid hydration mismatch) */}
+          {mounted && (
+            <div className="space-y-2" data-testid="github-import">
+              <Label htmlFor="github_repo" className="form-label-enhanced">Import from GitHub</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="github_repo"
+                  placeholder="owner/repo or https://github.com/owner/repo"
+                  className="form-input-enhanced flex-1"
+                  value={githubRepoUrl}
+                  onChange={(e) => setGithubRepoUrl(e.target.value)}
+                  disabled={isLoading || isUploading || isImporting}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={async () => {
+                    if (!githubRepoUrl.trim()) return;
+                    setIsImporting(true);
+                    setError(null);
+                    try {
+                      const res = await fetch("/api/github-import", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ repoUrl: githubRepoUrl.trim() }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data?.error || "Failed to import repo");
+
+                      setTitle(data.title || "");
+                      setTagline(data.tagline || "");
+                      setDescription(data.description || "");
+                      if (data.website_url) setWebsiteUrl(data.website_url);
+                      if (data.favicon_url) setFaviconUrl(data.favicon_url);
+                      if (data.image_url) setUploadedImageUrl(data.image_url);
+
+                      // Merge tags into selector
+                      if (Array.isArray(data.tags)) {
+                        const existing = new Set(selectedTags.map((t) => t.value));
+                        const next: Option[] = [...selectedTags];
+                        for (const raw of data.tags as string[]) {
+                          const value = String(raw).toLowerCase();
+                          if (existing.has(value)) continue;
+                          // Try to find matching default option for proper label
+                          const found = techOptions.find((t) => t.value.toLowerCase() === value);
+                          if (found) {
+                            next.push(found);
+                            existing.add(value);
+                          } else {
+                            // Fallback: capitalize for label
+                            const label = value.replace(/(^|\s|[-_])(\w)/g, (m, p1, p2) => (p1 || "") + p2.toUpperCase());
+                            next.push({ value, label });
+                            existing.add(value);
+                          }
+                        }
+                        setSelectedTags(next.slice(0, 10));
+                      }
+
+                      toast.success("Imported GitHub repo metadata ✔");
+                    } catch (err: any) {
+                      console.error(err);
+                      setError(err.message || "Failed to import from GitHub");
+                      toast.error("Failed to import from GitHub");
+                    } finally {
+                      setIsImporting(false);
+                    }
+                  }}
+                  disabled={isLoading || isUploading || isImporting}
+                >
+                  {isImporting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>Import</>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs form-helper-text mt-1">We’ll pull name, description, homepage, tags, and preview.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="title" className="form-label-enhanced">Project Title *</Label>
             <Input
               id="title"
               name="title"
               placeholder="Enter your project title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="form-input-enhanced"
               required
               disabled={isLoading || isUploading}
@@ -177,6 +273,8 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               id="tagline"
               name="tagline"
               placeholder="A short tagline that describes your project in one sentence"
+              value={tagline}
+              onChange={(e) => setTagline(e.target.value)}
               className="form-input-enhanced"
               disabled={isLoading || isUploading}
             />
@@ -201,13 +299,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             />
             <div className="flex items-center justify-between text-sm">
               <p className="text-xs form-helper-text mt-1">
-                Description maksimal 300 karakter untuk konsistensi! 📝
+                {`Description maksimal ${MAX_DESCRIPTION_LENGTH} karakter untuk konsistensi!`}
               </p>
               <span
                 className={`font-medium ${
                   description.length > MAX_DESCRIPTION_LENGTH
                     ? "text-red-500"
-                    : description.length > 250
+                    : description.length > 1500
                       ? "text-yellow-500"
                       : "text-muted-foreground"
                 }`}
@@ -519,3 +617,4 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
     </Card>
   );
 }
+
