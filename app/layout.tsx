@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
     siteName: "VibeDev ID",
     images: [{ 
-      url: "/vibedev-guest-avatar.png",
+      url: "/komunitasvibecodingno1diindonesia.jpg",
       width: 1200,
       height: 630,
       alt: "Komunitas Vibe Coding Indonesia"
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia",
     description:
       "Belajar coding pake AI bareng komunitas vibe coding Indonesia.",
-    images: ["/vibedev-guest-avatar.png"],
+    images: ["/komunitasvibecodingno1diindonesia.jpg"],
     creator: "@vibedevid",
   },
   robots: {

@@ -421,7 +421,8 @@ VibeDev ID has been fully optimized for Indonesian developer community search te
 - **Meta Tags Optimization**: `app/layout.tsx`
   - Title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI"
   - Description: SEO-optimized with primary keywords
-  - Open Graph & Twitter Card metadata
+  - Open Graph & Twitter Card metadata dengan official community image
+  - OG Image: `/komunitasvibecodingno1diindonesia.jpg` (1200x630px)
   - Canonical URL: https://vibedevid.com
 - **JSON-LD Structured Data**: `app/page.tsx`
   - Organization schema with full company details
@@ -457,8 +458,17 @@ export const metadata: Metadata = {
   title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
   description: "Komunitas vibe coding Indonesia terbesar untuk developer...",
   keywords: ["vibe coding", "komunitas vibe coding", ...],
-  openGraph: { /* Full OG implementation */ },
-  twitter: { /* Twitter Card data */ }
+  openGraph: {
+    images: [{
+      url: "/komunitasvibecodingno1diindonesia.jpg",
+      width: 1200,
+      height: 630,
+      alt: "Komunitas Vibe Coding Indonesia"
+    }]
+  },
+  twitter: {
+    images: ["/komunitasvibecodingno1diindonesia.jpg"]
+  }
 }
 ```
 
