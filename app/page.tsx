@@ -9,6 +9,8 @@ import { Navbar } from "@/components/ui/navbar";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+import { cn } from "@/lib/utils";
 import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import {
   Drawer,
@@ -799,36 +801,27 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="space-y-12">
             <div className="space-y-8 text-left md:text-center lg:text-center">
-              <div
-                className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 backdrop-blur-sm mb-4 relative"
-                style={{
-                  filter: "url(#glass-effect)",
-                }}
+              <Link 
+                href="https://vibecoding.id/hackathon" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="transition-transform duration-200 hover:scale-105 cursor-pointer inline-block"
               >
-                <div className="absolute top-0 left-1 right-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" />
-                <span className="text-foreground/90 text-sm font-medium relative z-10 mr-2">
-                  ✨
-                </span>
-                <span className="text-foreground/90 text-sm font-medium relative z-10">
-                  300+ Active Members
-                </span>
-              </div>
+                <AnimatedGradientText className="hover:shadow-[inset_0_-5px_10px_#8fdfff4f] transition-all duration-300">
+                  🏆 <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />{" "}
+                  <span
+                    className={cn(
+                      `inline animate-gradient bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
+                    )}
+                  >
+                    VibeCoding Hackathon 2025 by vibecoding.id
+                  </span>
+                  <span className="ml-2 text-orange-500 font-semibold">
+                    Hadiah 5 JUTA RUPIAH
+                  </span>
+                </AnimatedGradientText>
+              </Link>
 
-              {/* Add SVG filter for glass effect */}
-              <svg className="absolute" width="0" height="0">
-                <defs>
-                  <filter id="glass-effect">
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-                    <feOffset dx="0" dy="1" result="offset" />
-                    <feFlood floodColor="rgba(255,255,255,0.1)" />
-                    <feComposite in2="offset" operator="in" />
-                    <feMerge>
-                      <feMergeNode />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-              </svg>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground leading-tight leading-10 tracking-tight">
                 {["Komunitas", "Vibe", "Coding"].map((word, index) => (

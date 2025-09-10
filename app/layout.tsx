@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     "project showcase indonesia",
   ],
   category: "technology",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://vibedevid.com"),
   alternates: {
     canonical: "/",
   },
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia",
     description:
       "Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://vibedevid.com",
     siteName: "VibeDev ID",
     images: [{ 
       url: "/komunitasvibecodingno1diindonesia.jpg",

@@ -185,10 +185,22 @@ body {
   }
 }
 
+/* Gradient Animation for Animated Text Component */
+@keyframes gradient {
+  to {
+    background-position: var(--bg-size) 0;
+  }
+}
+
 .animate-slide {
   animation: slide 20s linear infinite;
   will-change: transform;
   /* Optimize for mobile performance */
+}
+
+.animate-gradient {
+  animation: gradient 8s linear infinite;
+  will-change: background-position;
 }
 
 @media (prefers-reduced-motion: reduce) {
