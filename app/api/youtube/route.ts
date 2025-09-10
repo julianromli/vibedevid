@@ -75,17 +75,54 @@ export async function POST(request: NextRequest) {
     try {
       const watchResponse = await fetch(watchUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1'
         }
       })
       
       if (watchResponse.ok) {
         const html = await watchResponse.text()
         
-        // Extract views dari ytInitialPlayerResponse atau ytInitialData
-        const viewsMatch = html.match(/"viewCount":"(\d+)"/);
-        if (viewsMatch) {
-          views = parseInt(viewsMatch[1])
+        // Multiple patterns untuk extract views - YouTube sering ganti structure
+        const viewPatterns = [
+          /"viewCount":\s*"(\d+)"/,
+          /"viewCount":{"videoViewCountRenderer":{"viewCount":{"simpleText":"([\d,]+)/,
+          /"videoViewCountRenderer":{"viewCount":{"simpleText":"([\d,]+)/,
+          /viewCount":{"runs":\[{"text":"([\d,]+)/,
+          /views\":{\"runs\":\[{\"text\":\"([\d,]+)/,
+          /shortViewCount":{"simpleText":"([\d,]+)/,
+          /"shortViewCount":{"accessibility":{"accessibilityData":{"label":"([\d,]+)/,
+          /<meta itemprop="interactionCount" content="(\d+)"/
+        ]
+        
+        let viewsFound = false
+        for (const pattern of viewPatterns) {
+          const match = html.match(pattern)
+          if (match && match[1]) {
+            // Parse views dan handle formatting (remove commas, etc)
+            const viewsStr = match[1].replace(/[,\s]/g, '')
+            const parsedViews = parseInt(viewsStr)
+            if (!isNaN(parsedViews) && parsedViews > 0) {
+              views = parsedViews
+              viewsFound = true
+              console.log(`[YouTube Debug] Views found using pattern: ${pattern.source}, value: ${views}`)
+              break
+            }
+          }
+        }
+        
+        if (!viewsFound) {
+          console.warn(`[YouTube Debug] No views found for video ${videoId}. HTML length: ${html.length}`)
+          // Log first few patterns untuk debugging
+          viewPatterns.slice(0, 3).forEach((pattern, i) => {
+            const match = html.match(pattern)
+            console.log(`[YouTube Debug] Pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`)
+          })
         }
         
         // Extract publish date
