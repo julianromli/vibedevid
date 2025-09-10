@@ -261,22 +261,22 @@ const YouTubeVideoShowcase = () => {
               />
             </div>
 
-            {/* Dark overlay gradient */}
+            {/* Dark overlay gradient - Enhanced for better text readability */}
             <div 
               className="video-shadow absolute left-0 right-0 pointer-events-none transition-all duration-700 ease-in-out"
               style={{
                 bottom: activeIndex === index ? '0' : '-60px',
-                height: '150px',
+                height: '160px', // Slightly taller untuk better coverage
                 background: activeIndex === index 
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent)'
-                  : 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)'
               }}
             />
             
             {/* Play button overlay for non-active videos */}
             {activeIndex !== index && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-black/60 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <div className="w-12 h-12 bg-black/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/20">
                   <Play className="w-6 h-6 text-white ml-1" />
                 </div>
               </div>
@@ -288,7 +288,7 @@ const YouTubeVideoShowcase = () => {
               <div className="mt-auto">
                 {/* Icon and basic info for collapsed state */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="video-icon min-w-[40px] max-w-[40px] h-[40px] flex items-center justify-center rounded-full bg-black/70 backdrop-blur-sm shadow-sm border border-white/20 flex-shrink-0">
+                  <div className="video-icon min-w-[40px] max-w-[40px] h-[40px] flex items-center justify-center rounded-full bg-black/90 backdrop-blur-sm shadow-lg border border-white/30 flex-shrink-0">
                     {video.icon}
                   </div>
                   
@@ -298,7 +298,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-title font-bold text-sm md:text-base transition-all duration-700 ease-in-out line-clamp-2"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)'
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)'
                       }}
                     >
                       {video.title}
@@ -307,7 +308,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-desc text-xs md:text-sm text-gray-200 transition-all duration-700 ease-in-out line-clamp-2"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)'
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 1px 6px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)'
                       }}
                     >
                       {video.description}
@@ -317,7 +319,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-meta text-xs text-gray-300 mt-1 flex items-center gap-2 transition-all duration-700 ease-in-out"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)'
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)'
                       }}
                     >
                       <span>{formatDate(video.publishedAt)}</span>
