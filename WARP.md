@@ -849,7 +849,7 @@ git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 # - sharp → SVG placeholder generation
 ```
 
-#### **⚠️ Development Warnings:**
+### ⚠️ **Development Warnings:**
 
 **Issue 1: Turbopack vs Webpack Configuration**
 ```bash
@@ -861,6 +861,13 @@ git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 ```bash
 # Error: "hostname not configured under images"
 # Solution: Add domain to remotePatterns in next.config.mjs
+```
+
+**Issue 3: Configuration File Conflicts**
+```bash
+# Error: Multiple Next.js config files (next.config.js vs next.config.mjs)
+# Solution: ALWAYS use next.config.mjs exclusively (ES Module format)
+# Rule: NEVER create next.config.js to prevent configuration conflicts
 ```
 
 #### **🔧 Performance Issues:**
@@ -901,6 +908,14 @@ Before deployment, ensure:
 - [ ] Performance metrics optimal (Core Web Vitals)
 
 ---
+
+## Next.js Configuration Rules ✅
+
+- ALWAYS use next.config.mjs (ESM). Do not create next.config.js.
+- If a next.config.js accidentally appears, delete it and restart the dev server.
+- All Image Optimization rules (images.remotePatterns, formats, sizes) MUST live in next.config.mjs.
+- When adding a new image domain, update next.config.mjs and restart dev server.
+- Turbopack and Webpack configs belong in next.config.mjs only.
 
 ## Development Notes
 
@@ -1277,6 +1292,111 @@ npm run build
 - **Maintenance**: Future-proof configuration mengikuti latest Next.js standards
 
 This update ensures VibeDev ID runs with the latest Next.js 15 best practices and provides a clean, warning-free development experience.
+
+### 🎬 **YOUTUBE VIDEO MANAGER SYSTEM** - Admin Dashboard for Homepage Videos (10 January 2025)
+
+#### 🎯 **System Overview:**
+Complete YouTube video management system yang memungkinkan admin untuk manage videos di homepage melalui dedicated admin dashboard. System includes CRUD operations, automatic metadata fetching, dan real-time homepage synchronization.
+
+#### 🔧 **Implementation Details:**
+
+**1. Admin Dashboard (`/admin`):**
+- ✅ **Full CRUD Operations**: Create, Read, Update, Delete videos dari admin interface
+- ✅ **YouTube URL Auto-Fetch**: Input YouTube URL dan system auto-fetch title, description, views, publish date, thumbnail
+- ✅ **Edit Mode Enhancement**: Inline editing dengan YouTube URL fetch capability untuk replace video metadata
+- ✅ **Delete Confirmation**: Professional AlertDialog confirmation sebelum delete videos
+- ✅ **Real-time Updates**: Homepage immediately reflects changes made di admin dashboard
+
+**2. Database Integration (`vibe_videos` table):**
+```sql
+-- Video management table dengan position support
+CREATE TABLE public.vibe_videos (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  youtube_url TEXT UNIQUE NOT NULL,
+  thumbnail_url TEXT,
+  views_count TEXT,
+  publish_date TEXT,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**3. API Endpoints (`/api/vibe-videos`):**
+- **GET /api/vibe-videos**: List all videos ordered by position
+- **POST /api/vibe-videos**: Create new video dengan auto-metadata fetch
+- **PUT /api/vibe-videos/[id]**: Update existing video dengan validation
+- **DELETE /api/vibe-videos/[id]**: Delete video dengan proper error handling
+
+**4. YouTube Metadata Fetching (`/api/youtube`):**
+- **Hybrid Approach**: YouTube oEmbed API + HTML scraping untuk missing data
+- **Data Extraction**: Title, description, thumbnail, views count, publish date
+- **URL Format Support**: youtube.com/watch, youtu.be, youtube.com/shorts, etc.
+- **Error Handling**: Graceful fallbacks untuk invalid atau private videos
+
+#### 🎨 **Admin Dashboard Features:**
+
+**VideoVibeCodingManager Component:**
+- **Add New Videos**: Form dengan YouTube URL input dan auto-fetch metadata
+- **Current Videos Display**: Grid layout showing existing videos dengan thumbnails
+- **Edit Functionality**: Inline editing dengan enhanced YouTube URL fetch
+- **Delete Confirmation**: ShadCN AlertDialog dengan proper confirmation flow
+- **Loading States**: Professional loading indicators untuk all operations
+- **Error Handling**: User-friendly error messages dengan retry options
+
+#### 🔄 **Homepage Integration:**
+
+**YouTubeVideoShowcase Component:**
+- **Dynamic Data Loading**: Fetches videos dari `/api/vibe-videos` endpoint
+- **Fallback System**: Graceful fallback ke hardcoded data jika API fails
+- **Responsive Design**: Grid layout yang responsive untuk all device sizes
+- **Real-time Updates**: Homepage reflects admin changes immediately
+
+#### 🎯 **Next.js Image Configuration Enhancement:**
+
+**YouTube Thumbnail Support (`next.config.js`):**
+```javascript
+// Enhanced remote patterns untuk YouTube thumbnails
+images: {
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'i.ytimg.com',  // YouTube thumbnail domain
+      port: '',
+      pathname: '/**',
+    },
+    {
+      protocol: 'https',
+      hostname: 'img.youtube.com',  // Alternative YouTube domain
+      port: '',
+      pathname: '/**',
+    },
+    // Existing patterns maintained...
+  ],
+}
+```
+
+#### ✅ **Implementation Status:**
+- ✅ **Admin Dashboard**: Complete CRUD interface implemented
+- ✅ **Database Migration**: vibe_videos table created dengan sample data
+- ✅ **API Endpoints**: Full REST API dengan proper validation
+- ✅ **YouTube Integration**: Metadata fetching working untuk various URL formats
+- ✅ **Homepage Integration**: Dynamic video loading implemented
+- ✅ **Image Configuration**: YouTube thumbnail domains configured
+- ✅ **Error Handling**: Comprehensive error handling across all components
+- ✅ **UI Components**: ShadCN components untuk professional admin interface
+
+#### 🎯 **Benefits Achieved:**
+- **Admin Control**: Non-technical admins can manage homepage videos easily
+- **Dynamic Content**: Homepage videos can be updated tanpa code changes
+- **Professional UI**: Consistent design menggunakan ShadCN components
+- **Real-time Updates**: Changes reflected immediately di homepage
+- **Error Resilience**: Graceful handling untuk network errors dan invalid URLs
+- **Scalable Architecture**: Easy to extend untuk more video sources atau features
+
+This system provides complete control over homepage video content dengan professional admin interface dan robust error handling, making it easy untuk maintain fresh content tanpa developer intervention.
 
 ### 🌐 **FAVICON MANUAL INPUT SYSTEM** - Enhanced User Control & Removed Automatic Fetching (5 January 2025)
 

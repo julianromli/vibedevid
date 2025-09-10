@@ -10,6 +10,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+import YouTubeVideoShowcase from "@/components/ui/youtube-video-showcase";
 import { cn } from "@/lib/utils";
 import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import {
@@ -949,7 +950,7 @@ export default function HomePage() {
       </section>
 
       {/* Project Showcase Section */}
-      <section className="py-12 bg-muted/30" id="projects">
+      <section className="py-12 bg-muted/20" id="projects">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
@@ -1163,6 +1164,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* YouTube Video Vibe Coding Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <YouTubeVideoShowcase />
+        </div>
+      </section>
+
       {/* AI Coding Tools Integration Section */}
       <section id="integrations" className="py-20" data-animate>
         <div className="max-w-5xl mx-auto px-6">
@@ -1278,7 +1286,7 @@ export default function HomePage() {
       </section>
 
       {/* Reviews Section */}
-      <section id="reviews" className="py-20 bg-muted/30" data-animate>
+      <section id="reviews" className="py-20 bg-muted/20" data-animate>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
