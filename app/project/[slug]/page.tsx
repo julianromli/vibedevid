@@ -542,8 +542,12 @@ export default function ProjectDetailsPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Layer 1: Background Gradient Overlay - MANDATORY */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
+        {/* Layer 2: Content Container - MANDATORY */}
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content Skeleton */}
@@ -570,8 +574,12 @@ export default function ProjectDetailsPage({
 
   if (!project) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-grid-pattern relative">
+        {/* Layer 1: Background Gradient Overlay - MANDATORY */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+        
         <Navbar showBackButton={true} />
+        {/* Layer 2: Content Container - MANDATORY */}
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">
@@ -590,7 +598,10 @@ export default function ProjectDetailsPage({
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-grid-pattern relative">
+      {/* Layer 1: Background Gradient Overlay - MANDATORY */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+      
       <Navbar
         showBackButton={true}
         isLoggedIn={isLoggedIn}
@@ -599,6 +610,7 @@ export default function ProjectDetailsPage({
         onProfile={handleProfile}
       />
 
+      {/* Layer 2: Content Container - MANDATORY */}
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}

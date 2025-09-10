@@ -4,7 +4,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-grid-pattern relative">
       {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
       
       {/* Layer 2: Content Container - MANDATORY */}
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">

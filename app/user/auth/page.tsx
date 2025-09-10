@@ -229,7 +229,7 @@ function AuthPageContent() {
   return (
     <div className="min-h-screen bg-grid-pattern flex items-center justify-center p-4">
       {/* Background Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       {/* Auth Modal */}
       <div className="relative w-full max-w-md">
@@ -585,7 +585,7 @@ function AuthLoadingSkeleton() {
   return (
     <div className="min-h-screen bg-grid-pattern flex items-center justify-center p-4">
       {/* Background Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       {/* Loading Modal */}
       <div className="relative w-full max-w-md">

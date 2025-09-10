@@ -392,7 +392,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-grid-pattern relative">
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         <Navbar
           showBackButton={true}
@@ -421,7 +421,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-grid-pattern relative">
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         <Navbar
           showBackButton={true}
@@ -449,7 +449,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-grid-pattern relative">
       {/* Background Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       <Navbar
         showBackButton={true}
