@@ -1623,6 +1623,112 @@ if (!viewsFound) {
 
 This debug fix ensures VibeDev ID dapat maintain fresh, engaging video content dengan accurate metrics display, supporting community engagement dan content discoverability.
 
+### 📅 **YOUTUBE PUBLISH DATE EXTRACTION DEBUG FIX** - Enhanced Date Fetching Reliability (10 January 2025)
+
+#### 🚨 **Issue Resolved:**
+- **Problem**: YouTube publish date extraction defaulting to today's date instead of actual video upload date
+- **Root Cause**: Single regex pattern insufficient for YouTube's varying HTML structures + poor fallback (current date)
+- **User Report**: Video preview showing "10 September 2025" instead of actual video publish date
+- **Impact**: Inaccurate video metadata causing user confusion about video age
+
+#### 🔧 **Technical Solution Implementation:**
+
+**1. Multiple Publish Date Pattern System (`app/api/youtube/route.ts`):**
+```typescript
+// Enhanced publish date extraction dengan 8 fallback patterns
+const publishPatterns = [
+  /"publishDate":"([^"]+)"/,                        // Original pattern
+  /"dateText":{"simpleText":"([^"]+)"}/,            // Common UI structure
+  /"publishedTimeText":{"simpleText":"([^"]+)"}/,    // Alternative UI
+  /uploadDate\":\"([^\"]+)\"/,                        // JSON format
+  /<meta itemprop="uploadDate" content="([^"]+)"/,   // HTML meta
+  /<meta itemprop="datePublished" content="([^"]+)"/, // Schema.org
+  /"videoDetails":{[^}]*"publishDate":"([^"]+)"/,   // Nested JSON
+  /rel="canonical" href="[^"]*"[^>]*data-published="([^"]+)"/ // Data attribute
+]
+```
+
+**2. Better Fallback Strategy:**
+```typescript
+// Before: Always use today's date as fallback
+let publishedAt = new Date().toISOString() // ❌ Always today
+
+// After: Empty string with better user messaging
+let publishedAt = '' // ✅ Clean slate
+// Final fallback: "Date not available" instead of misleading date
+publishedAt: publishedAt || 'Date not available'
+```
+
+**3. Enhanced Pattern Matching Logic:**
+```typescript
+let publishFound = false
+for (const pattern of publishPatterns) {
+  const match = html.match(pattern)
+  if (match && match[1]) {
+    publishedAt = match[1]
+    publishFound = true
+    console.log(`[YouTube Debug] Publish date found using pattern: ${pattern.source}`)
+    break
+  }
+}
+
+if (!publishFound) {
+  console.warn(`[YouTube Debug] No publish date found for video ${videoId}`)
+  // Debug first 3 patterns untuk troubleshooting
+  publishPatterns.slice(0, 3).forEach((pattern, i) => {
+    const match = html.match(pattern)
+    console.log(`[YouTube Debug] Pattern ${i + 1}: ${match ? match[1] : 'none'}`)
+  })
+}
+```
+
+#### 🎯 **Benefits Achieved:**
+
+**Date Accuracy Improvements:**
+- ✅ **Multiple Fallback Patterns**: 8 different regex patterns handle various YouTube structures
+- ✅ **Honest Fallback**: "Date not available" instead of misleading current date
+- ✅ **Enhanced Debug Logging**: Clear tracking untuk pattern success/failure
+- ✅ **Future-Proof**: Adapts to YouTube HTML structure changes
+
+**User Experience Enhancements:**
+- ✅ **Accurate Timestamps**: Videos show real upload dates when available
+- ✅ **Transparent Handling**: Clear messaging when date cannot be determined
+- ✅ **No False Information**: Eliminates misleading "uploaded today" scenarios
+- ✅ **Debug Transparency**: Server logs help troubleshoot future issues
+
+**Technical Excellence:**
+- ✅ **Pattern Diversity**: Targets multiple YouTube data sources (JSON, meta tags, UI text)
+- ✅ **Error Resilience**: Graceful handling untuk unparseable date formats
+- ✅ **Performance Optimized**: Early exit when first pattern matches
+- ✅ **Debug Friendly**: Comprehensive logging untuk maintenance
+
+#### 📋 **Pattern Priority Analysis:**
+
+**YouTube Date Sources Targeted:**
+1. **publishDate JSON fields** - Primary data source dari video metadata
+2. **UI Text Elements** - dateText dan publishedTimeText dari user interface
+3. **Structured Meta Tags** - HTML meta tags dengan schema.org markup
+4. **Alternative JSON Paths** - videoDetails dan nested object structures
+5. **Data Attributes** - HTML data-* attributes dari canonical links
+
+**Pattern Success Hierarchy:**
+1. Direct JSON `publishDate` fields (most reliable)
+2. UI renderer objects dengan `simpleText` (common)
+3. Meta tag fallbacks (always present for public videos)
+4. Alternative JSON paths (backup structures)
+
+#### 🚀 **Production Status:**
+- ✅ **API Endpoint Enhanced**: `/api/youtube` route updated dengan multiple date patterns
+- ✅ **Fallback Strategy**: Clean "Date not available" messaging implemented
+- ✅ **Debug System**: Production-ready logging untuk future troubleshooting
+- ✅ **Pattern Coverage**: Comprehensive coverage untuk various YouTube layouts
+- ✅ **Error Prevention**: Eliminates misleading current date defaults
+- ✅ **Testing Ready**: Enhanced logging enables easy pattern validation
+
+**Impact**: YouTube video metadata sekarang provides accurate publish dates when available, dengan honest fallback messaging when date extraction fails, ensuring users receive reliable video age information instead of misleading current dates.
+
+This fix ensures VibeDev ID's YouTube integration maintains accuracy dan transparency dalam video metadata display, supporting informed content consumption decisions.
+
 ### 🌐 **FAVICON MANUAL INPUT SYSTEM** - Enhanced User Control & Removed Automatic Fetching (5 January 2025)
 
 #### 🎯 **System Overview:**

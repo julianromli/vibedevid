@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Scrape YouTube watch page untuk detailed stats
     let views = 0
-    let publishedAt = new Date().toISOString()
+    let publishedAt = ''
     let description = ''
 
     try {
@@ -125,10 +125,36 @@ export async function POST(request: NextRequest) {
           })
         }
         
-        // Extract publish date
-        const publishMatch = html.match(/"publishDate":"([^"]+)"/);
-        if (publishMatch) {
-          publishedAt = publishMatch[1]
+        // Extract publish date - multiple patterns karena YouTube sering ganti structure
+        const publishPatterns = [
+          /"publishDate":"([^"]+)"/,
+          /"dateText":{"simpleText":"([^"]+)"}/,
+          /"publishedTimeText":{"simpleText":"([^"]+)"}/,
+          /uploadDate\":\"([^\"]+)\"/,
+          /<meta itemprop="uploadDate" content="([^"]+)"/,
+          /<meta itemprop="datePublished" content="([^"]+)"/,
+          /"videoDetails":{[^}]*"publishDate":"([^"]+)"/,
+          /rel="canonical" href="[^"]*"[^>]*data-published="([^"]+)"/
+        ]
+        
+        let publishFound = false
+        for (const pattern of publishPatterns) {
+          const match = html.match(pattern)
+          if (match && match[1]) {
+            publishedAt = match[1]
+            publishFound = true
+            console.log(`[YouTube Debug] Publish date found using pattern: ${pattern.source}, value: ${publishedAt}`)
+            break
+          }
+        }
+        
+        if (!publishFound) {
+          console.warn(`[YouTube Debug] No publish date found for video ${videoId}`)
+          // Log first few patterns untuk debugging
+          publishPatterns.slice(0, 3).forEach((pattern, i) => {
+            const match = html.match(pattern)
+            console.log(`[YouTube Debug] Publish pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`)
+          })
         }
         
         // Extract description dari microformat
@@ -159,7 +185,7 @@ export async function POST(request: NextRequest) {
       description: cleanDescription(description || `Video by ${oembedData.author_name}`, 300),
       thumbnail: oembedData.thumbnail_url.replace('hqdefault', 'maxresdefault'), // Get higher quality thumbnail
       views: views,
-      publishedAt: publishedAt,
+      publishedAt: publishedAt || 'Date not available', // Better fallback instead of today's date
       channelTitle: oembedData.author_name,
       videoId: videoId,
       url: watchUrl
