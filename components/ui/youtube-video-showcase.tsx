@@ -166,17 +166,17 @@ const YouTubeVideoShowcase = () => {
     return (
       <div className="w-full font-sans text-foreground">
         {/* Header Section */}
-        <div className="w-full max-w-4xl mx-auto px-6 mb-8 text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-12 text-center">
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
             Video Vibe Coding Terbaru
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground font-medium max-w-2xl mx-auto">
+          <p className="text-muted-foreground mt-6 text-xl max-w-2xl mx-auto">
             Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
           </p>
         </div>
         
         {/* Loading skeleton */}
-        <div className="w-full max-w-6xl mx-auto min-w-[300px] rounded-xl overflow-hidden" style={{ height: 'auto', aspectRatio: '5/2' }}>
+        <div className="w-full max-w-5xl sm:max-w-6xl mx-auto min-w-[280px] sm:min-w-[300px] rounded-xl overflow-hidden px-2 sm:px-0" style={{ height: 'auto', aspectRatio: '5/2' }}>
           <div className="flex h-full gap-1">
             {Array.from({ length: 5 }).map((_, index) => (
               <div
@@ -196,22 +196,22 @@ const YouTubeVideoShowcase = () => {
   return (
     <div className="w-full font-sans text-foreground">
       {/* Header Section */}
-      <div className="w-full max-w-4xl mx-auto px-6 mb-8 text-center">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-12 text-center">
+        <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
           Video Vibe Coding Terbaru
         </h2>
-        <p className="text-lg md:text-xl text-muted-foreground font-medium max-w-2xl mx-auto">
+        <p className="text-muted-foreground mt-6 text-xl max-w-2xl mx-auto">
           Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
         </p>
         {error && (
-          <p className="text-sm text-amber-600 mt-2 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg">
+          <p className="text-sm text-amber-600 mt-2 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg mx-4 sm:mx-0">
             ⚠️ {error}
           </p>
         )}
       </div>
 
       {/* Video Selector Container */}
-      <div className="videos-container flex w-full max-w-6xl mx-auto min-w-[300px] overflow-hidden relative rounded-xl gap-1" style={{ height: 'auto', aspectRatio: '5/2' }}>
+      <div className="videos-container flex w-full max-w-5xl sm:max-w-6xl mx-auto min-w-[280px] sm:min-w-[300px] overflow-hidden relative rounded-xl gap-1 px-2 sm:px-0" style={{ height: 'auto', aspectRatio: '5/2' }}>
         {vibeVideos.map((video, index) => (
           <div
             key={index}
@@ -276,8 +276,8 @@ const YouTubeVideoShowcase = () => {
             {/* Play button overlay for non-active videos */}
             {activeIndex !== index && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-black/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/20">
-                  <Play className="w-6 h-6 text-white ml-1" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/20">
+                  <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" />
                 </div>
               </div>
             )}
@@ -348,10 +348,10 @@ const YouTubeVideoShowcase = () => {
                         e.stopPropagation();
                         handlePlayVideo(video.videoId);
                       }}
-                      className="pointer-events-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-colors duration-200"
+                      className="pointer-events-auto bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors duration-200 min-h-[36px] sm:min-h-[40px] touch-manipulation"
                     >
-                      <Play className="w-4 h-4" />
-                      Tonton Video
+                      <Play className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden xs:inline sm:inline">Tonton</span> Video
                     </button>
                   </div>
                 )}
@@ -396,27 +396,64 @@ const YouTubeVideoShowcase = () => {
           overflow: hidden;
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
           .videos-container {
             min-width: 280px;
-            aspect-ratio: 2.5/1 !important;
-            gap: 2px;
+            aspect-ratio: 3/2 !important;
+            gap: 3px;
+            padding: 0 8px;
           }
           
           .video-option {
-            min-width: 50px;
+            min-width: 70px;
             border-radius: 8px;
           }
           
           .video-icon {
-            min-width: 28px !important;
-            max-width: 28px !important;
-            height: 28px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            height: 32px !important;
           }
           
           .video-icon svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
+          }
+          
+          .video-title {
+            font-size: 0.875rem !important;
+            line-height: 1.25rem !important;
+          }
+          
+          .video-desc {
+            font-size: 0.75rem !important;
+            line-height: 1rem !important;
+          }
+          
+          .video-meta {
+            font-size: 0.6875rem !important;
+          }
+        }
+        
+        @media (min-width: 641px) and (max-width: 768px) {
+          .videos-container {
+            aspect-ratio: 2.8/1 !important;
+            gap: 2px;
+          }
+          
+          .video-option {
+            min-width: 60px;
+          }
+          
+          .video-icon {
+            min-width: 30px !important;
+            max-width: 30px !important;
+            height: 30px !important;
+          }
+          
+          .video-icon svg {
+            width: 15px;
+            height: 15px;
           }
         }
         

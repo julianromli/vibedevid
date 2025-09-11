@@ -1165,8 +1165,8 @@ export default function HomePage() {
       </section>
 
       {/* YouTube Video Vibe Coding Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 sm:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <YouTubeVideoShowcase />
         </div>
       </section>
