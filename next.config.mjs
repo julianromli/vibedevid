@@ -188,6 +188,31 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      // Lobe Icons CDN support
+      {
+        protocol: "https",
+        hostname: "registry.npmmirror.com",
+        port: "",
+        pathname: "/@lobehub/icons-static-svg/**",
+      },
+      {
+        protocol: "https",
+        hostname: "unpkg.com",
+        port: "",
+        pathname: "/@lobehub/icons-static-svg/**",
+      },
+      {
+        protocol: "https",
+        hostname: "unpkg.com",
+        port: "",
+        pathname: "/@lobehub/icons@latest/icons/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.designarena.ai",
+        port: "",
+        pathname: "/model-logos/**",
+      },
       // Favicon support for any domain
       {
         protocol: "https",

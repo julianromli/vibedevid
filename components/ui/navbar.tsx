@@ -155,6 +155,11 @@ export function Navbar({
                     className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                     Projects
                   </Link>
+                  <Link
+                    href="/ai/ranking"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                    Leaderboard
+                  </Link>
                   <button
                     onClick={() => scrollToSection?.("projects")}
                     className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
@@ -252,6 +257,12 @@ export function Navbar({
               onClick={() => setIsMenuOpen(false)}
               className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1">
               Projects
+            </Link>
+            <Link
+              href="/ai/ranking"
+              onClick={() => setIsMenuOpen(false)}
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1">
+              Leaderboard
             </Link>
             <button
               onClick={() => {
