@@ -100,12 +100,8 @@ export default function AIRankingPage() {
       <div className="relative max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28 pb-8">
         <div className="text-center mb-8 sm:mb-12 lg:mb-16">
           <div className="relative inline-block mb-4 sm:mb-6">
-            {/* Enhanced glow effect for better prominence */}
-            <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-green-500/30 rounded-2xl sm:rounded-3xl blur-xl animate-pulse"></div>
-            <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-r from-blue-400/40 via-purple-400/40 to-green-400/40 rounded-xl sm:rounded-2xl blur-md"></div>
-            
-            {/* Stronger background for better contrast */}
-            <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 bg-background/98 backdrop-blur-md rounded-xl sm:rounded-2xl border-2 border-border/80 shadow-2xl">
+            {/* Clean background without rainbow effects */}
+            <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 bg-background/95 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-border/50 shadow-lg">
               {/* Clean title with standard foreground color */}
               <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-foreground tracking-tight">
                 AI Coding Leaderboard
