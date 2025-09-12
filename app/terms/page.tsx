@@ -19,9 +19,11 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function TermsPage() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -64,16 +66,28 @@ export default function TermsPage() {
   ];
 
   const scrollToSection = (sectionId: string) => {
+    // Handle internal sections first
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    
+    // For homepage sections, redirect
+    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
+      router.push(`/#${sectionId}`);
     }
   };
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <div className="min-h-screen bg-background">
-        <Navbar showBackButton={true} isLoggedIn={isLoggedIn} user={user} />
+        <Navbar
+          showNavigation={true}
+          isLoggedIn={isLoggedIn}
+          user={user}
+          scrollToSection={scrollToSection}
+        />
 
         <main className="pt-20 pb-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

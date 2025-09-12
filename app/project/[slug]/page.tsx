@@ -118,6 +118,7 @@ import {
   isValidUserAgent,
 } from "@/lib/client-analytics";
 import { useRouter } from "next/navigation";
+import { Footer } from "@/components/ui/footer";
 
 // Common tech stack options for the multiselect
 const MAX_DESCRIPTION_LENGTH = 1600;
@@ -540,13 +541,23 @@ export default function ProjectDetailsPage({
     });
   };
 
+  const scrollToSection = (sectionId: string) => {
+    // For project detail pages, redirect to homepage sections if needed
+    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
+      router.push(`/#${sectionId}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-grid-pattern relative">
         {/* Layer 1: Background Gradient Overlay - MANDATORY */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
         
-        <Navbar showBackButton={true} />
+        <Navbar
+          showNavigation={true}
+          scrollToSection={scrollToSection}
+        />
         {/* Layer 2: Content Container - MANDATORY */}
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="grid lg:grid-cols-3 gap-8">
@@ -578,7 +589,10 @@ export default function ProjectDetailsPage({
         {/* Layer 1: Background Gradient Overlay - MANDATORY */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
         
-        <Navbar showBackButton={true} />
+        <Navbar
+          showNavigation={true}
+          scrollToSection={scrollToSection}
+        />
         {/* Layer 2: Content Container - MANDATORY */}
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           <div className="text-center">
@@ -603,11 +617,10 @@ export default function ProjectDetailsPage({
       <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
       
       <Navbar
-        showBackButton={true}
+        showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={currentUser || undefined}
-        onSignOut={handleSignOut}
-        onProfile={handleProfile}
+        scrollToSection={scrollToSection}
       />
 
       {/* Layer 2: Content Container - MANDATORY */}
@@ -1411,6 +1424,9 @@ export default function ProjectDetailsPage({
           </div>
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

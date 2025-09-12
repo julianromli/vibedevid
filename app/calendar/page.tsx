@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -81,6 +82,7 @@ const categoryColors = {
 }
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [selectedRange, setSelectedRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined })
   const [events, setEvents] = useState<Event[]>(mockEvents)
@@ -137,9 +139,19 @@ export default function CalendarPage() {
     }
   }
 
+  const scrollToSection = (sectionId: string) => {
+    // For calendar page, redirect to homepage sections if needed
+    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
+      router.push(`/#${sectionId}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar
+        showNavigation={true}
+        scrollToSection={scrollToSection}
+      />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

@@ -133,7 +133,9 @@ export function Navbar({
                 </Button>
               </Link>
             ) : (
-              <AdaptiveLogo />
+              <Link href="/" className="flex items-center gap-3">
+                <AdaptiveLogo />
+              </Link>
             )}
           </div>
 
@@ -148,6 +150,11 @@ export function Navbar({
             showNavigation && (
               <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
                 <div className="flex items-baseline space-x-8">
+                  <Link
+                    href="/project/list"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                    Projects
+                  </Link>
                   <button
                     onClick={() => scrollToSection?.("projects")}
                     className="text-muted-foreground hover:text-foreground transition-all duration-300 text-sm cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
@@ -217,9 +224,10 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Mobile menu button */}
-          {showNavigation && (
-            <div className="md:hidden">
+          {/* Mobile controls - Theme Toggle + Menu Button */}
+          <div className="md:hidden flex items-center gap-3">
+            <ThemeToggle />
+            {showNavigation && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -230,15 +238,8 @@ export function Navbar({
                   <Menu className="h-6 w-6" />
                 )}
               </Button>
-            </div>
-          )}
-
-          {/* Mobile Theme Toggle (when no navigation) */}
-          {!showNavigation && (
-            <div className="md:hidden">
-              <ThemeToggle />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -246,6 +247,12 @@ export function Navbar({
       {showNavigation && isMenuOpen && (
         <div className="md:hidden bg-background border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link
+              href="/project/list"
+              onClick={() => setIsMenuOpen(false)}
+              className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1">
+              Projects
+            </Link>
             <button
               onClick={() => {
                 scrollToSection?.("projects");
@@ -278,7 +285,7 @@ export function Navbar({
               className="block w-full text-left px-3 py-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 rounded-md hover:translate-x-1">
               FAQ
             </button>
-            <div className="px-3 py-2">
+            <div className="px-3 py-2 border-t border-border">
               {!userIsLoggedIn ? (
                 <Button className="w-full" onClick={handleSignIn}>
                   Sign In

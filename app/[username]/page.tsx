@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import ProfileEditDialog from "@/components/ui/profile-edit-dialog";
+import { Footer } from "@/components/ui/footer";
 
 async function updateUserProfile(username: string, profileData: any) {
   const supabase = createClient();
@@ -388,6 +389,13 @@ export default function ProfilePage() {
     }
   };
 
+  const scrollToSection = (sectionId: string) => {
+    // For profile pages, redirect to homepage sections if needed
+    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
+      router.push(`/#${sectionId}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-grid-pattern relative">
@@ -395,11 +403,10 @@ export default function ProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         <Navbar
-          showBackButton={true}
+          showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={currentUser || undefined}
-          onSignOut={handleSignOut}
-          onProfile={handleProfile}
+          scrollToSection={scrollToSection}
         />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="space-y-8">
@@ -424,11 +431,10 @@ export default function ProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         <Navbar
-          showBackButton={true}
+          showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={currentUser || undefined}
-          onSignOut={handleSignOut}
-          onProfile={handleProfile}
+          scrollToSection={scrollToSection}
         />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
           <div className="text-center">
@@ -452,11 +458,10 @@ export default function ProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       <Navbar
-        showBackButton={true}
+        showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={currentUser || undefined}
-        onSignOut={handleSignOut}
-        onProfile={handleProfile}
+        scrollToSection={scrollToSection}
       />
 
       {/* Profile Header */}
@@ -641,6 +646,9 @@ export default function ProfilePage() {
         onSave={handleSaveProfile}
         saving={saving}
       />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
