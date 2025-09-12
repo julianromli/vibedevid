@@ -748,6 +748,108 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - ✅ Profile navigation (routing functional)
 - ✅ Project detail pages (stats and comments working)
 
+---
+
+## UI Component Consistency Rules 🎨
+
+### **📋 MANDATORY: Navbar & Footer Consistency Across All Pages**
+
+**RULE: Setiap page baru WAJIB menggunakan komponen Navbar dan Footer yang konsisten untuk menjaga unified user experience.**
+
+#### **Required Implementation:**
+
+**1. Import dan Gunakan Components:**
+```tsx
+// ALWAYS import these components untuk new pages
+import { Navbar } from "@/components/ui/navbar"
+import { Footer } from "@/components/ui/footer"
+```
+
+**2. Standard Page Layout Pattern:**
+```tsx
+// ALWAYS use this exact layout structure untuk new pages
+<div className="min-h-screen bg-grid-pattern relative">
+  {/* Layer 1: Background Gradient Overlay - MANDATORY */}
+  <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+  
+  {/* Layer 2: Navigation - MANDATORY */}
+  <Navbar showNavigation={true} scrollToSection={scrollToSection} />
+  
+  {/* Layer 3: Content Container - MANDATORY */}
+  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+    {/* Your page content here */}
+  </div>
+  
+  {/* Layer 4: Footer - MANDATORY */}
+  <Footer />
+</div>
+```
+
+#### **Navbar Configuration Requirements:**
+
+**showNavigation Prop:**
+- ✅ **Always use `showNavigation={true}`** untuk include full navigation menu
+- ✅ **Navigation items**: Projects, Showcase, Features, Reviews, FAQ
+- ✅ **Theme Toggle**: Included di mobile menu untuk responsiveness
+- ✅ **Logo**: Clickable dengan redirect ke homepage
+
+**scrollToSection Handler:**
+```tsx
+// Include this handler untuk proper section navigation
+const scrollToSection = (sectionId: string) => {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    // Redirect ke homepage dengan anchor untuk sections yang tidak ada
+    window.location.href = `/#${sectionId}`
+  }
+}
+```
+
+#### **Component Features Included:**
+
+**Navbar (`components/ui/navbar.tsx`):**
+- ✅ **Responsive Design**: Mobile hamburger menu dengan full navigation
+- ✅ **Theme Toggle**: Sun/Moon icon dengan perfect center alignment
+- ✅ **User Authentication**: Profile dropdown atau login/signup buttons
+- ✅ **Back Button**: Clean hover state tanpa shadow effects (untuk internal pages)
+- ✅ **Clean Shadows**: No hover shadow effects untuk minimalist design
+
+**Footer (`components/ui/footer.tsx`):**
+- ✅ **Company Information**: VibeDev ID branding dan contact details
+- ✅ **Navigation Links**: Quick links ke major sections
+- ✅ **Social Media**: Links ke community platforms
+- ✅ **Copyright**: Current year dengan proper attribution
+- ✅ **Responsive Layout**: Mobile-optimized footer structure
+
+#### **Pages Dengan Navbar & Footer Implemented:**
+- ✅ `app/page.tsx` (Homepage)
+- ✅ `app/project/[slug]/page.tsx` (Project Detail)
+- ✅ `app/project/submit/page.tsx` (Project Submission)
+- ✅ `app/[username]/page.tsx` (User Profiles)
+- ✅ `app/admin/page.tsx` (Admin Dashboard)
+
+#### **Exceptions (Pages WITHOUT Navbar & Footer):**
+- ❌ **Authentication Pages**: `app/auth/` dan `app/user/auth/`
+  - Reason: Custom layout untuk focused authentication experience
+  - Design: Dedicated auth UI tanpa navigation distractions
+
+#### **Benefits:**
+- ✅ **Visual Consistency**: Unified navigation experience across platform
+- ✅ **User Familiarity**: Consistent UI patterns reduce learning curve
+- ✅ **Mobile Experience**: Responsive navigation dengan theme toggle accessibility
+- ✅ **Professional Appearance**: Cohesive brand presentation
+- ✅ **Maintenance**: Centralized components untuk easy updates
+
+#### **Development Guidelines:**
+- 🔧 **New Pages**: ALWAYS start dengan standard layout pattern di atas
+- 🔧 **Theme Compatibility**: Ensure all new content works dengan dark/light modes
+- 🔧 **Mobile Testing**: Verify navigation accessibility pada mobile devices
+- 🔧 **Background Pattern**: Use consistent grid pattern dengan standard opacity
+
+**This rule ensures perfect UI consistency across VibeDev ID platform, providing seamless user experience dan professional brand presentation.**
+
 ### **🔧 PRODUCTION FIXES APPLIED:**
 
 **🚨 Critical Issues Resolved:**
