@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AvatarUploader } from "@/components/ui/avatar-uploader"
 import { createClient } from "@/lib/supabase/client"
 import { scheduleOldAvatarDeletion, isOurStorageUrl } from "@/lib/avatar-utils"
 
@@ -52,10 +53,7 @@ export default function ProfileEditDialog({
   const [loadingBio, setLoadingBio] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
+  const handleAvatarUpload = async (file: File): Promise<{ success: boolean }> => {
     console.log("[v0] Starting avatar upload for file:", file.name)
     setUploadingAvatar(true)
     
@@ -70,7 +68,7 @@ export default function ProfileEditDialog({
 
       if (!user) {
         console.error("User not authenticated")
-        return
+        return { success: false }
       }
 
       const fileExt = file.name.split(".").pop()
@@ -84,7 +82,7 @@ export default function ProfileEditDialog({
 
       if (error) {
         console.error("[v0] Error uploading avatar:", error.message)
-        return
+        return { success: false }
       }
 
       console.log("[v0] Upload successful, getting public URL...")
@@ -107,8 +105,10 @@ export default function ProfileEditDialog({
         console.log("[v0] Skipping deletion - not our storage URL:", oldAvatarUrl)
       }
       
+      return { success: true }
     } catch (error) {
       console.error("[v0] Error uploading avatar:", error)
+      return { success: false }
     } finally {
       setUploadingAvatar(false)
     }
@@ -162,27 +162,30 @@ export default function ProfileEditDialog({
 
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20 rounded-xl border border-zinc-300 dark:border-zinc-700 shadow">
-              <AvatarImage src={formData.avatar || "/placeholder.svg"} className="object-cover" />
-              <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800">
-                {formData.name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("") || "U"}
-              </AvatarFallback>
-            </Avatar>
+            <AvatarUploader onUpload={handleAvatarUpload}>
+              <Avatar className="h-20 w-20 rounded-xl border border-zinc-300 dark:border-zinc-700 shadow cursor-pointer hover:opacity-80 transition-opacity">
+                <AvatarImage src={formData.avatar || "/placeholder.svg"} className="object-cover" />
+                <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800">
+                  {formData.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("") || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </AvatarUploader>
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => document.getElementById("avatar-upload")?.click()}
-                  disabled={uploadingAvatar}
-                  className="flex items-center gap-2 bg-transparent"
-                >
-                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  <span>Upload</span>
-                </Button>
+                <AvatarUploader onUpload={handleAvatarUpload}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingAvatar}
+                    className="flex items-center gap-2 bg-transparent"
+                  >
+                    {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    <span>Upload</span>
+                  </Button>
+                </AvatarUploader>
                 <Button
                   variant="outline"
                   size="sm"
@@ -194,8 +197,7 @@ export default function ProfileEditDialog({
                   <span>AI Generate</span>
                 </Button>
               </div>
-              <input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Upload or generate with AI</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Click avatar or upload button • Generate with AI</p>
             </div>
           </div>
 

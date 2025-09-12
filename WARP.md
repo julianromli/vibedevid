@@ -1035,6 +1035,16 @@ Before deployment, ensure:
   - **Background System Standardization** - Grid pattern applied across all pages
   - **Session-based Analytics Enhancement** - Advanced visitor tracking system implementation
   - **Avatar Auto-Delete Implementation** - Smart storage cleanup system dengan scheduled deletion
+  - **🖼️ AVATAR UPLOADER WITH CROPPING** - Enhanced avatar upload system dengan professional cropping functionality (January 2025):
+    - **AvatarUploader Component**: Advanced modal interface dengan react-easy-crop integration
+    - **Cropping Functionality**: Users dapat crop dan resize gambar sebelum upload ke Supabase storage
+    - **Responsive Modal System**: Drawer di mobile, dialog di desktop menggunakan use-media-query hook
+    - **Click to Upload**: Avatar dapat diklik langsung untuk trigger upload modal, tidak hanya tombol upload
+    - **Auto-Delete Integration**: Tetap maintain compatibility dengan existing auto-delete avatar lama system
+    - **File Validation**: Check format (JPEG, PNG, WebP) dan size limit (20MB default) dengan user-friendly error messages
+    - **Perfect Integration**: Seamless integration ke existing profile-edit-dialog tanpa breaking changes
+    - **UI Components**: Modal wrapper component menggunakan shadcn/ui drawer dan dialog components
+    - **Dependencies**: react-easy-crop dependency ditambahkan untuk professional cropping experience
     - Automatic cleanup of old avatar files when users upload new profile pictures
     - 10-second configurable delay untuk ensure upload success sebelum deletion
     - Smart filtering untuk only delete files from own Supabase storage bucket
