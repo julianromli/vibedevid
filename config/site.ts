@@ -1,13 +1,22 @@
 export const siteConfig = {
-  title: {
-    default:
-      "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
-    template: "%s | VibeDev ID",
-  },
+  title: 'VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia',
   description:
-    "Gabung VibeDev ID, komunitas vibe coding Indonesia. Belajar coding pake AI, kolab di project open source, dan ketemu vibe coder Indonesia. Event rutin + support komunitas.",
-  name: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
-  url: "https://www.vibedevid.com/",
-};
+    'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
+  author: 'VibeDev ID',
+  url: 'https://www.vibedevid.com/',
+  keywords: [
+    'vibe coding',
+    'komunitas vibe coding',
+    'komunitas vibe coding indonesia',
+    'vibe coder indonesia',
+    'coding pake AI',
+    'AI untuk coding',
+    'komunitas developer indonesia',
+    'open source indonesia',
+    'belajar coding AI',
+    'developer community indonesia',
+    'project showcase indonesia',
+  ],
+}
 
-export type SiteConfig = typeof siteConfig;
+export type SiteConfig = typeof siteConfig

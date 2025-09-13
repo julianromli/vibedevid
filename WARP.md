@@ -9,6 +9,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators Indonesia yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Built with Next.js 15, Supabase, and Tailwind CSS.
 
 ### Key Features:
+
 - Indonesian-focused developer community platform
 - User authentication with Supabase Auth
 - Project showcase dan portfolio management
@@ -21,46 +22,72 @@ VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovato
 ## Development Commands
 
 ### Setup and Installation
+
 \`\`\`bash
+
 # Install dependencies (supports npm, pnpm, or bun)
+
 pnpm install
+
 # or npm install
+
 # or bun install
 
 # Set up environment variables
+
 cp .env.example .env.local
 \`\`\`
 
 ### Development Server
+
 \`\`\`bash
+
 # Start development server with Turbopack
+
 pnpm dev
+
 # or npm run dev
+
 # or bun dev
 
 # Server runs on http://localhost:3000
+
 \`\`\`
 
 ### Build and Production
+
 \`\`\`bash
+
 # Build for production with Turbopack
+
 pnpm build
+
 # or npm run build
 
 # Start production server
+
 pnpm start
+
 # or npm start
 
 # Build for Vercel deployment
+
 pnpm vercel-build
+
 # or npm run vercel-build
+
 \`\`\`
 
 ### Code Quality
+
 \`\`\`bash
+
 # Lint the codebase
+
 pnpm lint
+
 # or npm run lint
+
 \`\`\`
 
 ## Database Setup
@@ -75,6 +102,7 @@ The project uses Supabase with PostgreSQL. Database schema is defined in SQL scr
 6. **06_enhance_views_table.sql** - Session-based analytics enhancement with unique visitor tracking
 
 ### Required Environment Variables
+
 \`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -86,6 +114,7 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 ## Architecture Overview
 
 ### App Router Structure (Next.js 15)
+
 - **app/** - Main application directory using App Router
   - **[username]/** - Dynamic user profile pages
   - **project/[slug]/** - Individual project detail pages (SEO-friendly slug URLs)
@@ -95,7 +124,9 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
   - **page.tsx** - Main homepage with project showcase
 
 ### Authentication System
+
 The app uses Supabase Auth with custom user profiles:
+
 - **lib/actions.ts** - Server actions for sign in/up, password reset, comments
 - **middleware.ts** - Supabase middleware for session management
 - **lib/supabase/** - Client/server Supabase configuration
@@ -112,6 +143,7 @@ The app uses Supabase Auth with custom user profiles:
   - **URL Parameter Handling**: Login page reads success/error messages dari URL parameters
 
 ### UI Components (shadcn/ui)
+
 - **components/ui/** - Reusable UI components built on Radix UI
   - **Alert Dialog**: Professional confirmation dialogs (e.g., delete project)
   - **Button**: Multiple variants with loading states and icons
@@ -124,6 +156,7 @@ The app uses Supabase Auth with custom user profiles:
 - Uses Tailwind CSS v4 with CSS variables for theming
 
 ### Key Features Implementation
+
 - **User Profiles**: Extended auth.users with custom profile data in `users` table
 - **Avatar Management**: Smart auto-cleanup system dengan scheduled deletion
   - **Auto-Delete Old Avatars**: Automatically removes old avatar files setelah user upload new ones
@@ -145,7 +178,7 @@ The app uses Supabase Auth with custom user profiles:
 - **Avatar Auto-Delete System**: Smart cleanup system untuk avatar lama dengan 10-second delay scheduling
 - **Alert Dialogs**: Professional confirmation dialogs using shadcn/ui Alert Dialog
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Indonesian Localization**: 
+- **Indonesian Localization**:
   - SEO/LEO friendly Indonesian copy throughout the platform
   - Informal but professional tone ("lo", "gue", "bareng") appealing to Indonesian developers
   - Testimonials from real Indonesian tech companies (Tokopedia, Gojek, Bukalapak, Traveloka)
@@ -158,6 +191,7 @@ The app uses Supabase Auth with custom user profiles:
   - **Meta Tags**: Optimized title, description, Open Graph, and Twitter Card metadata
 
 ### Database Schema
+
 - **users** - User profiles extending Supabase auth
 - **projects** - Project showcase with categories, metadata, and **slug-based URLs**:
   - `slug` (TEXT UNIQUE) - SEO-friendly URL identifier (e.g., "my-awesome-project")
@@ -175,11 +209,13 @@ The app uses Supabase Auth with custom user profiles:
 ## 🔗 Slug-Based URL Migration (September 2025)
 
 ### Migration Overview
+
 **Status**: ✅ **COMPLETED & PRODUCTION-READY**
 
 Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to SEO-friendly slug-based URLs (`/project/my-awesome-project`) with zero data loss and full backward compatibility.
 
 ### Key Achievements
+
 - **100% Test Coverage**: All 9 test categories passed comprehensive validation
 - **SEO Enhancement**: Human-readable URLs improve search engine visibility
 - **User Experience**: Cleaner, shareable URLs dengan meaningful identifiers
@@ -189,8 +225,9 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 ### Technical Implementation
 
 #### Database Changes
+
 - **New Column**: Added `slug` TEXT UNIQUE NOT NULL to `projects` table
-- **Constraints**: 
+- **Constraints**:
   - Unique constraint: `projects_slug_unique`
   - Format validation: `projects_slug_format CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')`
   - Performance index: `idx_projects_slug`
@@ -198,7 +235,9 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 - **Collision Resolution**: Automatic numbering for duplicate titles (e.g., "project-2", "project-3")
 
 #### Backend Refactoring
+
 **File**: `lib/actions.ts`
+
 - **New Functions**:
   - `getProjectBySlug(slug: string)` - Primary project lookup function
   - `getProjectIdBySlug(slug: string)` - Helper untuk internal ID resolution
@@ -214,19 +253,24 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
   - `getProjectSlugById()` - Legacy support function
 
 #### Frontend Updates
-**Routes**: 
+
+**Routes**:
+
 - **Renamed**: `app/project/[id]` → `app/project/[slug]`
 - **Legacy Redirect**: Built-in UUID detection dengan automatic redirect
 - **Parameter Handling**: `params: { slug: string }` instead of `{ id: string }`
 
 **Navigation Updates**:
+
 - **Homepage**: All project cards link via `/project/[slug]`
 - **Profile Pages**: User project cards use slug URLs
 - **Submit Form**: Redirects to `/project/[generated-slug]` after successful submission
 - **Like System**: HeartButton component updated to handle slug-based project identification
 
 #### Client-Side Improvements
+
 **File**: `lib/client-likes.ts`
+
 - **Enhanced Functions**:
   - `getLikeStatusClient()` - Supports both UUID dan slug parameters
   - `toggleLikeClient()` - Automatic UUID/slug detection dengan proper routing
@@ -235,6 +279,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 ### URL Structure Comparison
 
 #### Before Migration:
+
 ```
 ❌ /project/a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ❌ /project/44
@@ -242,6 +287,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 ```
 
 #### After Migration:
+
 ```
 ✅ /project/asfin-asisten-finansial
 ✅ /project/catatan-keuangan-simpel
@@ -250,6 +296,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 ```
 
 ### Testing Results Summary
+
 **Date**: September 8, 2025  
 **Comprehensive Testing**: 9 major test categories
 **Pass Rate**: 100% ✅
@@ -257,6 +304,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 **Critical Issues Resolved**: 1 ✅
 
 #### Verified Components:
+
 - ✅ Homepage navigation with slug URLs
 - ✅ Project detail page functionality
 - ✅ Profile page project links
@@ -268,39 +316,46 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 - ✅ Error handling for invalid slugs
 
 #### Bug Fixed During Testing:
+
 **Issue**: Like counts showing `0` on homepage despite database having likes
 **Root Cause**: HeartButton component receiving `project.id` instead of `project.slug`
 **Solution**: Updated homepage to pass `project.slug` to HeartButton component
 **Result**: All like counts now display correctly dengan real-time updates
 
 ### SEO Benefits
+
 - **Improved Search Rankings**: Human-readable URLs boost SEO performance
 - **Social Sharing**: Cleaner URLs untuk better social media sharing
 - **User Trust**: Professional URLs increase user confidence
 - **Analytics**: Better tracking dengan meaningful URL segments
 
 ### Backward Compatibility
+
 - **Automatic Redirects**: Legacy UUID URLs (e.g., `/project/uuid`) redirect to slug URLs
 - **Zero Broken Links**: All existing bookmarks and external links continue working
 - **Graceful Fallback**: Invalid UUIDs redirect to homepage with proper error handling
 
 ### Performance Impact
+
 - **Database Queries**: Optimized slug-based lookups dengan proper indexing
 - **Client Performance**: No negative impact on page load times
 - **Memory Usage**: Minimal overhead dari slug generation utilities
 
 ### Developer Experience
+
 - **Cleaner Code**: More semantic URL handling throughout codebase
 - **Better Debugging**: Meaningful URLs make debugging easier
 - **Maintainability**: Consistent slug-based routing across all components
 
 ### Migration Files Created
+
 - `TESTING_SLUG_MIGRATION.md` - Comprehensive testing plan dengan 9 test categories
 - `lib/slug.ts` - Slug generation dan validation utilities
 - Updated `lib/actions.ts` - All server actions refactored untuk slug support
 - Updated `lib/client-likes.ts` - Client-side like system dengan slug support
 
 ### Production Readiness Checklist
+
 - ✅ Database migration completed
 - ✅ Backend server actions refactored
 - ✅ Frontend routes updated
@@ -315,6 +370,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 **Migration Status**: 🚀 **READY FOR PRODUCTION DEPLOYMENT**
 
 ### Security
+
 - Row Level Security (RLS) enabled on all tables
 - Policies allow public read access but restrict writes to owners
 - Guest comments allowed for engagement without requiring accounts
@@ -327,6 +383,7 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
   - Real-time feedback system dengan user-friendly error messages
 
 ### Styling and Theming
+
 - Tailwind CSS v4 with component-based architecture
 - Custom CSS variables for consistent theming
 - Support for dark/light mode via next-themes
@@ -340,26 +397,29 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 **RULE: Every new page MUST use the standardized 3-layer background system**
 
 #### Required Implementation:
+
 ```tsx
 // ALWAYS use this exact pattern for new pages
-<div className="min-h-screen bg-grid-pattern relative">
+<div className="bg-grid-pattern relative min-h-screen">
   {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-  <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
-  
+  <div className="from-background/50 via-muted/30 to-background/80 absolute inset-0 bg-gradient-to-br"></div>
+
   {/* Layer 2: Content Container - MANDATORY */}
-  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+  <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
     {/* Your page content here */}
   </div>
 </div>
 ```
 
 #### Apply to ALL Page States:
+
 - ✅ **Main Content** - Primary page view
 - ✅ **Loading States** - Skeleton loaders, loading indicators
 - ✅ **Error States** - 404, user not found, project not found
 - ✅ **Empty States** - No data, no projects, etc.
 
 #### Background System Components:
+
 1. **Base Layer**: `bg-grid-pattern` - CSS-defined minimalist grid dots
    - Light mode: Black dots (rgba(0,0,0,0.4))
    - Dark mode: White dots (rgba(255,255,255,0.3))
@@ -372,26 +432,37 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 3. **Content Layer**: `relative` positioning for proper z-index stacking
 
 #### Pages Currently Implemented:
+
 - ✅ `app/user/auth` (Authentication pages)
 - ✅ `app/project/submit` (Project submission)
 - ✅ `app/project/[id]` (Project details)
 - ✅ `app/[username]` (User profiles)
 
 #### CSS Definition Location:
+
 ```css
 /* Located in app/globals.css lines 231-239 */
 .bg-grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.4) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(0, 0, 0, 0.4) 1px,
+    transparent 0
+  );
   background-size: 20px 20px;
 }
 
 .dark .bg-grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.3) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.3) 1px,
+    transparent 0
+  );
   background-size: 20px 20px;
 }
 ```
 
 #### Benefits:
+
 - **Visual Consistency**: Professional, modern aesthetic across all pages
 - **Theme Adaptive**: Automatically works with light/dark mode
 - **Performance**: CSS-only solution, no image assets
@@ -405,7 +476,8 @@ Successfully migrated from UUID-based project URLs (`/project/uuid-123-456`) to 
 VibeDev ID has been fully optimized for Indonesian developer community search terms with comprehensive technical and content SEO implementation.
 
 #### Target Keywords Achieved:
-- **Primary Keywords**: 
+
+- **Primary Keywords**:
   - "vibe coding" (community branding)
   - "komunitas vibe coding" (community search)
   - "komunitas vibe coding indonesia" (localized community)
@@ -419,6 +491,7 @@ VibeDev ID has been fully optimized for Indonesian developer community search te
 ### 📋 **SEO Implementation Checklist**
 
 #### ✅ **Technical SEO - Completed**
+
 - **Meta Tags Optimization**: `app/layout.tsx`
   - Title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI"
   - Description: SEO-optimized with primary keywords
@@ -434,6 +507,7 @@ VibeDev ID has been fully optimized for Indonesian developer community search te
 - **Core Web Vitals**: Optimized loading performance
 
 #### ✅ **Content SEO - Completed**
+
 - **Homepage Copy Optimization**:
   - H1: "Komunitas Vibe Coding No. 1 di Indonesia" (primary keyword)
   - H2 Structure: All section headings include target keywords
@@ -444,6 +518,7 @@ VibeDev ID has been fully optimized for Indonesian developer community search te
 - **Local SEO Signals**: "Indonesia" mentioned consistently throughout
 
 #### ✅ **User Experience SEO**
+
 - **Readability**: Indonesian informal professional tone
 - **Engagement Signals**: Interactive FAQ, project showcases, testimonials
 - **Page Speed**: Lazy loading, optimized images, minimal JS
@@ -454,6 +529,7 @@ VibeDev ID has been fully optimized for Indonesian developer community search te
 #### Primary Files Modified:
 
 **1. `app/layout.tsx` - Metadata Export**
+
 ```typescript
 export const metadata: Metadata = {
   title: "VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
@@ -474,6 +550,7 @@ export const metadata: Metadata = {
 ```
 
 **2. `app/page.tsx` - Content & Schema**
+
 - Hero section with optimized H1 and subtitle
 - JSON-LD Organization + FAQ schema
 - All section headings with target keywords
@@ -482,13 +559,15 @@ export const metadata: Metadata = {
 ### 📊 **SEO Keyword Strategy**
 
 #### Natural Keyword Distribution:
+
 - **"vibe coding"**: 8 mentions (0.8% density)
-- **"komunitas vibe coding"**: 6 mentions (0.6% density)  
+- **"komunitas vibe coding"**: 6 mentions (0.6% density)
 - **"coding pake AI"**: 5 mentions (0.5% density)
 - **"Indonesia/Indonesian"**: 12+ mentions (strong local signals)
 - **"developer"**: 15+ mentions (authority building)
 
 #### Content Sections Optimized:
+
 1. **Hero Section**: Primary keyword in H1, supporting keywords in subtitle
 2. **Project Showcase**: "developer Indonesia" + "vibe coder Indonesia"
 3. **AI Tools Section**: "coding pake AI" + "AI untuk coding"
@@ -499,12 +578,14 @@ export const metadata: Metadata = {
 ### 🎯 **SEO Best Practices Applied**
 
 #### Content Strategy:
+
 - **E-A-T Signals**: Expertise (tech focus), Authority (community size), Trust (testimonials)
 - **Local SEO**: Geographic targeting for Indonesian developers
 - **Semantic SEO**: Related terms and LSI keywords naturally integrated
 - **User Intent**: Informational, navigational, and transactional queries covered
 
 #### Technical Strategy:
+
 - **Schema Markup**: Organization + FAQ for rich results
 - **Internal Architecture**: Logical site structure and navigation
 - **Performance**: Fast loading, mobile-optimized
@@ -513,12 +594,14 @@ export const metadata: Metadata = {
 ### 🚀 **Expected SEO Results**
 
 #### Ranking Targets:
+
 - **"komunitas vibe coding indonesia"**: Top 3 positions
-- **"vibe coding"**: Top 5 positions  
+- **"vibe coding"**: Top 5 positions
 - **"coding pake AI"**: Top 10 positions
 - **"developer indonesia"**: Competitive but targeted
 
 #### Rich Results Eligibility:
+
 - **Organization Rich Cards**: Company information display
 - **FAQ Rich Results**: Enhanced SERP appearance
 - **Local Business**: Indonesia geo-targeting
@@ -526,12 +609,14 @@ export const metadata: Metadata = {
 ### 📈 **SEO Monitoring & Maintenance**
 
 #### Tools Setup Required:
+
 - **Google Search Console**: Property verification needed
 - **Google Analytics**: Traffic and behavior tracking
 - **Lighthouse**: Regular performance audits (target: SEO score ≥95)
 - **Rich Results Test**: Schema validation
 
 #### Ongoing Tasks:
+
 - **Content Updates**: Regular blog posts with target keywords
 - **Community Growth**: User-generated content for authority
 - **Link Building**: Indonesian developer community outreach
@@ -540,12 +625,14 @@ export const metadata: Metadata = {
 ### 🎨 **UI/UX SEO Considerations**
 
 #### Conversion Optimization:
+
 - **CTA Placement**: Strategic "Gabung Komunitas Gratis" buttons
 - **Social Proof**: Indonesian tech company testimonials
 - **Trust Signals**: "VibeCoding Hackathon 2025" event announcement dengan hadiah 5 JUTA RUPIAH
 - **Accessibility**: WCAG compliance for broader reach
 
 #### Mobile SEO:
+
 - **Mobile-First Design**: Responsive layout priority
 - **Touch Targets**: Proper button sizing
 - **Page Speed**: Optimized for mobile networks
@@ -554,12 +641,14 @@ export const metadata: Metadata = {
 ### ⚠️ **SEO Implementation Notes**
 
 #### What NOT to Do:
+
 - **Keyword Stuffing**: Avoided unnatural keyword density
 - **Hidden Text**: All content visible and valuable
 - **Duplicate Content**: Unique content across all sections
 - **Neglecting Mobile**: Mobile-first approach maintained
 
 #### Success Factors:
+
 - **Natural Language**: Indonesian informal professional tone
 - **Community Focus**: Genuine value for developer community
 - **Technical Excellence**: Clean code and fast performance
@@ -576,6 +665,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Interactive Event Announcement System:**
 
 **1. 🌟 AnimatedGradientText Component (`components/ui/animated-gradient-text.tsx`)**
+
 - **Custom Gradient Animation**: 8-second linear infinite animation dengan moving gradient background
 - **Interactive Hover Effects**: Enhanced shadow dan scale transformations
 - **Backdrop Blur System**: Modern glassmorphism effect dengan white/black opacity variations
@@ -584,15 +674,17 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - **TypeScript Support**: Full type safety dengan ReactNode children support
 
 **2. ⚙️ Animation System (`app/globals.css`)**
+
 - **@keyframes gradient**: CSS animation untuk moving gradient background position
 - **Custom CSS Properties**: `--bg-size: 300%` untuk gradient sizing control
 - **Performance Optimized**: `will-change: background-position` untuk smooth animations
 - **Accessibility Friendly**: Respects `prefers-reduced-motion` settings
 
 **3. 🔗 Interactive Link Integration (`app/page.tsx`)**
+
 - **External Link Support**: Opens hackathon page di new tab dengan `target="_blank"`
 - **Security Headers**: Includes `rel="noopener noreferrer"` untuk security best practices
-- **Hover State Enhancements**: 
+- **Hover State Enhancements**:
   - Scale animation: `hover:scale-105` untuk subtle interaction feedback
   - Enhanced shadow: `hover:shadow-[inset_0_-5px_10px_#8fdfff4f]` untuk depth effect
 - **Transition System**: Smooth 200ms scale + 300ms shadow transitions
@@ -600,6 +692,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Event Announcement Implementation:**
 
 **✅ VibeCoding Hackathon 2025 Promotion:**
+
 - **Trophy Icon**: 🏆 dengan visual separator (hr element)
 - **Animated Title**: "VibeCoding Hackathon 2025 by vibecoding.id" dengan moving gradient text
 - **Prize Highlight**: "Hadiah 5 JUTA RUPIAH" dalam orange color untuk visibility
@@ -609,6 +702,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Technical Implementation Details:**
 
 **CSS Animation System:**
+
 ```css
 @keyframes gradient {
   to {
@@ -623,6 +717,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 ```
 
 **Component Features:**
+
 - **Gradient Colors**: Orange (#ffaa40) to Purple (#9c40ff) to Orange
 - **Background Effects**: Semi-transparent overlay dengan backdrop-blur
 - **Border Styling**: Rounded-2xl dengan smooth corners
@@ -632,12 +727,14 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **User Experience Enhancements:**
 
 **🎯 Interaction Design:**
+
 - **Visual Feedback**: Immediate hover response dengan scale dan shadow changes
 - **Cursor States**: Proper pointer cursor untuk indicating interactivity
 - **Loading Performance**: Lightweight animation system tanpa performance impact
 - **Accessibility**: Keyboard navigation support via native link behavior
 
 **📱 Mobile Optimization:**
+
 - **Touch Targets**: Adequate size untuk mobile interaction
 - **Responsive Text**: Proper text scaling untuk different screen sizes
 - **Performance**: Hardware-accelerated animations untuk smooth mobile experience
@@ -645,6 +742,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 ### **✅ PRODUCTION STATUS: DEPLOYED & FUNCTIONAL**
 
 **🎯 AnimatedGradientText successfully integrated:**
+
 - ✅ Component created dan imported ke homepage
 - ✅ CSS animations added ke globals.css
 - ✅ Interactive link functionality working
@@ -662,6 +760,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Advanced Progressive Image Loading Features:**
 
 **1. 🚀 ProgressiveImage Component (`components/ui/progressive-image.tsx`)**
+
 - **Next.js 15 Integration**: Full compatibility dengan Next.js Image optimization
 - **Advanced Blur Placeholders**: Client-safe SVG blur generation dengan color-based placeholders
 - **Loading State Management**: Skeleton UI, fade transitions, dan loading indicators
@@ -671,6 +770,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - **Accessibility**: Full ARIA support dan screen reader optimization
 
 **2. 🎨 Image Utilities (`lib/image-utils.ts`)**
+
 - **Client-Safe Implementation**: No native modules (sharp/Buffer) di client bundle
 - **Blur Placeholder Generation**: SVG-based placeholders dengan consistent color generation
 - **Responsive Size Calculation**: Automatic breakpoint sizing untuk mobile/tablet/desktop
@@ -679,6 +779,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - **Background Image Support**: CSS image-set() support untuk background images
 
 **3. 🔧 Progressive Image Hook (`hooks/useProgressiveImage.ts`)**
+
 - **Intersection Observer**: Advanced lazy loading dengan viewport detection
 - **Multiple Preload Strategies**: None, hover, viewport, atau eager preloading
 - **State Management**: Loading, loaded, error states dengan proper callbacks
@@ -686,6 +787,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - **Performance Optimized**: Efficient memory usage dan cleanup
 
 **4. ⚙️ Next.js Configuration (`next.config.mjs`)**
+
 - **Webpack Externalization**: Complete native modules exclusion dari client bundle
 - **Image Optimization**: AVIF/WebP format support dengan optimal device sizes
 - **Remote Pattern Support**: Comprehensive domain allowlist:
@@ -699,29 +801,34 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Implementation Across Application:**
 
 **✅ Hero Section:**
+
 - Priority loading untuk main showcase image
 - High-quality rendering (90% quality)
 - Safari mockup container integration
 - Responsive sizing untuk all devices
 
 **✅ Project Showcase:**
+
 - Progressive loading untuk project thumbnails
 - Lazy loading dengan intersection observer
 - Blur placeholders podczas loading
 - Error fallbacks untuk missing images
 
 **✅ User Avatars:**
+
 - Profile pictures dengan progressive loading
 - GitHub avatar integration
 - Testimonial section avatars
 - Comment author avatars
 
 **✅ Framework Icons:**
+
 - CDN-optimized icon loading (React, Next.js, Vue, Angular, etc.)
 - Animated tooltip interactions
 - Responsive grid layout
 
 #### **Performance Achievements:**
+
 - ⚡ **Faster Loading**: AVIF/WebP formats dengan Next.js optimization
 - 🎯 **Reduced CLS**: Proper aspect ratios dan blur placeholders prevent layout shift
 - 📱 **Mobile Optimized**: Responsive image sizing dengan quality adjustments
@@ -729,6 +836,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 - 🎨 **Smooth UX**: Fade transitions dan skeleton loading states
 
 #### **Technical Excellence:**
+
 - **Client Compatibility**: Complete removal dari native dependencies (sharp, Buffer)
 - **Type Safety**: Full TypeScript support dengan proper type definitions
 - **Build Optimization**: Clean production builds tanpa native module errors
@@ -738,6 +846,7 @@ This SEO implementation provides a solid foundation for organic growth in the In
 ### **✅ PRODUCTION STATUS: 100% DEPLOYED & VERIFIED**
 
 **🎯 All Progressive Image Loading features successfully deployed to production:**
+
 - ✅ Hero image loading dengan priority (tested on live site)
 - ✅ Project card images dengan lazy loading (verified working)
 - ✅ Profile avatars dengan progressive enhancement (functional)
@@ -759,27 +868,29 @@ This SEO implementation provides a solid foundation for organic growth in the In
 #### **Required Implementation:**
 
 **1. Import dan Gunakan Components:**
+
 ```tsx
 // ALWAYS import these components untuk new pages
-import { Navbar } from "@/components/ui/navbar"
-import { Footer } from "@/components/ui/footer"
+import { Navbar } from '@/components/ui/navbar'
+import { Footer } from '@/components/ui/footer'
 ```
 
 **2. Standard Page Layout Pattern:**
+
 ```tsx
 // ALWAYS use this exact layout structure untuk new pages
-<div className="min-h-screen bg-grid-pattern relative">
+<div className="bg-grid-pattern relative min-h-screen">
   {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-  <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
-  
+  <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+
   {/* Layer 2: Navigation - MANDATORY */}
   <Navbar showNavigation={true} scrollToSection={scrollToSection} />
-  
+
   {/* Layer 3: Content Container - MANDATORY */}
-  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+  <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
     {/* Your page content here */}
   </div>
-  
+
   {/* Layer 4: Footer - MANDATORY */}
   <Footer />
 </div>
@@ -788,12 +899,14 @@ import { Footer } from "@/components/ui/footer"
 #### **Navbar Configuration Requirements:**
 
 **showNavigation Prop:**
+
 - ✅ **Always use `showNavigation={true}`** untuk include full navigation menu
 - ✅ **Navigation items**: Projects, Showcase, Features, Reviews, FAQ
 - ✅ **Theme Toggle**: Included di mobile menu untuk responsiveness
 - ✅ **Logo**: Clickable dengan redirect ke homepage
 
 **scrollToSection Handler:**
+
 ```tsx
 // Include this handler untuk proper section navigation
 const scrollToSection = (sectionId: string) => {
@@ -810,6 +923,7 @@ const scrollToSection = (sectionId: string) => {
 #### **Component Features Included:**
 
 **Navbar (`components/ui/navbar.tsx`):**
+
 - ✅ **Responsive Design**: Mobile hamburger menu dengan full navigation
 - ✅ **Theme Toggle**: Sun/Moon icon dengan perfect center alignment
 - ✅ **User Authentication**: Profile dropdown atau login/signup buttons
@@ -817,6 +931,7 @@ const scrollToSection = (sectionId: string) => {
 - ✅ **Clean Shadows**: No hover shadow effects untuk minimalist design
 
 **Footer (`components/ui/footer.tsx`):**
+
 - ✅ **Company Information**: VibeDev ID branding dan contact details
 - ✅ **Navigation Links**: Quick links ke major sections
 - ✅ **Social Media**: Links ke community platforms
@@ -824,6 +939,7 @@ const scrollToSection = (sectionId: string) => {
 - ✅ **Responsive Layout**: Mobile-optimized footer structure
 
 #### **Pages Dengan Navbar & Footer Implemented:**
+
 - ✅ `app/page.tsx` (Homepage)
 - ✅ `app/project/[slug]/page.tsx` (Project Detail)
 - ✅ `app/project/submit/page.tsx` (Project Submission)
@@ -831,11 +947,13 @@ const scrollToSection = (sectionId: string) => {
 - ✅ `app/admin/page.tsx` (Admin Dashboard)
 
 #### **Exceptions (Pages WITHOUT Navbar & Footer):**
+
 - ❌ **Authentication Pages**: `app/auth/` dan `app/user/auth/`
   - Reason: Custom layout untuk focused authentication experience
   - Design: Dedicated auth UI tanpa navigation distractions
 
 #### **Benefits:**
+
 - ✅ **Visual Consistency**: Unified navigation experience across platform
 - ✅ **User Familiarity**: Consistent UI patterns reduce learning curve
 - ✅ **Mobile Experience**: Responsive navigation dengan theme toggle accessibility
@@ -843,6 +961,7 @@ const scrollToSection = (sectionId: string) => {
 - ✅ **Maintenance**: Centralized components untuk easy updates
 
 #### **Development Guidelines:**
+
 - 🔧 **New Pages**: ALWAYS start dengan standard layout pattern di atas
 - 🔧 **Theme Compatibility**: Ensure all new content works dengan dark/light modes
 - 🔧 **Mobile Testing**: Verify navigation accessibility pada mobile devices
@@ -853,6 +972,7 @@ const scrollToSection = (sectionId: string) => {
 ### **🔧 PRODUCTION FIXES APPLIED:**
 
 **🚨 Critical Issues Resolved:**
+
 - ✅ **`ReferenceError: require is not defined`** - Fixed webpack externalization
 - ✅ **Vercel deployment lockfile mismatch** - Synchronized pnpm-lock.yaml
 - ✅ **`ERR_PNPM_OUTDATED_LOCKFILE`** - Removed conflicting pnpm-lock.yaml, uses npm exclusively
@@ -861,6 +981,7 @@ const scrollToSection = (sectionId: string) => {
 - ✅ **Remote pattern coverage** - Enhanced domain support for all CDNs
 
 **⚙️ Configuration Improvements:**
+
 - **Dual Bundler Support**: Both Turbopack (dev) and Webpack (production)
 - **Safer Externalization**: Function-based webpack externals
 - **Enhanced Remote Patterns**: Complete domain coverage (jsdelivr, traecommunity.id, utfs.io)
@@ -875,19 +996,21 @@ const scrollToSection = (sectionId: string) => {
 ### **Dual Bundler Support: Turbopack + Webpack**
 
 #### **Development Mode (Turbopack):**
+
 ```bash
 # Fast development with Turbopack (10x faster than Webpack)
 pnpm dev  # Uses: next dev --turbopack
 ```
 
 **Configuration in `next.config.mjs`:**
+
 ```javascript
 experimental: {
   turbo: {
     resolveAlias: {
       // Exclude native modules from Turbopack
       'sharp': false,
-      'detect-libc': false, 
+      'detect-libc': false,
       'plaiceholder': false,
     },
   },
@@ -895,12 +1018,14 @@ experimental: {
 ```
 
 #### **Production Mode (Webpack):**
+
 ```bash
 # Stable production builds with Webpack
 pnpm build  # Always uses Webpack for production
 ```
 
 **Configuration in `next.config.mjs`:**
+
 ```javascript
 webpack: (config, { isServer }) => {
   // Function-based externalization for safety
@@ -914,6 +1039,7 @@ webpack: (config, { isServer }) => {
 ```
 
 #### **Benefits:**
+
 - ⚡ **Development**: 10x faster hot reload dengan Turbopack
 - 🏗️ **Production**: Stable builds dengan mature Webpack ecosystem
 - 🔧 **Compatibility**: Progressive Image Loading works in both bundlers
@@ -928,12 +1054,14 @@ webpack: (config, { isServer }) => {
 #### **🚨 Production Errors:**
 
 **Issue 1: `ReferenceError: require is not defined`**
+
 ```bash
 # Cause: Aggressive webpack externalization
 # Solution: Use function-based externals (FIXED in current config)
 ```
 
 **Issue 2: `ERR_PNPM_OUTDATED_LOCKFILE`**
+
 ```bash
 # Cause: Conflicting pnpm-lock.yaml vs package-lock.json
 # Solution: Remove pnpm-lock.yaml, use npm exclusively (FIXED)
@@ -944,6 +1072,7 @@ git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 ```
 
 **Issue 3: Native Module Conflicts**
+
 ```bash
 # Cause: sharp/Buffer usage in client components
 # Solution: Use client-safe alternatives (IMPLEMENTED)
@@ -954,18 +1083,21 @@ git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 ### ⚠️ **Development Warnings:**
 
 **Issue 1: Turbopack vs Webpack Configuration**
+
 ```bash
 # Warning: "Webpack is configured while Turbopack is not"
 # Solution: Add experimental.turbo config (FIXED)
 ```
 
 **Issue 2: Image Remote Pattern Errors**
+
 ```bash
 # Error: "hostname not configured under images"
 # Solution: Add domain to remotePatterns in next.config.mjs
 ```
 
 **Issue 3: Configuration File Conflicts**
+
 ```bash
 # Error: Multiple Next.js config files (next.config.js vs next.config.mjs)
 # Solution: ALWAYS use next.config.mjs exclusively (ES Module format)
@@ -975,12 +1107,14 @@ git commit -m "fix: use npm lockfile exclusively for Vercel deployment"
 #### **🔧 Performance Issues:**
 
 **Issue 1: Slow Image Loading**
+
 ```bash
 # Solution: Check if AVIF/WebP optimization is enabled
 # Verify: formats: ['image/avif', 'image/webp']
 ```
 
 **Issue 2: Layout Shift (CLS)**
+
 ```bash
 # Solution: Use proper aspect ratios and blur placeholders
 # Implementation: ProgressiveImage component handles this automatically
@@ -1002,6 +1136,7 @@ npx @next/bundle-analyzer
 ### **📋 Production Checklist:**
 
 Before deployment, ensure:
+
 - [ ] No `require is not defined` errors in console
 - [ ] All remote domains in `remotePatterns`
 - [ ] pnpm-lock.yaml synchronized with package.json
@@ -1120,21 +1255,21 @@ Before deployment, ensure:
     - **Production Ready**: Tested dengan real Google OAuth accounts dan verified working
     - **Backward Compatibility**: Existing email/password flow maintained tanpa breaking changes
   - **Custom Email Template**: Professional HTML email template dengan VibeDev ID branding:
-      - **Light Theme Only**: Clean design menggunakan exact color scheme dari `globals.css`
-      - **Brand Consistency**: Logo, tagline, dan primary green color (#10b981) match website
-      - **Indonesian Copywriting**: Friendly tone dengan "lo/gue" language style
-      - **Grid Pattern Background**: Same radial-gradient pattern dari website design
-      - **Responsive Design**: Mobile-optimized dengan Geist font family
-      - **Clear CTA**: "Konfirmasi Akun Gue Sekarang" button dengan engaging copy
-      - **User Benefits**: Highlighted features dan value proposition VibeDev community
-      - **Security Information**: 24-hour validity dan single-use link explanation
-      - **Backup Link**: Manual copy-paste option untuk better deliverability
+    - **Light Theme Only**: Clean design menggunakan exact color scheme dari `globals.css`
+    - **Brand Consistency**: Logo, tagline, dan primary green color (#10b981) match website
+    - **Indonesian Copywriting**: Friendly tone dengan "lo/gue" language style
+    - **Grid Pattern Background**: Same radial-gradient pattern dari website design
+    - **Responsive Design**: Mobile-optimized dengan Geist font family
+    - **Clear CTA**: "Konfirmasi Akun Gue Sekarang" button dengan engaging copy
+    - **User Benefits**: Highlighted features dan value proposition VibeDev community
+    - **Security Information**: 24-hour validity dan single-use link explanation
+    - **Backup Link**: Manual copy-paste option untuk better deliverability
   - **🔧 NEXT.JS 15 SUSPENSE BOUNDARY FIX** - Critical build error resolution untuk Vercel deployment:
     - **useSearchParams() Wrapper**: Fixed missing Suspense boundary error di halaman auth
     - **Component Separation**: Memisahkan components yang menggunakan useSearchParams() ke separate functions
     - **Suspense Implementation**: Added proper `<Suspense fallback={<LoadingSkeleton />}>` wrapper
     - **Loading Skeletons**: Professional loading states dengan consistent design pattern
-    - **Fixed Pages**: `/user/auth` dan `/user/auth/confirm-email` 
+    - **Fixed Pages**: `/user/auth` dan `/user/auth/confirm-email`
     - **Build Success**: Next.js build completed successfully tanpa prerendering errors
     - **Production Ready**: Verified dengan `pnpm run vercel-build` command
     - **Error Prevention**: Prevents "useSearchParams() should be wrapped in a suspense boundary" build failures
@@ -1218,7 +1353,7 @@ Before deployment, ensure:
   - **🧹 HOVER SHADOW REMOVAL** - Bersihin bayangan hover biar UI lebih clean dan konsisten:
     - **Theme Toggle Button**: Hilangkan hover shadow dengan `shadow-none hover:shadow-none` pada className tombol
     - **Avatar Dropdown Trigger**: Hilangkan hover shadow pada trigger avatar di navbar
-    - **Files**: 
+    - **Files**:
       - `components/ui/theme-toggle.tsx`
       - `components/ui/navbar.tsx` (DropdownMenuTrigger Button)
     - Tetap jaga feedback hover via `hover:bg-accent/50`, tanpa efek bayangan
@@ -1241,6 +1376,7 @@ Before deployment, ensure:
 ## Analytics Implementation Details
 
 ### Client-side Analytics (`lib/client-analytics.ts`)
+
 - **Session Management**: Automatic session creation dengan localStorage persistence
 - **Unique Visitor Detection**: Sophisticated algorithm dengan timeout-based session expiry
 - **Bot Filtering**: User agent validation untuk skip crawlers dan automated requests
@@ -1248,12 +1384,14 @@ Before deployment, ensure:
 - **Performance Optimized**: Minimal overhead dengan efficient localStorage management
 
 ### Server-side Implementation (`lib/actions.ts`)
+
 - **Enhanced Analytics Queries**: Parallel database operations untuk real-time stats
 - **Upsert Mechanism**: Graceful handling untuk duplicate constraint violations
 - **Time-based Filtering**: Support untuk daily, weekly, dan custom date range analytics
 - **Optimized Performance**: Proper indexing dan query optimization untuk scalability
 
 ### Analytics Features Available:
+
 1. **Total Views** - Aggregate view count per project
 2. **Unique Visitors** - Session-based unique visitor counting
 3. **Today's Views** - Real-time daily analytics
@@ -1261,6 +1399,7 @@ Before deployment, ensure:
 5. **Performance Metrics** - Optimized queries dengan proper indexing
 
 ### Database Enhancements:
+
 ```sql
 -- Session-based tracking columns
 ALTER TABLE public.views ADD COLUMN session_id TEXT;
@@ -1273,6 +1412,7 @@ CREATE INDEX idx_views_project_date ON public.views(project_id, view_date);
 ```
 
 ## Data Login for Testing
+
 email: 123@gmail.com
 password: 123456
 
@@ -1283,6 +1423,7 @@ password: 123456
 ### ⚙️ **NEXT.JS CONFIG OPTIMIZATION** - Warning & Error Resolution (5 January 2025)
 
 #### 🚨 **Critical Issues Fixed:**
+
 - ❌ **`swcMinify` deprecated warning** → ✅ **RESOLVED** - Removed from next.config.mjs (Next.js 15+ default)
 - ❌ **`experimental.turbo` deprecated warning** → ✅ **RESOLVED** - Migrated to `turbopack` configuration
 - ❌ **Image missing width/height runtime error** → ✅ **RESOLVED** - Added `fill` property to project card images
@@ -1292,41 +1433,44 @@ password: 123456
 #### 🔧 **Configuration Updates:**
 
 **1. Next.js 15 Compatibility Enhancement:**
+
 ```javascript
 // next.config.mjs - Modern Next.js 15 configuration
 const nextConfig = {
   // Removed: swcMinify: true (deprecated in Next.js 15+)
-  
+
   // Updated: experimental.turbo → turbopack
   turbopack: {
-    resolveExtensions: [".mdx", ".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
+    resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
   },
-  
+
   // Enhanced: Remote patterns for all image sources
   images: {
     remotePatterns: [
       // Added Google user avatars support
-      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       // Existing patterns maintained
-    ]
-  }
+    ],
+  },
 }
 ```
 
 **2. Image Component Optimization:**
+
 ```tsx
 // Fixed project card images with proper Next.js 15 Image props
 <Image
-  src={project.image || "/vibedev-guest-avatar.png"}
+  src={project.image || '/vibedev-guest-avatar.png'}
   alt={project.title}
-  fill  // ✅ Added for proper sizing
-  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"  // ✅ Added for performance
+  fill // ✅ Added for proper sizing
+  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" // ✅ Added for performance
   loading="lazy"
-  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
 />
 ```
 
 #### 🎯 **Results Achieved:**
+
 - ✅ **Clean Server Startup**: No more configuration warnings
 - ✅ **Error-Free Runtime**: No image component errors
 - ✅ **Performance Optimized**: Responsive image loading with proper sizing
@@ -1336,6 +1480,7 @@ const nextConfig = {
 #### 🧪 **Playwright MCP Testing Verification:**
 
 **Testing Process:**
+
 - Used Playwright MCP for comprehensive automated testing
 - Navigated to homepage and verified all functionality
 - Checked console messages for errors and warnings
@@ -1344,6 +1489,7 @@ const nextConfig = {
 - Confirmed network requests success (all 200 OK)
 
 **Test Results:**
+
 ```
 ✅ Homepage loads successfully without runtime errors
 ✅ Project cards display properly with optimized images
@@ -1355,6 +1501,7 @@ const nextConfig = {
 ```
 
 **Remaining Minor Items (Normal in Development):**
+
 - 📝 React DevTools suggestion (standard development message)
 - 📝 ProgressiveImage blur placeholder recommendations (enhancement)
 - 📝 Some Supabase 406 errors on likes endpoint (backend issue, not frontend)
@@ -1362,17 +1509,20 @@ const nextConfig = {
 #### 🚀 **Technical Improvements:**
 
 **Server Performance:**
+
 - Server startup time: ~1.7 seconds (excellent)
 - Turbopack compilation: ~215ms for middleware
 - No configuration conflicts or warnings
 
 **Image Optimization:**
+
 - AVIF/WebP format support maintained
 - Responsive image sizes for optimal loading
 - CDN compatibility for all external image sources
 - Proper aspect ratio handling prevents layout shift
 
 **Development Experience:**
+
 - Clean terminal output without warnings
 - Fast hot reload with Turbopack
 - Error-free build process
@@ -1397,6 +1547,7 @@ npm run build
 ```
 
 #### 🎉 **Impact:**
+
 - **Developer Experience**: Clean development environment tanpa warning noise
 - **User Experience**: Faster image loading dengan proper optimization
 - **Production Readiness**: Configuration siap untuk deployment tanpa issues
@@ -1408,11 +1559,13 @@ This update ensures VibeDev ID runs with the latest Next.js 15 best practices an
 ### 🎬 **YOUTUBE VIDEO MANAGER SYSTEM** - Admin Dashboard for Homepage Videos (10 January 2025)
 
 #### 🎯 **System Overview:**
+
 Complete YouTube video management system yang memungkinkan admin untuk manage videos di homepage melalui dedicated admin dashboard. System includes CRUD operations, automatic metadata fetching, dan real-time homepage synchronization.
 
 #### 🔧 **Implementation Details:**
 
 **1. Admin Dashboard (`/admin`):**
+
 - ✅ **Full CRUD Operations**: Create, Read, Update, Delete videos dari admin interface
 - ✅ **YouTube URL Auto-Fetch**: Input YouTube URL dan system auto-fetch title, description, views, publish date, thumbnail
 - ✅ **Edit Mode Enhancement**: Inline editing dengan YouTube URL fetch capability untuk replace video metadata
@@ -1420,6 +1573,7 @@ Complete YouTube video management system yang memungkinkan admin untuk manage vi
 - ✅ **Real-time Updates**: Homepage immediately reflects changes made di admin dashboard
 
 **2. Database Integration (`vibe_videos` table):**
+
 ```sql
 -- Video management table dengan position support
 CREATE TABLE public.vibe_videos (
@@ -1437,12 +1591,14 @@ CREATE TABLE public.vibe_videos (
 ```
 
 **3. API Endpoints (`/api/vibe-videos`):**
+
 - **GET /api/vibe-videos**: List all videos ordered by position
 - **POST /api/vibe-videos**: Create new video dengan auto-metadata fetch
 - **PUT /api/vibe-videos/[id]**: Update existing video dengan validation
 - **DELETE /api/vibe-videos/[id]**: Delete video dengan proper error handling
 
 **4. YouTube Metadata Fetching (`/api/youtube`):**
+
 - **Hybrid Approach**: YouTube oEmbed API + HTML scraping untuk missing data
 - **Data Extraction**: Title, description, thumbnail, views count, publish date
 - **URL Format Support**: youtube.com/watch, youtu.be, youtube.com/shorts, etc.
@@ -1451,6 +1607,7 @@ CREATE TABLE public.vibe_videos (
 #### 🎨 **Admin Dashboard Features:**
 
 **VideoVibeCodingManager Component:**
+
 - **Add New Videos**: Form dengan YouTube URL input dan auto-fetch metadata
 - **Current Videos Display**: Grid layout showing existing videos dengan thumbnails
 - **Edit Functionality**: Inline editing dengan enhanced YouTube URL fetch
@@ -1461,6 +1618,7 @@ CREATE TABLE public.vibe_videos (
 #### 🔄 **Homepage Integration:**
 
 **YouTubeVideoShowcase Component:**
+
 - **Dynamic Data Loading**: Fetches videos dari `/api/vibe-videos` endpoint
 - **Fallback System**: Graceful fallback ke hardcoded data jika API fails
 - **Responsive Design**: Grid layout yang responsive untuk all device sizes
@@ -1469,6 +1627,7 @@ CREATE TABLE public.vibe_videos (
 #### 🎯 **Next.js Image Configuration Enhancement:**
 
 **YouTube Thumbnail Support (`next.config.js`):**
+
 ```javascript
 // Enhanced remote patterns untuk YouTube thumbnails
 images: {
@@ -1491,6 +1650,7 @@ images: {
 ```
 
 #### ✅ **Implementation Status:**
+
 - ✅ **Admin Dashboard**: Complete CRUD interface implemented
 - ✅ **Database Migration**: vibe_videos table created dengan sample data
 - ✅ **API Endpoints**: Full REST API dengan proper validation
@@ -1501,6 +1661,7 @@ images: {
 - ✅ **UI Components**: ShadCN components untuk professional admin interface
 
 #### 🎯 **Benefits Achieved:**
+
 - **Admin Control**: Non-technical admins can manage homepage videos easily
 - **Dynamic Content**: Homepage videos can be updated tanpa code changes
 - **Professional UI**: Consistent design menggunakan ShadCN components
@@ -1513,6 +1674,7 @@ This system provides complete control over homepage video content dengan profess
 ### 🎨 **BACKGROUND PATTERN CONSISTENCY FIX** - Unified Opacity Across All Pages (10 January 2025)
 
 #### 🚨 **Visual Inconsistency Issue Resolved:**
+
 - **Problem**: Background grid pattern opacity inconsistency across different pages
 - **Root Cause**: Different pages using different gradient opacity values (`from-background/50 via-muted/30` vs homepage `from-background/80 via-background/60`)
 - **Impact**: Users experiencing visual inconsistency when navigating between pages
@@ -1521,12 +1683,14 @@ This system provides complete control over homepage video content dengan profess
 #### 🔧 **Technical Solution Implementation:**
 
 **1. Homepage Reference Analysis:**
+
 ```scss
 // Homepage (app/page.tsx) - Reference implementation:
 bg-gradient-to-b from-background/80 via-background/60 to-background/80
 ```
 
 **2. Pages Updated for Consistency:**
+
 - ✅ **Project Detail Page** (`app/project/[slug]/page.tsx`) - Main, loading, error states
 - ✅ **Project Submit Page** (`app/project/submit/page.tsx`)
 - ✅ **Auth Pages** (`app/user/auth/page.tsx`, `app/user/auth/confirm-email/page.tsx`) - All states
@@ -1534,6 +1698,7 @@ bg-gradient-to-b from-background/80 via-background/60 to-background/80
 - ✅ **Admin Page** (`app/admin/page.tsx`)
 
 **3. Standardized Background Pattern:**
+
 ```tsx
 // Before (inconsistent across pages):
 <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-muted/30 to-background/80"></div>
@@ -1545,12 +1710,14 @@ bg-gradient-to-b from-background/80 via-background/60 to-background/80
 #### ✅ **Implementation Coverage:**
 
 **All Page States Updated:**
+
 - **Main Content States** - Primary page views dengan consistent opacity
 - **Loading States** - Skeleton loaders dengan matching background pattern
 - **Error States** - 404, project not found, user not found pages
 - **Empty States** - No data scenarios dengan unified visual treatment
 
 **Visual Consistency Achieved:**
+
 - **Gradient Direction**: Standardized `bg-gradient-to-b` (vertical) across all pages
 - **Opacity Values**: Unified `from-background/80 via-background/60 to-background/80`
 - **Theme Compatibility**: All opacity values menggunakan CSS variables untuk dark/light mode
@@ -1559,12 +1726,14 @@ bg-gradient-to-b from-background/80 via-background/60 to-background/80
 #### 🎯 **Benefits Achieved:**
 
 **User Experience Improvements:**
+
 - ✅ **Visual Consistency**: Perfect background pattern uniformity across all pages
 - ✅ **Seamless Navigation**: No jarring visual differences saat navigate antar halaman
 - ✅ **Professional Appearance**: Unified design system dengan subtle background treatment
 - ✅ **Brand Identity**: Consistent VibeDev ID visual signature throughout aplikasi
 
 **Technical Benefits:**
+
 - ✅ **Maintainability**: Single source of truth untuk background pattern opacity
 - ✅ **Theme Adaptive**: All pages respond correctly ke dark/light mode switching
 - ✅ **Performance**: CSS-only solution tanpa additional assets atau JavaScript
@@ -1573,20 +1742,22 @@ bg-gradient-to-b from-background/80 via-background/60 to-background/80
 #### 📋 **Updated Design System Rule:**
 
 **Mandatory Background Pattern (Updated):**
+
 ```tsx
 // ALWAYS use this exact pattern for ALL pages
-<div className="min-h-screen bg-grid-pattern relative">
+<div className="bg-grid-pattern relative min-h-screen">
   {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-  <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
-  
+  <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+
   {/* Layer 2: Content Container - MANDATORY */}
-  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+  <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
     {/* Page content here */}
   </div>
 </div>
 ```
 
 #### 🚀 **Production Status:**
+
 - ✅ **All Pages Updated**: Background consistency implemented across entire application
 - ✅ **Testing Verified**: Visual consistency confirmed pada all page states
 - ✅ **Theme Compatibility**: Dark/light mode transitions working perfectly
@@ -1600,6 +1771,7 @@ This fix ensures that users akan never experience visual inconsistency saat navi
 ### 🎬 **YOUTUBE VIEWS EXTRACTION DEBUG FIX** - Enhanced Reliability & Multiple Pattern Support (10 January 2025)
 
 #### 🚨 **Issue Resolved:**
+
 - **Problem**: YouTube views extraction failing due to outdated regex patterns dan basic scraping approach
 - **Root Cause**: YouTube frequently changes HTML structure, single regex pattern tidak reliable
 - **User Report**: Views tidak ter-fetch saat admin add YouTube videos di admin dashboard
@@ -1608,6 +1780,7 @@ This fix ensures that users akan never experience visual inconsistency saat navi
 #### 🔧 **Technical Solution Implementation:**
 
 **1. Multiple Regex Pattern System (`app/api/youtube/route.ts`):**
+
 ```typescript
 // Enhanced views extraction with 8 fallback patterns
 const viewPatterns = [
@@ -1618,11 +1791,12 @@ const viewPatterns = [
   /views\":{\"runs\":\[{\"text\":\"([\d,]+)/,
   /shortViewCount":{"simpleText":"([\d,]+)/,
   /"shortViewCount":{"accessibility":{"accessibilityData":{"label":"([\d,]+)/,
-  /<meta itemprop="interactionCount" content="(\d+)"/
+  /<meta itemprop="interactionCount" content="(\d+)"/,
 ]
 ```
 
 **2. Enhanced Browser Headers:**
+
 ```typescript
 // Modern browser simulation untuk avoid bot detection
 headers: {
@@ -1637,6 +1811,7 @@ headers: {
 ```
 
 **3. Robust Pattern Matching Logic:**
+
 ```typescript
 let viewsFound = false
 for (const pattern of viewPatterns) {
@@ -1648,7 +1823,9 @@ for (const pattern of viewPatterns) {
     if (!isNaN(parsedViews) && parsedViews > 0) {
       views = parsedViews
       viewsFound = true
-      console.log(`[YouTube Debug] Views found using pattern: ${pattern.source}, value: ${views}`)
+      console.log(
+        `[YouTube Debug] Views found using pattern: ${pattern.source}, value: ${views}`,
+      )
       break
     }
   }
@@ -1656,13 +1833,18 @@ for (const pattern of viewPatterns) {
 ```
 
 **4. Enhanced Debug Logging:**
+
 ```typescript
 if (!viewsFound) {
-  console.warn(`[YouTube Debug] No views found for video ${videoId}. HTML length: ${html.length}`)
+  console.warn(
+    `[YouTube Debug] No views found for video ${videoId}. HTML length: ${html.length}`,
+  )
   // Log first few patterns untuk debugging
   viewPatterns.slice(0, 3).forEach((pattern, i) => {
     const match = html.match(pattern)
-    console.log(`[YouTube Debug] Pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`)
+    console.log(
+      `[YouTube Debug] Pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`,
+    )
   })
 }
 ```
@@ -1670,13 +1852,15 @@ if (!viewsFound) {
 #### 🧪 **Comprehensive Testing with Playwright MCP:**
 
 **Test Results - 100% SUCCESS:**
+
 - ✅ **Rick Astley - Never Gonna Give You Up**: `1,692,442,278 views` extracted successfully
-- ✅ **PSY - Gangnam Style**: `5,699,579,414 views` extracted successfully  
+- ✅ **PSY - Gangnam Style**: `5,699,579,414 views` extracted successfully
 - ✅ **Error Handling**: Invalid/private videos properly handled dengan user-friendly error messages
 - ✅ **End-to-End Flow**: Admin dashboard → Homepage display working perfectly
 - ✅ **Real-time Updates**: Changes reflected immediately di homepage Video Vibe Coding section
 
 **Homepage Display Verification:**
+
 - ✅ `125.8K views`, `4023430 views`, `105800 views` displaying correctly
 - ✅ Format consistency maintained across all video cards
 - ✅ Responsive design working pada desktop dan mobile views
@@ -1684,18 +1868,21 @@ if (!viewsFound) {
 #### 🎯 **Benefits Achieved:**
 
 **Reliability Improvements:**
+
 - ✅ **Multiple Fallback Patterns**: 8 different regex patterns untuk handle YouTube structure changes
 - ✅ **Future-Proof**: System adapts to YouTube HTML changes automatically
 - ✅ **Bot Detection Avoidance**: Enhanced headers simulate real browser behavior
 - ✅ **Number Format Handling**: Supports comma-separated dan plain number formats
 
 **User Experience Enhancements:**
+
 - ✅ **Accurate View Counts**: Real-time YouTube view statistics displayed correctly
 - ✅ **Admin Efficiency**: Reliable video metadata fetching untuk content management
 - ✅ **Error Resilience**: Graceful handling untuk private/invalid videos
 - ✅ **Debug Transparency**: Clear logging untuk troubleshooting future issues
 
 **Technical Excellence:**
+
 - ✅ **Performance Optimized**: ~2-3 seconds response time untuk complete metadata fetch
 - ✅ **Format Support**: youtube.com/watch, youtu.be, shorts, embed URLs supported
 - ✅ **Type Safety**: Full TypeScript implementation dengan proper error handling
@@ -1704,19 +1891,22 @@ if (!viewsFound) {
 #### 🔍 **Pattern Analysis & YouTube Structure:**
 
 **YouTube Data Sources Targeted:**
+
 1. **ytInitialPlayerResponse**: Primary data source dengan viewCount field
-2. **ytInitialData**: Secondary source dengan videoViewCountRenderer  
+2. **ytInitialData**: Secondary source dengan videoViewCountRenderer
 3. **Structured Data**: Meta tags dengan microdata markup
 4. **Short View Count**: Mobile-optimized view counter formats
 5. **Accessibility Labels**: Screen reader data dengan full view numbers
 
 **Pattern Priority Order:**
+
 1. Direct `viewCount` fields (most reliable)
 2. Renderer objects dengan simpleText (common structure)
 3. Run arrays dengan text content (alternative format)
 4. Meta tag fallbacks (always available)
 
 #### 📋 **Implementation Status:**
+
 - ✅ **API Endpoint Enhanced**: `/api/youtube` route updated dengan multiple patterns
 - ✅ **Admin Dashboard**: Video preview showing accurate views dengan proper formatting
 - ✅ **Homepage Integration**: Video Vibe Coding section displaying real-time view counts
@@ -1725,6 +1915,7 @@ if (!viewsFound) {
 - ✅ **Testing Coverage**: End-to-end verification dengan popular YouTube videos
 
 #### 🚀 **Production Performance:**
+
 - **Success Rate**: 100% untuk public YouTube videos
 - **Response Time**: 2-3 seconds untuk complete metadata extraction
 - **Error Recovery**: Graceful fallback untuk private/deleted videos
@@ -1738,6 +1929,7 @@ This debug fix ensures VibeDev ID dapat maintain fresh, engaging video content d
 ### 📅 **YOUTUBE PUBLISH DATE EXTRACTION DEBUG FIX** - Enhanced Date Fetching Reliability (10 January 2025)
 
 #### 🚨 **Issue Resolved:**
+
 - **Problem**: YouTube publish date extraction defaulting to today's date instead of actual video upload date
 - **Root Cause**: Single regex pattern insufficient for YouTube's varying HTML structures + poor fallback (current date)
 - **User Report**: Video preview showing "10 September 2025" instead of actual video publish date
@@ -1746,21 +1938,23 @@ This debug fix ensures VibeDev ID dapat maintain fresh, engaging video content d
 #### 🔧 **Technical Solution Implementation:**
 
 **1. Multiple Publish Date Pattern System (`app/api/youtube/route.ts`):**
+
 ```typescript
 // Enhanced publish date extraction dengan 8 fallback patterns
 const publishPatterns = [
-  /"publishDate":"([^"]+)"/,                        // Original pattern
-  /"dateText":{"simpleText":"([^"]+)"}/,            // Common UI structure
-  /"publishedTimeText":{"simpleText":"([^"]+)"}/,    // Alternative UI
-  /uploadDate\":\"([^\"]+)\"/,                        // JSON format
-  /<meta itemprop="uploadDate" content="([^"]+)"/,   // HTML meta
+  /"publishDate":"([^"]+)"/, // Original pattern
+  /"dateText":{"simpleText":"([^"]+)"}/, // Common UI structure
+  /"publishedTimeText":{"simpleText":"([^"]+)"}/, // Alternative UI
+  /uploadDate\":\"([^\"]+)\"/, // JSON format
+  /<meta itemprop="uploadDate" content="([^"]+)"/, // HTML meta
   /<meta itemprop="datePublished" content="([^"]+)"/, // Schema.org
-  /"videoDetails":{[^}]*"publishDate":"([^"]+)"/,   // Nested JSON
-  /rel="canonical" href="[^"]*"[^>]*data-published="([^"]+)"/ // Data attribute
+  /"videoDetails":{[^}]*"publishDate":"([^"]+)"/, // Nested JSON
+  /rel="canonical" href="[^"]*"[^>]*data-published="([^"]+)"/, // Data attribute
 ]
 ```
 
 **2. Better Fallback Strategy:**
+
 ```typescript
 // Before: Always use today's date as fallback
 let publishedAt = new Date().toISOString() // ❌ Always today
@@ -1772,6 +1966,7 @@ publishedAt: publishedAt || 'Date not available'
 ```
 
 **3. Enhanced Pattern Matching Logic:**
+
 ```typescript
 let publishFound = false
 for (const pattern of publishPatterns) {
@@ -1779,7 +1974,9 @@ for (const pattern of publishPatterns) {
   if (match && match[1]) {
     publishedAt = match[1]
     publishFound = true
-    console.log(`[YouTube Debug] Publish date found using pattern: ${pattern.source}`)
+    console.log(
+      `[YouTube Debug] Publish date found using pattern: ${pattern.source}`,
+    )
     break
   }
 }
@@ -1789,7 +1986,9 @@ if (!publishFound) {
   // Debug first 3 patterns untuk troubleshooting
   publishPatterns.slice(0, 3).forEach((pattern, i) => {
     const match = html.match(pattern)
-    console.log(`[YouTube Debug] Pattern ${i + 1}: ${match ? match[1] : 'none'}`)
+    console.log(
+      `[YouTube Debug] Pattern ${i + 1}: ${match ? match[1] : 'none'}`,
+    )
   })
 }
 ```
@@ -1797,18 +1996,21 @@ if (!publishFound) {
 #### 🎯 **Benefits Achieved:**
 
 **Date Accuracy Improvements:**
+
 - ✅ **Multiple Fallback Patterns**: 8 different regex patterns handle various YouTube structures
 - ✅ **Honest Fallback**: "Date not available" instead of misleading current date
 - ✅ **Enhanced Debug Logging**: Clear tracking untuk pattern success/failure
 - ✅ **Future-Proof**: Adapts to YouTube HTML structure changes
 
 **User Experience Enhancements:**
+
 - ✅ **Accurate Timestamps**: Videos show real upload dates when available
 - ✅ **Transparent Handling**: Clear messaging when date cannot be determined
 - ✅ **No False Information**: Eliminates misleading "uploaded today" scenarios
 - ✅ **Debug Transparency**: Server logs help troubleshoot future issues
 
 **Technical Excellence:**
+
 - ✅ **Pattern Diversity**: Targets multiple YouTube data sources (JSON, meta tags, UI text)
 - ✅ **Error Resilience**: Graceful handling untuk unparseable date formats
 - ✅ **Performance Optimized**: Early exit when first pattern matches
@@ -1817,19 +2019,22 @@ if (!publishFound) {
 #### 📋 **Pattern Priority Analysis:**
 
 **YouTube Date Sources Targeted:**
+
 1. **publishDate JSON fields** - Primary data source dari video metadata
 2. **UI Text Elements** - dateText dan publishedTimeText dari user interface
 3. **Structured Meta Tags** - HTML meta tags dengan schema.org markup
 4. **Alternative JSON Paths** - videoDetails dan nested object structures
-5. **Data Attributes** - HTML data-* attributes dari canonical links
+5. **Data Attributes** - HTML data-\* attributes dari canonical links
 
 **Pattern Success Hierarchy:**
+
 1. Direct JSON `publishDate` fields (most reliable)
 2. UI renderer objects dengan `simpleText` (common)
 3. Meta tag fallbacks (always present for public videos)
 4. Alternative JSON paths (backup structures)
 
 #### 🚀 **Production Status:**
+
 - ✅ **API Endpoint Enhanced**: `/api/youtube` route updated dengan multiple date patterns
 - ✅ **Fallback Strategy**: Clean "Date not available" messaging implemented
 - ✅ **Debug System**: Production-ready logging untuk future troubleshooting
@@ -1844,11 +2049,13 @@ This fix ensures VibeDev ID's YouTube integration maintains accuracy dan transpa
 ### 📱 **YOUTUBE VIDEO SHOWCASE MOBILE RESPONSIVE OPTIMIZATION** - Enhanced Mobile User Experience (11 January 2025)
 
 #### 🎯 **Mobile UX Enhancement Overview:**
+
 Comprehensive mobile responsive improvements untuk YouTube Video Showcase section, focusing on better typography, container sizing, touch interactions, dan overall mobile user experience optimization.
 
 #### 🔧 **Implementation Details:**
 
 **1. Typography Standardization (`components/ui/youtube-video-showcase.tsx`):**
+
 ```tsx
 // Header Section - Consistent dengan section lain
 // Before: Responsive text scaling (text-2xl sm:text-3xl md:text-4xl lg:text-5xl)
@@ -1862,15 +2069,17 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 ```
 
 **2. Mobile Container Optimization:**
+
 ```tsx
 // Enhanced responsive container dengan better mobile handling
 // Before: max-w-6xl mx-auto min-w-[300px]
 // After: max-w-5xl sm:max-w-6xl mx-auto min-w-[280px] sm:min-w-[300px] px-2 sm:px-0
-<div className="videos-container flex w-full max-w-5xl sm:max-w-6xl mx-auto min-w-[280px] sm:min-w-[300px] overflow-hidden relative rounded-xl gap-1 px-2 sm:px-0" 
+<div className="videos-container flex w-full max-w-5xl sm:max-w-6xl mx-auto min-w-[280px] sm:min-w-[300px] overflow-hidden relative rounded-xl gap-1 px-2 sm:px-0"
      style={{ height: 'auto', aspectRatio: '5/2' }}>
 ```
 
 **3. Advanced Mobile Responsive CSS:**
+
 ```css
 // Enhanced breakpoint system dengan 3-tier responsive design
 @media (max-width: 640px) {
@@ -1880,23 +2089,23 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
     gap: 3px;
     padding: 0 8px;
   }
-  
+
   .video-option {
     min-width: 70px;  // Increased dari 50px untuk better visibility
     border-radius: 8px;
   }
-  
+
   .video-icon {
     min-width: 32px !important;  // Larger touch targets
     max-width: 32px !important;
     height: 32px !important;
   }
-  
+
   .video-title {
     font-size: 0.875rem !important;
     line-height: 1.25rem !important;
   }
-  
+
   .video-desc {
     font-size: 0.75rem !important;
     line-height: 1rem !important;
@@ -1907,7 +2116,7 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
   .videos-container {
     aspect-ratio: 2.8/1 !important;  // Tablet-specific ratio
   }
-  
+
   .video-option {
     min-width: 60px;
   }
@@ -1915,6 +2124,7 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 ```
 
 **4. Touch Interaction Enhancement:**
+
 ```tsx
 // Play button improvements untuk mobile touch
 // Before: w-12 h-12 dengan w-6 h-6 icon
@@ -1931,12 +2141,13 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 ```
 
 **5. Main Page Section Optimization (`app/page.tsx`):**
+
 ```tsx
 // Updated padding untuk better mobile experience
 // Before: py-20 dengan px-4 sm:px-6 lg:px-8
 // After: Responsive padding dengan mobile-first approach
 <section className="py-12 sm:py-16 lg:py-20">
-  <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+  <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
     <YouTubeVideoShowcase />
   </div>
 </section>
@@ -1945,24 +2156,28 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 #### ✅ **Mobile Enhancement Benefits:**
 
 **Typography Consistency:**
+
 - ✅ **Standardized Headers**: Matching typography dengan "AI untuk Coding & Development Tools" section
 - ✅ **Visual Harmony**: Consistent font sizing dan spacing across all sections
 - ✅ **Better Hierarchy**: Improved readability dengan standardized text treatment
 - ✅ **Design System Compliance**: Follows established VibeDev ID typography patterns
 
 **Mobile User Experience:**
+
 - ✅ **Improved Visibility**: Video cards 40% larger (70px vs 50px) untuk better mobile viewing
 - ✅ **Better Aspect Ratios**: 3/2 ratio pada mobile (vs 2.5/1) untuk more proportional display
 - ✅ **Enhanced Touch Targets**: Larger play buttons dan interactive elements
 - ✅ **Optimized Spacing**: Better gap management dan padding untuk mobile screens
 
 **Responsive Design:**
+
 - ✅ **Three-Tier Breakpoints**: Small mobile (≤640px), tablet (641-768px), desktop (≥769px)
 - ✅ **Container Flexibility**: Smart max-width adjustments untuk different screen sizes
 - ✅ **Text Scaling**: Optimized font sizes untuk each breakpoint
 - ✅ **Loading States**: Consistent responsive behavior dalam loading skeleton
 
 **Touch Interaction:**
+
 - ✅ **Larger Touch Areas**: 32px icons vs 28px untuk easier mobile interaction
 - ✅ **Better Button Sizing**: Minimum 36px height untuk accessibility standards
 - ✅ **Enhanced Feedback**: `touch-manipulation` CSS untuk smoother touch response
@@ -1971,11 +2186,13 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 #### 🎯 **Mobile Performance Improvements:**
 
 **Screen Size Optimization:**
+
 - **Small Mobile (≤640px)**: Optimized untuk phone portraits dengan 3/2 aspect ratio
 - **Large Mobile/Tablet (641-768px)**: Perfect untuk landscape orientation dan small tablets
 - **Desktop (≥769px)**: Original design preserved dengan full feature set
 
 **Visual Consistency:**
+
 - **Header Typography**: Perfect match dengan other sections (text-4xl lg:text-5xl)
 - **Subtitle Treatment**: Consistent dengan AI tools section (text-muted-foreground mt-6 text-xl)
 - **Container Spacing**: Unified mb-12 untuk section consistency
@@ -1984,11 +2201,13 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 #### 📱 **Mobile-First Features:**
 
 **Container Intelligence:**
+
 - **Dynamic Sizing**: Container adapts dari 280px (mobile) ke 6xl (desktop)
 - **Smart Padding**: Horizontal padding management dengan px-2 sm:px-0 approach
 - **Aspect Ratio Scaling**: Progressive ratio adjustment untuk optimal viewing
 
 **Content Optimization:**
+
 - **Text Hierarchy**: Responsive font sizing dengan mobile readability priority
 - **Icon Scaling**: Progressive icon sizing dari 16px (mobile) ke 24px (desktop)
 - **Button Intelligence**: Context-aware text display dengan space optimization
@@ -1996,18 +2215,21 @@ Comprehensive mobile responsive improvements untuk YouTube Video Showcase sectio
 #### 🚀 **Production Benefits:**
 
 **User Experience:**
+
 - ✅ **Enhanced Mobile Engagement**: Better video discovery pada mobile devices
 - ✅ **Improved Accessibility**: Larger touch targets comply dengan WCAG guidelines
 - ✅ **Consistent Design**: Unified look dengan other homepage sections
 - ✅ **Faster Interaction**: Optimized touch response dengan better visual feedback
 
 **Technical Excellence:**
+
 - ✅ **Clean CSS Architecture**: Organized breakpoint system dengan clear hierarchy
 - ✅ **Performance Optimized**: Efficient responsive queries tanpa layout thrashing
 - ✅ **Maintainable Code**: Structured approach untuk easy future enhancements
 - ✅ **Cross-Device Compatibility**: Tested across all major device categories
 
 #### 📋 **Implementation Status:**
+
 - ✅ **Typography Standardization**: Header dan subtitle consistent dengan section lain
 - ✅ **Mobile Container Enhancement**: Responsive sizing dengan smart padding management
 - ✅ **CSS Breakpoint System**: 3-tier responsive design implemented
@@ -2022,6 +2244,7 @@ This comprehensive mobile optimization ensures VibeDev ID community members dapa
 ### 🎨 **YOUTUBE VIDEO SHOWCASE UI ENHANCEMENT** - Improved Text Readability & Contrast (10 January 2025)
 
 #### 🚨 **UI Issue Resolved:**
+
 - **Problem**: Video details text kurang terbaca karena gradient overlay terlalu transparan
 - **Root Cause**: Insufficient contrast antara text dan background thumbnail images
 - **User Report**: Video title, description, dan metadata susah dibaca di thumbnail yang terang
@@ -2030,19 +2253,21 @@ This comprehensive mobile optimization ensures VibeDev ID community members dapa
 #### 🔧 **UI Enhancement Implementation:**
 
 **1. Enhanced Gradient Overlay System (`components/ui/youtube-video-showcase.tsx`):**
+
 ```typescript
 // Before: Insufficient opacity untuk text readability
-background: activeIndex === index 
+background: activeIndex === index
   ? 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent)'
   : 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
 
 // After: Stronger opacity dengan multi-step gradient
-background: activeIndex === index 
+background: activeIndex === index
   ? 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
   : 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)'
 ```
 
 **2. Enhanced Coverage & Height:**
+
 ```typescript
 // Improved gradient coverage untuk better text protection
 height: '160px', // Increased from 150px
@@ -2050,6 +2275,7 @@ bottom: activeIndex === index ? '0' : '-60px'
 ```
 
 **3. Multi-Layer Text Shadow System:**
+
 ```typescript
 // Title text shadow untuk maximum readability
 textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)'
@@ -2062,6 +2288,7 @@ textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)'
 ```
 
 **4. Icon & Button Contrast Improvements:**
+
 ```typescript
 // Enhanced icon background untuk better visibility
 bg-black/90 backdrop-blur-sm shadow-lg border border-white/30
@@ -2073,18 +2300,21 @@ bg-black/80 rounded-full backdrop-blur-sm shadow-lg border border-white/20
 #### 🎯 **Benefits Achieved:**
 
 **Text Readability Improvements:**
+
 - ✅ **95% Opacity Bottom**: Maximum contrast untuk text di area video details
 - ✅ **Multi-Step Gradient**: Smooth transition dari dark ke transparent
 - ✅ **Dual-Layer Text Shadows**: Ensures readability on all thumbnail types
 - ✅ **Enhanced Coverage**: Taller gradient area (160px) untuk better text protection
 
 **Visual Enhancement Results:**
+
 - ✅ **Perfect Contrast**: Text clearly readable on bright dan dark thumbnails
 - ✅ **Professional Appearance**: Darker overlay creates premium video player aesthetic
 - ✅ **Icon Visibility**: Enhanced icon backgrounds dengan stronger borders
 - ✅ **Button Contrast**: Play buttons more prominent dengan better shadows
 
 **User Experience Benefits:**
+
 - ✅ **Information Accessibility**: All video metadata clearly readable
 - ✅ **Visual Hierarchy**: Better separation antara text dan background
 - ✅ **Mobile Optimization**: Enhanced readability pada smaller screens
@@ -2093,18 +2323,21 @@ bg-black/80 rounded-full backdrop-blur-sm shadow-lg border border-white/20
 #### 🎨 **Technical Implementation Details:**
 
 **Gradient Optimization:**
+
 1. **Active Video Gradient**: 4-step opacity progression (95% → 75% → 30% → transparent)
 2. **Inactive Video Gradient**: 2-step progression (80% → 20% → transparent)
 3. **Height Enhancement**: 160px coverage untuk comprehensive text protection
 4. **Smooth Transitions**: 700ms duration untuk seamless hover effects
 
 **Text Shadow Strategy:**
+
 - **Primary Shadow**: Strong black shadow untuk main contrast
-- **Secondary Shadow**: Subtle shadow untuk depth enhancement  
+- **Secondary Shadow**: Subtle shadow untuk depth enhancement
 - **Layered Approach**: Multiple shadow layers untuk maximum readability
 - **Opacity Tuning**: Different shadow intensities untuk various text elements
 
 **Interactive Element Enhancements:**
+
 - **Icon Backgrounds**: 90% opacity dengan glassmorphism backdrop blur
 - **Play Button Overlays**: 80% opacity dengan shadow dan border styling
 - **Border Treatments**: White borders dengan 30% opacity untuk definition
@@ -2113,18 +2346,21 @@ bg-black/80 rounded-full backdrop-blur-sm shadow-lg border border-white/20
 #### 📱 **Cross-Device Optimization:**
 
 **Mobile Responsiveness:**
+
 - Enhanced text shadows work effectively pada smaller screens
 - Stronger gradient ensures readability di mobile viewport sizes
 - Icon dan button contrast optimized untuk touch interactions
 - Responsive typography maintains readability across breakpoints
 
 **Desktop Experience:**
+
 - Full gradient coverage di larger video cards
 - Enhanced hover states dengan smooth transitions
 - Premium video player aesthetic dengan professional shadowing
 - Optimal contrast ratio untuk accessibility standards
 
 #### 🚀 **Production Impact:**
+
 - ✅ **Readability Score**: Text contrast improved from ~3:1 to ~15:1 ratio
 - ✅ **User Engagement**: Better information accessibility increases interaction
 - ✅ **Visual Quality**: Professional video showcase appearance
@@ -2139,11 +2375,13 @@ This enhancement transforms video showcase dari potentially unreadable content m
 ### 🌐 **FAVICON MANUAL INPUT SYSTEM** - Enhanced User Control & Removed Automatic Fetching (5 January 2025)
 
 #### 🎯 **System Overview:**
+
 Completely replaced automatic favicon fetching with manual user input for better reliability and user control. Users now input favicon URLs manually in both project submission and project editing flows.
 
 #### 🔧 **Implementation Details:**
 
 **1. Submit Project Form (`components/ui/submit-project-form.tsx`):**
+
 - ❌ **Removed**: `getFaviconUrl` import and automatic favicon fetching logic
 - ❌ **Removed**: Auto-fetch message "Favicon akan otomatis ke-fetch dari website ini! 🌐"
 - ✅ **Added**: Separate manual favicon URL input field with real-time preview
@@ -2152,6 +2390,7 @@ Completely replaced automatic favicon fetching with manual user input for better
 - ✅ **Separated**: Website URL and Favicon URL into distinct form fields for clarity
 
 **2. Project Edit Form (`app/project/[id]/page.tsx`):**
+
 - ❌ **Removed**: `getFaviconUrl` import and automatic fetching in edit mode
 - ❌ **Removed**: Auto-update favicon preview when URL changes
 - ✅ **Added**: Manual favicon URL input field in edit mode with preview
@@ -2160,22 +2399,25 @@ Completely replaced automatic favicon fetching with manual user input for better
 - ✅ **Updated**: Error handling for invalid favicon URLs with graceful fallbacks
 
 **3. Form Handling & Backend Integration:**
+
 ```typescript
 // Enhanced form handling with favicon_url field
-formData.append("website_url", websiteUrl);
-formData.append("favicon_url", faviconUrl);  // ✅ Manual favicon URL
-formData.append("image_url", editFormData.image_url);
+formData.append('website_url', websiteUrl)
+formData.append('favicon_url', faviconUrl) // ✅ Manual favicon URL
+formData.append('image_url', editFormData.image_url)
 ```
 
 #### 🎨 **UI/UX Improvements:**
 
 **Field Separation:**
+
 - **Website URL**: Clean standalone field untuk project website
 - **Favicon URL**: Dedicated field dengan preview functionality
 - **Visual Preview**: Real-time favicon preview beside input field
 - **Error Handling**: Graceful fallback when favicon fails to load
 
 **User Experience Enhancements:**
+
 - **Clear Instructions**: Indonesian copy explaining what a favicon is
 - **Input Validation**: URL type validation for proper favicon URLs
 - **Preview System**: Immediate visual feedback untuk favicon appearance
@@ -2185,16 +2427,20 @@ formData.append("image_url", editFormData.image_url);
 #### 🔍 **Technical Implementation:**
 
 **State Management:**
+
 ```typescript
 // Separated state variables for better control
-const [websiteUrl, setWebsiteUrl] = useState<string>("");
-const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
+const [websiteUrl, setWebsiteUrl] = useState<string>('')
+const [faviconUrl, setFaviconUrl] = useState<string>('') // Manual input
 ```
 
 **Form Field Structure:**
+
 ```tsx
-{/* Website URL - Clean standalone field */}
-<div className="space-y-2">
+{
+  /* Website URL - Clean standalone field */
+}
+;<div className="space-y-2">
   <Label htmlFor="website_url">Website URL</Label>
   <Input
     type="url"
@@ -2204,16 +2450,18 @@ const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
   />
 </div>
 
-{/* Favicon URL - Separate manual input with preview */}
-<div className="space-y-2">
+{
+  /* Favicon URL - Separate manual input with preview */
+}
+;<div className="space-y-2">
   <Label htmlFor="favicon_url">Favicon URL</Label>
   <div className="flex items-center gap-2">
     {faviconUrl && (
       <Image
         src={faviconUrl}
         alt="Website favicon"
-        className="w-4 h-4 flex-shrink-0"
-        onError={() => setFaviconUrl("")}
+        className="h-4 w-4 flex-shrink-0"
+        onError={() => setFaviconUrl('')}
       />
     )}
     <Input
@@ -2223,8 +2471,9 @@ const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
       placeholder="https://example.com/favicon.ico atau https://example.com/favicon.svg"
     />
   </div>
-  <p className="text-xs text-muted-foreground">
-    Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯
+  <p className="text-muted-foreground text-xs">
+    Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di
+    browser tab 🎯
   </p>
 </div>
 ```
@@ -2232,18 +2481,21 @@ const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
 #### 🎯 **Benefits Achieved:**
 
 **Reliability Improvements:**
+
 - ✅ **No More Timeout Issues**: Eliminates automatic favicon fetching timeouts
 - ✅ **User Control**: Users have complete control over favicon appearance
 - ✅ **Faster Submission**: No waiting for automatic favicon requests
 - ✅ **Predictable Results**: No more failed automatic favicon fetches
 
 **User Experience Benefits:**
+
 - ✅ **Transparency**: Clear understanding of what favicon will be displayed
 - ✅ **Flexibility**: Users can choose any favicon URL they prefer
 - ✅ **Immediate Feedback**: Real-time preview shows favicon appearance
 - ✅ **Error Prevention**: No surprise blank favicons from failed fetches
 
 **Developer Benefits:**
+
 - ✅ **Cleaner Code**: Removed complex favicon fetching logic
 - ✅ **Better Error Handling**: Simplified error states and fallbacks
 - ✅ **Maintainability**: Less complex async favicon handling
@@ -2252,16 +2504,19 @@ const [faviconUrl, setFaviconUrl] = useState<string>("");  // Manual input
 #### 📝 **Migration Notes:**
 
 **Backward Compatibility:**
+
 - Existing projects with automatically fetched favicons remain unaffected
 - Edit flow allows users to update favicon URLs manually
 - Database schema supports both old and new favicon URL formats
 
 **User Education:**
+
 - Helper text explains favicon concept for new users
 - Placeholder examples show proper favicon URL formats
 - Indonesian copy maintains friendly, accessible tone
 
 #### 🚀 **Implementation Status:**
+
 - ✅ **Submit Project Form**: Manual favicon input fully implemented
 - ✅ **Edit Project Form**: Manual favicon input fully implemented
 - ✅ **Form Handling**: Backend integration completed
@@ -2275,46 +2530,49 @@ This implementation provides users with complete control over favicon appearance
 ### 🔄 **FAVICON AUTO-FETCH RESTORATION & FORM UX ENHANCEMENT** - Complete System Overhaul (6 January 2025)
 
 #### 🎯 **System Overview:**
+
 Reverted to auto-fetch favicon system with enhanced reliability, while implementing comprehensive form UX improvements for better readability and visual hierarchy across all project forms.
 
 #### 🌐 **Auto-Fetch Favicon System Restored:**
 
 **1. Next.js Image Configuration Enhancement:**
+
 ```javascript
 // next.config.mjs - Enhanced remote patterns for favicon support
 remotePatterns: [
   // Google Favicon Service
   {
-    protocol: "https",
-    hostname: "www.google.com",
-    pathname: "/s2/favicons**",
+    protocol: 'https',
+    hostname: 'www.google.com',
+    pathname: '/s2/favicons**',
   },
   // Universal favicon support for any domain
   {
-    protocol: "https",
-    hostname: "**",
-    pathname: "/favicon.ico",
+    protocol: 'https',
+    hostname: '**',
+    pathname: '/favicon.ico',
   },
   {
-    protocol: "https", 
-    hostname: "**",
-    pathname: "/favicon.png",
+    protocol: 'https',
+    hostname: '**',
+    pathname: '/favicon.png',
   },
   {
-    protocol: "https",
-    hostname: "**", 
-    pathname: "/favicon.svg",
+    protocol: 'https',
+    hostname: '**',
+    pathname: '/favicon.svg',
   },
   // Apple touch icons
   {
-    protocol: "https",
-    hostname: "**",
-    pathname: "/apple-touch-icon.png",
+    protocol: 'https',
+    hostname: '**',
+    pathname: '/apple-touch-icon.png',
   },
 ]
 ```
 
 **2. Smart Auto-Fetch Integration:**
+
 - **Automatic favicon detection** from website URL input
 - **Real-time preview** using `getFaviconUrl()` utility
 - **Manual override support** - users can still input custom favicon URLs
@@ -2322,6 +2580,7 @@ remotePatterns: [
 - **Dynamic placeholder text** based on website URL presence
 
 **3. Enhanced Form Logic:**
+
 ```tsx
 // Auto-fetch with manual override capability
 {(faviconUrl || (websiteUrl && getFaviconUrl(websiteUrl))) && (
@@ -2334,13 +2593,13 @@ remotePatterns: [
 )}
 
 // Dynamic placeholder text
-placeholder={websiteUrl ? 
-  "Auto-fetch dari website atau manual URL" : 
+placeholder={websiteUrl ?
+  "Auto-fetch dari website atau manual URL" :
   "https://example.com/favicon.ico atau https://example.com/favicon.svg"
 }
 
 // Context-aware helper text
-{websiteUrl ? 
+{websiteUrl ?
   "Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override." :
   "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"
 }
@@ -2349,6 +2608,7 @@ placeholder={websiteUrl ?
 #### 🎨 **Comprehensive Form UX Enhancement:**
 
 **1. Enhanced CSS Classes (`app/globals.css`):**
+
 ```css
 /* Enhanced form input readability and contrast */
 .form-input-enhanced {
@@ -2376,6 +2636,7 @@ placeholder={websiteUrl ?
 ```
 
 **2. Applied Across All Form Elements:**
+
 - **Submit Project Form** - All inputs, textarea, labels dengan enhanced styling
 - **Edit Project Form** - Consistent styling untuk semua fields
 - **Dynamic helper text** - Context-aware descriptions dan instructions
@@ -2384,12 +2645,14 @@ placeholder={websiteUrl ?
 #### 🔧 **Technical Improvements:**
 
 **1. Image Component Fixes:**
+
 - **Added missing `width` and `height` properties** untuk Next.js 15 compliance
 - **Proper `fill` prop usage** dalam AspectRatio containers
 - **Enhanced `sizes` attribute** untuk responsive image optimization
 - **Error handling** dengan graceful fallbacks
 
 **2. Form Validation & UX:**
+
 - **Enhanced placeholder contrast** - abu-abu yang proper untuk readability
 - **Better visual hierarchy** - clear distinction antara labels, inputs, helper text
 - **Focus states** - placeholder becomes more subtle saat user typing
@@ -2398,6 +2661,7 @@ placeholder={websiteUrl ?
 #### ✨ **User Experience Improvements:**
 
 **1. Auto-Fetch Benefits:**
+
 - ✅ **Automatic favicon detection** - no manual input required untuk most cases
 - ✅ **Real-time preview** - immediate visual feedback
 - ✅ **Flexible override** - users can still customize if needed
@@ -2405,6 +2669,7 @@ placeholder={websiteUrl ?
 - ✅ **Smart placeholder text** - context-aware messaging
 
 **2. Enhanced Form Readability:**
+
 - ✅ **Better contrast** - clear distinction antara form elements
 - ✅ **Improved placeholder visibility** - abu-abu yang proper (70% opacity)
 - ✅ **Enhanced labels** - bold dan clear dengan `font-medium`
@@ -2414,6 +2679,7 @@ placeholder={websiteUrl ?
 #### 🚀 **Implementation Status:**
 
 **Auto-Fetch System:**
+
 - ✅ **Next.js Config**: Wildcard patterns untuk universal favicon support
 - ✅ **Submit Form**: Auto-fetch integrated dengan manual override
 - ✅ **Edit Form**: Consistent auto-fetch behavior
@@ -2421,6 +2687,7 @@ placeholder={websiteUrl ?
 - ✅ **Error Handling**: Graceful fallbacks untuk failed fetches
 
 **Form UX Enhancement:**
+
 - ✅ **Enhanced CSS**: Custom classes untuk better contrast
 - ✅ **Submit Form**: All form elements styled dengan enhanced classes
 - ✅ **Edit Form**: Consistent styling implementation
@@ -2428,6 +2695,7 @@ placeholder={websiteUrl ?
 - ✅ **Accessibility**: Proper contrast ratios dan focus states
 
 **Bug Fixes:**
+
 - ✅ **Next.js 15 Compliance**: All Image components have proper dimensions
 - ✅ **Hostname Configuration**: Universal favicon domain support
 - ✅ **Runtime Errors**: Eliminated width/height missing errors
@@ -2436,18 +2704,21 @@ placeholder={websiteUrl ?
 #### 🎯 **Results Achieved:**
 
 **Enhanced User Experience:**
+
 - **Automatic favicon detection** - reduces user effort by 80%
 - **Better form readability** - improved contrast dan visual hierarchy
 - **Consistent behavior** - same UX across submit dan edit flows
 - **Reliable fallbacks** - no more broken favicon images
 
 **Developer Experience:**
+
 - **Clean error-free runtime** - no more Next.js Image warnings
 - **Maintainable code** - consistent styling patterns
 - **Enhanced debugging** - better error handling dan logging
 - **Future-proof** - compatible dengan Next.js 15+ standards
 
 **Performance Improvements:**
+
 - **Optimized image loading** - proper Next.js Image optimization
 - **Reduced network requests** - efficient favicon fetching
 - **Better caching** - leverages CDN dan browser cache
@@ -2458,6 +2729,7 @@ This comprehensive overhaul provides the best of both worlds: automatic favicon 
 ### 🛠️ **FAVICON ERROR HANDLER FIX** - Infinite Loop Prevention (6 January 2025)
 
 #### 🚨 **Critical Issue Resolved:**
+
 - **Problem**: Favicon loading errors causing infinite retry loops flooding browser console dengan ribuan error messages
 - **Root Cause**: Simple onError handler di project detail page (`app/project/[slug]/page.tsx` line 996-998) yang mengubah src tanpa state tracking
 - **Impact**: Console spam dengan repeated 404/403 errors dari external domains like `api-key-manager-murex.vercel.app`
@@ -2466,27 +2738,32 @@ This comprehensive overhaul provides the best of both worlds: automatic favicon 
 #### 🔧 **Technical Solution:**
 
 **1. Safe ProjectFavicon Component:**
+
 ```tsx
 // Created safe favicon component with error state tracking
 const ProjectFavicon = ({ src, alt, className, width, height }) => {
-  const [hasError, setHasError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src || "/default-favicon.svg");
+  const [hasError, setHasError] = useState(false)
+  const [imgSrc, setImgSrc] = useState(src || '/default-favicon.svg')
 
   // Reset error state when src changes
   useEffect(() => {
     if (src && src !== imgSrc) {
-      setHasError(false);
-      setImgSrc(src);
+      setHasError(false)
+      setImgSrc(src)
     }
-  }, [src]);
+  }, [src])
 
   const handleError = () => {
     if (!hasError) {
-      console.log('[Favicon Error] Failed to load:', imgSrc, 'falling back to default');
-      setHasError(true);
-      setImgSrc("/default-favicon.svg");
+      console.log(
+        '[Favicon Error] Failed to load:',
+        imgSrc,
+        'falling back to default',
+      )
+      setHasError(true)
+      setImgSrc('/default-favicon.svg')
     }
-  };
+  }
 
   return (
     <Image
@@ -2498,11 +2775,12 @@ const ProjectFavicon = ({ src, alt, className, width, height }) => {
       onError={handleError}
       priority={false}
     />
-  );
-};
+  )
+}
 ```
 
 **2. Implementation in Project Detail Page:**
+
 ```tsx
 // Before (problematic):
 <Image
@@ -2525,12 +2803,14 @@ const ProjectFavicon = ({ src, alt, className, width, height }) => {
 #### ✅ **Prevention Features:**
 
 **State Tracking Prevention:**
+
 - **hasError Boolean**: Prevents multiple error callbacks pada same image
 - **Single Fallback**: Only one retry attempt to default favicon
 - **State Reset**: Error state resets when src prop changes
 - **Controlled Updates**: Uses useState untuk manage image source changes
 
 **Enhanced Error Handling:**
+
 - **Detailed Logging**: Console log untuk debugging dengan clear error context
 - **Graceful Fallback**: Always falls back to `/default-favicon.svg` yang guaranteed tersedia
 - **No Infinite Loops**: Error handler hanya execute once per image load attempt
@@ -2539,12 +2819,14 @@ const ProjectFavicon = ({ src, alt, className, width, height }) => {
 #### 🎯 **Benefits Achieved:**
 
 **Immediate Improvements:**
+
 - ✅ **Clean Console**: Eliminated thousands of repeated favicon error messages
 - ✅ **Better Performance**: No more infinite retry loops consuming resources
 - ✅ **Reliable Fallback**: Default favicon always loads as backup
 - ✅ **User Experience**: Smooth favicon loading tanpa performance impact
 
 **Developer Experience:**
+
 - ✅ **Debugging Friendly**: Clear error messages dengan context untuk troubleshooting
 - ✅ **Maintainable Code**: Centralized favicon handling dengan reusable component
 - ✅ **Error Prevention**: Built-in protection against common favicon loading issues
@@ -2553,12 +2835,14 @@ const ProjectFavicon = ({ src, alt, className, width, height }) => {
 #### 🔧 **Next.js Image Configuration:**
 
 **Remote Patterns Already Configured:**
+
 - Wildcard patterns support untuk `*.vercel.app` domains (already in `next.config.mjs`)
 - Comprehensive favicon domain support (favicon.ico, favicon.svg, favicon.png)
 - Google favicon service backup (`www.google.com/s2/favicons**`)
 - Universal domain support untuk external favicons
 
 #### 📋 **Implementation Status:**
+
 - ✅ **ProjectFavicon Component**: Created dan integrated dalam project detail page
 - ✅ **State Management**: Error tracking dengan useState dan useEffect hooks
 - ✅ **Error Prevention**: One-time fallback mechanism implemented
@@ -2567,6 +2851,7 @@ const ProjectFavicon = ({ src, alt, className, width, height }) => {
 - ✅ **Production Ready**: Safe error handling untuk production deployment
 
 #### 🚀 **Impact:**
+
 This fix eliminates the major console spam issue dari favicon loading errors while maintaining reliable favicon display functionality. Users akan see clean console output dan better performance, sementara developers get proper error logging untuk legitimate debugging needs.
 
 **Critical for Production**: This fix prevents potential performance degradation dari excessive error handling dan provides reliable favicon loading experience untuk all users.
@@ -2574,6 +2859,7 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 ### 🖼️ **LARGEST CONTENTFUL PAINT (LCP) OPTIMIZATION** - Logo Priority Loading (8 January 2025)
 
 #### 🚨 **Performance Issue Resolved:**
+
 - **Warning**: Next.js detected image `/vibedevid_final_black.svg` sebagai Largest Contentful Paint (LCP) tanpa priority property
 - **Impact**: Suboptimal Core Web Vitals dan slower logo loading untuk above-the-fold content
 - **Solution**: Added `priority={true}` property pada both logo images di AdaptiveLogo component
@@ -2581,6 +2867,7 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 #### 🔧 **Technical Implementation:**
 
 **AdaptiveLogo Component Enhancement (`components/ui/adaptive-logo.tsx`):**
+
 ```tsx
 // Added priority loading untuk both dark dan light mode logos
 <Image
@@ -2589,17 +2876,19 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 />
 
 <Image
-  src="/vibedevid_final_white.svg"  // Dark mode logo  
+  src="/vibedevid_final_white.svg"  // Dark mode logo
   priority={true}  // ✅ Added untuk LCP optimization
 />
 ```
 
 **Usage Context:**
+
 - **Navbar Location**: AdaptiveLogo used dalam fixed navbar (`fixed top-0`) - always above the fold
 - **Theme Switching**: Both light dan dark mode logos need priority untuk instant transitions
 - **Brand Critical**: Company logo essential untuk immediate brand recognition
 
 #### ✅ **Performance Benefits:**
+
 - ✅ **Priority Loading**: Logo images loaded dengan highest priority
 - ✅ **LCP Optimization**: Improved Largest Contentful Paint timing
 - ✅ **Theme Transition**: Both logo variants preloaded untuk smooth switching
@@ -2607,6 +2896,7 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 - ✅ **User Experience**: Logo appears immediately on page load
 
 #### 🎯 **Implementation Status:**
+
 - ✅ **Both Logos Optimized**: Dark dan light mode variants marked dengan `priority={true}`
 - ✅ **Warning Eliminated**: Next.js LCP warning resolved
 - ✅ **Production Ready**: Performance optimization active
@@ -2616,6 +2906,7 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 ### ❤️ **LIKES COUNT CONSISTENCY FIX** - Homepage & Profile Page Data Synchronization (9 January 2025)
 
 #### 🚨 **Critical Bug Resolved:**
+
 - **Problem**: Likes count displaying correctly di user profile pages (`app/[username]/page.tsx`) tapi showing `0` di homepage (`app/page.tsx`)
 - **Root Cause**: Inconsistent data structure field names antara `fetchProjectsWithSorting` dan `fetchUserProjectsFallback` functions
 - **Impact**: User confusion karena inconsistent like count display across different pages
@@ -2623,6 +2914,7 @@ This fix eliminates the major console spam issue dari favicon loading errors whi
 #### 🔧 **Technical Root Cause Analysis:**
 
 **Data Structure Inconsistency:**
+
 ```typescript
 // app/page.tsx (Homepage) - Expected 'likes' field:
 fetchProjectsWithSorting() returns: {
@@ -2636,6 +2928,7 @@ fetchUserProjectsFallback() returns: {
 ```
 
 **Display Code Inconsistency:**
+
 ```tsx
 // Homepage usage:
 <HeartButtonDisplay likes={project.likes} />  // ✅ Correct field
@@ -2647,6 +2940,7 @@ fetchUserProjectsFallback() returns: {
 #### 🛠️ **Technical Solution Implementation:**
 
 **1. Data Structure Standardization:**
+
 ```typescript
 // Fixed fetchUserProjectsFallback in app/[username]/page.tsx
 return projects.map((project) => ({
@@ -2656,17 +2950,21 @@ return projects.map((project) => ({
   comments_count: commentCounts[project.id] || 0,
   thumbnail_url: project.image_url,
   url: project.website_url,
-}));
+}))
 ```
 
 **2. Display Code Standardization:**
+
 ```tsx
 // Updated profile page display to use consistent field name
-<Heart className="h-4 w-4" />
-{project.likes || 0}  // ✅ Changed from 'project.likes_count' to 'project.likes'
+;<Heart className="h-4 w-4" />
+{
+  project.likes || 0
+} // ✅ Changed from 'project.likes_count' to 'project.likes'
 ```
 
 **3. RPC Backward Compatibility:**
+
 ```typescript
 // Enhanced RPC function mapping untuk handle both field names
 return (projectsData || []).map((project: any) => ({
@@ -2674,14 +2972,15 @@ return (projectsData || []).map((project: any) => ({
   likes: project.likes_count || project.likes || 0, // ✅ Backward compatibility
   thumbnail_url: project.image_url,
   url: project.website_url,
-}));
+}))
 ```
 
 **4. Homepage Safety Enhancement:**
+
 ```tsx
 // Added fallback untuk prevent undefined values
 <HeartButtonDisplay
-  likes={project.likes || 0}  // ✅ Added '|| 0' fallback
+  likes={project.likes || 0} // ✅ Added '|| 0' fallback
   variant="default"
 />
 ```
@@ -2689,22 +2988,26 @@ return (projectsData || []).map((project: any) => ({
 #### ✅ **Files Modified:**
 
 **1. `app/[username]/page.tsx`:**
+
 - **Line 170**: Changed `likes_count` to `likes` dalam `fetchUserProjectsFallback` return mapping
 - **Line 607**: Updated display code dari `project.likes_count` ke `project.likes`
 - **Line 94**: Added backward compatibility untuk RPC function results
 
 **2. `app/page.tsx`:**
+
 - **Line 1148**: Enhanced HeartButtonDisplay dengan `|| 0` fallback untuk prevent undefined likes
 
 #### 🎯 **Consistency Achievements:**
 
 **Uniform Data Structure:**
+
 - ✅ **Single Field Name**: All functions now return `likes` field (not `likes_count`)
 - ✅ **Cross-Page Consistency**: Homepage dan profile pages use same data structure
 - ✅ **RPC Compatibility**: Backward compatibility maintained untuk existing RPC functions
 - ✅ **Fallback Safety**: All like displays have `|| 0` fallback untuk prevent undefined errors
 
 **User Experience Improvements:**
+
 - ✅ **Accurate Like Counts**: Consistent like count display across all pages
 - ✅ **Real-time Sync**: Like counts match between homepage cards dan profile project lists
 - ✅ **No More Zero Confusion**: Users see actual like counts everywhere
@@ -2713,14 +3016,17 @@ return (projectsData || []).map((project: any) => ({
 #### 🚀 **Testing Verification:**
 
 **Before Fix:**
+
 - 🔴 Homepage: `project.likes` → `0` (undefined karena field name mismatch)
 - 🟢 Profile: `project.likes_count` → `5` (correct data, wrong field name)
 
 **After Fix:**
+
 - 🟢 Homepage: `project.likes` → `5` (correct data, standardized field)
 - 🟢 Profile: `project.likes` → `5` (correct data, standardized field)
 
 #### 📋 **Implementation Status:**
+
 - ✅ **Data Structure**: Standardized ke `likes` field across all functions
 - ✅ **Display Code**: Updated semua components untuk use consistent field name
 - ✅ **Backward Compatibility**: RPC functions handle both old dan new field names
@@ -2729,5 +3035,5 @@ return (projectsData || []).map((project: any) => ({
 - ✅ **Production Ready**: All changes verified dan ready untuk deployment
 
 #### 🎉 **Impact:**
-This fix eliminates user confusion dari inconsistent like count displays dan ensures reliable, consistent data presentation across all pages. Users akan see accurate like counts whether they're browsing projects on homepage atau viewing individual user profiles, maintaining trust dalam platform's data integrity.
 
+This fix eliminates user confusion dari inconsistent like count displays dan ensures reliable, consistent data presentation across all pages. Users akan see accurate like counts whether they're browsing projects on homepage atau viewing individual user profiles, maintaining trust dalam platform's data integrity.

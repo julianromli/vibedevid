@@ -2,7 +2,7 @@
  * Utility functions for fetching website favicons
  */
 
-const DEFAULT_FAVICON = "/default-favicon.svg"
+const DEFAULT_FAVICON = '/default-favicon.svg'
 
 /**
  * Extract domain from URL
@@ -21,17 +21,17 @@ function extractDomain(url: string): string | null {
  */
 async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
   if (!websiteUrl) return DEFAULT_FAVICON
-  
+
   const domain = extractDomain(websiteUrl)
   if (!domain) return DEFAULT_FAVICON
 
   // Common favicon paths to try
   const faviconPaths = [
     `${domain}/favicon.ico`,
-    `${domain}/favicon.png`, 
+    `${domain}/favicon.png`,
     `${domain}/favicon.svg`,
     `${domain}/apple-touch-icon.png`,
-    `${domain}/apple-touch-icon-180x180.png`
+    `${domain}/apple-touch-icon-180x180.png`,
   ]
 
   // Try each favicon path with timeout to prevent stuck
@@ -40,15 +40,15 @@ async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
       // Create AbortController for timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 2000) // 2 second timeout per request
-      
-      const response = await fetch(faviconUrl, { 
+
+      const response = await fetch(faviconUrl, {
         method: 'HEAD',
         mode: 'no-cors', // Avoid CORS issues
-        signal: controller.signal
+        signal: controller.signal,
       })
-      
+
       clearTimeout(timeoutId)
-      
+
       // If request doesn't fail, assume favicon exists
       // Note: with no-cors, we can't check response.ok, but lack of error means likely success
       return faviconUrl
@@ -74,9 +74,9 @@ export async function fetchFavicon(websiteUrl: string): Promise<string> {
     // Race between favicon fetch and overall timeout
     const result = await Promise.race([
       _fetchFaviconWithTimeout(websiteUrl),
-      new Promise<string>((_, reject) => 
-        setTimeout(() => reject(new Error('Overall timeout')), 8000)
-      )
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error('Overall timeout')), 8000),
+      ),
     ])
     return result
   } catch (error) {
@@ -95,7 +95,7 @@ export async function fetchFavicon(websiteUrl: string): Promise<string> {
  */
 export function getFaviconUrl(websiteUrl: string): string {
   if (!websiteUrl) return DEFAULT_FAVICON
-  
+
   const domain = extractDomain(websiteUrl)
   if (!domain) return DEFAULT_FAVICON
 

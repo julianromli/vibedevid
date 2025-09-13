@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { HeartButton } from "@/components/ui/heart-button";
-import { ProminentLikeButton } from "@/components/ui/prominent-like-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { HeartButton } from '@/components/ui/heart-button'
+import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import MultipleSelector, { Option } from "@/components/ui/multiselect";
-import { UploadButton } from "@uploadthing/react";
-import { getCategories, type Category } from "@/lib/categories";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+} from '@/components/ui/select'
+import MultipleSelector, { Option } from '@/components/ui/multiselect'
+import { UploadButton } from '@uploadthing/react'
+import { getCategories, type Category } from '@/lib/categories'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 import {
   ArrowLeft,
   ExternalLink,
@@ -46,10 +46,10 @@ import {
   Upload,
   X,
   CheckCircle,
-} from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { Navbar } from "@/components/ui/navbar";
+} from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Navbar } from '@/components/ui/navbar'
 
 // Safe favicon component with error state tracking
 const ProjectFavicon = ({
@@ -59,30 +59,34 @@ const ProjectFavicon = ({
   width,
   height,
 }: {
-  src?: string;
-  alt: string;
-  className?: string;
-  width: number;
-  height: number;
+  src?: string
+  alt: string
+  className?: string
+  width: number
+  height: number
 }) => {
-  const [hasError, setHasError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src || "/default-favicon.svg");
+  const [hasError, setHasError] = useState(false)
+  const [imgSrc, setImgSrc] = useState(src || '/default-favicon.svg')
 
   // Reset error state when src changes
   useEffect(() => {
     if (src && src !== imgSrc) {
-      setHasError(false);
-      setImgSrc(src);
+      setHasError(false)
+      setImgSrc(src)
     }
-  }, [src]);
+  }, [src])
 
   const handleError = () => {
     if (!hasError) {
-      console.log('[Favicon Error] Failed to load:', imgSrc, 'falling back to default');
-      setHasError(true);
-      setImgSrc("/default-favicon.svg");
+      console.log(
+        '[Favicon Error] Failed to load:',
+        imgSrc,
+        'falling back to default',
+      )
+      setHasError(true)
+      setImgSrc('/default-favicon.svg')
     }
-  };
+  }
 
   return (
     <Image
@@ -94,15 +98,15 @@ const ProjectFavicon = ({
       onError={handleError}
       priority={false}
     />
-  );
-};
+  )
+}
 import {
   ProjectImageSkeleton,
   ProjectInfoSkeleton,
   CommentsSkeleton,
   ProjectStatsSkeleton,
-} from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase/client";
+} from '@/components/ui/skeleton'
+import { createClient } from '@/lib/supabase/client'
 import {
   getProjectBySlug,
   getComments,
@@ -110,158 +114,161 @@ import {
   incrementProjectViews,
   editProject,
   deleteProject,
-} from "@/lib/actions";
-import { getFaviconUrl } from "@/lib/favicon-utils";
+} from '@/lib/actions'
+import { getFaviconUrl } from '@/lib/favicon-utils'
 import {
   getCurrentSessionId,
   shouldTrackView,
   isValidUserAgent,
-} from "@/lib/client-analytics";
-import { useRouter } from "next/navigation";
-import { Footer } from "@/components/ui/footer";
+} from '@/lib/client-analytics'
+import { useRouter } from 'next/navigation'
+import { Footer } from '@/components/ui/footer'
 
 // Common tech stack options for the multiselect
-const MAX_DESCRIPTION_LENGTH = 1600;
+const MAX_DESCRIPTION_LENGTH = 1600
 
 const techOptions: Option[] = [
-  { value: "next.js", label: "Next.js" },
-  { value: "react", label: "React" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "vue", label: "Vue.js" },
-  { value: "angular", label: "Angular" },
-  { value: "svelte", label: "Svelte" },
-  { value: "tailwindcss", label: "Tailwind CSS" },
-  { value: "css", label: "CSS" },
-  { value: "scss", label: "SCSS" },
-  { value: "nodejs", label: "Node.js" },
-  { value: "express", label: "Express.js" },
-  { value: "fastify", label: "Fastify" },
-  { value: "nestjs", label: "NestJS" },
-  { value: "python", label: "Python" },
-  { value: "django", label: "Django" },
-  { value: "flask", label: "Flask" },
-  { value: "fastapi", label: "FastAPI" },
-  { value: "java", label: "Java" },
-  { value: "spring", label: "Spring Boot" },
-  { value: "csharp", label: "C#" },
-  { value: "dotnet", label: ".NET" },
-  { value: "go", label: "Go" },
-  { value: "rust", label: "Rust" },
-  { value: "php", label: "PHP" },
-  { value: "laravel", label: "Laravel" },
-  { value: "mongodb", label: "MongoDB" },
-  { value: "postgresql", label: "PostgreSQL" },
-  { value: "mysql", label: "MySQL" },
-  { value: "sqlite", label: "SQLite" },
-  { value: "redis", label: "Redis" },
-  { value: "supabase", label: "Supabase" },
-  { value: "firebase", label: "Firebase" },
-  { value: "aws", label: "AWS" },
-  { value: "vercel", label: "Vercel" },
-  { value: "netlify", label: "Netlify" },
-  { value: "docker", label: "Docker" },
-  { value: "kubernetes", label: "Kubernetes" },
-  { value: "graphql", label: "GraphQL" },
-  { value: "apollo", label: "Apollo" },
-  { value: "trpc", label: "tRPC" },
-  { value: "prisma", label: "Prisma" },
-  { value: "drizzle", label: "Drizzle" },
-  { value: "shadcn", label: "shadcn/ui" },
-  { value: "chakra", label: "Chakra UI" },
-  { value: "mantine", label: "Mantine" },
-  { value: "antd", label: "Ant Design" },
-  { value: "material-ui", label: "Material-UI" },
-];
+  { value: 'next.js', label: 'Next.js' },
+  { value: 'react', label: 'React' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'vue', label: 'Vue.js' },
+  { value: 'angular', label: 'Angular' },
+  { value: 'svelte', label: 'Svelte' },
+  { value: 'tailwindcss', label: 'Tailwind CSS' },
+  { value: 'css', label: 'CSS' },
+  { value: 'scss', label: 'SCSS' },
+  { value: 'nodejs', label: 'Node.js' },
+  { value: 'express', label: 'Express.js' },
+  { value: 'fastify', label: 'Fastify' },
+  { value: 'nestjs', label: 'NestJS' },
+  { value: 'python', label: 'Python' },
+  { value: 'django', label: 'Django' },
+  { value: 'flask', label: 'Flask' },
+  { value: 'fastapi', label: 'FastAPI' },
+  { value: 'java', label: 'Java' },
+  { value: 'spring', label: 'Spring Boot' },
+  { value: 'csharp', label: 'C#' },
+  { value: 'dotnet', label: '.NET' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+  { value: 'php', label: 'PHP' },
+  { value: 'laravel', label: 'Laravel' },
+  { value: 'mongodb', label: 'MongoDB' },
+  { value: 'postgresql', label: 'PostgreSQL' },
+  { value: 'mysql', label: 'MySQL' },
+  { value: 'sqlite', label: 'SQLite' },
+  { value: 'redis', label: 'Redis' },
+  { value: 'supabase', label: 'Supabase' },
+  { value: 'firebase', label: 'Firebase' },
+  { value: 'aws', label: 'AWS' },
+  { value: 'vercel', label: 'Vercel' },
+  { value: 'netlify', label: 'Netlify' },
+  { value: 'docker', label: 'Docker' },
+  { value: 'kubernetes', label: 'Kubernetes' },
+  { value: 'graphql', label: 'GraphQL' },
+  { value: 'apollo', label: 'Apollo' },
+  { value: 'trpc', label: 'tRPC' },
+  { value: 'prisma', label: 'Prisma' },
+  { value: 'drizzle', label: 'Drizzle' },
+  { value: 'shadcn', label: 'shadcn/ui' },
+  { value: 'chakra', label: 'Chakra UI' },
+  { value: 'mantine', label: 'Mantine' },
+  { value: 'antd', label: 'Ant Design' },
+  { value: 'material-ui', label: 'Material-UI' },
+]
 
 export default function ProjectDetailsPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string }>
 }) {
-  const router = useRouter();
-  const [projectSlug, setProjectSlug] = useState<string | null>(null);
-  const [project, setProject] = useState(null);
-  const [newComment, setNewComment] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const [addingComment, setAddingComment] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [isProjectOwner, setIsProjectOwner] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter()
+  const [projectSlug, setProjectSlug] = useState<string | null>(null)
+  const [project, setProject] = useState(null)
+  const [newComment, setNewComment] = useState('')
+  const [guestName, setGuestName] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [comments, setComments] = useState([])
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [addingComment, setAddingComment] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [isProjectOwner, setIsProjectOwner] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [editFormData, setEditFormData] = useState({
-    title: "",
-    description: "",
-    tagline: "",
-    category: "",
-    website_url: "",
-    image_url: "",
-  });
+    title: '',
+    description: '',
+    tagline: '',
+    category: '',
+    website_url: '',
+    image_url: '',
+  })
   // Edit form specific states
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([]);
-  const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>("");
-  const [editFaviconUrl, setEditFaviconUrl] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
+  const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([])
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>('')
+  const [editFaviconUrl, setEditFaviconUrl] = useState<string>('')
+  const [isUploading, setIsUploading] = useState(false)
   const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+    null,
+  )
 
   // Real-time stats states
-  const [realTimeLikes, setRealTimeLikes] = useState(0);
-  const [realTimeViews, setRealTimeViews] = useState(0);
-  const [realTimeUniqueViews, setRealTimeUniqueViews] = useState(0);
-  const [realTimeTodayViews, setRealTimeTodayViews] = useState(0);
+  const [realTimeLikes, setRealTimeLikes] = useState(0)
+  const [realTimeViews, setRealTimeViews] = useState(0)
+  const [realTimeUniqueViews, setRealTimeUniqueViews] = useState(0)
+  const [realTimeTodayViews, setRealTimeTodayViews] = useState(0)
 
   // Optimized: Single useEffect for all initialization logic
   useEffect(() => {
-    window.scrollTo(0, 0);
-    setIsMounted(true);
+    window.scrollTo(0, 0)
+    setIsMounted(true)
 
     const initializePageOptimized = async () => {
       try {
-        const resolvedParams = await params;
-        const slugOrId = resolvedParams.slug;
-        
+        const resolvedParams = await params
+        const slugOrId = resolvedParams.slug
+
         // Check if this is a legacy UUID redirect
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
         if (uuidRegex.test(slugOrId)) {
           // This is a legacy UUID, redirect to slug
-          console.log('[Legacy Redirect] Detected UUID:', slugOrId);
-          const supabase = createClient();
+          console.log('[Legacy Redirect] Detected UUID:', slugOrId)
+          const supabase = createClient()
           const { data: project } = await supabase
-            .from("projects")
-            .select("slug")
-            .eq("id", slugOrId)
-            .single();
-          
+            .from('projects')
+            .select('slug')
+            .eq('id', slugOrId)
+            .single()
+
           if (project?.slug) {
-            console.log('[Legacy Redirect] Redirecting to slug:', project.slug);
-            router.replace(`/project/${project.slug}`);
-            return;
+            console.log('[Legacy Redirect] Redirecting to slug:', project.slug)
+            router.replace(`/project/${project.slug}`)
+            return
           } else {
-            console.log('[Legacy Redirect] Project not found, redirecting to home');
-            router.replace("/");
-            return;
+            console.log(
+              '[Legacy Redirect] Project not found, redirecting to home',
+            )
+            router.replace('/')
+            return
           }
         }
-        
-        // Normal slug flow
-        const currentProjectSlug = slugOrId;
-        setProjectSlug(currentProjectSlug);
 
-        const supabase = createClient();
+        // Normal slug flow
+        const currentProjectSlug = slugOrId
+        setProjectSlug(currentProjectSlug)
+
+        const supabase = createClient()
 
         // Parallel operations for better performance
         const [
@@ -272,127 +279,127 @@ export default function ProjectDetailsPage({
         ] = await Promise.all([
           await supabase.auth.getSession(),
           getProjectBySlug(currentProjectSlug),
-        ]);
+        ])
 
         if (projectError) {
-          console.error("Failed to load project:", projectError);
-          setLoading(false);
-          return;
+          console.error('Failed to load project:', projectError)
+          setLoading(false)
+          return
         }
 
         // Batch state updates to prevent multiple re-renders
-        let authUser = null;
-        let isOwner = false;
+        let authUser = null
+        let isOwner = false
 
         if (session?.user) {
           const { data: profile } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
 
           if (profile) {
             authUser = {
               id: session.user.id,
               name: profile.display_name,
-              avatar: profile.avatar_url || "/placeholder.svg",
+              avatar: profile.avatar_url || '/placeholder.svg',
               username: profile.username,
-            };
+            }
           }
 
           // Check ownership parallel with profile fetch
           if (projectData) {
             const { data: authorData } = await supabase
-              .from("users")
-              .select("id")
-              .eq("username", projectData.author.username)
-              .single();
+              .from('users')
+              .select('id')
+              .eq('username', projectData.author.username)
+              .single()
 
-            isOwner = authorData && authorData.id === session.user.id;
+            isOwner = authorData && authorData.id === session.user.id
           }
         }
 
         // Enhanced view tracking with session-based analytics
         if (isValidUserAgent() && shouldTrackView(currentProjectSlug)) {
-          const sessionId = getCurrentSessionId();
+          const sessionId = getCurrentSessionId()
           console.log(
-            "[View Tracking] Tracking view for project:",
+            '[View Tracking] Tracking view for project:',
             currentProjectSlug,
-            "Session:",
-            sessionId
-          );
-          await incrementProjectViews(currentProjectSlug, sessionId);
+            'Session:',
+            sessionId,
+          )
+          await incrementProjectViews(currentProjectSlug, sessionId)
         }
 
         // Fire and forget operations (non-blocking)
-        loadComments(currentProjectSlug);
+        loadComments(currentProjectSlug)
 
         // Batch all state updates
-        setIsLoggedIn(!!session?.user);
-        if (authUser) setCurrentUser(authUser);
-        setProject(projectData);
-        setIsProjectOwner(isOwner);
-        setRealTimeLikes(projectData?.likes || 0); // Initialize real-time likes
-        setRealTimeViews(projectData?.views || 0); // Initialize real-time views
-        setRealTimeUniqueViews(projectData?.uniqueViews || 0); // Initialize unique views
-        setRealTimeTodayViews(projectData?.todayViews || 0); // Initialize today's views
-        setLoading(false);
+        setIsLoggedIn(!!session?.user)
+        if (authUser) setCurrentUser(authUser)
+        setProject(projectData)
+        setIsProjectOwner(isOwner)
+        setRealTimeLikes(projectData?.likes || 0) // Initialize real-time likes
+        setRealTimeViews(projectData?.views || 0) // Initialize real-time views
+        setRealTimeUniqueViews(projectData?.uniqueViews || 0) // Initialize unique views
+        setRealTimeTodayViews(projectData?.todayViews || 0) // Initialize today's views
+        setLoading(false)
 
         // Smooth scroll after content is loaded
         setTimeout(() => {
-          window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        }, 100);
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+        }, 100)
       } catch (error) {
-        console.error("Page initialization error:", error);
-        setLoading(false);
+        console.error('Page initialization error:', error)
+        setLoading(false)
       }
-    };
+    }
 
-    initializePageOptimized();
-  }, [params]);
+    initializePageOptimized()
+  }, [params])
 
   const loadComments = async (projectSlugParam?: string) => {
-    const slugToUse = projectSlugParam || projectSlug;
-    if (!slugToUse) return;
+    const slugToUse = projectSlugParam || projectSlug
+    if (!slugToUse) return
 
-    setCommentsLoading(true);
-    const { comments: commentsData, error } = await getComments(slugToUse);
+    setCommentsLoading(true)
+    const { comments: commentsData, error } = await getComments(slugToUse)
     if (error) {
-      console.error("Failed to load comments:", error);
+      console.error('Failed to load comments:', error)
     } else {
-      setComments(commentsData);
+      setComments(commentsData)
     }
-    setCommentsLoading(false);
-  };
+    setCommentsLoading(false)
+  }
 
   const handleShare = (platform: string) => {
-    const url = window.location.href;
-    const title = project?.title || "Check out this project";
+    const url = window.location.href
+    const title = project?.title || 'Check out this project'
 
     switch (platform) {
-      case "twitter":
+      case 'twitter':
         window.open(
           `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            title
+            title,
           )}&url=${encodeURIComponent(url)}`,
-          "_blank"
-        );
-        break;
-      case "linkedin":
+          '_blank',
+        )
+        break
+      case 'linkedin':
         window.open(
           `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-            url
+            url,
           )}`,
-          "_blank"
-        );
-        break;
-      case "copy":
-        navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
-        break;
+          '_blank',
+        )
+        break
+      case 'copy':
+        navigator.clipboard.writeText(url)
+        alert('Link copied to clipboard!')
+        break
     }
-    setShowShareMenu(false);
-  };
+    setShowShareMenu(false)
+  }
 
   const handleAddComment = async () => {
     if (
@@ -400,169 +407,166 @@ export default function ProjectDetailsPage({
       (!isLoggedIn && !guestName.trim()) ||
       !projectSlug
     ) {
-      return;
+      return
     }
 
-    setAddingComment(true);
+    setAddingComment(true)
 
-    const formData = new FormData();
-    formData.append("projectSlug", projectSlug);
-    formData.append("content", newComment.trim());
+    const formData = new FormData()
+    formData.append('projectSlug', projectSlug)
+    formData.append('content', newComment.trim())
     if (!isLoggedIn) {
-      formData.append("authorName", guestName.trim());
+      formData.append('authorName', guestName.trim())
     }
 
-    const result = await addComment(formData);
+    const result = await addComment(formData)
 
     if (result.error) {
-      console.error("Failed to add comment:", result.error);
-      alert("Failed to add comment. Please try again.");
+      console.error('Failed to add comment:', result.error)
+      alert('Failed to add comment. Please try again.')
     } else {
-      setNewComment("");
+      setNewComment('')
       if (!isLoggedIn) {
-        setGuestName("");
+        setGuestName('')
       }
-      await loadComments();
+      await loadComments()
     }
 
-    setAddingComment(false);
-  };
+    setAddingComment(false)
+  }
 
   const handleSignOut = async () => {
-    await signOut();
-  };
+    await signOut()
+  }
 
   const handleProfile = () => {
     if (currentUser?.username) {
-      router.push(`/${currentUser.username}`);
+      router.push(`/${currentUser.username}`)
     }
-  };
+  }
 
   const handleDeleteProject = async () => {
-    if (!projectSlug) return;
+    if (!projectSlug) return
 
-    setIsDeleting(true);
-    const result = await deleteProject(projectSlug);
+    setIsDeleting(true)
+    const result = await deleteProject(projectSlug)
 
     if (result.success) {
-      router.push("/");
+      router.push('/')
     } else {
-      alert(result.error || "Failed to delete project");
-      setIsDeleting(false);
+      alert(result.error || 'Failed to delete project')
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleEditProject = async () => {
     // Load categories if not already loaded
     if (categories.length === 0) {
-      setLoadingCategories(true);
+      setLoadingCategories(true)
       try {
-        const dbCategories = await getCategories();
-        setCategories(dbCategories);
+        const dbCategories = await getCategories()
+        setCategories(dbCategories)
       } catch (error) {
-        console.error("Failed to load categories:", error);
+        console.error('Failed to load categories:', error)
       } finally {
-        setLoadingCategories(false);
+        setLoadingCategories(false)
       }
     }
 
     // Initialize form data with existing project data
     setEditFormData({
-      title: project?.title || "",
-      description: project?.description || "",
-      tagline: project?.tagline || "",
-      category: project?.categoryRaw || "", // Use raw category name for form select
-      website_url: project?.url || "",
-      image_url: project?.image || "",
-    });
+      title: project?.title || '',
+      description: project?.description || '',
+      tagline: project?.tagline || '',
+      category: project?.categoryRaw || '', // Use raw category name for form select
+      website_url: project?.url || '',
+      image_url: project?.image || '',
+    })
 
     // Initialize tech stack tags
     const existingTags = project?.tags
       ? project.tags.map((tag) => ({ value: tag, label: tag }))
-      : [];
-    setSelectedEditTags(existingTags);
+      : []
+    setSelectedEditTags(existingTags)
 
     // Initialize website URL and favicon
-    setEditWebsiteUrl(project?.url || "");
-    setEditFaviconUrl(project?.faviconUrl || "");
+    setEditWebsiteUrl(project?.url || '')
+    setEditFaviconUrl(project?.faviconUrl || '')
 
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleSaveEdit = async () => {
-    if (!projectSlug) return;
+    if (!projectSlug) return
 
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
-      const formData = new FormData();
-      formData.append("title", editFormData.title);
-      formData.append("description", editFormData.description);
-      formData.append("tagline", editFormData.tagline);
-      formData.append("category", editFormData.category);
-      formData.append("website_url", editWebsiteUrl);
-      formData.append("image_url", editFormData.image_url);
-      formData.append("favicon_url", editFaviconUrl);
+      const formData = new FormData()
+      formData.append('title', editFormData.title)
+      formData.append('description', editFormData.description)
+      formData.append('tagline', editFormData.tagline)
+      formData.append('category', editFormData.category)
+      formData.append('website_url', editWebsiteUrl)
+      formData.append('image_url', editFormData.image_url)
+      formData.append('favicon_url', editFaviconUrl)
 
       // Add selected tags as JSON string
-      const tagsValues = selectedEditTags.map((tag) => tag.value);
-      formData.append("tags", JSON.stringify(tagsValues));
+      const tagsValues = selectedEditTags.map((tag) => tag.value)
+      formData.append('tags', JSON.stringify(tagsValues))
 
-      const result = await editProject(projectSlug, formData);
+      const result = await editProject(projectSlug, formData)
 
       if (result.success) {
-        const { project: updatedProject } = await getProjectBySlug(projectSlug);
+        const { project: updatedProject } = await getProjectBySlug(projectSlug)
         if (updatedProject) {
-          setProject(updatedProject);
+          setProject(updatedProject)
         }
-        setIsEditing(false);
+        setIsEditing(false)
         // Reset edit form states
-        setSelectedEditTags([]);
-        setEditWebsiteUrl("");
-        setEditFaviconUrl("");
+        setSelectedEditTags([])
+        setEditWebsiteUrl('')
+        setEditFaviconUrl('')
       } else {
-        alert(result.error || "Failed to update project");
+        alert(result.error || 'Failed to update project')
       }
     } catch (error) {
-      alert("Failed to update project");
+      alert('Failed to update project')
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleCancelEdit = () => {
-    setIsEditing(false);
+    setIsEditing(false)
     setEditFormData({
-      title: "",
-      description: "",
-      category: "",
-      website_url: "",
-      image_url: "",
-    });
-  };
+      title: '',
+      description: '',
+      category: '',
+      website_url: '',
+      image_url: '',
+    })
+  }
 
   const scrollToSection = (sectionId: string) => {
     // For project detail pages, redirect to homepage sections if needed
     if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.push(`/#${sectionId}`);
+      router.push(`/#${sectionId}`)
     }
-  };
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
+      <div className="bg-grid-pattern relative min-h-screen">
         {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
-        
-        <Navbar
-          showNavigation={true}
-          scrollToSection={scrollToSection}
-        />
+        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+
+        <Navbar showNavigation={true} scrollToSection={scrollToSection} />
         {/* Layer 2: Content Container - MANDATORY */}
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-          <div className="grid lg:grid-cols-3 gap-8">
+        <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-3">
             {/* Main Content Skeleton */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="space-y-8 lg:col-span-2">
               {/* Project Image Skeleton */}
               <ProjectImageSkeleton />
 
@@ -580,42 +584,39 @@ export default function ProjectDetailsPage({
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
+      <div className="bg-grid-pattern relative min-h-screen">
         {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
-        
-        <Navbar
-          showNavigation={true}
-          scrollToSection={scrollToSection}
-        />
+        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+
+        <Navbar showNavigation={true} scrollToSection={scrollToSection} />
         {/* Layer 2: Content Container - MANDATORY */}
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+        <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">
+            <h1 className="text-foreground mb-4 text-2xl font-bold">
               Project Not Found
             </h1>
             <Link href="/">
               <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Home
               </Button>
             </Link>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern relative">
+    <div className="bg-grid-pattern relative min-h-screen">
       {/* Layer 1: Background Gradient Overlay - MANDATORY */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
-      
+      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+
       <Navbar
         showNavigation={true}
         isLoggedIn={isLoggedIn}
@@ -624,21 +625,21 @@ export default function ProjectDetailsPage({
       />
 
       {/* Layer 2: Content Container - MANDATORY */}
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="space-y-8 lg:col-span-2">
             {/* Project Image */}
-            <div className="relative overflow-hidden rounded-xl bg-muted">
+            <div className="bg-muted relative overflow-hidden rounded-xl">
               <AspectRatio ratio={16 / 9}>
                 <Image
-                  src={project.image || "/placeholder.svg"}
+                  src={project.image || '/placeholder.svg'}
                   alt={project.title}
                   fill
                   priority
-                  className="w-full h-full object-cover transition-opacity duration-300"
+                  className="h-full w-full object-cover transition-opacity duration-300"
                   onError={(e) => {
-                    e.currentTarget.src = "/placeholder.svg";
+                    e.currentTarget.src = '/placeholder.svg'
                   }}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                   placeholder="blur"
@@ -651,11 +652,16 @@ export default function ProjectDetailsPage({
             {isEditing ? (
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-6">Edit Project</h3>
+                  <h3 className="mb-6 text-xl font-semibold">Edit Project</h3>
                   <div className="space-y-6">
                     {/* Title */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-title" className="form-label-enhanced">Project Title *</Label>
+                      <Label
+                        htmlFor="edit-title"
+                        className="form-label-enhanced"
+                      >
+                        Project Title *
+                      </Label>
                       <Input
                         id="edit-title"
                         value={editFormData.title}
@@ -673,7 +679,12 @@ export default function ProjectDetailsPage({
 
                     {/* Tagline */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-tagline" className="form-label-enhanced">Tagline</Label>
+                      <Label
+                        htmlFor="edit-tagline"
+                        className="form-label-enhanced"
+                      >
+                        Tagline
+                      </Label>
                       <Input
                         id="edit-tagline"
                         value={editFormData.tagline}
@@ -687,7 +698,7 @@ export default function ProjectDetailsPage({
                         className="form-input-enhanced"
                         disabled={isSaving}
                       />
-                      <p className="text-xs form-helper-text mt-1">
+                      <p className="form-helper-text mt-1 text-xs">
                         Tagline singkat yang describe project lo dalam satu
                         kalimat! ✨
                       </p>
@@ -695,7 +706,12 @@ export default function ProjectDetailsPage({
 
                     {/* Description */}
                     <div className="space-y-2">
-                      <Label htmlFor="edit-description" className="form-label-enhanced">Description *</Label>
+                      <Label
+                        htmlFor="edit-description"
+                        className="form-label-enhanced"
+                      >
+                        Description *
+                      </Label>
                       <Textarea
                         id="edit-description"
                         value={editFormData.description}
@@ -719,11 +735,12 @@ export default function ProjectDetailsPage({
                           className={`font-medium ${
                             editFormData.description.length >
                             MAX_DESCRIPTION_LENGTH
-                              ? "text-red-500"
+                              ? 'text-red-500'
                               : editFormData.description.length > 1500
-                              ? "text-yellow-500"
-                              : "text-muted-foreground"
-                          }`}>
+                                ? 'text-yellow-500'
+                                : 'text-muted-foreground'
+                          }`}
+                        >
                           {editFormData.description.length}/
                           {MAX_DESCRIPTION_LENGTH}
                         </span>
@@ -738,7 +755,8 @@ export default function ProjectDetailsPage({
                         onValueChange={(value) =>
                           setEditFormData({ ...editFormData, category: value })
                         }
-                        disabled={isSaving || loadingCategories}>
+                        disabled={isSaving || loadingCategories}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
@@ -751,7 +769,8 @@ export default function ProjectDetailsPage({
                             categories.map((category) => (
                               <SelectItem
                                 key={category.id}
-                                value={category.name}>
+                                value={category.name}
+                              >
                                 {category.display_name}
                               </SelectItem>
                             ))
@@ -772,12 +791,12 @@ export default function ProjectDetailsPage({
                         type="url"
                         value={editWebsiteUrl}
                         onChange={(e) => {
-                          const url = e.target.value;
-                          setEditWebsiteUrl(url);
+                          const url = e.target.value
+                          setEditWebsiteUrl(url)
                           setEditFormData({
                             ...editFormData,
                             website_url: url,
-                          });
+                          })
                         }}
                         placeholder="https://your-project.com"
                         disabled={isSaving}
@@ -788,12 +807,16 @@ export default function ProjectDetailsPage({
                     <div className="space-y-2">
                       <Label htmlFor="edit-favicon">Favicon URL</Label>
                       <div className="flex items-center gap-2">
-                        {(editFaviconUrl || (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
+                        {(editFaviconUrl ||
+                          (editWebsiteUrl &&
+                            getFaviconUrl(editWebsiteUrl))) && (
                           <Image
-                            src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
+                            src={
+                              editFaviconUrl || getFaviconUrl(editWebsiteUrl)
+                            }
                             alt="Website favicon"
-                            className="w-4 h-4 flex-shrink-0"
-                            onError={() => setEditFaviconUrl("")}
+                            className="h-4 w-4 flex-shrink-0"
+                            onError={() => setEditFaviconUrl('')}
                             width={16}
                             height={16}
                           />
@@ -803,14 +826,18 @@ export default function ProjectDetailsPage({
                           type="url"
                           value={editFaviconUrl}
                           onChange={(e) => setEditFaviconUrl(e.target.value)}
-                          placeholder={editWebsiteUrl ? "Auto-fetch dari website atau manual URL" : "https://example.com/favicon.ico atau https://example.com/favicon.svg"}
+                          placeholder={
+                            editWebsiteUrl
+                              ? 'Auto-fetch dari website atau manual URL'
+                              : 'https://example.com/favicon.ico atau https://example.com/favicon.svg'
+                          }
                           disabled={isSaving}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {editWebsiteUrl 
-                          ? "Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override."
-                          : "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"}
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {editWebsiteUrl
+                          ? 'Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override.'
+                          : 'Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯'}
                       </p>
                     </div>
 
@@ -823,7 +850,7 @@ export default function ProjectDetailsPage({
                         defaultOptions={techOptions}
                         placeholder="Select technologies used in your project..."
                         emptyIndicator={
-                          <p className="text-center text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-center text-sm">
                             No technologies found.
                           </p>
                         }
@@ -831,10 +858,10 @@ export default function ProjectDetailsPage({
                         maxSelected={10}
                         disabled={isSaving}
                         commandProps={{
-                          label: "Select tech stack",
+                          label: 'Select tech stack',
                         }}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         Pilih teknologi yang lo pakai di project ini. Bisa
                         nambah sendiri kalau gak ada! 🚀
                       </p>
@@ -843,19 +870,19 @@ export default function ProjectDetailsPage({
                     {/* Project Image Upload */}
                     <div className="space-y-2">
                       <Label>Project Screenshot</Label>
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+                      <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 dark:border-gray-600">
                         {editFormData.image_url ? (
                           <div className="space-y-4">
                             <div className="relative">
                               <AspectRatio ratio={16 / 9}>
                                 <Image
                                   src={
-                                    editFormData.image_url || "/placeholder.svg"
+                                    editFormData.image_url || '/placeholder.svg'
                                   }
                                   alt="Project screenshot preview"
                                   fill
                                   sizes="(max-width: 768px) 100vw, 50vw"
-                                  className="w-full h-full object-cover rounded-lg shadow-md"
+                                  className="h-full w-full rounded-lg object-cover shadow-md"
                                 />
                               </AspectRatio>
                               <Button
@@ -866,10 +893,11 @@ export default function ProjectDetailsPage({
                                 onClick={() => {
                                   setEditFormData({
                                     ...editFormData,
-                                    image_url: "",
-                                  });
+                                    image_url: '',
+                                  })
                                 }}
-                                disabled={isSaving}>
+                                disabled={isSaving}
+                              >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
@@ -881,18 +909,18 @@ export default function ProjectDetailsPage({
                         ) : (
                           <div className="text-center">
                             {isUploading ? (
-                              <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+                              <Loader2 className="text-primary mx-auto h-12 w-12 animate-spin" />
                             ) : (
                               <Upload className="mx-auto h-12 w-12 text-gray-400" />
                             )}
                             <div className="mt-4">
                               {isUploading ? (
                                 <div className="space-y-2">
-                                  <div className="bg-primary text-primary-foreground px-4 py-2 rounded-md">
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin inline" />
+                                  <div className="bg-primary text-primary-foreground rounded-md px-4 py-2">
+                                    <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
                                     Uploading...
                                   </div>
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-muted-foreground text-sm">
                                     Please wait while your image is being
                                     uploaded
                                   </p>
@@ -902,40 +930,40 @@ export default function ProjectDetailsPage({
                                   endpoint="projectImageUploader"
                                   onUploadBegin={(name) => {
                                     console.log(
-                                      "[v0] Upload started for file:",
-                                      name
-                                    );
-                                    setIsUploading(true);
+                                      '[v0] Upload started for file:',
+                                      name,
+                                    )
+                                    setIsUploading(true)
 
                                     // Clear existing timeout if any
                                     if (uploadTimeout) {
-                                      clearTimeout(uploadTimeout);
+                                      clearTimeout(uploadTimeout)
                                     }
 
                                     // Set a fallback timeout to prevent stuck state (30 seconds)
                                     const timeoutId = setTimeout(() => {
                                       console.log(
-                                        "[v0] Upload timeout - resetting state"
-                                      );
-                                      setIsUploading(false);
-                                    }, 30000);
+                                        '[v0] Upload timeout - resetting state',
+                                      )
+                                      setIsUploading(false)
+                                    }, 30000)
 
-                                    setUploadTimeout(timeoutId);
+                                    setUploadTimeout(timeoutId)
                                   }}
                                   onClientUploadComplete={(res) => {
                                     console.log(
-                                      "[v0] Client upload completed:",
-                                      res
-                                    );
+                                      '[v0] Client upload completed:',
+                                      res,
+                                    )
 
                                     // Clear timeout since upload completed
                                     if (uploadTimeout) {
-                                      clearTimeout(uploadTimeout);
-                                      setUploadTimeout(null);
+                                      clearTimeout(uploadTimeout)
+                                      setUploadTimeout(null)
                                     }
 
                                     // Always set uploading to false first
-                                    setIsUploading(false);
+                                    setIsUploading(false)
 
                                     // Check if we have a valid response
                                     if (
@@ -943,42 +971,42 @@ export default function ProjectDetailsPage({
                                       Array.isArray(res) &&
                                       res.length > 0
                                     ) {
-                                      const uploadResult = res[0];
+                                      const uploadResult = res[0]
                                       const imageUrl =
                                         uploadResult.url ||
                                         uploadResult.fileUrl ||
-                                        uploadResult.key;
+                                        uploadResult.key
 
                                       if (imageUrl) {
                                         console.log(
-                                          "[v0] Setting image URL:",
-                                          imageUrl
-                                        );
+                                          '[v0] Setting image URL:',
+                                          imageUrl,
+                                        )
                                         setEditFormData((prevData) => ({
                                           ...prevData,
                                           image_url: imageUrl,
-                                        }));
+                                        }))
                                       }
                                     }
                                   }}
                                   onUploadError={(error: Error) => {
-                                    console.error("[v0] Upload error:", error);
+                                    console.error('[v0] Upload error:', error)
 
                                     // Clear timeout since upload failed
                                     if (uploadTimeout) {
-                                      clearTimeout(uploadTimeout);
-                                      setUploadTimeout(null);
+                                      clearTimeout(uploadTimeout)
+                                      setUploadTimeout(null)
                                     }
 
-                                    setIsUploading(false);
+                                    setIsUploading(false)
                                   }}
                                   config={{
-                                    mode: "auto",
+                                    mode: 'auto',
                                   }}
                                   content={{
                                     button({ ready }) {
-                                      if (ready) return <div>Choose File</div>;
-                                      return "Getting ready...";
+                                      if (ready) return <div>Choose File</div>
+                                      return 'Getting ready...'
                                     },
                                     allowedContent({
                                       ready,
@@ -986,24 +1014,24 @@ export default function ProjectDetailsPage({
                                       isUploading,
                                     }) {
                                       if (!ready)
-                                        return "Checking what you allow";
-                                      if (isUploading) return "Uploading...";
-                                      return `Image (${fileTypes.join(", ")})`;
+                                        return 'Checking what you allow'
+                                      if (isUploading) return 'Uploading...'
+                                      return `Image (${fileTypes.join(', ')})`
                                     },
                                   }}
                                   appearance={{
                                     button:
-                                      "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                                      'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
                                     allowedContent:
-                                      "text-sm text-muted-foreground mt-2",
+                                      'text-sm text-muted-foreground mt-2',
                                   }}
                                 />
                               )}
                             </div>
                             <p className="mt-2 text-sm text-gray-500">
                               {isUploading
-                                ? "Uploading your screenshot..."
-                                : "Upload a screenshot of your project (max 4MB)"}
+                                ? 'Uploading your screenshot...'
+                                : 'Upload a screenshot of your project (max 4MB)'}
                             </p>
                           </div>
                         )}
@@ -1020,20 +1048,22 @@ export default function ProjectDetailsPage({
                           editFormData.description.length >
                             MAX_DESCRIPTION_LENGTH ||
                           isSaving
-                        }>
+                        }
+                      >
                         {isSaving ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Saving...
                           </>
                         ) : (
-                          "Save Changes"
+                          'Save Changes'
                         )}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={handleCancelEdit}
-                        disabled={isSaving}>
+                        disabled={isSaving}
+                      >
                         Cancel
                       </Button>
                     </div>
@@ -1044,35 +1074,35 @@ export default function ProjectDetailsPage({
               <div className="space-y-6">
                 {/* Header Info */}
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                  <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs">
                     {project.category}
                   </span>
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span className="text-muted-foreground flex items-center gap-1 text-sm">
                     <Calendar className="h-3 w-3" />
                     {isMounted && project?.createdAt
                       ? new Date(project.createdAt).toLocaleDateString()
-                      : "Loading..."}
+                      : 'Loading...'}
                   </span>
                 </div>
 
                 {/* Favicon + Title + Tagline with Like Button */}
-                  <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-1 items-start gap-3">
                     <div className="flex-shrink-0">
                       <ProjectFavicon
                         src={project.faviconUrl}
                         alt="Project favicon"
-                        className="w-12 h-12 rounded-lg"
+                        className="h-12 w-12 rounded-lg"
                         width={48}
                         height={48}
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h1 className="text-3xl font-bold text-foreground leading-tight mb-1">
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-foreground mb-1 text-3xl leading-tight font-bold">
                         {project.title}
                       </h1>
                       {project.tagline && (
-                        <p className="text-lg text-muted-foreground leading-relaxed">
+                        <p className="text-muted-foreground text-lg leading-relaxed">
                           {project.tagline}
                         </p>
                       )}
@@ -1088,10 +1118,10 @@ export default function ProjectDetailsPage({
                       onLikeChange={(newLikes, isLiked) => {
                         console.log(
                           `Project ${project.slug} ${
-                            isLiked ? "liked" : "unliked"
-                          }: ${newLikes} likes`
-                        );
-                        setRealTimeLikes(newLikes);
+                            isLiked ? 'liked' : 'unliked'
+                          }: ${newLikes} likes`,
+                        )
+                        setRealTimeLikes(newLikes)
                       }}
                     />
                   </div>
@@ -1099,7 +1129,7 @@ export default function ProjectDetailsPage({
 
                 {/* Description */}
                 <div className="prose prose-neutral dark:prose-invert max-w-none">
-                  <p className="text-muted-foreground leading-relaxed text-base">
+                  <p className="text-muted-foreground text-base leading-relaxed">
                     {project.description}
                   </p>
                 </div>
@@ -1109,7 +1139,8 @@ export default function ProjectDetailsPage({
                   {project.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full flex items-center gap-1">
+                      className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+                    >
                       <Tag className="h-3 w-3" />
                       {tag}
                     </span>
@@ -1122,10 +1153,10 @@ export default function ProjectDetailsPage({
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Globe className="h-5 w-5 text-muted-foreground" />
+                          <Globe className="text-muted-foreground h-5 w-5" />
                           <div>
                             <p className="font-medium">Live Project</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                               {project.url}
                             </p>
                           </div>
@@ -1133,8 +1164,9 @@ export default function ProjectDetailsPage({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(project.url, "_blank")}>
-                          <ExternalLink className="h-4 w-4 mr-2" />
+                          onClick={() => window.open(project.url, '_blank')}
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
                           Visit Site
                         </Button>
                       </div>
@@ -1147,7 +1179,7 @@ export default function ProjectDetailsPage({
             {/* Comments Section */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold flex items-center gap-2">
+                <h3 className="flex items-center gap-2 text-xl font-semibold">
                   <MessageCircle className="h-5 w-5" />
                   Comments ({comments.length})
                 </h3>
@@ -1163,7 +1195,7 @@ export default function ProjectDetailsPage({
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
                         placeholder="Your name"
-                        className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-3 focus:ring-2 focus:outline-none"
                       />
                     )}
                     <textarea
@@ -1172,9 +1204,9 @@ export default function ProjectDetailsPage({
                       placeholder={
                         isLoggedIn
                           ? `Share your thoughts about this project, ${currentUser?.name}...`
-                          : "Share your thoughts about this project..."
+                          : 'Share your thoughts about this project...'
                       }
-                      className="w-full p-3 border border-border rounded-lg bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="border-border bg-background text-foreground focus:ring-primary w-full resize-none rounded-lg border p-3 focus:ring-2 focus:outline-none"
                       rows={3}
                     />
                     <div className="flex justify-end">
@@ -1184,14 +1216,15 @@ export default function ProjectDetailsPage({
                           !newComment.trim() ||
                           (!isLoggedIn && !guestName.trim()) ||
                           addingComment
-                        }>
+                        }
+                      >
                         {addingComment ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Posting...
                           </>
                         ) : (
-                          "Post Comment"
+                          'Post Comment'
                         )}
                       </Button>
                     </div>
@@ -1202,13 +1235,13 @@ export default function ProjectDetailsPage({
               {/* Comments List */}
               <div className="space-y-4">
                 {commentsLoading ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                  <div className="py-8 text-center">
+                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin" />
                     <p className="text-muted-foreground">Loading comments...</p>
                   </div>
                 ) : comments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="py-8 text-center">
+                    <MessageCircle className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                     <p className="text-muted-foreground">
                       No comments yet. Be the first to share your thoughts!
                     </p>
@@ -1226,16 +1259,16 @@ export default function ProjectDetailsPage({
                             showSkeleton={true}
                           />
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">
+                            <div className="mb-1 flex items-center gap-2">
+                              <span className="text-sm font-medium">
                                 {comment.author}
                               </span>
                               {comment.isGuest && (
-                                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">
                                   Guest
                                 </span>
                               )}
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground text-xs">
                                 {comment.timestamp}
                               </span>
                             </div>
@@ -1257,7 +1290,7 @@ export default function ProjectDetailsPage({
             {/* Author Card */}
             <Card>
               <CardContent className="p-6">
-                <div className="text-center space-y-4">
+                <div className="space-y-4 text-center">
                   <div className="flex justify-center">
                     <OptimizedAvatar
                       src={project.author.avatar}
@@ -1268,10 +1301,10 @@ export default function ProjectDetailsPage({
                   </div>
                   <div>
                     <h3 className="font-semibold">{project.author.name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {project.author.bio}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                    <p className="text-muted-foreground mt-1 flex items-center justify-center gap-1 text-xs">
                       <User className="h-3 w-3" />
                       {project.author.location}
                     </p>
@@ -1288,7 +1321,7 @@ export default function ProjectDetailsPage({
             {/* Project Stats */}
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-4">Project Stats</h3>
+                <h3 className="mb-4 font-semibold">Project Stats</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Total Views</span>
@@ -1329,8 +1362,9 @@ export default function ProjectDetailsPage({
                       <Button
                         variant="outline"
                         className="w-full bg-transparent"
-                        onClick={handleEditProject}>
-                        <Edit className="h-4 w-4 mr-2" />
+                        onClick={handleEditProject}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit Project
                       </Button>
                       <AlertDialog>
@@ -1338,15 +1372,16 @@ export default function ProjectDetailsPage({
                           <Button
                             variant="destructive"
                             className="w-full"
-                            disabled={isDeleting}>
+                            disabled={isDeleting}
+                          >
                             {isDeleting ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Deleting...
                               </>
                             ) : (
                               <>
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="mr-2 h-4 w-4" />
                                 Delete Project
                               </>
                             )}
@@ -1370,14 +1405,15 @@ export default function ProjectDetailsPage({
                             <AlertDialogAction
                               onClick={handleDeleteProject}
                               disabled={isDeleting}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
                               {isDeleting ? (
                                 <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                   Deleting...
                                 </>
                               ) : (
-                                "Delete Project"
+                                'Delete Project'
                               )}
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -1391,27 +1427,31 @@ export default function ProjectDetailsPage({
                     <Button
                       variant="outline"
                       className="w-full bg-transparent"
-                      onClick={() => setShowShareMenu(!showShareMenu)}>
-                      <Share2 className="h-4 w-4 mr-2" />
+                      onClick={() => setShowShareMenu(!showShareMenu)}
+                    >
+                      <Share2 className="mr-2 h-4 w-4" />
                       Share Project
                     </Button>
 
                     {showShareMenu && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-lg z-10">
-                        <div className="p-2 space-y-1">
+                      <div className="bg-background border-border absolute top-full right-0 left-0 z-10 mt-2 rounded-lg border shadow-lg">
+                        <div className="space-y-1 p-2">
                           <button
-                            onClick={() => handleShare("twitter")}
-                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors">
+                            onClick={() => handleShare('twitter')}
+                            className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
+                          >
                             Share on Twitter
                           </button>
                           <button
-                            onClick={() => handleShare("linkedin")}
-                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors">
+                            onClick={() => handleShare('linkedin')}
+                            className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
+                          >
                             Share on LinkedIn
                           </button>
                           <button
-                            onClick={() => handleShare("copy")}
-                            className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors">
+                            onClick={() => handleShare('copy')}
+                            className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
+                          >
                             Copy Link
                           </button>
                         </div>
@@ -1424,10 +1464,9 @@ export default function ProjectDetailsPage({
           </div>
         </div>
       </div>
-      
+
       {/* Footer */}
       <Footer />
     </div>
-  );
+  )
 }
-

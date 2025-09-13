@@ -4,7 +4,7 @@
 
 VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovators Indonesia yang punya visi dan passion yang sama untuk bikin produk digital yang keren. Kami menghubungkan creator yang sepikiran untuk kolaborasi, belajar, dan berkembang bareng.
 
-*Indonesia's premier community for developers, vibe coders, and AI enthusiasts. Showcase projects, collaborate, network, and level up your skills in web, mobile, and AI development.*
+_Indonesia's premier community for developers, vibe coders, and AI enthusiasts. Showcase projects, collaborate, network, and level up your skills in web, mobile, and AI development._
 
 ## Features
 
@@ -29,26 +29,33 @@ VibeDev ID adalah komunitas vibrant developer, AI enthusiasts, dan tech innovato
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/vibedevid_v0.git
 cd vibedevid_v0
 ```
 
 2. Install dependencies:
-\`\`\`bash
-npm install
+   \`\`\`bash
+   npm install
+
 # or
+
 pnpm install
+
 # or
+
 bun install
 \`\`\`
 
 3. Set up environment variables:
+
 ```bash
 cp .env.local.example .env.local
 ```
 
 4. Update `.env.local` with your Supabase credentials:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -65,11 +72,15 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
      - `03_create_storage_bucket.sql` - Sets up file storage
 
 6. Run the development server:
-\`\`\`bash
-npm run dev
+   \`\`\`bash
+   npm run dev
+
 # or
+
 pnpm dev
+
 # or
+
 bun dev
 \`\`\`
 
@@ -86,14 +97,14 @@ The project uses Supabase as the backend. You'll need to:
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (keep secret!) | Yes |
-| `UPLOADTHING_TOKEN` | Your UploadThing API token (keep secret!) | Yes |
-| `NEXT_PUBLIC_SITE_URL` | Your site URL (for production) | Yes |
-| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for development | Yes |
+| Variable                                | Description                                   | Required |
+| --------------------------------------- | --------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`              | Your Supabase project URL                     | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`         | Your Supabase anonymous key                   | Yes      |
+| `SUPABASE_SERVICE_ROLE_KEY`             | Your Supabase service role key (keep secret!) | Yes      |
+| `UPLOADTHING_TOKEN`                     | Your UploadThing API token (keep secret!)     | Yes      |
+| `NEXT_PUBLIC_SITE_URL`                  | Your site URL (for production)                | Yes      |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for development                  | Yes      |
 
 ## Tech Stack
 
@@ -109,18 +120,18 @@ The project uses Supabase as the backend. You'll need to:
 ## Project Structure
 
 \`\`\`
-├── app/                    # Next.js app directory
-│   ├── [username]/        # Dynamic user profile pages
-│   ├── project/           # Project detail pages
-│   ├── user/              # User authentication pages
-│   └── globals.css        # Global styles
-├── components/            # Reusable components
-│   └── ui/               # UI components
-├── lib/                  # Utility functions
-│   ├── actions.ts        # Server actions
-│   └── supabase/         # Supabase client configuration
-├── scripts/              # Database setup scripts
-└── public/               # Static assets
+├── app/ # Next.js app directory
+│ ├── [username]/ # Dynamic user profile pages
+│ ├── project/ # Project detail pages
+│ ├── user/ # User authentication pages
+│ └── globals.css # Global styles
+├── components/ # Reusable components
+│ └── ui/ # UI components
+├── lib/ # Utility functions
+│ ├── actions.ts # Server actions
+│ └── supabase/ # Supabase client configuration
+├── scripts/ # Database setup scripts
+└── public/ # Static assets
 \`\`\`
 
 ## Contributing

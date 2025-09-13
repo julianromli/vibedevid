@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useMemo } from 'react'
 import { getImageProps } from 'next/image'
@@ -13,15 +13,15 @@ interface ProgressiveHeroImageProps {
   mobileSrc?: string
   tabletSrc?: string
   desktopSrc?: string
-  
+
   // Basic props
   alt: string
   priority?: boolean
-  
+
   // Container styling
   className?: string
   imageClassName?: string
-  
+
   // Art direction dimensions
   mobileWidth?: number
   mobileHeight?: number
@@ -29,25 +29,25 @@ interface ProgressiveHeroImageProps {
   tabletHeight?: number
   desktopWidth?: number
   desktopHeight?: number
-  
+
   // Progressive loading
   enableBlurPlaceholder?: boolean
   customBlurDataURL?: string
   placeholderColor?: string
   quality?: number
-  
+
   // Layout options
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
   objectPosition?: string
-  
+
   // Overlay options
   overlay?: boolean
   overlayColor?: string
   overlayOpacity?: number
-  
+
   // Content props
   children?: React.ReactNode
-  
+
   // Callbacks
   onLoad?: () => void
   onError?: () => void
@@ -60,10 +60,10 @@ export function ProgressiveHeroImage({
   desktopSrc,
   alt,
   priority = true, // Hero images are typically above the fold
-  
+
   className,
   imageClassName,
-  
+
   // Art direction dimensions
   mobileWidth = 750,
   mobileHeight = 1334,
@@ -71,34 +71,33 @@ export function ProgressiveHeroImage({
   tabletHeight = 1920,
   desktopWidth = 1920,
   desktopHeight = 1080,
-  
+
   // Progressive loading
   enableBlurPlaceholder = true,
   customBlurDataURL,
   placeholderColor,
   quality = 85,
-  
+
   // Layout
   objectFit = 'cover',
   objectPosition = 'center',
-  
+
   // Overlay
   overlay = false,
   overlayColor = 'rgba(0, 0, 0, 0.4)',
   overlayOpacity = 40,
-  
+
   // Content
   children,
-  
+
   // Callbacks
   onLoad,
   onError,
 }: ProgressiveHeroImageProps) {
-  
   // Generate art direction sources
   const artDirectionSources = useMemo(() => {
     const sources = []
-    
+
     // Desktop source
     if (desktopSrc || src) {
       const { props: desktopProps } = getImageProps({
@@ -109,14 +108,14 @@ export function ProgressiveHeroImage({
         quality,
         sizes: '100vw',
       })
-      
+
       sources.push({
         media: '(min-width: 1024px)',
         srcSet: desktopProps.srcSet,
-        type: 'image/webp'
+        type: 'image/webp',
       })
     }
-    
+
     // Tablet source
     if (tabletSrc || src) {
       const { props: tabletProps } = getImageProps({
@@ -127,15 +126,15 @@ export function ProgressiveHeroImage({
         quality: Math.max(quality - 10, 60),
         sizes: '100vw',
       })
-      
+
       sources.push({
         media: '(min-width: 768px)',
         srcSet: tabletProps.srcSet,
-        type: 'image/webp'
+        type: 'image/webp',
       })
     }
-    
-    // Mobile source  
+
+    // Mobile source
     if (mobileSrc || src) {
       const { props: mobileProps } = getImageProps({
         src: mobileSrc || src,
@@ -145,45 +144,55 @@ export function ProgressiveHeroImage({
         quality: Math.max(quality - 20, 50),
         sizes: '100vw',
       })
-      
+
       sources.push({
         media: '(max-width: 767px)',
         srcSet: mobileProps.srcSet,
-        type: 'image/webp'
+        type: 'image/webp',
       })
     }
-    
+
     return sources
-  }, [src, mobileSrc, tabletSrc, desktopSrc, alt, mobileWidth, mobileHeight, tabletWidth, tabletHeight, desktopWidth, desktopHeight, quality])
-  
+  }, [
+    src,
+    mobileSrc,
+    tabletSrc,
+    desktopSrc,
+    alt,
+    mobileWidth,
+    mobileHeight,
+    tabletWidth,
+    tabletHeight,
+    desktopWidth,
+    desktopHeight,
+    quality,
+  ])
+
   // Generate responsive sizes
-  const responsiveSizes = useMemo(() => ({
-    mobile: '100vw',
-    tablet: '100vw', 
-    desktop: '100vw',
-    default: '100vw'
-  }), [])
-  
-  const containerClasses = cn(
-    'relative w-full overflow-hidden',
-    className
+  const responsiveSizes = useMemo(
+    () => ({
+      mobile: '100vw',
+      tablet: '100vw',
+      desktop: '100vw',
+      default: '100vw',
+    }),
+    [],
   )
-  
-  const imageClasses = cn(
-    'w-full h-full',
-    imageClassName
-  )
-  
+
+  const containerClasses = cn('relative w-full overflow-hidden', className)
+
+  const imageClasses = cn('w-full h-full', imageClassName)
+
   const overlayClasses = cn(
     'absolute inset-0 z-10',
-    overlay && 'pointer-events-none'
+    overlay && 'pointer-events-none',
   )
-  
+
   // Use art direction if multiple sources provided
   if (artDirectionSources.length > 1) {
     return (
       <div className={containerClasses}>
-        <picture className="w-full h-full">
+        <picture className="h-full w-full">
           {artDirectionSources.map((source, index) => (
             <source
               key={index}
@@ -212,18 +221,18 @@ export function ProgressiveHeroImage({
             onError={onError}
           />
         </picture>
-        
+
         {/* Overlay */}
         {overlay && (
-          <div 
+          <div
             className={overlayClasses}
-            style={{ 
+            style={{
               backgroundColor: overlayColor,
-              opacity: overlayOpacity / 100 
+              opacity: overlayOpacity / 100,
             }}
           />
         )}
-        
+
         {/* Content */}
         {children && (
           <div className="absolute inset-0 z-20 flex flex-col justify-center">
@@ -233,7 +242,7 @@ export function ProgressiveHeroImage({
       </div>
     )
   }
-  
+
   // Single source implementation
   return (
     <div className={containerClasses}>
@@ -256,18 +265,18 @@ export function ProgressiveHeroImage({
         onLoad={onLoad}
         onError={onError}
       />
-      
+
       {/* Overlay */}
       {overlay && (
-        <div 
+        <div
           className={overlayClasses}
-          style={{ 
+          style={{
             backgroundColor: overlayColor,
-            opacity: overlayOpacity / 100 
+            opacity: overlayOpacity / 100,
           }}
         />
       )}
-      
+
       {/* Content */}
       {children && (
         <div className="absolute inset-0 z-20 flex flex-col justify-center">
@@ -283,29 +292,29 @@ interface ProgressiveBackgroundImageProps {
   src: string
   alt?: string
   className?: string
-  
+
   // Background specific
   backgroundSize?: 'cover' | 'contain' | 'auto'
   backgroundPosition?: string
   backgroundRepeat?: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'
-  
+
   // Progressive loading
   enableBlurPlaceholder?: boolean
   customBlurDataURL?: string
   placeholderColor?: string
   quality?: number
-  
+
   // Art direction
   mobileWidth?: number
   mobileHeight?: number
   desktopWidth?: number
   desktopHeight?: number
-  
+
   // Overlay
   overlay?: boolean
   overlayColor?: string
   overlayOpacity?: number
-  
+
   children?: React.ReactNode
 }
 
@@ -313,32 +322,31 @@ export function ProgressiveBackgroundImage({
   src,
   alt = '',
   className,
-  
+
   // Background props
   backgroundSize = 'cover',
   backgroundPosition = 'center',
   backgroundRepeat = 'no-repeat',
-  
+
   // Progressive loading
   enableBlurPlaceholder = true,
   customBlurDataURL,
   placeholderColor = '#f3f4f6',
   quality = 75,
-  
+
   // Art direction
   mobileWidth = 750,
   mobileHeight = 1334,
   desktopWidth = 1920,
   desktopHeight = 1080,
-  
+
   // Overlay
   overlay = false,
   overlayColor = 'rgba(0, 0, 0, 0.3)',
   overlayOpacity = 30,
-  
+
   children,
 }: ProgressiveBackgroundImageProps) {
-  
   // Generate background image-set
   const backgroundImageSet = useMemo(() => {
     const { props: mobileProps } = getImageProps({
@@ -349,7 +357,7 @@ export function ProgressiveBackgroundImage({
       quality: Math.max(quality - 15, 50),
       sizes: '100vw',
     })
-    
+
     const { props: desktopProps } = getImageProps({
       src,
       alt,
@@ -358,20 +366,25 @@ export function ProgressiveBackgroundImage({
       quality,
       sizes: '100vw',
     })
-    
+
     return {
       mobile: getBackgroundImageSet(mobileProps.srcSet || ''),
       desktop: getBackgroundImageSet(desktopProps.srcSet || ''),
     }
-  }, [src, alt, mobileWidth, mobileHeight, desktopWidth, desktopHeight, quality])
-  
-  const containerClasses = cn(
-    'relative w-full h-full',
-    className
-  )
-  
+  }, [
+    src,
+    alt,
+    mobileWidth,
+    mobileHeight,
+    desktopWidth,
+    desktopHeight,
+    quality,
+  ])
+
+  const containerClasses = cn('relative w-full h-full', className)
+
   return (
-    <div 
+    <div
       className={containerClasses}
       style={{
         backgroundImage: backgroundImageSet.desktop || `url(${src})`,
@@ -388,34 +401,34 @@ export function ProgressiveBackgroundImage({
           }
         }
       `}</style>
-      
+
       {/* Loading placeholder */}
       {enableBlurPlaceholder && (
         <div
           className="absolute inset-0 transition-opacity duration-500"
           style={{
             backgroundColor: placeholderColor,
-            backgroundImage: customBlurDataURL ? `url(${customBlurDataURL})` : undefined,
+            backgroundImage: customBlurDataURL
+              ? `url(${customBlurDataURL})`
+              : undefined,
           }}
         />
       )}
-      
+
       {/* Overlay */}
       {overlay && (
-        <div 
+        <div
           className="absolute inset-0 z-10"
-          style={{ 
+          style={{
             backgroundColor: overlayColor,
-            opacity: overlayOpacity / 100 
+            opacity: overlayOpacity / 100,
           }}
         />
       )}
-      
+
       {/* Content */}
       {children && (
-        <div className="relative z-20 w-full h-full">
-          {children}
-        </div>
+        <div className="relative z-20 h-full w-full">{children}</div>
       )}
     </div>
   )

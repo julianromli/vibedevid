@@ -24,11 +24,11 @@ export function generateSessionId(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
   }
-  
+
   // Fallback: Generate UUID v4 manually
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
     return v.toString(16)
   })
 }
@@ -40,14 +40,14 @@ export function generateSessionId(): string {
 export function getOrCreateSession(): ViewSession {
   const SESSION_KEY = 'vibedev_session'
   const SESSION_TIMEOUT = 30 * 60 * 1000 // 30 minutes in milliseconds
-  
+
   try {
     const stored = localStorage.getItem(SESSION_KEY)
     if (stored) {
       const session: ViewSession = JSON.parse(stored)
       const now = new Date()
       const lastActivity = new Date(session.lastActivity)
-      
+
       // Check if session is still valid (within timeout)
       if (now.getTime() - lastActivity.getTime() < SESSION_TIMEOUT) {
         // Update last activity and return existing session
@@ -59,20 +59,20 @@ export function getOrCreateSession(): ViewSession {
   } catch (error) {
     console.warn('Failed to parse stored session:', error)
   }
-  
+
   // Create new session
   const newSession: ViewSession = {
     id: generateSessionId(),
     createdAt: new Date().toISOString(),
-    lastActivity: new Date().toISOString()
+    lastActivity: new Date().toISOString(),
   }
-  
+
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify(newSession))
   } catch (error) {
     console.warn('Failed to store session:', error)
   }
-  
+
   return newSession
 }
 
@@ -83,32 +83,34 @@ export function getOrCreateSession(): ViewSession {
 export function shouldTrackView(projectId: string): boolean {
   const VIEWED_PROJECTS_KEY = 'vibedev_viewed_projects'
   const session = getOrCreateSession()
-  
+
   try {
     const stored = localStorage.getItem(VIEWED_PROJECTS_KEY)
-    const viewedProjects: Record<string, string[]> = stored ? JSON.parse(stored) : {}
-    
+    const viewedProjects: Record<string, string[]> = stored
+      ? JSON.parse(stored)
+      : {}
+
     // Get projects viewed in current session
     const sessionViews = viewedProjects[session.id] || []
-    
+
     // Check if project already viewed in this session
     if (sessionViews.includes(projectId)) {
       return false // Already viewed in this session
     }
-    
+
     // Add project to session views
     viewedProjects[session.id] = [...sessionViews, projectId]
-    
+
     // Clean up old sessions (keep only current and previous session)
     const sessionKeys = Object.keys(viewedProjects)
     if (sessionKeys.length > 2) {
-      sessionKeys.forEach(key => {
+      sessionKeys.forEach((key) => {
         if (key !== session.id) {
           delete viewedProjects[key]
         }
       })
     }
-    
+
     localStorage.setItem(VIEWED_PROJECTS_KEY, JSON.stringify(viewedProjects))
     return true // New unique view
   } catch (error) {
@@ -150,13 +152,21 @@ export function getAnalyticsDate(date: Date = new Date()): string {
  */
 export function isValidUserAgent(): boolean {
   if (typeof navigator === 'undefined') return false
-  
+
   const userAgent = navigator.userAgent.toLowerCase()
   const botPatterns = [
-    'bot', 'crawler', 'spider', 'scraper', 
-    'googlebot', 'bingbot', 'slurp', 'duckduckbot',
-    'facebookexternalhit', 'twitterbot', 'whatsapp'
+    'bot',
+    'crawler',
+    'spider',
+    'scraper',
+    'googlebot',
+    'bingbot',
+    'slurp',
+    'duckduckbot',
+    'facebookexternalhit',
+    'twitterbot',
+    'whatsapp',
   ]
-  
-  return !botPatterns.some(pattern => userAgent.includes(pattern))
+
+  return !botPatterns.some((pattern) => userAgent.includes(pattern))
 }
