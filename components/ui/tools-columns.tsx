@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ExternalLink, Code } from "lucide-react"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ExternalLink, Code } from 'lucide-react'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 export interface Tool {
   title: string
@@ -21,25 +21,31 @@ interface ToolsColumnsProps {
   className?: string
 }
 
-export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsProps) {
+export function ToolsColumns({
+  tools,
+  duration = 20,
+  className,
+}: ToolsColumnsProps) {
   return (
-    <div className={cn("flex flex-col space-y-4 overflow-hidden", className)}>
+    <div className={cn('flex flex-col space-y-4 overflow-hidden', className)}>
       <div
-        className="flex flex-col space-y-4 animate-scroll-up"
+        className="animate-scroll-up flex flex-col space-y-4"
         style={{
           animation: `scrollUp ${duration}s linear infinite`,
         }}
       >
         {[...tools, ...tools].map((tool, index) => (
-          <Card key={index} className="p-6 w-80 flex-shrink-0">
+          <Card key={index} className="w-80 flex-shrink-0 p-6">
             <div className="relative">
-              <div className="flex items-start space-x-4 mb-4">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${tool.gradient}`}>
+              <div className="mb-4 flex items-start space-x-4">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${tool.gradient}`}
+                >
                   {tool.icon}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-medium mb-2">{tool.title}</h3>
-                  <p className="text-muted-foreground text-sm line-clamp-3 leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h3 className="mb-2 text-base font-medium">{tool.title}</h3>
+                  <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
                     {tool.description}
                   </p>
                 </div>
@@ -50,9 +56,13 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
                   asChild
                   variant="secondary"
                   size="sm"
-                  className="gap-1 pr-2 shadow-none text-xs"
+                  className="gap-1 pr-2 text-xs shadow-none"
                 >
-                  <Link href={tool.link} target="_blank" rel="noopener noreferrer">
+                  <Link
+                    href={tool.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Try It
                     <ExternalLink className="ml-0 !size-3 opacity-50" />
                   </Link>

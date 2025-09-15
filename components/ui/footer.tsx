@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 import {
   Drawer,
   DrawerClose,
@@ -10,19 +10,19 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/drawer'
+import { Button } from '@/components/ui/button'
 
 export function Footer() {
-  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false);
+  const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false)
 
   return (
-    <footer className="py-12 bg-muted/50 border-t border-border relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="text-sm text-muted-foreground mb-4 md:mb-0">
-            © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar
-            untuk developer masa depan.
+    <footer className="bg-muted/50 border-border relative border-t py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-between md:flex-row">
+          <div className="text-muted-foreground mb-4 text-sm md:mb-0">
+            © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk
+            developer masa depan.
           </div>
           <div className="flex space-x-6 text-sm">
             <Drawer
@@ -42,10 +42,10 @@ export function Footer() {
                       Last updated: August 2025
                     </DrawerDescription>
                   </DrawerHeader>
-                  <div className="p-4 pb-0 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-track-muted scrollbar-thumb-muted-foreground hover:scrollbar-thumb-foreground scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+                  <div className="scrollbar-thin scrollbar-track-muted scrollbar-thumb-muted-foreground hover:scrollbar-thumb-foreground scrollbar-thumb-rounded-full scrollbar-track-rounded-full max-h-[60vh] overflow-y-auto p-4 pb-0">
                     <div className="space-y-6 text-sm">
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           1. Information We Collect
                         </h3>
                         <p className="text-muted-foreground mb-2">
@@ -54,7 +54,7 @@ export function Footer() {
                           participate in community discussions, or contact us
                           for support.
                         </p>
-                        <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                        <ul className="text-muted-foreground ml-4 list-inside list-disc space-y-1">
                           <li>
                             Account information (username, email address,
                             profile details)
@@ -64,21 +64,20 @@ export function Footer() {
                             submissions)
                           </li>
                           <li>
-                            Communication data when you contact our support
-                            team
+                            Communication data when you contact our support team
                           </li>
                         </ul>
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           2. How We Use Your Information
                         </h3>
                         <p className="text-muted-foreground mb-2">
                           We use the information we collect to provide,
                           maintain, and improve our community platform:
                         </p>
-                        <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                        <ul className="text-muted-foreground ml-4 list-inside list-disc space-y-1">
                           <li>
                             Facilitate community interactions and project
                             collaborations
@@ -99,7 +98,7 @@ export function Footer() {
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           3. Information Sharing
                         </h3>
                         <p className="text-muted-foreground mb-2">
@@ -107,10 +106,10 @@ export function Footer() {
                           personal information to third parties without your
                           consent, except in the following circumstances:
                         </p>
-                        <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                        <ul className="text-muted-foreground ml-4 list-inside list-disc space-y-1">
                           <li>
-                            With your explicit consent for specific
-                            integrations or features
+                            With your explicit consent for specific integrations
+                            or features
                           </li>
                           <li>
                             To comply with legal obligations or protect our
@@ -124,39 +123,38 @@ export function Footer() {
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           4. Data Security
                         </h3>
                         <p className="text-muted-foreground">
-                          We implement appropriate security measures to
-                          protect your personal information against
-                          unauthorized access, alteration, disclosure, or
-                          destruction. However, no method of transmission over
-                          the internet is 100% secure.
+                          We implement appropriate security measures to protect
+                          your personal information against unauthorized access,
+                          alteration, disclosure, or destruction. However, no
+                          method of transmission over the internet is 100%
+                          secure.
                         </p>
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           5. Community Guidelines
                         </h3>
                         <p className="text-muted-foreground">
                           As a member of VibeDev ID, you agree to maintain
                           respectful interactions, share knowledge
-                          constructively, and contribute to a positive
-                          learning environment for all developers in our
-                          community.
+                          constructively, and contribute to a positive learning
+                          environment for all developers in our community.
                         </p>
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           6. Your Rights
                         </h3>
                         <p className="text-muted-foreground mb-2">
                           You have the right to:
                         </p>
-                        <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                        <ul className="text-muted-foreground ml-4 list-inside list-disc space-y-1">
                           <li>Access and update your personal information</li>
                           <li>Delete your account and associated data</li>
                           <li>Opt out of non-essential communications</li>
@@ -165,12 +163,12 @@ export function Footer() {
                       </section>
 
                       <section>
-                        <h3 className="font-semibold text-base mb-2">
+                        <h3 className="mb-2 text-base font-semibold">
                           7. Contact Us
                         </h3>
                         <p className="text-muted-foreground">
-                          If you have any questions about this Privacy Policy
-                          or our data practices, please contact us at
+                          If you have any questions about this Privacy Policy or
+                          our data practices, please contact us at
                           privacy@vibedev.id or through our community support
                           channels.
                         </p>
@@ -189,5 +187,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

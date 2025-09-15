@@ -1,7 +1,7 @@
-"use client";
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
+'use client'
+import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
 import {
   ArrowLeft,
   MapPin,
@@ -12,26 +12,26 @@ import {
   Heart,
   MessageCircle,
   Edit,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { UserAvatar } from "@/components/ui/user-avatar";
-import { Navbar } from "@/components/ui/navbar";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { createClient } from "@/lib/supabase/client";
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { Navbar } from '@/components/ui/navbar'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { createClient } from '@/lib/supabase/client'
 import {
   ProfileHeaderSkeleton,
   ProjectGridSkeleton,
-} from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
-import ProfileEditDialog from "@/components/ui/profile-edit-dialog";
-import { Footer } from "@/components/ui/footer";
+} from '@/components/ui/skeleton'
+import { useState, useEffect } from 'react'
+import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
+import { Footer } from '@/components/ui/footer'
 
 async function updateUserProfile(username: string, profileData: any) {
-  const supabase = createClient();
+  const supabase = createClient()
 
   const { data, error } = await supabase
-    .from("users")
+    .from('users')
     .update({
       username: profileData.username,
       display_name: profileData.displayName,
@@ -43,16 +43,16 @@ async function updateUserProfile(username: string, profileData: any) {
       twitter_url: profileData.twitter_url,
       updated_at: new Date().toISOString(),
     })
-    .eq("username", username)
-    .select();
+    .eq('username', username)
+    .select()
 
   if (error) {
-    console.error("Error updating profile:", error);
-    return { success: false, error: error.message };
+    console.error('Error updating profile:', error)
+    return { success: false, error: error.message }
   }
 
-  console.log("[v0] Profile updated in database:", data);
-  return { success: true, data };
+  console.log('[v0] Profile updated in database:', data)
+  return { success: true, data }
 }
 
 // Function didn't used
@@ -74,20 +74,20 @@ async function updateUserProfile(username: string, profileData: any) {
 // }
 
 async function fetchUserProjects(username: string) {
-  const supabase = createClient();
+  const supabase = createClient()
 
   // Single optimized query dengan JOIN dan aggregation
   const { data: projectsData, error } = await supabase.rpc(
-    "get_user_projects_with_stats",
+    'get_user_projects_with_stats',
     {
       username_param: username,
-    }
-  );
+    },
+  )
 
   if (error) {
-    console.warn("RPC not available, falling back to regular queries:", error);
+    console.warn('RPC not available, falling back to regular queries:', error)
     // Fallback to regular queries if RPC doesn't exist
-    return await fetchUserProjectsFallback(username);
+    return await fetchUserProjectsFallback(username)
   }
 
   return (projectsData || []).map((project: any) => ({
@@ -95,28 +95,28 @@ async function fetchUserProjects(username: string) {
     likes: project.likes_count || project.likes || 0, // Handle both field names for backward compatibility
     thumbnail_url: project.image_url,
     url: project.website_url,
-  }));
+  }))
 }
 
 // Fallback function dengan optimized queries
 async function fetchUserProjectsFallback(username: string) {
-  const supabase = createClient();
+  const supabase = createClient()
 
   // Get user ID once
   const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("username", username)
-    .single();
+    .from('users')
+    .select('id')
+    .eq('username', username)
+    .single()
 
   if (userError || !user) {
-    console.error("Error fetching user for projects:", userError);
-    return [];
+    console.error('Error fetching user for projects:', userError)
+    return []
   }
 
   // Get projects with basic info
   const { data: projects, error } = await supabase
-    .from("projects")
+    .from('projects')
     .select(
       `
       id,
@@ -129,43 +129,52 @@ async function fetchUserProjectsFallback(username: string) {
       author_id,
       created_at,
       updated_at
-    `
+    `,
     )
-    .eq("author_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(10); // Limit untuk performance
+    .eq('author_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10) // Limit untuk performance
 
   if (error || !projects?.length) {
-    return [];
+    return []
   }
 
   // Batch count queries untuk semua projects sekaligus
-  const projectIds = projects.map((p) => p.id);
+  const projectIds = projects.map((p) => p.id)
 
   const [likesData, viewsData, commentsData] = await Promise.all([
-    supabase.from("likes").select("project_id").in("project_id", projectIds),
-    supabase.from("views").select("project_id").in("project_id", projectIds),
-    supabase.from("comments").select("project_id").in("project_id", projectIds),
-  ]);
+    supabase.from('likes').select('project_id').in('project_id', projectIds),
+    supabase.from('views').select('project_id').in('project_id', projectIds),
+    supabase.from('comments').select('project_id').in('project_id', projectIds),
+  ])
 
   // Count stats per project
   const likeCounts =
-    likesData.data?.reduce((acc, like) => {
-      acc[like.project_id] = (acc[like.project_id] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>) || {};
+    likesData.data?.reduce(
+      (acc, like) => {
+        acc[like.project_id] = (acc[like.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
   const viewCounts =
-    viewsData.data?.reduce((acc, view) => {
-      acc[view.project_id] = (acc[view.project_id] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>) || {};
+    viewsData.data?.reduce(
+      (acc, view) => {
+        acc[view.project_id] = (acc[view.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
   const commentCounts =
-    commentsData.data?.reduce((acc, comment) => {
-      acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>) || {};
+    commentsData.data?.reduce(
+      (acc, comment) => {
+        acc[comment.project_id] = (acc[comment.project_id] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    ) || {}
 
   return projects.map((project) => ({
     ...project,
@@ -174,187 +183,187 @@ async function fetchUserProjectsFallback(username: string) {
     comments_count: commentCounts[project.id] || 0,
     thumbnail_url: project.image_url,
     url: project.website_url,
-  }));
+  }))
 }
 
 // Optimized: Single query untuk mendapatkan user profile dan stats sekaligus
 async function fetchUserProfileWithStats(username: string) {
-  const supabase = createClient();
+  const supabase = createClient()
 
-  console.log("[v0] Fetching profile and stats for username:", username);
+  console.log('[v0] Fetching profile and stats for username:', username)
 
   // Single query untuk user profile
   const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("username", username)
-    .single();
+    .from('users')
+    .select('*')
+    .eq('username', username)
+    .single()
 
   if (userError || !user) {
-    console.error("[v0] Error fetching user:", userError);
-    return { user: null, stats: { projects: 0, likes: 0, views: 0 } };
+    console.error('[v0] Error fetching user:', userError)
+    return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
   }
 
   // Parallel operations untuk projects dan stats
   const [projectsResult, projectsListResult] = await Promise.all([
     supabase
-      .from("projects")
-      .select("id", { count: "exact" })
-      .eq("author_id", user.id),
-    supabase.from("projects").select("id").eq("author_id", user.id),
-  ]);
+      .from('projects')
+      .select('id', { count: 'exact' })
+      .eq('author_id', user.id),
+    supabase.from('projects').select('id').eq('author_id', user.id),
+  ])
 
-  const projectCount = projectsResult.count || 0;
-  const projectIds = projectsListResult.data?.map((p) => p.id) || [];
+  const projectCount = projectsResult.count || 0
+  const projectIds = projectsListResult.data?.map((p) => p.id) || []
 
   if (projectIds.length === 0) {
     return {
       user,
       stats: { projects: projectCount, likes: 0, views: 0 },
-    };
+    }
   }
 
   // Parallel queries untuk likes dan views
   const [likesResult, viewsResult] = await Promise.all([
     supabase
-      .from("likes")
-      .select("id", { count: "exact" })
-      .in("project_id", projectIds),
+      .from('likes')
+      .select('id', { count: 'exact' })
+      .in('project_id', projectIds),
     supabase
-      .from("views")
-      .select("id", { count: "exact" })
-      .in("project_id", projectIds),
-  ]);
+      .from('views')
+      .select('id', { count: 'exact' })
+      .in('project_id', projectIds),
+  ])
 
   const stats = {
     projects: projectCount,
     likes: likesResult.count || 0,
     views: viewsResult.count || 0,
-  };
+  }
 
-  console.log("[v0] Loaded profile and stats:", {
+  console.log('[v0] Loaded profile and stats:', {
     username: user.username,
     stats,
-  });
-  return { user, stats };
+  })
+  return { user, stats }
 }
 
 export default function ProfilePage() {
-  const params = useParams();
-  const router = useRouter();
-  const username = params.username as string;
+  const params = useParams()
+  const router = useRouter()
+  const username = params.username as string
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-  const [userProjects, setUserProjects] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [user, setUser] = useState<any>(null)
+  const [userProjects, setUserProjects] = useState<any[]>([])
   const [userStats, setUserStats] = useState({
     projects: 0,
     likes: 0,
     views: 0,
-  });
-  const [isOwner, setIsOwner] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  })
+  const [isOwner, setIsOwner] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   // Optimized: Single useEffect dengan parallel data loading
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0)
 
     const loadProfileDataOptimized = async () => {
-      setLoading(true);
+      setLoading(true)
 
       try {
-        console.log("[v0] Loading profile data for username:", username);
-        const supabase = createClient();
+        console.log('[v0] Loading profile data for username:', username)
+        const supabase = createClient()
 
         // Parallel operations untuk auth check dan profile data
         const [sessionResult, profileWithStatsResult] = await Promise.all([
           supabase.auth.getSession(),
           fetchUserProfileWithStats(username),
-        ]);
+        ])
 
         const {
           data: { session },
-        } = sessionResult;
-        const { user: profileUser, stats } = profileWithStatsResult;
+        } = sessionResult
+        const { user: profileUser, stats } = profileWithStatsResult
 
         // Handle authentication state
-        let authUser = null;
-        let isOwnerCheck = false;
+        let authUser = null
+        let isOwnerCheck = false
 
         if (session?.user) {
           const { data: profile } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
 
           if (profile) {
-            authUser = profile;
-            isOwnerCheck = profile.username === username;
+            authUser = profile
+            isOwnerCheck = profile.username === username
           }
         }
 
         // Check if profile user exists
         if (!profileUser) {
-          console.log("[v0] Profile user not found");
-          setLoading(false);
-          return;
+          console.log('[v0] Profile user not found')
+          setLoading(false)
+          return
         }
 
-        console.log("[v0] Profile user loaded:", profileUser.username);
-        console.log("[v0] Loaded stats:", stats);
+        console.log('[v0] Profile user loaded:', profileUser.username)
+        console.log('[v0] Loaded stats:', stats)
 
         // Load projects in parallel (non-blocking)
-        const projectsPromise = fetchUserProjects(username);
+        const projectsPromise = fetchUserProjects(username)
 
         // Batch all state updates
-        setIsLoggedIn(!!session?.user);
-        if (authUser) setCurrentUser(authUser);
-        setIsOwner(isOwnerCheck);
-        setUser(profileUser);
-        setUserStats(stats);
+        setIsLoggedIn(!!session?.user)
+        if (authUser) setCurrentUser(authUser)
+        setIsOwner(isOwnerCheck)
+        setUser(profileUser)
+        setUserStats(stats)
 
         // Wait for projects and update state
-        const projects = await projectsPromise;
-        console.log("[v0] Loaded projects count:", projects.length);
-        setUserProjects(projects);
+        const projects = await projectsPromise
+        console.log('[v0] Loaded projects count:', projects.length)
+        setUserProjects(projects)
       } catch (error) {
-        console.error("[v0] Error loading profile data:", error);
+        console.error('[v0] Error loading profile data:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadProfileDataOptimized();
-  }, [username]);
+    loadProfileDataOptimized()
+  }, [username])
 
   const handleEdit = () => {
-    setShowEditDialog(true);
-  };
+    setShowEditDialog(true)
+  }
 
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-  };
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 
   const handleProfile = () => {
     if (currentUser?.username) {
-      router.push(`/${currentUser.username}`);
+      router.push(`/${currentUser.username}`)
     }
-  };
+  }
 
   const handleSaveProfile = async (profileData: any) => {
-    setSaving(true);
+    setSaving(true)
     try {
-      console.log("[v0] Saving profile with avatar:", profileData.avatar_url); // Updated debug log
+      console.log('[v0] Saving profile with avatar:', profileData.avatar_url) // Updated debug log
 
-      const result = await updateUserProfile(username, profileData);
+      const result = await updateUserProfile(username, profileData)
       if (result.success) {
-        setShowEditDialog(false);
+        setShowEditDialog(false)
 
         const updatedUser = {
           ...user,
@@ -366,41 +375,41 @@ export default function ProfilePage() {
           github_url: profileData.github_url,
           twitter_url: profileData.twitter_url,
           avatar_url: profileData.avatar_url, // Fixed: use avatar_url
-        };
+        }
 
         console.log(
-          "[v0] Updated user state with new avatar:",
-          updatedUser.avatar_url
-        );
-        setUser(updatedUser);
+          '[v0] Updated user state with new avatar:',
+          updatedUser.avatar_url,
+        )
+        setUser(updatedUser)
 
         if (profileData.username !== username) {
-          router.push(`/${profileData.username}`);
+          router.push(`/${profileData.username}`)
         }
       } else {
-        console.error("Failed to update profile:", result.error);
-        alert("Failed to update profile: " + result.error);
+        console.error('Failed to update profile:', result.error)
+        alert('Failed to update profile: ' + result.error)
       }
     } catch (error) {
-      console.error("Error saving profile:", error);
-      alert("Error saving profile");
+      console.error('Error saving profile:', error)
+      alert('Error saving profile')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const scrollToSection = (sectionId: string) => {
     // For profile pages, redirect to homepage sections if needed
     if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.push(`/#${sectionId}`);
+      router.push(`/#${sectionId}`)
     }
-  };
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
+      <div className="bg-grid-pattern relative min-h-screen">
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
         <Navbar
           showNavigation={true}
@@ -408,27 +417,27 @@ export default function ProfilePage() {
           user={currentUser || undefined}
           scrollToSection={scrollToSection}
         />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="space-y-8">
             {/* Profile Header Skeleton */}
             <ProfileHeaderSkeleton />
 
             {/* Projects Section Skeleton */}
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="h-7 bg-muted animate-pulse rounded w-32 mb-6"></div>
+            <div className="bg-card border-border rounded-xl border p-6">
+              <div className="bg-muted mb-6 h-7 w-32 animate-pulse rounded"></div>
               <ProjectGridSkeleton count={6} columns={2} />
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-grid-pattern relative">
+      <div className="bg-grid-pattern relative min-h-screen">
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
         <Navbar
           showNavigation={true}
@@ -436,26 +445,26 @@ export default function ProfilePage() {
           user={currentUser || undefined}
           scrollToSection={scrollToSection}
         />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
+            <h1 className="mb-4 text-2xl font-bold">User Not Found</h1>
             <p className="text-muted-foreground mb-6">
               The profile you're looking for doesn't exist.
             </p>
-            <Button onClick={() => router.push("/")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button onClick={() => router.push('/')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern relative">
+    <div className="bg-grid-pattern relative min-h-screen">
       {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
+      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
       <Navbar
         showNavigation={true}
@@ -465,55 +474,56 @@ export default function ProfilePage() {
       />
 
       {/* Profile Header */}
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        <div className="bg-card rounded-xl border border-border p-8 mb-8">
+      <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
+        <div className="bg-card border-border mb-8 rounded-xl border p-8">
           {isOwner && (
-            <div className="flex justify-center md:justify-end mb-4">
+            <div className="mb-4 flex justify-center md:justify-end">
               <Button onClick={handleEdit} variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col gap-6 md:flex-row">
             <UserAvatar user={user} size="xl" className="mx-auto md:mx-0" />
 
             {/* User Info Section */}
-            <div className="flex-1 text-center md:text-left py-0">
-              <h1 className="text-3xl font-bold mb-2">
+            <div className="flex-1 py-0 text-center md:text-left">
+              <h1 className="mb-2 text-3xl font-bold">
                 {user.display_name || user.username}
               </h1>
-              <p className="text-muted-foreground text-lg mb-4">
+              <p className="text-muted-foreground mb-4 text-lg">
                 @{user.username}
               </p>
               <p className="text-foreground mb-4 max-w-2xl">
-                {user.bio || "No bio available"}
+                {user.bio || 'No bio available'}
               </p>
 
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4 justify-center md:justify-start">
+              <div className="text-muted-foreground mb-4 flex flex-wrap justify-center gap-4 text-sm md:justify-start">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {user.location || "Location not specified"}
+                  {user.location || 'Location not specified'}
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Joined{" "}
-                  {new Date(user.joined_at).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
+                  Joined{' '}
+                  {new Date(user.joined_at).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric',
                   })}
                 </div>
               </div>
 
-              <div className="flex gap-4 mb-6 justify-center md:justify-start">
+              <div className="mb-6 flex justify-center gap-4 md:justify-start">
                 {user.website && (
                   <Button variant="outline" size="sm" asChild>
                     <a
                       href={user.website}
                       target="_blank"
-                      rel="noopener noreferrer">
-                      <Globe className="h-4 w-4 mr-2" />
+                      rel="noopener noreferrer"
+                    >
+                      <Globe className="mr-2 h-4 w-4" />
                       Website
                     </a>
                   </Button>
@@ -523,8 +533,9 @@ export default function ProfilePage() {
                     <a
                       href={user.github_url}
                       target="_blank"
-                      rel="noopener noreferrer">
-                      <Github className="h-4 w-4 mr-2" />
+                      rel="noopener noreferrer"
+                    >
+                      <Github className="mr-2 h-4 w-4" />
                       GitHub
                     </a>
                   </Button>
@@ -534,8 +545,9 @@ export default function ProfilePage() {
                     <a
                       href={user.twitter_url}
                       target="_blank"
-                      rel="noopener noreferrer">
-                      <Twitter className="h-4 w-4 mr-2" />
+                      rel="noopener noreferrer"
+                    >
+                      <Twitter className="mr-2 h-4 w-4" />
                       Twitter
                     </a>
                   </Button>
@@ -543,28 +555,28 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex md:flex-col gap-6 md:gap-3 justify-center md:justify-start md:items-end">
-              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
-                <div className="font-bold text-2xl text-primary">
+            <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
+              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
+                <div className="text-primary text-2xl font-bold">
                   {userStats.projects}
                 </div>
-                <div className="text-xs text-muted-foreground font-medium">
+                <div className="text-muted-foreground text-xs font-medium">
                   Projects
                 </div>
               </div>
-              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
-                <div className="font-bold text-2xl text-primary">
+              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
+                <div className="text-primary text-2xl font-bold">
                   {userStats.likes}
                 </div>
-                <div className="text-xs text-muted-foreground font-medium">
+                <div className="text-muted-foreground text-xs font-medium">
                   Likes
                 </div>
               </div>
-              <div className="bg-muted/30 rounded-xl p-4 text-center min-w-[80px] hover:bg-muted/50 transition-colors duration-200">
-                <div className="font-bold text-2xl text-primary">
+              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
+                <div className="text-primary text-2xl font-bold">
                   {userStats.views}
                 </div>
-                <div className="text-xs text-muted-foreground font-medium">
+                <div className="text-muted-foreground text-xs font-medium">
                   Views
                 </div>
               </div>
@@ -575,23 +587,24 @@ export default function ProfilePage() {
         {/* Projects */}
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Projects</h2>
+            <h2 className="mb-6 text-xl font-semibold">Projects</h2>
             {userProjects.length > 0 ? (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid gap-6 md:grid-cols-2">
                 {userProjects.map((project) => (
                   <Link
                     key={project.id}
                     href={`/project/${project.slug}`}
-                    className="group cursor-pointer block">
-                    <div className="relative overflow-hidden rounded-lg bg-muted mb-4">
+                    className="group block cursor-pointer"
+                  >
+                    <div className="bg-muted relative mb-4 overflow-hidden rounded-lg">
                       <AspectRatio ratio={16 / 9}>
                         <Image
-                          src={project.thumbnail_url || "/placeholder.svg"}
+                          src={project.thumbnail_url || '/placeholder.svg'}
                           alt={project.title}
                           fill
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg";
+                            e.currentTarget.src = '/placeholder.svg'
                           }}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           placeholder="blur"
@@ -600,14 +613,14 @@ export default function ProfilePage() {
                       </AspectRatio>
                     </div>
 
-                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">
+                    <h3 className="group-hover:text-primary mb-2 text-lg font-semibold transition-colors duration-300">
                       {project.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm mb-3">
+                    <p className="text-muted-foreground mb-3 text-sm">
                       {project.description}
                     </p>
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <Heart className="h-4 w-4" />
                         {project.likes || 0}
@@ -621,7 +634,7 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="py-8 text-center">
                 <p className="text-muted-foreground">No projects yet</p>
               </div>
             )}
@@ -634,21 +647,21 @@ export default function ProfilePage() {
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         defaultValues={{
-          name: user?.display_name || "",
-          username: user?.username || "",
-          avatar: user?.avatar_url || "/placeholder.svg", // Keep as avatar for dialog compatibility
-          bio: user?.bio || "",
-          location: user?.location || "",
-          website: user?.website || "",
-          github_url: user?.github_url || "",
-          twitter_url: user?.twitter_url || "",
+          name: user?.display_name || '',
+          username: user?.username || '',
+          avatar: user?.avatar_url || '/placeholder.svg', // Keep as avatar for dialog compatibility
+          bio: user?.bio || '',
+          location: user?.location || '',
+          website: user?.website || '',
+          github_url: user?.github_url || '',
+          twitter_url: user?.twitter_url || '',
         }}
         onSave={handleSaveProfile}
         saving={saving}
       />
-      
+
       {/* Footer */}
       <Footer />
     </div>
-  );
+  )
 }

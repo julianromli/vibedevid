@@ -25,11 +25,13 @@
 ### Setting Up Environment Variables
 
 #### Local Development
+
 1. Copy `.env.local.example` to `.env.local`
 2. Fill in your actual values
 3. Never commit `.env.local`
 
 #### Vercel Deployment
+
 1. Go to Vercel Dashboard > Your Project > Settings > Environment Variables
 2. Add each variable from `VERCEL_ENV_TEMPLATE.txt`
 3. Use your actual values, not placeholders

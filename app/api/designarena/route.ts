@@ -48,31 +48,34 @@ export async function GET(request: NextRequest) {
       modelCount: modelData.length,
       builderCount: builderData.length,
       type,
-      category
+      category,
     })
 
     // Filter berdasarkan category jika diminta
     if (category !== 'all') {
-      modelData = modelData.filter(item => item.category.toLowerCase().includes(category.toLowerCase()))
-      builderData = builderData.filter(item => item.category.toLowerCase().includes(category.toLowerCase()))
+      modelData = modelData.filter((item) =>
+        item.category.toLowerCase().includes(category.toLowerCase()),
+      )
+      builderData = builderData.filter((item) =>
+        item.category.toLowerCase().includes(category.toLowerCase()),
+      )
     }
 
     const response: DesignArenaData = {
       modelPerformance: modelData,
       builderPerformance: builderData,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     }
 
     return NextResponse.json(response)
-
   } catch (error) {
     console.error('DesignArena API Error:', error)
-    
+
     // Return fallback data jika ada error
     const fallbackData: DesignArenaData = {
       modelPerformance: getMockModelData(),
       builderPerformance: getMockBuilderData(),
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     }
 
     return NextResponse.json(fallbackData, { status: 200 })
@@ -87,7 +90,7 @@ function parseModelPerformance(html: string): ModelPerformanceData[] {
     /Claude\s*Sonnet\s*4.*?(\d+\.?\d*)%/gi,
     /GPT[-\s]*5.*?(\d+\.?\d*)%/gi,
     /DeepSeek[-\s]*R1.*?(\d+\.?\d*)%/gi,
-    /Qwen.*?(\d+\.?\d*)%/gi
+    /Qwen.*?(\d+\.?\d*)%/gi,
   ]
 
   // Jika parsing gagal, return mock data
@@ -102,7 +105,7 @@ function parseBuilderPerformance(html: string): BuilderPerformanceData[] {
     /Same\.new.*?(\d+\.?\d*)%/gi,
     /new\.website.*?(\d+\.?\d*)%/gi,
     /Lovable.*?(\d+\.?\d*)%/gi,
-    /Cursor.*?(\d+\.?\d*)%/gi
+    /Cursor.*?(\d+\.?\d*)%/gi,
   ]
 
   // Jika parsing gagal, return mock data
@@ -118,7 +121,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 72.0,
       eloRating: 1850,
       category: 'AI Model',
-      color: 'hsl(var(--chart-1))'
+      color: 'hsl(var(--chart-1))',
     },
     {
       id: 'claude-sonnet-4',
@@ -126,8 +129,8 @@ function getMockModelData(): ModelPerformanceData[] {
       icon: 'https://www.designarena.ai/model-logos/claudelogo.jpeg',
       winRate: 69.1,
       eloRating: 1820,
-      category: 'AI Model', 
-      color: 'hsl(var(--chart-2))'
+      category: 'AI Model',
+      color: 'hsl(var(--chart-2))',
     },
     {
       id: 'claude-opus-4.1',
@@ -136,7 +139,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 69.1,
       eloRating: 1815,
       category: 'AI Model',
-      color: 'hsl(var(--muted-foreground))'
+      color: 'hsl(var(--muted-foreground))',
     },
     {
       id: 'gpt-5-minimal',
@@ -145,7 +148,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 68.4,
       eloRating: 1800,
       category: 'AI Model',
-      color: 'hsl(var(--chart-1))'
+      color: 'hsl(var(--chart-1))',
     },
     {
       id: 'claude-opus-4.1-thinking',
@@ -154,7 +157,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 68.4,
       eloRating: 1795,
       category: 'AI Model',
-      color: 'hsl(var(--chart-3))'
+      color: 'hsl(var(--chart-3))',
     },
     {
       id: 'deepseek-r1-0528',
@@ -163,7 +166,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 67.2,
       eloRating: 1780,
       category: 'AI Model',
-      color: 'hsl(var(--chart-2))'
+      color: 'hsl(var(--chart-2))',
     },
     {
       id: 'claude-3.7-sonnet',
@@ -172,7 +175,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 66.2,
       eloRating: 1770,
       category: 'AI Model',
-      color: 'hsl(var(--chart-4))'
+      color: 'hsl(var(--chart-4))',
     },
     {
       id: 'qwen3-coder-480b-a35b-instruct',
@@ -181,7 +184,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 65.4,
       eloRating: 1760,
       category: 'AI Model',
-      color: 'hsl(var(--chart-5))'
+      color: 'hsl(var(--chart-5))',
     },
     {
       id: 'claude-sonnet-4-thinking',
@@ -190,7 +193,7 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 64.9,
       eloRating: 1750,
       category: 'AI Model',
-      color: 'hsl(var(--muted-foreground))'
+      color: 'hsl(var(--muted-foreground))',
     },
     {
       id: 'glm-4.5',
@@ -199,8 +202,8 @@ function getMockModelData(): ModelPerformanceData[] {
       winRate: 64.6,
       eloRating: 1745,
       category: 'AI Model',
-      color: 'hsl(var(--chart-3))'
-    }
+      color: 'hsl(var(--chart-3))',
+    },
   ]
 }
 
@@ -213,7 +216,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 61.2,
       eloRating: 1650,
       category: 'AI Builder',
-      color: 'hsl(var(--chart-1))'
+      color: 'hsl(var(--chart-1))',
     },
     {
       id: 'same-new',
@@ -222,7 +225,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 60.3,
       eloRating: 1640,
       category: 'AI Builder',
-      color: 'hsl(var(--chart-2))'
+      color: 'hsl(var(--chart-2))',
     },
     {
       id: 'new-website',
@@ -231,7 +234,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 60.0,
       eloRating: 1635,
       category: 'AI Builder',
-      color: 'hsl(var(--muted-foreground))'
+      color: 'hsl(var(--muted-foreground))',
     },
     {
       id: 'lovable',
@@ -240,7 +243,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 58.9,
       eloRating: 1620,
       category: 'AI Builder',
-      color: 'hsl(var(--chart-3))'
+      color: 'hsl(var(--chart-3))',
     },
     {
       id: 'figma-make',
@@ -249,7 +252,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 58.6,
       eloRating: 1615,
       category: 'Design Tool',
-      color: 'hsl(var(--chart-4))'
+      color: 'hsl(var(--chart-4))',
     },
     {
       id: 'magic-patterns',
@@ -258,7 +261,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 57.4,
       eloRating: 1600,
       category: 'Design Tool',
-      color: 'hsl(var(--chart-5))'
+      color: 'hsl(var(--chart-5))',
     },
     {
       id: 'anything',
@@ -267,7 +270,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 56.9,
       eloRating: 1590,
       category: 'AI Builder',
-      color: 'hsl(var(--chart-1))'
+      color: 'hsl(var(--chart-1))',
     },
     {
       id: 'cursor',
@@ -276,7 +279,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 56.4,
       eloRating: 1585,
       category: 'Code Editor',
-      color: 'hsl(var(--chart-2))'
+      color: 'hsl(var(--chart-2))',
     },
     {
       id: 'float',
@@ -285,7 +288,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 56.2,
       eloRating: 1580,
       category: 'AI Builder',
-      color: 'hsl(var(--muted-foreground))'
+      color: 'hsl(var(--muted-foreground))',
     },
     {
       id: 'google-ai-studio',
@@ -294,7 +297,7 @@ function getMockBuilderData(): BuilderPerformanceData[] {
       winRate: 54.3,
       eloRating: 1550,
       category: 'AI Platform',
-      color: 'hsl(var(--chart-3))'
-    }
+      color: 'hsl(var(--chart-3))',
+    },
   ]
 }

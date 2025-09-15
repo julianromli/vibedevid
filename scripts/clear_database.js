@@ -4,8 +4,9 @@
 const { createClient } = require('@supabase/supabase-js')
 
 // Direct environment variables
-const supabaseUrl = "https://qabfrhpbfvjcgdrxdlba.supabase.co"
-const supabaseServiceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYmZyaHBiZnZqY2dkcnhkbGJhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcwMDE3NywiZXhwIjoyMDcxMjc2MTc3fQ.j2UXpgqGzoFL03xVMdpwxMtt2FPzTZ50nYwaLANUAhU"
+const supabaseUrl = 'https://qabfrhpbfvjcgdrxdlba.supabase.co'
+const supabaseServiceRoleKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYmZyaHBiZnZqY2dkcnhkbGJhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcwMDE3NywiZXhwIjoyMDcxMjc2MTc3fQ.j2UXpgqGzoFL03xVMdpwxMtt2FPzTZ50nYwaLANUAhU'
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error('❌ Missing Supabase environment variables!')
@@ -24,7 +25,7 @@ async function clearDatabase() {
       .from('comments')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
-    
+
     if (commentsError) {
       console.error('Error deleting comments:', commentsError)
     } else {
@@ -36,7 +37,7 @@ async function clearDatabase() {
       .from('likes')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
-    
+
     if (likesError) {
       console.error('Error deleting likes:', likesError)
     } else {
@@ -48,7 +49,7 @@ async function clearDatabase() {
       .from('views')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
-    
+
     if (viewsError) {
       console.error('Error deleting views:', viewsError)
     } else {
@@ -60,7 +61,7 @@ async function clearDatabase() {
       .from('projects')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
-    
+
     if (projectsError) {
       console.error('Error deleting projects:', projectsError)
     } else {
@@ -74,7 +75,6 @@ async function clearDatabase() {
     console.log('📝 All projects, comments, likes, and views have been removed')
     console.log('👤 User profiles are preserved')
     console.log('\nReady for fresh data! 🚀')
-
   } catch (error) {
     console.error('❌ Error during database cleanup:', error)
     process.exit(1)
