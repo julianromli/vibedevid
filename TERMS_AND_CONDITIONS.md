@@ -21,12 +21,14 @@ VibeDev ID is a community platform for Indonesian developers, AI enthusiasts, an
 ## 3. User Accounts and Registration
 
 ### 3.1 Account Creation
+
 - You must provide accurate, current, and complete information during registration
 - You are responsible for maintaining the confidentiality of your account credentials
 - You must be at least 13 years old to create an account
 - One person may not maintain multiple accounts
 
 ### 3.2 Account Security
+
 - You are responsible for all activities that occur under your account
 - You must notify us immediately of any unauthorized use of your account
 - We reserve the right to suspend or terminate accounts that violate these Terms
@@ -34,14 +36,18 @@ VibeDev ID is a community platform for Indonesian developers, AI enthusiasts, an
 ## 4. User Content and Conduct
 
 ### 4.1 Content Guidelines
+
 Users may post, upload, or share content including but not limited to:
+
 - Project descriptions and code
 - Profile information and biographies
 - Comments and discussions
 - Images and media files
 
 ### 4.2 Prohibited Content
+
 You agree not to post content that:
+
 - Violates any applicable laws or regulations
 - Infringes on intellectual property rights of others
 - Contains hate speech, harassment, or discriminatory language
@@ -52,6 +58,7 @@ You agree not to post content that:
 - Contains adult or sexually explicit material
 
 ### 4.3 Content Ownership
+
 - You retain ownership of content you create and post
 - By posting content, you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content on our platform
 - You represent that you have the right to post all content you share
@@ -59,12 +66,14 @@ You agree not to post content that:
 ## 5. Community Guidelines
 
 ### 5.1 Respectful Interaction
+
 - Treat all community members with respect and professionalism
 - Provide constructive feedback and criticism
 - Respect diverse backgrounds, experiences, and skill levels
 - Use Indonesian or English for better community understanding
 
 ### 5.2 Professional Conduct
+
 - Maintain professional standards in all interactions
 - Do not engage in harassment, bullying, or intimidation
 - Respect intellectual property and give proper attribution
@@ -73,10 +82,12 @@ You agree not to post content that:
 ## 6. Intellectual Property
 
 ### 6.1 Platform Content
+
 - VibeDev ID retains all rights to the platform's design, features, and functionality
 - Our trademarks, logos, and service marks are protected intellectual property
 
 ### 6.2 User Content
+
 - Users retain rights to their original content
 - Users must respect others' intellectual property rights
 - Report any copyright infringement to our support team
@@ -84,11 +95,13 @@ You agree not to post content that:
 ## 7. Privacy and Data Protection
 
 ### 7.1 Data Collection
+
 - We collect information as described in our Privacy Policy
 - We use secure authentication through Supabase
 - Profile information may be publicly visible based on your settings
 
 ### 7.2 Data Security
+
 - We implement industry-standard security measures
 - Users are responsible for maintaining account security
 - We cannot guarantee absolute security of user data
@@ -96,6 +109,7 @@ You agree not to post content that:
 ## 8. Prohibited Uses
 
 You may not use our Service to:
+
 - Violate any laws or regulations
 - Impersonate others or provide false information
 - Attempt to gain unauthorized access to our systems
@@ -107,13 +121,16 @@ You may not use our Service to:
 ## 9. Content Moderation
 
 ### 9.1 Our Rights
+
 We reserve the right to:
+
 - Review, monitor, and moderate content
 - Remove content that violates these Terms
 - Suspend or terminate accounts for violations
 - Modify or discontinue features of the Service
 
 ### 9.2 Reporting
+
 - Users can report inappropriate content or behavior
 - We will investigate reports in a timely manner
 - False reports may result in account penalties
@@ -121,11 +138,13 @@ We reserve the right to:
 ## 10. Third-Party Services
 
 ### 10.1 External Links
+
 - Our Service may contain links to third-party websites
 - We are not responsible for external content or services
 - Third-party services have their own terms and policies
 
 ### 10.2 Integrations
+
 - We use third-party services including Supabase and UploadThing
 - These services have their own terms and privacy policies
 - Service availability may depend on third-party providers
@@ -133,11 +152,13 @@ We reserve the right to:
 ## 11. Disclaimers and Limitation of Liability
 
 ### 11.1 Service Availability
+
 - The Service is provided "as is" without warranties
 - We do not guarantee uninterrupted or error-free operation
 - Features may be modified, suspended, or discontinued
 
 ### 11.2 Limitation of Liability
+
 - Our liability is limited to the maximum extent permitted by law
 - We are not liable for indirect, incidental, or consequential damages
 - Total liability shall not exceed the amount paid by you for the Service
@@ -145,6 +166,7 @@ We reserve the right to:
 ## 12. Indemnification
 
 You agree to indemnify and hold harmless VibeDev ID, its officers, directors, employees, and agents from any claims, damages, losses, or expenses arising from:
+
 - Your use of the Service
 - Your violation of these Terms
 - Your violation of rights of others
@@ -153,11 +175,14 @@ You agree to indemnify and hold harmless VibeDev ID, its officers, directors, em
 ## 13. Termination
 
 ### 13.1 Termination by You
+
 - You may terminate your account at any time
 - Termination does not relieve you of obligations incurred before termination
 
 ### 13.2 Termination by Us
+
 We may terminate or suspend your account if you:
+
 - Violate these Terms
 - Engage in prohibited conduct
 - Pose a security risk to the Service
@@ -173,9 +198,11 @@ We may terminate or suspend your account if you:
 ## 15. Governing Law and Disputes
 
 ### 15.1 Governing Law
+
 These Terms are governed by the laws of the Republic of Indonesia.
 
 ### 15.2 Dispute Resolution
+
 - Disputes should first be addressed through direct communication
 - Unresolved disputes may be subject to mediation
 - Legal proceedings shall be conducted in Indonesian courts
@@ -201,6 +228,7 @@ These Terms, along with our Privacy Policy, constitute the entire agreement betw
 **Bahasa Indonesia Summary / Ringkasan Bahasa Indonesia:**
 
 Dengan menggunakan platform VibeDev ID, Anda setuju untuk:
+
 - Mengikuti pedoman komunitas yang sopan dan profesional
 - Tidak memposting konten yang melanggar hukum atau merugikan
 - Menghormati hak kekayaan intelektual orang lain

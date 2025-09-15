@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 
 export function useMediaQuery(query: string) {
   const [value, setValue] = React.useState(false)
@@ -9,15 +9,15 @@ export function useMediaQuery(query: string) {
     }
 
     const result = matchMedia(query)
-    result.addEventListener("change", onChange)
+    result.addEventListener('change', onChange)
     setValue(result.matches)
 
-    return () => result.removeEventListener("change", onChange)
+    return () => result.removeEventListener('change', onChange)
   }, [query])
 
   return value
 }
 
 export function useIsMobile(): boolean {
-  return useMediaQuery("(max-width: 768px)")
+  return useMediaQuery('(max-width: 768px)')
 }

@@ -33,13 +33,13 @@ export interface ImageVariant {
  */
 export async function generateBlurPlaceholder(
   src: string,
-  size: number = 10
+  size: number = 10,
 ): Promise<BlurPlaceholderResult> {
   // Generate simple colored placeholder based on src
   const color = generatePlaceholderColor(src)
   const canvas = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><rect width="${size}" height="${size}" fill="${color}"/></svg>`
   const base64 = `data:image/svg+xml,${encodeURIComponent(canvas)}`
-  
+
   return {
     blurDataURL: base64,
     width: size,
@@ -62,7 +62,7 @@ export function getOptimalImageProps(
     desktopWidth?: number
     desktopHeight?: number
     quality?: number
-  } = {}
+  } = {},
 ): OptimalImageProps {
   const {
     mobileWidth = 750,
@@ -71,14 +71,14 @@ export function getOptimalImageProps(
     tabletHeight = 1920,
     desktopWidth = 1920,
     desktopHeight = 1080,
-    quality = 75
+    quality = 75,
   } = options
 
-  const common = { 
-    alt, 
+  const common = {
+    alt,
     src,
     quality,
-    sizes: '100vw'
+    sizes: '100vw',
   }
 
   const mobile = getImageProps({
@@ -109,17 +109,19 @@ export function getOptimalImageProps(
  * Generate responsive sizes string based on breakpoints
  * Provides optimal sizes for different viewport widths
  */
-export function generateSizes(options: {
-  mobile?: string
-  tablet?: string
-  desktop?: string
-  default?: string
-} = {}): string {
+export function generateSizes(
+  options: {
+    mobile?: string
+    tablet?: string
+    desktop?: string
+    default?: string
+  } = {},
+): string {
   const {
     mobile = '100vw',
-    tablet = '50vw', 
+    tablet = '50vw',
     desktop = '33vw',
-    default: defaultSize = '100vw'
+    default: defaultSize = '100vw',
   } = options
 
   return `(max-width: 640px) ${mobile}, (max-width: 1024px) ${tablet}, (max-width: 1536px) ${desktop}, ${defaultSize}`
@@ -132,23 +134,23 @@ export function calculateOptimalSize(
   containerWidth: number,
   containerHeight: number,
   viewportWidth: number = 1920,
-  aspectRatio?: number
+  aspectRatio?: number,
 ): { width: number; height: number } {
   // Handle responsive scaling
   const scaleFactor = Math.min(viewportWidth / 1920, 1)
   const scaledWidth = Math.round(containerWidth * scaleFactor)
-  
+
   if (aspectRatio) {
     return {
       width: scaledWidth,
-      height: Math.round(scaledWidth / aspectRatio)
+      height: Math.round(scaledWidth / aspectRatio),
     }
   }
-  
+
   const scaledHeight = Math.round(containerHeight * scaleFactor)
   return {
     width: scaledWidth,
-    height: scaledHeight
+    height: scaledHeight,
   }
 }
 
@@ -158,28 +160,28 @@ export function calculateOptimalSize(
 export function createImageVariants(
   baseSrc: string,
   baseWidth: number,
-  baseHeight: number
+  baseHeight: number,
 ): ImageVariant[] {
   const variants: ImageVariant[] = []
-  
+
   // Different quality levels
   const qualities = [60, 75, 85, 95]
-  
+
   // Different sizes (percentage of original)
   const sizeMultipliers = [0.25, 0.5, 0.75, 1]
-  
-  qualities.forEach(quality => {
-    sizeMultipliers.forEach(multiplier => {
+
+  qualities.forEach((quality) => {
+    sizeMultipliers.forEach((multiplier) => {
       variants.push({
         src: baseSrc,
         width: Math.round(baseWidth * multiplier),
         height: Math.round(baseHeight * multiplier),
         quality,
-        format: 'webp' // Default to WebP for modern browsers
+        format: 'webp', // Default to WebP for modern browsers
       })
     })
   })
-  
+
   return variants
 }
 
@@ -193,9 +195,11 @@ export function isExternalImage(src: string): boolean {
 /**
  * Get image format from file extension or URL
  */
-export function getImageFormat(src: string): 'jpeg' | 'jpg' | 'png' | 'webp' | 'avif' | 'svg' | 'gif' | 'unknown' {
+export function getImageFormat(
+  src: string,
+): 'jpeg' | 'jpg' | 'png' | 'webp' | 'avif' | 'svg' | 'gif' | 'unknown' {
   const extension = src.split('.').pop()?.toLowerCase()
-  
+
   switch (extension) {
     case 'jpg':
     case 'jpeg':
@@ -221,7 +225,7 @@ export function getImageFormat(src: string): 'jpeg' | 'jpg' | 'png' | 'webp' | '
  */
 export function getBackgroundImageSet(srcSet: string): string {
   if (!srcSet) return ''
-  
+
   const imageSet = srcSet
     .split(', ')
     .map((str) => {
@@ -229,7 +233,7 @@ export function getBackgroundImageSet(srcSet: string): string {
       return `url("${url}") ${dpi}`
     })
     .join(', ')
-    
+
   return `image-set(${imageSet})`
 }
 
@@ -242,10 +246,10 @@ export function generatePlaceholderColor(src: string): string {
   let hash = 0
   for (let i = 0; i < src.length; i++) {
     const char = src.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash // Convert to 32bit integer
   }
-  
+
   // Generate a muted color
   const hue = Math.abs(hash) % 360
   return `hsl(${hue}, 20%, 85%)`
@@ -261,33 +265,33 @@ export function validateImageProps(props: Partial<ImageProps>): {
 } {
   const errors: string[] = []
   const warnings: string[] = []
-  
+
   // Required props validation
   if (!props.src) {
     errors.push('src prop is required')
   }
-  
+
   if (!props.alt && props.alt !== '') {
     errors.push('alt prop is required for accessibility')
   }
-  
+
   // Size validation
   if (!props.fill && (!props.width || !props.height)) {
     errors.push('width and height are required when not using fill prop')
   }
-  
+
   // Performance warnings
   if (props.priority && props.loading === 'lazy') {
     warnings.push('priority=true conflicts with loading="lazy"')
   }
-  
+
   if (props.placeholder === 'blur' && !props.blurDataURL) {
     warnings.push('blurDataURL is recommended when using placeholder="blur"')
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   }
 }

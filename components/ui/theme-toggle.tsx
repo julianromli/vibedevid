@@ -1,80 +1,94 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Moon, SunDim } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { flushSync } from 'react-dom'
+import { useTheme } from 'next-themes'
+import { cn } from '@/lib/utils'
+import { Button } from './button'
 
-export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+type props = {
+  className?: string
+}
+
+export const ThemeToggle = ({ className }: props) => {
+  const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    // Check for saved theme preference or default to light mode
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
+    setMounted(true)
+  }, [])
 
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
+  if (!mounted) return
+
+  const changeTheme = async () => {
+    if (!buttonRef.current || !mounted) return
+
+    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+
+    // Check if browser supports view transitions
+    if (!document.startViewTransition) {
+      setTheme(newTheme)
+      return
     }
-  }, []);
 
-  const toggleTheme = () => {
-    setIsAnimating(true);
+    await document.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(newTheme)
+      })
+    }).ready
 
-    setTimeout(() => {
-      const newTheme = !isDark;
-      setIsDark(newTheme);
+    const { top, left, width, height } =
+      buttonRef.current.getBoundingClientRect()
+    const y = top + height / 2
+    const x = left + width / 2
 
-      if (newTheme) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("theme", "light");
-      }
+    const right = window.innerWidth - left
+    const bottom = window.innerHeight - top
+    const maxRad = Math.hypot(Math.max(left, right), Math.max(top, bottom))
 
-      setIsAnimating(false);
-    }, 150);
-  };
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${maxRad}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 700,
+        easing: 'ease-in-out',
+        pseudoElement: '::view-transition-new(root)',
+      },
+    )
+  }
+
+  // Dont render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <button className={cn('opacity-0', className)} disabled>
+        <Moon />
+      </button>
+    )
+  }
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      aria-label="Toggle theme"
-      className={`relative rounded-full hover:cursor-pointer bg-muted/50 hover:bg-muted border border-border/50 backdrop-blur-sm transition-all duration-300 hover:border-border shadow-none hover:shadow-none ${
-        isAnimating ? "shadow-inner" : ""
-      }`}>
-      <div className="relative grid size-5 place-items-center">
-        {/* Sun Icon */}
-        <Sun
-          className={`pointer-events-none absolute size-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${
-            isDark
-              ? "rotate-90 scale-0 opacity-0"
-              : "rotate-0 scale-100 opacity-100"
-          }`}
-        />
-
-        {/* Moon Icon */}
-        <Moon
-          className={`pointer-events-none absolute size-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${
-            isDark
-              ? "rotate-0 scale-100 opacity-100"
-              : "-rotate-90 scale-0 opacity-0"
-          }`}
-        />
-      </div>
-
-      {/* Glow effect */}
-      <div
-        className={`absolute inset-0 rounded-full transition-all duration-500 ${
-          isAnimating ? "bg-primary/20 shadow-lg shadow-primary/25" : ""
-        }`}
-      />
+      variant={'ghost'}
+      ref={buttonRef}
+      onClick={changeTheme}
+      size={'icon'}
+      className={cn(
+        'rounded-full transition-opacity duration-200 hover:cursor-pointer hover:opacity-80 focus:outline-none',
+        className,
+      )}
+      aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+    >
+      {resolvedTheme === 'dark' ? (
+        <SunDim className="size-5" />
+      ) : (
+        <Moon className="size-5" />
+      )}
     </Button>
-  );
+  )
 }

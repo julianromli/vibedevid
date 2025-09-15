@@ -1,14 +1,30 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { extractYouTubeVideoId } from '@/lib/youtube-utils'
-import { Youtube, AlertCircle, ExternalLink, Eye, Calendar, Loader2, Edit, Trash2, RotateCcw } from 'lucide-react'
+import {
+  Youtube,
+  AlertCircle,
+  ExternalLink,
+  Eye,
+  Calendar,
+  Loader2,
+  Edit,
+  Trash2,
+  RotateCcw,
+} from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import Image from 'next/image'
 
 interface VideoData {
   title: string
@@ -50,12 +67,12 @@ export function VideoVibeCodingManager() {
   const [videoData, setVideoData] = useState<VideoData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Current videos management
   const [currentVideos, setCurrentVideos] = useState<VibeVideoData[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
-  
+
   // Edit mode state
   const [editingVideo, setEditingVideo] = useState<VibeVideoData | null>(null)
   const [editFormData, setEditFormData] = useState<Partial<VibeVideoData>>({})
@@ -65,7 +82,7 @@ export function VideoVibeCodingManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!youtubeUrl.trim()) {
       setError('Masukkan URL YouTube dulu cuy! 🤔')
       return
@@ -79,7 +96,7 @@ export function VideoVibeCodingManager() {
 
     setLoading(true)
     setError(null)
-    
+
     try {
       const response = await fetch('/api/youtube', {
         method: 'POST',
@@ -113,16 +130,18 @@ export function VideoVibeCodingManager() {
     try {
       setVideosLoading(true)
       const response = await fetch('/api/vibe-videos')
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch videos')
       }
-      
+
       const data = await response.json()
       setCurrentVideos(data.videos || [])
       setVideosError(null)
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error fetching videos')
+      setVideosError(
+        err instanceof Error ? err.message : 'Error fetching videos',
+      )
     } finally {
       setVideosLoading(false)
     }
@@ -136,7 +155,7 @@ export function VideoVibeCodingManager() {
   // Handle add video ke database
   const handleAddToDatabase = async () => {
     if (!videoData) return
-    
+
     try {
       setLoading(true)
       const response = await fetch('/api/vibe-videos', {
@@ -155,21 +174,23 @@ export function VideoVibeCodingManager() {
       })
 
       const result = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to add video')
       }
 
       // Refresh current videos list
       await fetchCurrentVideos()
-      
+
       // Reset form
       resetForm()
-      
+
       setError(null)
       // Show success message (optional)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error adding video to database')
+      setError(
+        err instanceof Error ? err.message : 'Error adding video to database',
+      )
     } finally {
       setLoading(false)
     }
@@ -183,7 +204,7 @@ export function VideoVibeCodingManager() {
       })
 
       const result = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to delete video')
       }
@@ -192,12 +213,17 @@ export function VideoVibeCodingManager() {
       await fetchCurrentVideos()
       setVideosError(null)
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error deleting video')
+      setVideosError(
+        err instanceof Error ? err.message : 'Error deleting video',
+      )
     }
   }
 
   // Handle update video
-  const handleUpdateVideo = async (videoId: string, updateData: Partial<VibeVideoData>) => {
+  const handleUpdateVideo = async (
+    videoId: string,
+    updateData: Partial<VibeVideoData>,
+  ) => {
     try {
       const response = await fetch(`/api/vibe-videos/${videoId}`, {
         method: 'PUT',
@@ -215,7 +241,7 @@ export function VideoVibeCodingManager() {
       })
 
       const result = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to update video')
       }
@@ -226,7 +252,9 @@ export function VideoVibeCodingManager() {
       setEditFormData({})
       setVideosError(null)
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error updating video')
+      setVideosError(
+        err instanceof Error ? err.message : 'Error updating video',
+      )
     }
   }
 
@@ -260,13 +288,15 @@ export function VideoVibeCodingManager() {
 
     const videoId = extractYouTubeVideoId(editYoutubeUrl)
     if (!videoId) {
-      setEditFetchError('URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅')
+      setEditFetchError(
+        'URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅',
+      )
       return
     }
 
     setEditFetching(true)
     setEditFetchError(null)
-    
+
     try {
       const response = await fetch('/api/youtube', {
         method: 'POST',
@@ -281,9 +311,9 @@ export function VideoVibeCodingManager() {
       }
 
       const data = await response.json()
-      
+
       // Auto-populate form fields with fetched data
-      setEditFormData(prev => ({
+      setEditFormData((prev) => ({
         ...prev,
         title: data.title,
         description: data.description,
@@ -292,10 +322,12 @@ export function VideoVibeCodingManager() {
         publishedAt: data.publishedAt,
         viewCount: data.views.toString(),
       }))
-      
+
       setEditFetchError(null)
     } catch (err) {
-      setEditFetchError(err instanceof Error ? err.message : 'Terjadi error nih cuy 😕')
+      setEditFetchError(
+        err instanceof Error ? err.message : 'Terjadi error nih cuy 😕',
+      )
     } finally {
       setEditFetching(false)
     }
@@ -307,7 +339,7 @@ export function VideoVibeCodingManager() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Youtube className="w-5 h-5 text-red-500" />
+            <Youtube className="h-5 w-5 text-red-500" />
             Add YouTube Video
           </CardTitle>
           <CardDescription>
@@ -328,26 +360,31 @@ export function VideoVibeCodingManager() {
                 placeholder="https://www.youtube.com/watch?v=example atau https://youtu.be/example"
                 className="form-input-enhanced"
               />
-              <p className="text-xs form-helper-text">
-                Support berbagai format URL YouTube (watch, youtu.be, shorts, dll) 🎯
+              <p className="form-helper-text text-xs">
+                Support berbagai format URL YouTube (watch, youtu.be, shorts,
+                dll) 🎯
               </p>
             </div>
 
             <div className="flex gap-3">
-              <Button type="submit" disabled={loading} className="flex items-center gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Fetching...
                   </>
                 ) : (
                   <>
-                    <Youtube className="w-4 h-4" />
+                    <Youtube className="h-4 w-4" />
                     Fetch Video Data
                   </>
                 )}
               </Button>
-              
+
               {videoData && (
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Reset
@@ -358,7 +395,7 @@ export function VideoVibeCodingManager() {
 
           {error && (
             <Alert className="mt-4" variant="destructive">
-              <AlertCircle className="w-4 h-4" />
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -397,7 +434,7 @@ export function VideoVibeCodingManager() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1"
                 >
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="h-3 w-3" />
                   Watch
                 </a>
               </Button>
@@ -409,67 +446,84 @@ export function VideoVibeCodingManager() {
           <CardContent className="space-y-6">
             {/* Thumbnail */}
             <div className="relative">
-              <img
+              <Image
+                width={300}
+                height={169}
                 src={videoData.thumbnail}
                 alt={videoData.title}
-                className="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                className="mx-auto w-full max-w-md rounded-lg shadow-lg"
               />
             </div>
 
             {/* Video Details */}
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Title</Label>
-                <h3 className="text-lg font-semibold mt-1">{videoData.title}</h3>
+                <Label className="text-muted-foreground text-sm font-medium">
+                  Title
+                </Label>
+                <h3 className="mt-1 text-lg font-semibold">
+                  {videoData.title}
+                </h3>
               </div>
 
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
+                <Label className="text-muted-foreground text-sm font-medium">
+                  Description
+                </Label>
+                <p className="text-muted-foreground mt-1 line-clamp-3 text-sm">
                   {videoData.description}
                 </p>
               </div>
 
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Channel</Label>
-                <p className="font-medium mt-1">{videoData.channelTitle}</p>
+                <Label className="text-muted-foreground text-sm font-medium">
+                  Channel
+                </Label>
+                <p className="mt-1 font-medium">{videoData.channelTitle}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-muted-foreground" />
+                  <Eye className="text-muted-foreground h-4 w-4" />
                   <span className="text-sm">
                     <strong>{videoData.views.toLocaleString()}</strong> views
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Calendar className="text-muted-foreground h-4 w-4" />
                   <span className="text-sm">
-                    {new Date(videoData.publishedAt).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    {new Date(videoData.publishedAt).toLocaleDateString(
+                      'id-ID',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      },
+                    )}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <Label className="text-sm font-medium text-muted-foreground">Video ID</Label>
-                <code className="block mt-1 text-sm font-mono">{videoData.videoId}</code>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <Label className="text-muted-foreground text-sm font-medium">
+                  Video ID
+                </Label>
+                <code className="mt-1 block font-mono text-sm">
+                  {videoData.videoId}
+                </code>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="pt-4 border-t">
-              <Button 
+            <div className="border-t pt-4">
+              <Button
                 onClick={handleAddToDatabase}
                 disabled={loading}
                 className="w-full"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Adding to Database...
                   </>
                 ) : (
@@ -480,54 +534,55 @@ export function VideoVibeCodingManager() {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Current Videos Management Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Youtube className="w-5 h-5 text-red-500" />
+              <Youtube className="h-5 w-5 text-red-500" />
               Current Videos on Homepage
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={fetchCurrentVideos}
               disabled={videosLoading}
             >
               {videosLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="h-4 w-4" />
               )}
               Refresh
             </Button>
           </CardTitle>
           <CardDescription>
-            Manage video yang tampil di homepage. Total: {currentVideos.length} videos
+            Manage video yang tampil di homepage. Total: {currentVideos.length}{' '}
+            videos
           </CardDescription>
         </CardHeader>
         <CardContent>
           {videosError && (
             <Alert className="mb-4" variant="destructive">
-              <AlertCircle className="w-4 h-4" />
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{videosError}</AlertDescription>
             </Alert>
           )}
-          
+
           {videosLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="flex gap-4 p-4 border rounded-lg">
-                  <Skeleton className="w-24 h-16 rounded" />
+                <div key={index} className="flex gap-4 rounded-lg border p-4">
+                  <Skeleton className="h-16 w-24 rounded" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-3 w-1/2" />
                     <Skeleton className="h-3 w-1/4" />
                   </div>
                   <div className="flex gap-2">
-                    <Skeleton className="w-8 h-8" />
-                    <Skeleton className="w-8 h-8" />
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 w-8" />
                   </div>
                 </div>
               ))}
@@ -535,33 +590,38 @@ export function VideoVibeCodingManager() {
           ) : currentVideos.length > 0 ? (
             <div className="space-y-4">
               {currentVideos.map((video) => (
-                <div key={video.id} className="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div
+                  key={video.id}
+                  className="hover:bg-muted/50 flex gap-4 rounded-lg border p-4 transition-colors"
+                >
                   {/* Thumbnail */}
                   <div className="flex-shrink-0">
-                    <img
+                    <Image
                       src={video.thumbnail}
                       alt={video.title}
-                      className="w-24 h-16 object-cover rounded"
+                      className="h-16 w-24 rounded object-cover"
                     />
                   </div>
-                  
+
                   {/* Video Info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     {editingVideo?.id === video.id ? (
                       // Edit Mode
                       <div className="space-y-2">
                         {/* YouTube URL Fetch Section */}
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                        <div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
                           <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
-                            <Youtube className="w-4 h-4" />
+                            <Youtube className="h-4 w-4" />
                             Replace with YouTube URL
                           </div>
                           <div className="flex gap-2">
                             <Input
                               value={editYoutubeUrl}
-                              onChange={(e) => setEditYoutubeUrl(e.target.value)}
+                              onChange={(e) =>
+                                setEditYoutubeUrl(e.target.value)
+                              }
                               placeholder="https://www.youtube.com/watch?v=example"
-                              className="text-xs h-8 flex-1"
+                              className="h-8 flex-1 text-xs"
                             />
                             <Button
                               size="sm"
@@ -571,82 +631,108 @@ export function VideoVibeCodingManager() {
                             >
                               {editFetching ? (
                                 <>
-                                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                                   Fetching...
                                 </>
                               ) : (
                                 <>
-                                  <Youtube className="w-3 h-3 mr-1" />
+                                  <Youtube className="mr-1 h-3 w-3" />
                                   Fetch
                                 </>
                               )}
                             </Button>
                           </div>
                           {editFetchError && (
-                            <p className="text-xs text-red-600">{editFetchError}</p>
+                            <p className="text-xs text-red-600">
+                              {editFetchError}
+                            </p>
                           )}
                         </div>
-                        
+
                         {/* Manual Edit Fields */}
                         <Input
                           value={editFormData.title || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                          onChange={(e) =>
+                            setEditFormData((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
                           className="font-medium"
                           placeholder="Video title"
                         />
                         <textarea
                           value={editFormData.description || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                          className="w-full p-2 text-sm border rounded resize-none h-16 bg-background"
+                          onChange={(e) =>
+                            setEditFormData((prev) => ({
+                              ...prev,
+                              description: e.target.value,
+                            }))
+                          }
+                          className="bg-background h-16 w-full resize-none rounded border p-2 text-sm"
                           placeholder="Video description"
                         />
-                        <div className="flex gap-2 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground flex gap-2 text-xs">
                           <Input
                             value={editFormData.viewCount || ''}
-                            onChange={(e) => setEditFormData(prev => ({ ...prev, viewCount: e.target.value }))}
-                            className="text-xs h-8 w-20"
+                            onChange={(e) =>
+                              setEditFormData((prev) => ({
+                                ...prev,
+                                viewCount: e.target.value,
+                              }))
+                            }
+                            className="h-8 w-20 text-xs"
                             placeholder="Views"
                           />
                           <Input
                             type="date"
                             value={editFormData.publishedAt || ''}
-                            onChange={(e) => setEditFormData(prev => ({ ...prev, publishedAt: e.target.value }))}
-                            className="text-xs h-8 w-32"
+                            onChange={(e) =>
+                              setEditFormData((prev) => ({
+                                ...prev,
+                                publishedAt: e.target.value,
+                              }))
+                            }
+                            className="h-8 w-32 text-xs"
                           />
                         </div>
                       </div>
                     ) : (
                       // View Mode
                       <div className="space-y-1">
-                        <h3 className="font-medium line-clamp-2 text-sm">
+                        <h3 className="line-clamp-2 text-sm font-medium">
                           {video.title}
                         </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
+                        <p className="text-muted-foreground line-clamp-2 text-xs">
                           {video.description}
                         </p>
-                        <div className="flex gap-4 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground flex gap-4 text-xs">
                           <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
+                            <Eye className="h-3 w-3" />
                             {video.viewCount} views
                           </span>
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(video.publishedAt).toLocaleDateString('id-ID')}
+                            <Calendar className="h-3 w-3" />
+                            {new Date(video.publishedAt).toLocaleDateString(
+                              'id-ID',
+                            )}
                           </span>
                           <span>Position: {video.position}</span>
                         </div>
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Actions */}
-                  <div className="flex-shrink-0 flex gap-2">
+                  <div className="flex flex-shrink-0 gap-2">
                     {editingVideo?.id === video.id ? (
                       // Edit Mode Actions
                       <>
                         <Button
                           size="sm"
-                          onClick={() => handleUpdateVideo(video.id, editFormData)}
+                          onClick={() =>
+                            handleUpdateVideo(video.id, editFormData)
+                          }
                           disabled={!editFormData.title?.trim()}
                         >
                           Save
@@ -667,24 +753,25 @@ export function VideoVibeCodingManager() {
                           variant="outline"
                           onClick={() => startEditing(video)}
                         >
-                          <Edit className="w-3 h-3" />
+                          <Edit className="h-3 w-3" />
                         </Button>
-                        
+
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Video</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Yakin mau hapus video "{video.title}"? Action ini tidak bisa di-undo ya cuy!
+                                Yakin mau hapus video "{video.title}"? Action
+                                ini tidak bisa di-undo ya cuy!
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -698,18 +785,14 @@ export function VideoVibeCodingManager() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          asChild
-                        >
+
+                        <Button size="sm" variant="outline" asChild>
                           <a
                             href={`https://www.youtube.com/watch?v=${video.videoId}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className="h-3 w-3" />
                           </a>
                         </Button>
                       </>
@@ -719,10 +802,12 @@ export function VideoVibeCodingManager() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Youtube className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <div className="text-muted-foreground py-8 text-center">
+              <Youtube className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>Belum ada video yang ditambahkan.</p>
-              <p className="text-sm">Tambahkan video pertama menggunakan form di atas!</p>
+              <p className="text-sm">
+                Tambahkan video pertama menggunakan form di atas!
+              </p>
             </div>
           )}
         </CardContent>

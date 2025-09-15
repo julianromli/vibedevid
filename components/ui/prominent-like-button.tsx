@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Heart } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import * as React from 'react'
+import { Heart } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +12,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { getLikeStatusClient, toggleLikeClient } from "@/lib/client-likes"
+} from '@/components/ui/alert-dialog'
+import { getLikeStatusClient, toggleLikeClient } from '@/lib/client-likes'
 
 export interface ProminentLikeButtonProps {
   projectId: string
@@ -40,11 +40,15 @@ export function ProminentLikeButton({
   React.useEffect(() => {
     const syncLikeStatus = async () => {
       if (!projectId) return
-      
+
       setIsLoading(true)
       try {
-        const { totalLikes, isLiked: dbIsLiked, error } = await getLikeStatusClient(projectId)
-        
+        const {
+          totalLikes,
+          isLiked: dbIsLiked,
+          error,
+        } = await getLikeStatusClient(projectId)
+
         if (!error) {
           setLikes(totalLikes)
           setIsLiked(dbIsLiked)
@@ -101,20 +105,26 @@ export function ProminentLikeButton({
 
   return (
     <>
-      <Button 
-        className="py-0 pe-0" 
+      <Button
+        className="py-0 pe-0"
         variant="default"
         onClick={handleClick}
-        title={!isLoggedIn ? "Sign in to like projects" : isLiked ? "Unlike this project" : "Like this project"}
+        title={
+          !isLoggedIn
+            ? 'Sign in to like projects'
+            : isLiked
+              ? 'Unlike this project'
+              : 'Like this project'
+        }
       >
-        <Heart 
-          className={`me-2 ${isLiked ? 'text-red-500 fill-red-500' : 'text-primary-foreground opacity-80'} transition-all duration-300 ${isAnimating ? 'animate-pulse scale-110' : ''}`} 
-          size={16} 
-          strokeWidth={2} 
-          aria-hidden="true" 
+        <Heart
+          className={`me-2 ${isLiked ? 'fill-red-500 text-red-500' : 'text-primary-foreground opacity-80'} transition-all duration-300 ${isAnimating ? 'scale-110 animate-pulse' : ''}`}
+          size={16}
+          strokeWidth={2}
+          aria-hidden="true"
         />
         Like
-        <span className="relative ms-3 inline-flex h-full items-center justify-center rounded-full px-3 text-xs font-medium text-primary-foreground/80 before:absolute before:inset-0 before:left-0 before:w-px before:bg-primary-foreground/20">
+        <span className="text-primary-foreground/80 before:bg-primary-foreground/20 relative ms-3 inline-flex h-full items-center justify-center rounded-full px-3 text-xs font-medium before:absolute before:inset-0 before:left-0 before:w-px">
           {likes}
         </span>
       </Button>
@@ -125,14 +135,15 @@ export function ProminentLikeButton({
           <AlertDialogHeader>
             <AlertDialogTitle>Masuk untuk Memberi Like</AlertDialogTitle>
             <AlertDialogDescription>
-              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung ke VibeDev community!
+              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung
+              ke VibeDev community!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                window.location.href = "/user/auth"
+                window.location.href = '/user/auth'
               }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >

@@ -8,14 +8,14 @@ The deployment error you're encountering is due to incorrect or missing environm
 
 You need to set these environment variables in your Vercel dashboard:
 
-| Variable Name | Description | Example Value |
-|---------------|-------------|---------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | `https://qabfrhpbfvjcgdrxdlba.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
-| `NEXT_PUBLIC_SITE_URL` | Your production site URL | `https://your-domain.vercel.app` |
-| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for auth | `https://your-domain.vercel.app` |
-| `UPLOADTHING_TOKEN` | UploadThing token for file uploads | `eyJhcGlLZXkiOiJza19saXZlX...` |
+| Variable Name                           | Description                        | Example Value                              |
+| --------------------------------------- | ---------------------------------- | ------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`              | Your Supabase project URL          | `https://qabfrhpbfvjcgdrxdlba.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`         | Your Supabase anonymous key        | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
+| `SUPABASE_SERVICE_ROLE_KEY`             | Your Supabase service role key     | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
+| `NEXT_PUBLIC_SITE_URL`                  | Your production site URL           | `https://your-domain.vercel.app`           |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for auth              | `https://your-domain.vercel.app`           |
+| `UPLOADTHING_TOKEN`                     | UploadThing token for file uploads | `eyJhcGlLZXkiOiJza19saXZlX...`             |
 
 ### 2. How to Set Environment Variables in Vercel
 
@@ -28,17 +28,21 @@ You need to set these environment variables in your Vercel dashboard:
 ### 3. Common Issues and Solutions
 
 #### Issue: `TypeError: Invalid URL`
+
 **Cause:** The `NEXT_PUBLIC_SUPABASE_URL` is not set correctly or contains an invalid URL.
 
-**Solution:** 
+**Solution:**
+
 - Make sure `NEXT_PUBLIC_SUPABASE_URL` is set to your actual Supabase project URL
 - The URL should look like: `https://your-project-ref.supabase.co`
 - DO NOT use the API key as the URL
 
 #### Issue: Environment variables not found
+
 **Cause:** Environment variables are not set in Vercel dashboard.
 
 **Solution:**
+
 - Double-check that all required environment variables are added in Vercel
 - Make sure there are no typos in variable names
 - Redeploy after adding environment variables
@@ -61,6 +65,7 @@ You need to set these environment variables in your Vercel dashboard:
 ### 6. Testing Your Deployment
 
 After deployment, test the following:
+
 - Homepage loads correctly
 - User authentication works
 - Project showcase displays properly
@@ -90,6 +95,7 @@ UPLOADTHING_TOKEN=your_uploadthing_token_here
 ## Contact Support
 
 If you continue to have deployment issues, please share:
+
 1. Complete deployment logs
 2. Screenshot of your Vercel environment variables (with sensitive data blurred)
 3. Your Supabase project settings
