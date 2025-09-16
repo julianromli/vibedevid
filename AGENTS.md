@@ -58,3 +58,113 @@ Read WARP.md first — it is the project’s living knowledge base. This guide a
 - `app/layout.tsx` (updated to use ClientThemeProvider)
 
 This approach is preferred over simply adding `suppressHydrationWarning` everywhere as it addresses the root cause rather than masking symptoms.
+
+### Authentication State Detection in Navbar (✅ Implemented)
+
+**Pattern**: Every page that imports Navbar must implement authentication state detection to properly show login/logout status.
+
+**Required Implementation**:
+```typescript
+// 1. Import Supabase client
+import { createClient } from '@/lib/supabase/client'
+
+// 2. Add auth state in component
+const [isLoggedIn, setIsLoggedIn] = useState(false)
+const [user, setUser] = useState<{
+  id?: string
+  name: string
+  email: string
+  avatar?: string
+  avatar_url?: string
+  username?: string
+} | null>(null)
+
+// 3. Add useEffect for auth check
+useEffect(() => {
+  let isMounted = true
+  
+  const checkAuth = async () => {
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!isMounted) return
+      
+      if (session?.user) {
+        setIsLoggedIn(true)
+        
+        // Get user profile from database
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          
+        if (profile && isMounted) {
+          const userData = {
+            id: profile.id,
+            name: profile.display_name,
+            email: session.user.email || '',
+            avatar_url: profile.avatar_url || '/vibedev-guest-avatar.png',
+            username: profile.username,
+          }
+          setUser(userData)
+        }
+      } else {
+        setIsLoggedIn(false)
+        setUser(null)
+      }
+    } catch (error) {
+      console.error('Auth check error:', error)
+      if (isMounted) {
+        setIsLoggedIn(false)
+        setUser(null)
+      }
+    }
+  }
+  
+  checkAuth()
+  
+  // Listen for auth changes
+  const supabase = createClient()
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (!isMounted) return
+    
+    if (event === 'SIGNED_OUT' || !session) {
+      setIsLoggedIn(false)
+      setUser(null)
+    } else if (event === 'SIGNED_IN' && session?.user) {
+      checkAuth()
+    }
+  })
+  
+  return () => {
+    isMounted = false
+    subscription.unsubscribe()
+  }
+}, [])
+
+// 4. Pass props to Navbar
+<Navbar 
+  isLoggedIn={isLoggedIn}
+  user={user ?? undefined}
+  // ... other props
+/>
+```
+
+**Why This Pattern**:
+- Ensures navbar consistently shows correct login/logout state across all pages
+- Handles real-time auth state changes via Supabase auth listeners
+- Prevents memory leaks with proper cleanup and `isMounted` checks
+- Follows consistent data fetching pattern used in `app/page.tsx` and `app/[username]/page.tsx`
+
+**Pages Implementing This Pattern**:
+- `app/page.tsx` ✅
+- `app/[username]/page.tsx` ✅  
+- `app/ai/ranking/page.tsx` ✅
+- `app/project/list/page.tsx` (needs implementation)
+- `app/project/[slug]/page.tsx` (needs implementation)
+
+**Files Modified**:
+- `app/ai/ranking/page.tsx` (added auth detection pattern)
+- `components/ui/navbar.tsx` (already supports auth props)

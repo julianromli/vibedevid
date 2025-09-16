@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { AlertCircle, RefreshCw, Trophy, Zap } from 'lucide-react'
 import useSWR from 'swr'
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { createClient } from '@/lib/supabase/client'
 
 interface LeaderboardItem {
   id: string
@@ -38,6 +39,17 @@ interface LeaderboardData {
 export default function AIRankingPage() {
   const [activeTab, setActiveTab] = useState('models')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  
+  // Auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<{
+    id?: string
+    name: string
+    email: string
+    avatar?: string
+    avatar_url?: string
+    username?: string
+  } | null>(null)
 
   // Polling interval in ms (15 seconds)
   const POLLING_INTERVAL = 15000
@@ -85,6 +97,84 @@ export default function AIRankingPage() {
     mutate()
   }
 
+  // Check authentication state
+  useEffect(() => {
+    let isMounted = true
+
+    const checkAuth = async () => {
+      try {
+        console.log('[ranking] Checking authentication state...')
+        const supabase = createClient()
+
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!isMounted) return
+
+        console.log('[ranking] Session data:', session)
+
+        if (session?.user) {
+          console.log('[ranking] User found in session:', session.user)
+          setIsLoggedIn(true)
+
+          // Get user profile from database
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          if (!isMounted) return
+
+          console.log('[ranking] User profile from database:', profile)
+
+          if (profile) {
+            const userData = {
+              id: profile.id,
+              name: profile.display_name,
+              email: session.user.email || '',
+              avatar_url: profile.avatar_url || '/vibedev-guest-avatar.png',
+              username: profile.username,
+            }
+            console.log('[ranking] Setting user data:', userData)
+            setUser(userData)
+          }
+        } else {
+          console.log('[ranking] No user session found')
+          setIsLoggedIn(false)
+          setUser(null)
+        }
+      } catch (error) {
+        console.error('[ranking] Auth check error:', error)
+        if (isMounted) {
+          setIsLoggedIn(false)
+          setUser(null)
+        }
+      }
+    }
+
+    checkAuth()
+
+    // Listen for auth changes
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[ranking] Auth state changed:', event, session)
+      if (!isMounted) return
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsLoggedIn(false)
+        setUser(null)
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        // Re-run auth check to get fresh profile data
+        checkAuth()
+      }
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
   const getFilteredData = (items: LeaderboardItem[]) => {
     if (selectedCategory === 'all') return items
     return items.filter((item) => item.category === selectedCategory)
@@ -105,7 +195,12 @@ export default function AIRankingPage() {
     <div className="bg-grid-pattern relative min-h-screen">
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
-      <Navbar showNavigation={true} scrollToSection={scrollToSection} />
+      <Navbar 
+        showNavigation={true} 
+        scrollToSection={scrollToSection}
+        isLoggedIn={isLoggedIn}
+        user={user ?? undefined}
+      />
 
       <div className="relative mx-auto max-w-6xl px-3 pt-20 pb-8 sm:px-6 sm:pt-24 lg:px-8 lg:pt-28">
         <div className="mb-8 text-center sm:mb-12 lg:mb-16">
