@@ -1,9 +1,10 @@
-import type React from "react"
+import type React from "next"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ClientThemeProvider } from "@/components/client-theme-provider"
 import "./globals.css"
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://vibedevid.com").replace(/\/$/, "")
@@ -165,8 +166,10 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning={true}>
-        {children}
-        <Toaster />
+        <ClientThemeProvider>
+          {children}
+          <Toaster />
+        </ClientThemeProvider>
         <Analytics />
         <SpeedInsights />
 

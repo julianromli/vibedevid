@@ -5,7 +5,7 @@ Read WARP.md first — it is the project’s living knowledge base. This guide a
 ## Project Structure & Module Organization
 
 - `app/`: App Router (Next.js 15). Key routes: `[username]/`, `project/[slug]/`, `project/submit/`, `user/auth/`.
-- `components/` and `components/ui/`: Reusable UI (shadcn/ui + Radix). Components in PascalCase.
+- `components/` and `components/ui/`: Reusable UI (shadcn/ui + Radix). Components in PascalCase. Includes `ClientThemeProvider` for hydration-safe theme management.
 - `hooks/`: React hooks (`useX` pattern). `lib/`: utilities and server actions (`actions.ts`, `slug.ts`).
 - `styles/`: Tailwind v4 globals and tokens. `public/`: static assets. `tests/`: Playwright specs.
 - `scripts/`: SQL migrations and helpers (`01_create_tables.sql` … `06_enhance_views_table.sql`, `clear_database.js`).
@@ -39,3 +39,22 @@ Read WARP.md first — it is the project’s living knowledge base. This guide a
 - Env vars (see WARP.md and `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL`.
 - Follow the email‑domain whitelist policy in auth; do not expand domains without review.
 - Do not commit secrets. Use Next Image domains from `next.config.mjs`.
+
+## Known Issues & Solutions
+
+### Theme Toggle Hydration Mismatch (✅ Resolved)
+
+**Issue**: Theme toggle button in navbar didn't work due to hydration mismatch between server and client rendering of `next-themes` ThemeProvider.
+
+**Root Cause**: Server-side rendering (SSR) generates different HTML than client-side due to theme state differences, causing React hydration warnings and preventing theme switching functionality.
+
+**Solution**: Created `components/client-theme-provider.tsx` with client-side mounting strategy:
+- Uses `useState` and `useEffect` to ensure ThemeProvider only renders after client mount
+- Shows loading state during initial render to prevent hydration mismatch
+- Applied `suppressHydrationWarning` to `<body>` in `app/layout.tsx` for expected theme-related mismatches
+
+**Files Modified**:
+- `components/client-theme-provider.tsx` (new)
+- `app/layout.tsx` (updated to use ClientThemeProvider)
+
+This approach is preferred over simply adding `suppressHydrationWarning` everywhere as it addresses the root cause rather than masking symptoms.
