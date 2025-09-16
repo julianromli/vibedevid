@@ -168,3 +168,22 @@ useEffect(() => {
 **Files Modified**:
 - `app/ai/ranking/page.tsx` (added auth detection pattern)
 - `components/ui/navbar.tsx` (already supports auth props)
+
+### UI/UX Button Readability Improvements (✅ Implemented)
+
+**Issue**: "Lihat Project & Event" button on homepage had poor readability in dark mode due to low contrast between outline variant button styling and dark background.
+
+**Root Cause**: `variant="outline"` buttons in dark mode use subtle border styling with low-contrast text, making them difficult to read against dark backgrounds.
+
+**Solution**: Changed button variant from `outline` to `secondary` for better contrast and readability:
+- `secondary` variant provides better background contrast in both light and dark modes
+- Maintains visual hierarchy while improving accessibility
+- Consistent with other secondary action buttons across the platform
+
+**Files Modified**:
+- `app/page.tsx` (updated button variant from outline to secondary)
+
+**Benefits**:
+- Improved readability in dark mode
+- Better accessibility compliance
+- Enhanced user experience for secondary actions

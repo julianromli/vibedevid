@@ -43,6 +43,7 @@
     "geist": "^1.4.2",
     "h3": "latest",
     "lucide-react": "^0.454.0",
+    "motion": "^12.23.12",
     "next": "15.5.2",
     "next-themes": "0.4.6",
     "react": "^19",
@@ -70,6 +71,7 @@
     "postcss": "^8.5",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
+    "shadcn": "^3.3.0",
     "typescript": "^5",
     "webpack-bundle-analyzer": "^4.10.2"
   }
