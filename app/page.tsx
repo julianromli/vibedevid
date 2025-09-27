@@ -39,8 +39,6 @@ import { createClient } from '@/lib/supabase/client'
 import { signOut, fetchProjectsWithSorting } from '@/lib/actions'
 import Image from 'next/image'
 import { Footer } from '@/components/ui/footer'
-import { AuroraBackground } from '@/components/ui/aurora-background'
-import { Spotlight } from '@/components/ui/spotlight'
 
 // Advanced Lazy Loading untuk Mobile Performance Optimization
 const TestimonialsColumns = lazy(() =>
@@ -804,21 +802,17 @@ export default function HomePage() {
         scrollToSection={scrollToSection}
       />
 
-      {/* Hero Section with Aurora Background */}
-      <AuroraBackground className="min-h-screen py-20 lg:py-32">
-        {/* Spotlight Effect */}
-        <Spotlight
-          className="-top-40 left-0 md:left-60 md:-top-20 z-10"
-          fill="white"
-        />
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col justify-center min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-grid-pattern relative mt-0 py-20 lg:py-32">
+        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="space-y-12">
-            <div className="space-y-8 text-left md:text-center lg:text-center">
+            <div className="space-y-8 text-center">
               <Link
                 href="https://vibecoding.id/hackathon"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative z-30 inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
+                className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
               >
                 <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_#8fdfff4f]">
                   🏆 <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />{' '}
@@ -866,7 +860,7 @@ export default function HomePage() {
               </h1>
 
               <p
-                className={`text-muted-foreground mx-auto max-w-lg text-xl leading-relaxed transition-all duration-700 ease-out md:mx-auto lg:mx-auto ${
+                className={`text-muted-foreground mx-auto max-w-lg text-xl leading-relaxed transition-all duration-700 ease-out text-center ${
                   subtitleVisible
                     ? 'blur-0 translate-y-0 opacity-100'
                     : 'translate-y-8 opacity-0 blur-sm'
@@ -877,7 +871,7 @@ export default function HomePage() {
                 sharing session tiap minggunya.
               </p>
 
-              <div className="flex flex-col justify-start gap-4 sm:flex-row md:justify-center lg:justify-center">
+              <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
                 {!isLoggedIn ? (
                   <>
                     <Button
@@ -890,7 +884,7 @@ export default function HomePage() {
                     </Button>
                     <Button
                       size="lg"
-                      variant="secondary"
+                      variant="outline"
                       onClick={handleViewShowcase}
                     >
                       Lihat Project & Event
@@ -949,7 +943,16 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </AuroraBackground>
+
+        {/* Trust Indicators */}
+        <div className="mt-0">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden">
+              {/* Framework logos moved above Safari mockup */}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Project Showcase Section */}
       <section className="bg-muted/20 py-12" id="projects">
