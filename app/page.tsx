@@ -710,7 +710,7 @@ export default function HomePage() {
   }
 
   const handleJoinWithUs = () => {
-    router.push('/user/auth')
+    window.open('https://s.id/vibedev', '_blank')
   }
 
   const handleViewShowcase = () => {
