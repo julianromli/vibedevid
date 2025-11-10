@@ -5,8 +5,12 @@ Read WARP.md first — it is the project’s living knowledge base. This guide a
 ## Project Structure & Module Organization
 
 - `app/`: App Router (Next.js 15). Key routes: `[username]/`, `project/[slug]/`, `project/submit/`, `user/auth/`.
-- `components/` and `components/ui/`: Reusable UI (shadcn/ui + Radix). Components in PascalCase. Includes `ClientThemeProvider` for hydration-safe theme management.
-- `hooks/`: React hooks (`useX` pattern). `lib/`: utilities and server actions (`actions.ts`, `slug.ts`).
+- `components/`: Reusable UI components organized by purpose:
+  - `components/ui/`: Base UI components (shadcn/ui + Radix). Components in PascalCase. Includes `ClientThemeProvider` for hydration-safe theme management.
+  - `components/sections/`: Page section components (hero, project showcase, FAQ, etc.). Modular, self-contained sections for better maintainability.
+- `hooks/`: React custom hooks (`useX` pattern) for reusable logic (auth, filters, animations, etc.).
+- `types/`: TypeScript type definitions organized by domain (homepage, projects, users, etc.).
+- `lib/`: Utilities and server actions (`actions.ts`, `slug.ts`, `categories.ts`, etc.).
 - `styles/`: Tailwind v4 globals and tokens. `public/`: static assets. `tests/`: Playwright specs.
 - `scripts/`: SQL migrations and helpers (`01_create_tables.sql` … `06_enhance_views_table.sql`, `clear_database.js`).
 
@@ -187,3 +191,141 @@ useEffect(() => {
 - Improved readability in dark mode
 - Better accessibility compliance
 - Enhanced user experience for secondary actions
+
+### Homepage Modular Architecture (✅ Refactored 2025-01-10)
+
+**Achievement**: Successfully refactored `app/page.tsx` from monolithic 1511-line component to modular 259-line architecture - **83% reduction** in main file size.
+
+**Problem**: The original homepage was a single massive component that:
+- Mixed concerns (auth, data fetching, UI rendering, state management)
+- Made testing and debugging difficult
+- Violated Single Responsibility Principle
+- Created maintenance bottlenecks
+- Duplicated logic across pages
+
+**Solution**: Extracted into modular architecture with clear separation of concerns:
+
+#### 1. Custom Hooks (`hooks/`)
+Centralized reusable logic:
+- **`useAuth.ts`**: Authentication state management with profile creation
+  - Handles session detection, user profile fetching, and auth state changes
+  - Implements proper cleanup to prevent memory leaks
+  - Used across multiple pages requiring auth detection
+  
+- **`useProjectFilters.ts`**: Project filtering and sorting logic
+  - Manages filter state (category, trending/top/newest)
+  - Fetches projects with dynamic sorting via `fetchProjectsWithSorting`
+  - Handles loading states and pagination
+  
+- **`useIntersectionObserver.ts`**: Scroll animation triggers
+  - Observes sections entering viewport
+  - Triggers animations at appropriate scroll positions
+  
+- **`useFAQ.ts`**: FAQ accordion state management
+  - Simple toggle logic for FAQ items
+
+#### 2. Section Components (`components/sections/`)
+Self-contained page sections:
+- **`hero-section.tsx`**: Hero with animated title, CTA buttons, Safari mockup, framework tooltips
+- **`project-showcase.tsx`**: Filterable project grid with load more functionality
+- **`ai-tools-section.tsx`**: AI tools integration showcase
+- **`reviews-section.tsx`**: Testimonials display with columns
+- **`faq-section.tsx`**: FAQ accordion with JSON-LD schema for SEO
+- **`cta-section.tsx`**: Call-to-action section with floating card animations
+
+#### 3. Shared UI Components (`components/ui/`)
+Reusable building blocks:
+- **`safari-mockup.tsx`**: Browser chrome mockup (extracted from inline component)
+- **`integration-card.tsx`**: Tool integration card component
+- **`filter-controls.tsx`**: Dropdown filter controls for project filtering
+
+#### 4. Type Definitions (`types/homepage.ts`)
+Centralized TypeScript interfaces:
+```typescript
+export interface User { id, name, email, avatar, username }
+export interface Project { id, slug, title, image, category, author, likes, views, createdAt }
+export interface Testimonial { text, image, name, role }
+export interface Framework { id, name, designation, image }
+export interface FAQ { question, answer }
+export type SortBy = 'trending' | 'top' | 'newest'
+```
+
+#### Benefits Achieved
+
+**Maintainability**:
+- Each section is isolated and independently modifiable
+- Clear file organization by purpose
+- Easier onboarding for new developers
+
+**Reusability**:
+- Hooks can be used across multiple pages
+- UI components are self-contained and portable
+- Type definitions ensure consistency
+
+**Testability**:
+- Components can be unit tested in isolation
+- Hooks can be tested independently
+- Mocking dependencies is straightforward
+
+**Performance**:
+- Better code splitting opportunities
+- Reduced initial bundle size
+- Lazy loading already implemented for heavy components
+
+**Developer Experience**:
+- Faster file navigation
+- Clearer code organization
+- Easier debugging with smaller, focused components
+
+#### Usage Pattern
+
+**New page structure:**
+```typescript
+'use client'
+
+import { useAuth } from '@/hooks/useAuth'
+import { useProjectFilters } from '@/hooks/useProjectFilters'
+import { HeroSection } from '@/components/sections/hero-section'
+import { ProjectShowcase } from '@/components/sections/project-showcase'
+// ... other section imports
+
+export default function HomePage() {
+  const auth = useAuth()
+  const projectFilters = useProjectFilters(auth.authReady)
+  
+  return (
+    <div>
+      <Navbar {...auth} />
+      <HeroSection {...auth} handleJoinWithUs={...} />
+      <ProjectShowcase {...projectFilters} />
+      {/* ... other sections */}
+    </div>
+  )
+}
+```
+
+#### Files Modified/Created
+- ✅ `app/page.tsx` - Refactored (1511 → 259 lines)
+- ✅ `app/page.backup.tsx` - Original backup
+- ✅ `components/sections/*` - 6 new section components
+- ✅ `components/ui/*` - 3 new shared UI components  
+- ✅ `hooks/*` - 4 new custom hooks
+- ✅ `types/homepage.ts` - Type definitions
+
+**Preserved**:
+- All user-facing functionality
+- Authentication flows
+- Project filtering & sorting
+- Animations & interactions
+- SEO (JSON-LD schemas)
+- Accessibility attributes
+- Mobile responsiveness
+
+**Best Practice for Future Pages**:
+When creating new pages or refactoring existing ones:
+1. Extract reusable logic into custom hooks
+2. Break large components into section components
+3. Create shared UI components for repeated patterns
+4. Define TypeScript types in `types/` directory
+5. Keep main page files under 300 lines
+6. Follow naming conventions: `kebab-case.tsx` for files, `PascalCase` for exports
