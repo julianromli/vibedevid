@@ -7,8 +7,8 @@ Generated a comprehensive hierarchical AGENTS.md system for VibeDev ID codebase 
 ## 📁 Files Created
 
 ### Root Level (1 file)
-1. **AGENTS_HIERARCHY.md** (~150 lines)
-   - Lightweight universal guidance
+1. **AGENTS.md** (~113 lines)
+   - Lightweight universal guidance (replaces old verbose AGENTS.md)
    - Project snapshot and setup commands
    - Universal conventions (code style, commits, naming)
    - Security & secrets guidelines
@@ -199,5 +199,17 @@ All major directories and patterns:
 ---
 
 **Generated**: 2025-11-10
-**Version**: 1.0
+**Version**: 1.1
 **Status**: ✅ Complete
+
+## 📝 Changelog
+
+### v1.1 (2025-11-10)
+- Merged `AGENTS_HIERARCHY.md` into `AGENTS.md` to avoid duplicate root files
+- Old verbose `AGENTS.md` (332 lines) backed up as `AGENTS.md.backup`
+- New `AGENTS.md` is concise (113 lines) with JIT index approach
+- Removed circular self-reference in documentation links
+
+### v1.0 (2025-11-10)
+- Initial hierarchical AGENTS.md system implementation
+- Created root + 6 sub-directory AGENTS.md files
