@@ -84,12 +84,12 @@ export function LogoMarquee() {
                 </div>
             )}
             {/* Fallback text/icon container if image fails (hidden by default) */}
-            <span className={cn("text-lg font-semibold hidden", !logo.url && "block ml-2")}>
+            <span className={cn("text-lg font-semibold hidden", !logo.url && "hidden")}>
                 {logo.name}
             </span>
              {/* Show name next to icon if it is an icon-only logo (optional, but good for obscure tools) */}
              {logo.url && (
-                 <span className="text-sm font-medium ml-2 hidden md:block">{logo.name}</span>
+                 <span className="text-sm font-medium ml-2 hidden">{logo.name}</span>
              )}
             </div>
         ))}
