@@ -13,7 +13,7 @@ export type LogoItem = {
 const logos: LogoItem[] = [
   {
     name: 'Lovable',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/lovable.svg',
+    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/lovable-color.svg',
   },
   {
     name: 'Google AI Studio',
@@ -25,11 +25,11 @@ const logos: LogoItem[] = [
   },
   {
     name: 'Droid CLI',
-    icon: Terminal, // Fallback using Lucide icon
+    icon: Terminal, // Fallback
   },
   {
     name: 'Warp',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/warp.svg', // Trying standard path first, fallback to generic if fails
+    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/warp.svg', 
   },
   {
     name: 'Claude',

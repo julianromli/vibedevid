@@ -13,6 +13,7 @@
     "build:analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
+    "@lobehub/icons": "^2.43.1",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
     "@radix-ui/react-avatar": "latest",
