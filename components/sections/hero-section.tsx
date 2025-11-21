@@ -5,7 +5,23 @@
 
 'use client'
 
+import { useState, useEffect, Suspense } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { ProgressiveImage } from '@/components/ui/progressive-image'
+import { SafariMockup } from '@/components/ui/safari-mockup'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
+import { ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { User } from '@/types/homepage'
+
+interface HeroSectionProps {
+  isLoggedIn: boolean
+  user?: User
+  handleJoinWithUs: () => void
+  handleViewShowcase: () => void
+}
 
 export function HeroSection({
   isLoggedIn,
