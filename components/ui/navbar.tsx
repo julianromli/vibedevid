@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { AdaptiveLogo } from '@/components/ui/adaptive-logo'
@@ -12,12 +12,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ArrowLeft, Menu, X, User, LogOut } from 'lucide-react'
+import { ArrowLeft, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signOut } from '@/lib/actions'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { useScroll } from '@/hooks/use-scroll'
+import { MenuToggleIcon } from '@/components/menu-toggle-icon'
+import { cn } from '@/lib/utils'
+import { createPortal } from 'react-dom'
 
 interface NavbarProps {
   showBackButton?: boolean
@@ -47,23 +50,20 @@ export function Navbar({
   onProfile,
   scrollToSection,
 }: NavbarProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [open, setOpen] = useState(false)
+  const scrolled = useScroll(10)
   const router = useRouter()
 
   useEffect(() => {
-    console.log('[v0] Navbar received props:', {
-      isLoggedIn,
-      user: user
-        ? {
-            name: user.name,
-            email: user.email,
-            avatar: user.avatar,
-            avatar_url: user.avatar_url,
-            username: user.username,
-          }
-        : null,
-    })
-  }, [isLoggedIn, user])
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
 
   const safeUser = user
     ? {
@@ -87,19 +87,14 @@ export function Navbar({
       onSignOut()
     } else {
       try {
-        // Use client-side sign out first to trigger auth listeners
         const supabase = createClient()
         const { error } = await supabase.auth.signOut()
-
         if (error) {
           console.error('Sign out error:', error)
           toast.error('Gagal keluar. Coba lagi!')
           return
         }
-
         toast.success('Berhasil keluar! 👋 Sampai jumpa lagi!')
-
-        // Small delay to let auth listeners update state before redirect
         setTimeout(() => {
           router.push('/')
         }, 100)
@@ -120,238 +115,218 @@ export function Navbar({
     }
   }
 
+  const navItems = [
+    { label: 'Projects', href: '/project/list', type: 'link' },
+    { label: 'Leaderboard', href: '/ai/ranking', type: 'link' },
+    { label: 'Showcase', action: () => scrollToSection?.('projects'), type: 'button' },
+    { label: 'Features', action: () => scrollToSection?.('features'), type: 'button' },
+    { label: 'Reviews', action: () => scrollToSection?.('reviews'), type: 'button' },
+    { label: 'FAQ', action: () => scrollToSection?.('faq'), type: 'button' },
+  ]
+
   return (
-    <nav className="bg-background/80 border-border fixed top-0 right-0 left-0 z-50 border-b backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative flex h-16 items-center justify-between">
-          {/* Left Side - Back Button or Logo */}
-          <div className="flex items-center gap-3">
-            {showBackButton ? (
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="hover:shadow-none">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/" className="flex items-center gap-3">
-                <AdaptiveLogo />
-              </Link>
+    <header
+      className={cn(
+        'fixed top-0 z-50 w-full transition-all duration-300 ease-in-out',
+        // If scrolled, we want to center it and add margins, otherwise full width
+        // Using a container div inside to handle the width/style might be better if we want the "header" tag to be the wrapper
+      )}
+    >
+      <div className={cn(
+         "mx-auto w-full transition-all duration-300 ease-in-out border-b border-transparent",
+         scrolled 
+          ? "md:max-w-7xl md:top-4 md:mt-4 md:rounded-2xl md:border-border/50 md:bg-background/80 md:backdrop-blur-xl md:shadow-md bg-background/80 backdrop-blur-md border-border" 
+          : "bg-transparent"
+      )}>
+        <nav
+            className={cn(
+                "flex h-16 items-center justify-between px-4 md:px-6"
             )}
-          </div>
-
-          {/* Center - Logo (when back button is shown) or Navigation */}
-          {showBackButton ? (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-              <Link href="/" className="flex items-center gap-3">
-                <AdaptiveLogo />
-              </Link>
-            </div>
-          ) : (
-            showNavigation && (
-              <div className="absolute left-1/2 hidden -translate-x-1/2 transform md:block">
-                <div className="flex items-baseline space-x-8">
-                  <Link
-                    href="/project/list"
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Projects
-                  </Link>
-                  <Link
-                    href="/ai/ranking"
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Leaderboard
-                  </Link>
-                  <button
-                    onClick={() => scrollToSection?.('projects')}
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Showcase
-                  </button>
-                  <button
-                    onClick={() => scrollToSection?.('features')}
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Features
-                  </button>
-                  <button
-                    onClick={() => scrollToSection?.('reviews')}
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Reviews
-                  </button>
-                  <button
-                    onClick={() => scrollToSection?.('faq')}
-                    className="text-muted-foreground hover:text-foreground after:bg-primary relative cursor-pointer text-sm transition-all duration-300 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    FAQ
-                  </button>
-                </div>
-              </div>
-            )
-          )}
-
-          {/* Right Side - Theme Toggle and Auth */}
-          <div className="hidden md:block">
+        >
+            {/* Left Side */}
             <div className="flex items-center gap-3">
-              <ThemeToggle />
-              {!userIsLoggedIn ? (
-                <Button
-                  variant="default"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:cursor-pointer"
-                  onClick={handleSignIn}
-                >
-                  Sign In
-                </Button>
-              ) : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="hover:bg-accent/50 relative h-9 w-9 rounded-full shadow-none transition-all duration-300 hover:shadow-none"
-                    >
-                      <UserAvatar user={safeUser} size="md" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium">{safeUser.name}</p>
-                        <p className="text-muted-foreground w-[200px] truncate text-sm">
-                          {safeUser.email}
-                        </p>
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleProfile}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sign Out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile controls - Theme Toggle + Menu Button */}
-          <div className="flex items-center gap-3 md:hidden">
-            <ThemeToggle />
-            {showNavigation && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? (
-                  <X className="h-6 w-6" />
+                {showBackButton ? (
+                    <Link href="/">
+                        <Button variant="ghost" size="sm" className="hover:shadow-none">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    </Link>
                 ) : (
-                  <Menu className="h-6 w-6" />
+                    <Link href="/" className="flex items-center gap-2">
+                        <AdaptiveLogo />
+                    </Link>
                 )}
-              </Button>
+            </div>
+
+            {/* Desktop Navigation */}
+            {showNavigation && (
+                <div className="hidden items-center gap-1 md:flex lg:gap-2">
+                    {navItems.map((item, i) => (
+                        item.type === 'link' ? (
+                            <Link
+                                key={i}
+                                href={item.href!}
+                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground hover:text-foreground")}
+                            >
+                                {item.label}
+                            </Link>
+                        ) : (
+                             <button
+                                key={i}
+                                onClick={item.action}
+                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground hover:text-foreground cursor-pointer")}
+                             >
+                                {item.label}
+                             </button>
+                        )
+                    ))}
+                </div>
             )}
-          </div>
-        </div>
+
+            {/* Right Side */}
+            <div className="hidden items-center gap-2 md:flex">
+                 <ThemeToggle />
+                 {!userIsLoggedIn ? (
+                    <Button onClick={handleSignIn} size="sm">Sign In</Button>
+                 ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full h-9 w-9"
+                        >
+                          <UserAvatar user={safeUser} size="md" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="end">
+                        <div className="flex items-center justify-start gap-2 p-2">
+                            <div className="flex flex-col space-y-1 leading-none">
+                                <p className="font-medium">{safeUser.name}</p>
+                                <p className="text-muted-foreground w-[200px] truncate text-sm">
+                                    {safeUser.email}
+                                </p>
+                            </div>
+                        </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleProfile}>
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Sign Out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                 )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <div className="flex items-center gap-2 md:hidden">
+                <ThemeToggle />
+                {showNavigation && (
+                    <Button
+                        className="z-50 relative"
+                        onClick={() => setOpen(!open)}
+                        size="icon"
+                        variant="ghost"
+                    >
+                        <MenuToggleIcon className="size-6" duration={300} open={open} />
+                    </Button>
+                )}
+            </div>
+        </nav>
       </div>
 
-      {/* Mobile Navigation */}
-      {showNavigation && isMenuOpen && (
-        <div className="bg-background border-border border-t md:hidden">
-          <div className="space-y-1 px-2 pt-2 pb-3">
-            <Link
-              href="/project/list"
-              onClick={() => setIsMenuOpen(false)}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              Projects
-            </Link>
-            <Link
-              href="/ai/ranking"
-              onClick={() => setIsMenuOpen(false)}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              Leaderboard
-            </Link>
-            <button
-              onClick={() => {
-                scrollToSection?.('projects')
-                setIsMenuOpen(false)
-              }}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              Showcase
-            </button>
-            <button
-              onClick={() => {
-                scrollToSection?.('features')
-                setIsMenuOpen(false)
-              }}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => {
-                scrollToSection?.('reviews')
-                setIsMenuOpen(false)
-              }}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              Reviews
-            </button>
-            <button
-              onClick={() => {
-                scrollToSection?.('faq')
-                setIsMenuOpen(false)
-              }}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 block w-full rounded-md px-3 py-2 text-left transition-all duration-300 hover:translate-x-1"
-            >
-              FAQ
-            </button>
-            <div className="border-border border-t px-3 py-2">
-              {!userIsLoggedIn ? (
-                <Button className="w-full" onClick={handleSignIn}>
-                  Sign In
-                </Button>
-              ) : (
-                <div className="flex items-center gap-3 p-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:bg-accent/50 h-auto rounded-full p-0 transition-colors"
-                    onClick={() => {
-                      handleProfile()
-                      setIsMenuOpen(false)
-                    }}
-                  >
-                    <UserAvatar user={safeUser} size="sm" />
-                  </Button>
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => {
-                      handleProfile()
-                      setIsMenuOpen(false)
-                    }}
-                  >
-                    <p className="hover:text-primary text-sm font-medium transition-colors">
-                      {safeUser.name}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {safeUser.email}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4" />
-                  </Button>
+      {/* Mobile Menu Portal */}
+      {showNavigation && (
+        <MobileMenu open={open}>
+            <div className="flex flex-col justify-between h-full p-6 pt-24 pb-10">
+                <div className="flex flex-col gap-2">
+                    {navItems.map((item, i) => (
+                        item.type === 'link' ? (
+                            <Link
+                                key={i}
+                                href={item.href!}
+                                onClick={() => setOpen(false)}
+                                className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start text-lg h-12")}
+                            >
+                                {item.label}
+                            </Link>
+                        ) : (
+                             <button
+                                key={i}
+                                onClick={() => {
+                                    item.action?.()
+                                    setOpen(false)
+                                }}
+                                className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start text-lg h-12")}
+                             >
+                                {item.label}
+                             </button>
+                        )
+                    ))}
                 </div>
-              )}
+                
+                <div className="flex flex-col gap-4">
+                    {!userIsLoggedIn ? (
+                         <Button onClick={() => {
+                             handleSignIn()
+                             setOpen(false)
+                         }} size="lg" className="w-full">Sign In</Button>
+                    ) : (
+                        <div className="flex flex-col gap-4 border-t pt-6">
+                            <div className="flex items-center gap-3">
+                                <UserAvatar user={safeUser} size="md" />
+                                <div>
+                                    <p className="font-medium">{safeUser.name}</p>
+                                    <p className="text-sm text-muted-foreground">{safeUser.email}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button variant="outline" className="w-full justify-start" onClick={() => {
+                                    handleProfile()
+                                    setOpen(false)
+                                }}>
+                                    <User className="mr-2 h-4 w-4" /> Profile
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => {
+                                    handleSignOut()
+                                    setOpen(false)
+                                }}>
+                                    <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
-          </div>
-        </div>
+        </MobileMenu>
       )}
-    </nav>
+    </header>
+  )
+}
+
+type MobileMenuProps = React.ComponentProps<'div'> & {
+  open: boolean
+}
+
+function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
+  if (!open || typeof window === 'undefined') {
+    return null
+  }
+
+  return createPortal(
+    <div
+      className={cn(
+        'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 animate-in fade-in duration-300',
+        className
+      )}
+      {...props}
+    >
+        {children}
+    </div>,
+    document.body
   )
 }
