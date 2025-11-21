@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     siteName: "VibeDev ID",
     images: [
       {
-        url: "/opengraph-image.png",
+        url: "https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0",
         width: 1200,
         height: 630,
         alt: "Komunitas Vibe Coding Indonesia",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     title: "VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia",
     description:
       "Belajar coding pake AI bareng komunitas vibe coding Indonesia.",
-    images: ["/opengraph-image.png"],
+    images: ["https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0"],
     creator: "@vibedevid",
   },
   robots: {
