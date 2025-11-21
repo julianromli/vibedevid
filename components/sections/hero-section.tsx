@@ -5,153 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
-import { AnimatedTooltip } from '@/components/ui/animated-tooltip'
-import { ProgressiveImage } from '@/components/ui/progressive-image'
-import { SafariMockup } from '@/components/ui/safari-mockup'
-import { ArrowRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { User, Framework } from '@/types/homepage'
-
-interface HeroSectionProps {
-  isLoggedIn: boolean
-  user?: User
-  handleJoinWithUs: () => void
-  handleViewShowcase: () => void
-}
-
-// Hardcoded frameworks data
-const frameworks: Framework[] = [
-  {
-    id: 1,
-    name: 'React',
-    designation: '18.3',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
-  },
-  {
-    id: 2,
-    name: 'Next.js',
-    designation: '15.3',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
-  },
-  {
-    id: 3,
-    name: 'Vue.js',
-    designation: '3.4',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
-  },
-  {
-    id: 4,
-    name: 'Angular',
-    designation: '18.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
-  },
-  {
-    id: 5,
-    name: 'Svelte',
-    designation: '5.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg',
-  },
-  {
-    id: 6,
-    name: 'Tailwind CSS',
-    designation: '4.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg',
-  },
-  {
-    id: 7,
-    name: 'TypeScript',
-    designation: '5.6',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-  },
-  {
-    id: 8,
-    name: 'Node.js',
-    designation: '22.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
-  },
-  {
-    id: 9,
-    name: 'Express.js',
-    designation: '4.19',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
-  },
-  {
-    id: 10,
-    name: 'MongoDB',
-    designation: '7.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
-  },
-  {
-    id: 11,
-    name: 'PostgreSQL',
-    designation: '16.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
-  },
-  {
-    id: 12,
-    name: 'Docker',
-    designation: '25.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
-  },
-  {
-    id: 13,
-    name: 'AWS',
-    designation: 'Cloud',
-    image:
-      'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
-  },
-  {
-    id: 14,
-    name: 'Firebase',
-    designation: '10.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg',
-  },
-  {
-    id: 15,
-    name: 'Vite',
-    designation: '5.0',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg',
-  },
-  {
-    id: 16,
-    name: 'Figma',
-    designation: 'Design',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
-  },
-  {
-    id: 17,
-    name: 'Vercel',
-    designation: 'Deploy',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg',
-  },
-  {
-    id: 18,
-    name: 'Git',
-    designation: '2.45',
-    image:
-      'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
-  },
-]
+import { LogoMarquee } from '@/components/ui/logo-marquee'
 
 export function HeroSection({
   isLoggedIn,
@@ -307,17 +161,10 @@ export function HeroSection({
             <div className="my-0 flex items-center justify-center opacity-90">
               <Suspense
                 fallback={
-                  <div className="flex items-center justify-center space-x-2">
-                    {frameworks.slice(0, 6).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-muted/20 h-12 w-12 animate-pulse rounded-lg"
-                      />
-                    ))}
-                  </div>
+                  <div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />
                 }
               >
-                <AnimatedTooltip items={frameworks} />
+                <LogoMarquee />
               </Suspense>
             </div>
           </div>
