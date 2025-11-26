@@ -95,10 +95,13 @@ pnpm exec tsc --noEmit
 ```
 
 ### Project Documentation
+- **Docs Index**: [docs/README.md](docs/README.md) - All documentation
 - **Main guide**: [WARP.md](WARP.md) - Living knowledge base (READ THIS FIRST)
+- **Design System**: [docs/design-system.md](docs/design-system.md) - Colors, typography, components
 - **Security**: [SECURITY.md](SECURITY.md)
-- **Deployment**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
-- **Testing**: [TESTING_SLUG_MIGRATION.md](TESTING_SLUG_MIGRATION.md)
+- **Deployment**: [docs/deployment/vercel.md](docs/deployment/vercel.md)
+- **Database**: [docs/database/](docs/database/) - Optimization & indexing docs
+- **Migrations**: [docs/migrations/](docs/migrations/) - Migration guides
 
 ## Definition of Done
 
