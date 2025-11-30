@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion } from 'motion/react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -21,6 +22,12 @@ import { useScroll } from '@/hooks/use-scroll'
 import { MenuToggleIcon } from '@/components/menu-toggle-icon'
 import { cn } from '@/lib/utils'
 import { createPortal } from 'react-dom'
+
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 30,
+}
 
 interface NavbarProps {
   showBackButton?: boolean
@@ -125,119 +132,149 @@ export function Navbar({
   ]
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 z-50 w-full transition-all duration-300 ease-in-out',
-        // If scrolled, we want to center it and add margins, otherwise full width
-        // Using a container div inside to handle the width/style might be better if we want the "header" tag to be the wrapper
-      )}
-    >
-      <div className={cn(
-         "mx-auto w-full transition-all duration-300 ease-in-out border-b border-transparent",
-         scrolled 
-          ? "md:max-w-7xl md:top-4 md:mt-4 md:rounded-2xl md:border-border/50 md:bg-background/80 md:backdrop-blur-xl md:shadow-md bg-background/80 backdrop-blur-md border-border" 
-          : "bg-transparent"
-      )}>
-        <nav
-            className={cn(
-                "flex h-16 items-center justify-between px-4 md:px-6"
+    <header className="fixed top-0 z-50 w-full">
+      <motion.div
+        className={cn(
+          'mx-auto w-full border-b',
+          scrolled
+            ? 'md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:backdrop-blur-xl md:shadow-md bg-background/80 backdrop-blur-md border-border'
+            : 'border-transparent bg-transparent'
+        )}
+        initial={false}
+        animate={{
+          marginTop: scrolled ? 16 : 0,
+          borderRadius: scrolled ? 16 : 0,
+        }}
+        transition={springTransition}
+        style={{
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}
+      >
+        <nav className="flex h-16 items-center justify-between px-4 md:px-6">
+          {/* Left Side - Logo */}
+          <motion.div
+            className="flex items-center gap-3"
+            initial={false}
+            animate={{
+              scale: scrolled ? 0.92 : 1,
+              x: scrolled ? -2 : 0,
+            }}
+            transition={springTransition}
+          >
+            {showBackButton ? (
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="hover:shadow-none">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/" className="flex items-center gap-2">
+                <AdaptiveLogo />
+              </Link>
             )}
-        >
-            {/* Left Side */}
-            <div className="flex items-center gap-3">
-                {showBackButton ? (
-                    <Link href="/">
-                        <Button variant="ghost" size="sm" className="hover:shadow-none">
-                            <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                    </Link>
+          </motion.div>
+
+          {/* Desktop Navigation */}
+          {showNavigation && (
+            <motion.div
+              className="hidden items-center gap-1 md:flex lg:gap-2"
+              initial={false}
+              animate={{
+                y: scrolled ? 0 : 0,
+                opacity: 1,
+              }}
+              transition={springTransition}
+            >
+              {navItems.map((item, i) =>
+                item.type === 'link' ? (
+                  <Link
+                    key={i}
+                    href={item.href!}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'sm' }),
+                      'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
                 ) : (
-                    <Link href="/" className="flex items-center gap-2">
-                        <AdaptiveLogo />
-                    </Link>
-                )}
-            </div>
+                  <button
+                    key={i}
+                    onClick={item.action}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'sm' }),
+                      'text-muted-foreground hover:text-foreground cursor-pointer'
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                )
+              )}
+            </motion.div>
+          )}
 
-            {/* Desktop Navigation */}
-            {showNavigation && (
-                <div className="hidden items-center gap-1 md:flex lg:gap-2">
-                    {navItems.map((item, i) => (
-                        item.type === 'link' ? (
-                            <Link
-                                key={i}
-                                href={item.href!}
-                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground hover:text-foreground")}
-                            >
-                                {item.label}
-                            </Link>
-                        ) : (
-                             <button
-                                key={i}
-                                onClick={item.action}
-                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground hover:text-foreground cursor-pointer")}
-                             >
-                                {item.label}
-                             </button>
-                        )
-                    ))}
-                </div>
+          {/* Right Side */}
+          <motion.div
+            className="hidden items-center gap-2 md:flex"
+            initial={false}
+            animate={{
+              scale: scrolled ? 0.95 : 1,
+              x: scrolled ? 2 : 0,
+            }}
+            transition={springTransition}
+          >
+            <ThemeToggle />
+            {!userIsLoggedIn ? (
+              <Button onClick={handleSignIn} size="sm">
+                Sign In
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                    <UserAvatar user={safeUser} size="md" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{safeUser.name}</p>
+                      <p className="text-muted-foreground w-[200px] truncate text-sm">
+                        {safeUser.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleProfile}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
+          </motion.div>
 
-            {/* Right Side */}
-            <div className="hidden items-center gap-2 md:flex">
-                 <ThemeToggle />
-                 {!userIsLoggedIn ? (
-                    <Button onClick={handleSignIn} size="sm">Sign In</Button>
-                 ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-full h-9 w-9"
-                        >
-                          <UserAvatar user={safeUser} size="md" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56" align="end">
-                        <div className="flex items-center justify-start gap-2 p-2">
-                            <div className="flex flex-col space-y-1 leading-none">
-                                <p className="font-medium">{safeUser.name}</p>
-                                <p className="text-muted-foreground w-[200px] truncate text-sm">
-                                    {safeUser.email}
-                                </p>
-                            </div>
-                        </div>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleProfile}>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Profile</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSignOut}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Sign Out</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                 )}
-            </div>
-
-            {/* Mobile Menu Toggle */}
-            <div className="flex items-center gap-2 md:hidden">
-                <ThemeToggle />
-                {showNavigation && (
-                    <Button
-                        className="z-50 relative"
-                        onClick={() => setOpen(!open)}
-                        size="icon"
-                        variant="ghost"
-                    >
-                        <MenuToggleIcon className="size-6" duration={300} open={open} />
-                    </Button>
-                )}
-            </div>
+          {/* Mobile Menu Toggle */}
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+            {showNavigation && (
+              <Button
+                className="z-50 relative"
+                onClick={() => setOpen(!open)}
+                size="icon"
+                variant="ghost"
+              >
+                <MenuToggleIcon className="size-6" duration={300} open={open} />
+              </Button>
+            )}
+          </div>
         </nav>
-      </div>
+      </motion.div>
 
       {/* Mobile Menu Portal */}
       {showNavigation && (
