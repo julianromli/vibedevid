@@ -14,6 +14,7 @@ import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
 import { HeroSection } from '@/components/sections/hero-section'
 import { ProjectShowcase } from '@/components/sections/project-showcase'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
+import { AILeaderboardSection } from '@/components/sections/ai-leaderboard-section'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { ReviewsSection } from '@/components/sections/reviews-section'
 import { FAQSection } from '@/components/sections/faq-section'
@@ -234,6 +235,9 @@ export default function HomePage() {
 
       {/* Community Features Section */}
       <CommunityFeaturesSection />
+
+      {/* AI Coding Model Leaderboard Section */}
+      <AILeaderboardSection />
 
       {/* AI Tools Integration Section */}
       <AIToolsSection />
