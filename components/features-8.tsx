@@ -5,6 +5,17 @@ export default function FeaturesSection() {
   return (
     <section className="bg-gray-50 py-16 md:py-32 dark:bg-transparent">
       <div className="mx-auto max-w-5xl px-6">
+        {/* Section Header */}
+        <div className="mb-12 text-center md:mb-16">
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
+            Kenapa Gabung VibeDev ID?
+          </h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
+            Komunitas vibe coding Indonesia yang supportive, kolaboratif, dan
+            siap bantu lo berkembang jadi developer yang lebih baik
+          </p>
+        </div>
+
         <div className="relative">
           <div className="relative z-10 grid grid-cols-6 gap-3">
             <Card className="relative col-span-full flex overflow-hidden lg:col-span-2">
