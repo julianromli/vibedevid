@@ -108,7 +108,11 @@ function LeaderboardBar({
             fill
             className="object-contain p-1"
             onError={(e) => {
-              e.currentTarget.src = '/logos/ai-providers/default.svg'
+              const target = e.currentTarget
+              if (!target.dataset.fallbackApplied) {
+                target.dataset.fallbackApplied = 'true'
+                target.src = '/logos/ai-providers/default.svg'
+              }
             }}
           />
         </div>
@@ -182,20 +186,23 @@ function LeaderboardBar({
 export function AILeaderboardSection() {
   const [data, setData] = useState<LeaderboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
 
   useEffect(() => {
+    const controller = new AbortController()
+
     async function fetchData() {
       try {
-        const response = await fetch('/api/ai-leaderboard')
+        const response = await fetch('/api/ai-leaderboard', {
+          signal: controller.signal,
+        })
         if (!response.ok) throw new Error('Failed to fetch')
         const result = await response.json()
         setData(result)
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
         console.error('Error fetching leaderboard:', err)
-        setError('Using cached data')
         setData({
           models: FALLBACK_DATA,
           lastUpdated: new Date().toISOString(),
@@ -207,6 +214,7 @@ export function AILeaderboardSection() {
     }
 
     fetchData()
+    return () => controller.abort()
   }, [])
 
   const models = data?.models || FALLBACK_DATA
@@ -215,20 +223,9 @@ export function AILeaderboardSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-transparent via-muted/30 to-transparent py-16 md:py-24 lg:py-32"
+      className="bg-gradient-to-b from-transparent via-muted/30 to-transparent py-16 md:py-24 lg:py-32"
     >
-      {/* Background Grid Pattern */}
-      <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div
-          className="size-full"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-          }}
-        />
-      </div>
-
-      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -339,12 +336,6 @@ export function AILeaderboardSection() {
             </svg>
           </Link>
         </motion.div>
-
-        {error && (
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            {error}
-          </p>
-        )}
       </div>
     </section>
   )
