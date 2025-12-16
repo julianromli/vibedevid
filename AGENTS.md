@@ -1,49 +1,75 @@
 # VibeDev ID - AI Agent Guidelines (Root)
 
 ## Project Snapshot
-- **Type**: Single Next.js 15 application (not a monorepo)
-- **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind v4 + Supabase
+- **Type**: Single Next.js 16 application (not a monorepo)
+- **Stack**: Next.js 16 + React 19 + TypeScript + Tailwind v4 + Supabase
 - **Architecture**: App Router with modular components, custom hooks, server actions
 - **Note**: Sub-directories have detailed AGENTS.md files - read the closest one to your working file
 
-## Root Setup Commands
+## Commands
 ```bash
 # Install dependencies
 pnpm install
 
-# Development server (with Turbopack)
+# Development server (Turbopack is default in Next.js 16)
 pnpm dev
 
 # Build for production
 pnpm build
 
-# Type checking (CRITICAL: build ignores TS errors)
+# Type checking (CRITICAL: build ignores TS errors via ignoreBuildErrors: true)
 pnpm exec tsc --noEmit
 
-# Linting
+# Linting & Formatting
 pnpm lint
+pnpm format
 
-# E2E tests (Playwright)
+# E2E tests (Playwright) - runs all tests in tests/ directory
 npx playwright test
+
+# Run single test file
+npx playwright test tests/views-tracking.spec.ts
+
+# Run single test by name
+npx playwright test -g "should track views when visiting project page"
+
+# Run tests in headed mode (see browser)
+npx playwright test --headed
+
+# Run tests in specific browser
+npx playwright test --project=chromium
 ```
 
 ## Universal Conventions
 
 **Code Style**:
 - TypeScript strict mode enabled
-- 2-space indentation (Prettier enforced)
+- 2-space indentation, no semicolons, single quotes (Prettier enforced)
 - ESLint: `next/core-web-vitals` + `next/typescript` + `prettier`
-- Tailwind utility-first CSS (Prettier plugin sorts classes)
+- Tailwind utility-first CSS (Prettier plugin auto-sorts classes)
+- Unused vars allowed (ESLint rule disabled for both JS and TS)
 
-**Naming Conventions**:
+**Imports**:
+- Use `@/` prefix for absolute imports (e.g., `import { createClient } from '@/lib/supabase/client'`)
+- Group imports: React → Third-party → Internal (@/)
+- Named exports preferred over default exports (except Next.js pages/layouts)
+
+**Types**:
+- Explicit types for function params and returns
+- Use `interface` for object shapes, `type` for unions/intersections
+- No `any` - use `unknown` and type guards if needed
+
+**Naming**:
 - Components: `PascalCase` (e.g., `HeroSection.tsx`)
-- Hooks: `useX` pattern (e.g., `useAuth.ts`)
-- Utilities: `camelCase` (e.g., `slug.ts`)
-- Route files: `kebab-case` or `page.tsx` (Next.js convention)
-- Types: `PascalCase` interfaces (e.g., `User`, `Project`)
+- Hooks: `use` prefix (e.g., `useAuth.ts`)
+- Utils: `camelCase` (e.g., `slug.ts`)
+- Constants: `UPPER_SNAKE_CASE`
+- Files: Match export name or Next.js convention (`page.tsx`, `route.ts`)
 
-**Import Aliases**:
-- Use `@/` for absolute imports (e.g., `import { createClient } from '@/lib/supabase/client'`)
+**Error Handling**:
+- Server actions: Return `{ success: boolean, error?: string }` objects
+- Client code: Use try-catch with toast notifications (via `sonner`)
+- Supabase errors: Check `error` object, provide user-friendly messages
 
 **Commit Format**:
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
