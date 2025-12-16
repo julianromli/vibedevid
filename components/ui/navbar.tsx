@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { AdaptiveLogo } from '@/components/ui/adaptive-logo'
 import {
   DropdownMenu,
@@ -40,6 +41,7 @@ interface NavbarProps {
     avatar?: string
     avatar_url?: string
     username?: string
+    role?: number | null
   }
   onSignIn?: () => void
   onSignOut?: () => void
@@ -239,7 +241,11 @@ export function Navbar({
                 <DropdownMenuContent className="w-56" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{safeUser.name}</p>
+                      <UserDisplayName
+                        name={safeUser.name}
+                        role={safeUser.role}
+                        className="font-medium"
+                      />
                       <p className="text-muted-foreground w-[200px] truncate text-sm">
                         {safeUser.email}
                       </p>
@@ -317,8 +323,14 @@ export function Navbar({
                             <div className="flex items-center gap-3">
                                 <UserAvatar user={safeUser} size="md" />
                                 <div>
-                                    <p className="font-medium">{safeUser.name}</p>
-                                    <p className="text-sm text-muted-foreground">{safeUser.email}</p>
+                                  <UserDisplayName
+                                    name={safeUser.name}
+                                    role={safeUser.role}
+                                    className="font-medium"
+                                  />
+                                  <p className="text-sm text-muted-foreground">
+                                    {safeUser.email}
+                                  </p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">

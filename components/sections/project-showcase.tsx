@@ -5,10 +5,11 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { motion, useInView } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
@@ -16,6 +17,7 @@ import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { FilterControls } from '@/components/ui/filter-controls'
 import { ChevronDown, Plus } from 'lucide-react'
 import type { Project } from '@/types/homepage'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 
 interface ProjectShowcaseProps {
   projects: Project[]
@@ -43,6 +45,8 @@ export function ProjectShowcase({
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(gridRef, { once: true, margin: '-50px' })
 
   return (
     <section className="bg-muted/20 py-12" id="projects">
@@ -121,7 +125,10 @@ export function ProjectShowcase({
         </div>
 
         {/* Project Grid */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          ref={gridRef}
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
           {loading
             ? Array.from({ length: 6 }).map((_, index) => (
                 <div key={index} className="group my-4 cursor-pointer py-0">
@@ -140,12 +147,24 @@ export function ProjectShowcase({
                   </div>
                 </div>
               ))
-            : projects.slice(0, visibleProjects).map((project) => (
-                <Link
+            : projects.slice(0, visibleProjects).map((project, index) => (
+                <motion.div
                   key={project.id}
-                  href={`/project/${project.slug}`}
-                  className="group my-4 block cursor-pointer py-0"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={
+                    isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+                  }
+                  transition={{
+                    duration: 0.5,
+                    delay: index * 0.08,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                  }}
+                  whileHover={{ y: -4 }}
                 >
+                  <Link
+                    href={`/project/${project.slug}`}
+                    className="group my-4 block cursor-pointer py-0"
+                  >
                   {/* Thumbnail Preview Section */}
                   <div className="bg-background relative mb-4 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl">
                     <AspectRatio ratio={16 / 9}>
@@ -195,9 +214,11 @@ export function ProjectShowcase({
                             className="ring-muted ring-2"
                             showSkeleton={false}
                           />
-                          <span className="text-muted-foreground text-sm font-medium">
-                            {project.author.name}
-                          </span>
+                          <UserDisplayName
+                            name={project.author.name}
+                            role={project.author.role}
+                            className="text-muted-foreground text-sm font-medium"
+                          />
                         </div>
                       </div>
                       <div className="relative z-20">
@@ -208,7 +229,8 @@ export function ProjectShowcase({
                       </div>
                     </div>
                   </div>
-                </Link>
+                  </Link>
+                </motion.div>
               ))}
         </div>
 

@@ -50,6 +50,7 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navbar } from '@/components/ui/navbar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 
 // Safe favicon component with error state tracking
 const ProjectFavicon = ({
@@ -1260,9 +1261,11 @@ export default function ProjectDetailsPage({
                           />
                           <div className="flex-1">
                             <div className="mb-1 flex items-center gap-2">
-                              <span className="text-sm font-medium">
-                                {comment.author}
-                              </span>
+                              <UserDisplayName
+                                name={comment.author}
+                                role={comment.authorRole}
+                                className="text-sm font-medium"
+                              />
                               {comment.isGuest && (
                                 <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">
                                   Guest
@@ -1300,7 +1303,12 @@ export default function ProjectDetailsPage({
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{project.author.name}</h3>
+                    <h3 className="font-semibold">
+                      <UserDisplayName
+                        name={project.author.name}
+                        role={project.author.role}
+                      />
+                    </h3>
                     <p className="text-muted-foreground text-sm">
                       {project.author.bio}
                     </p>

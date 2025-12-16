@@ -308,7 +308,8 @@ export async function getComments(projectSlug: string) {
         *,
         users (
           display_name,
-          avatar_url
+          avatar_url,
+          role
         )
       `,
       )
@@ -323,6 +324,7 @@ export async function getComments(projectSlug: string) {
     const formattedComments = comments.map((comment) => ({
       id: comment.id,
       author: comment.users?.display_name || comment.author_name || 'Anonymous',
+      authorRole: comment.users?.role ?? null,
       avatar: comment.users?.avatar_url || '/placeholder.svg',
       content: comment.content,
       timestamp: new Date(comment.created_at).toLocaleDateString(),
@@ -358,6 +360,7 @@ export async function getProjectBySlug(slug: string) {
             username,
             display_name,
             avatar_url,
+            role,
             bio,
             location
           )
@@ -421,6 +424,7 @@ export async function getProjectBySlug(slug: string) {
       author: {
         name: project.users.display_name,
         username: project.users.username,
+        role: project.users.role ?? null,
         avatar: project.users.avatar_url || '/placeholder.svg',
         bio: project.users.bio || 'Community member',
         location: project.users.location || 'Unknown location',
@@ -1048,7 +1052,8 @@ export async function fetchProjectsWithSorting(
         users!author_id (
           username,
           display_name,
-          avatar_url
+          avatar_url,
+          role
         )
       `)
 
@@ -1131,6 +1136,7 @@ export async function fetchProjectsWithSorting(
           author: {
             name: project.users?.display_name || 'Unknown',
             username: project.users?.username || 'unknown',
+            role: project.users?.role ?? null,
             avatar: project.users?.avatar_url || '/vibedev-guest-avatar.png',
           },
           url: project.website_url,

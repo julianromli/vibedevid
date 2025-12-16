@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client'
 import { fetchProjectsWithSorting, signOut } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
 import { Footer } from '@/components/ui/footer'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 
 export default function ProjectListPage() {
   const router = useRouter()
@@ -25,6 +26,7 @@ export default function ProjectListPage() {
     email: string
     avatar: string
     username?: string
+    role?: number | null
   } | null>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,6 +105,7 @@ export default function ProjectListPage() {
               email: session.user.email || '',
               avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
               username: profile.username,
+              role: profile.role ?? null,
             }
             console.log('[ProjectList] Setting user data:', userData)
             setUser(userData)
@@ -421,9 +424,11 @@ export default function ProjectListPage() {
                                 className="ring-muted ring-2"
                                 showSkeleton={false}
                               />
-                              <span className="text-muted-foreground text-sm font-medium">
-                                {project.author.name}
-                              </span>
+                              <UserDisplayName
+                                name={project.author.name}
+                                role={project.author.role}
+                                className="text-muted-foreground text-sm font-medium"
+                              />
                             </div>
                           </div>
                           <div className="relative z-20">

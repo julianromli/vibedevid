@@ -9,6 +9,7 @@ export interface User {
   avatar?: string
   avatar_url?: string
   username?: string
+  role?: number | null
 }
 
 export interface Project {
@@ -22,6 +23,7 @@ export interface Project {
     name: string
     username: string
     avatar: string
+    role?: number | null
   }
   likes: number
   views: number

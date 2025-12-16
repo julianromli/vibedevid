@@ -49,6 +49,7 @@ export default function AIRankingPage() {
     avatar?: string
     avatar_url?: string
     username?: string
+    role?: number | null
   } | null>(null)
 
   // Polling interval in ms (15 seconds)
@@ -134,6 +135,7 @@ export default function AIRankingPage() {
               email: session.user.email || '',
               avatar_url: profile.avatar_url || '/vibedev-guest-avatar.png',
               username: profile.username,
+              role: profile.role ?? null,
             }
             console.log('[ranking] Setting user data:', userData)
             setUser(userData)

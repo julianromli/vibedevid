@@ -63,6 +63,7 @@ export function useAuth() {
               email: session.user.email || '',
               avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
               username: profile.username,
+              role: profile.role ?? null,
             }
             console.log('[useAuth] Setting user data:', userData)
             setUser(userData)
@@ -129,6 +130,7 @@ export function useAuth() {
                 email: session.user.email || '',
                 avatar: newProfile.avatar_url,
                 username: newProfile.username,
+                role: createdProfile?.role ?? null,
               }
               console.log('[useAuth] Created and set new user data:', userData)
               setUser(userData)

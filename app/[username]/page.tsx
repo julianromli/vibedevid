@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { UserAvatar } from '@/components/ui/user-avatar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { Navbar } from '@/components/ui/navbar'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { createClient } from '@/lib/supabase/client'
@@ -491,7 +492,10 @@ export default function ProfilePage() {
             {/* User Info Section */}
             <div className="flex-1 py-0 text-center md:text-left">
               <h1 className="mb-2 text-3xl font-bold">
-                {user.display_name || user.username}
+                <UserDisplayName
+                  name={user.display_name || user.username}
+                  role={user.role}
+                />
               </h1>
               <p className="text-muted-foreground mb-4 text-lg">
                 @{user.username}
