@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { Clock, Calendar, ArrowLeft } from 'lucide-react'
@@ -86,12 +85,12 @@ export default async function BlogPostPage({ params }: Props) {
 
       <header className="relative h-[50vh] overflow-hidden">
         {post.cover_image ? (
-          <Image
+          <img
             src={post.cover_image}
             alt={post.title}
-            fill
-            className="object-cover"
-            priority
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
           />
         ) : (
           <div className="from-primary/20 to-primary/5 h-full w-full bg-gradient-to-br" />

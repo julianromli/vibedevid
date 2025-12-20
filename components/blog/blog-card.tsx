@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { format } from 'date-fns'
 import { Clock, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -25,11 +24,12 @@ export function BlogCard({ post }: BlogCardProps) {
     >
       <div className="relative aspect-[16/9] overflow-hidden">
         {post.cover_image ? (
-          <Image
+          <img
             src={post.cover_image}
             alt={post.title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="bg-muted flex h-full w-full items-center justify-center">
