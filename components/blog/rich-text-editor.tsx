@@ -95,7 +95,7 @@ export const RichTextEditor = forwardRef<
   const imageUploadTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const safeContent = useMemo(() => {
-    if (content && typeof content === 'object' && (content as any).type) {
+    if (content && typeof content === 'object' && 'type' in content) {
       return content
     }
 
