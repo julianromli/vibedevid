@@ -4,7 +4,6 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import { UploadButton } from '@uploadthing/react'
 import {
   Bold,
   Italic,
@@ -37,7 +36,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Toggle } from '@/components/ui/toggle'
-import type { OurFileRouter } from '@/lib/uploadthing'
+import { EditorImageUploader } from '@/components/blog/editor-image-uploader'
 
 interface RichTextEditorProps {
   content: Record<string, any>
@@ -50,38 +49,6 @@ interface RichTextEditorHandle {
   setContent: (content: Record<string, any>) => void
 }
 
-function parseHttpOrHttpsUrl(
-  rawUrl: string,
-): { url: string; isHttp: boolean } | null {
-  try {
-    const parsed = new URL(rawUrl)
-
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null
-    }
-
-    return { url: parsed.toString(), isHttp: parsed.protocol === 'http:' }
-  } catch {
-    return null
-  }
-}
-
-function getFirstUploadUrl(res: unknown): string | null {
-  if (!Array.isArray(res) || res.length === 0) return null
-
-  const first = res[0]
-  if (!first || typeof first !== 'object') return null
-
-  const record = first as Record<string, unknown>
-  const ufsUrl = record.ufsUrl
-  if (typeof ufsUrl === 'string') return ufsUrl
-
-  const url = record.url
-  if (typeof url === 'string') return url
-
-  return null
-}
-
 export const RichTextEditor = forwardRef<
   RichTextEditorHandle,
   RichTextEditorProps
@@ -92,7 +59,6 @@ export const RichTextEditor = forwardRef<
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const imageUploadTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const safeContent = useMemo(() => {
     if (content && typeof content === 'object' && 'type' in content) {
@@ -147,11 +113,6 @@ export const RichTextEditor = forwardRef<
     setIsImageDialogOpen(false)
     setImageUrl('')
     setIsUploadingImage(false)
-
-    if (imageUploadTimeout.current) {
-      clearTimeout(imageUploadTimeout.current)
-      imageUploadTimeout.current = null
-    }
   }, [])
 
   const insertImageUrl = useCallback(
@@ -161,23 +122,6 @@ export const RichTextEditor = forwardRef<
     },
     [editor],
   )
-
-  const handleInsertFromUrl = useCallback(() => {
-    const trimmed = imageUrl.trim()
-    const parsed = trimmed ? parseHttpOrHttpsUrl(trimmed) : null
-
-    if (!parsed) {
-      toast.error('Image URL must be http(s)')
-      return
-    }
-
-    if (parsed.isHttp) {
-      toast.info('Image uses http:// and may fail to load on HTTPS')
-    }
-
-    insertImageUrl(parsed.url)
-    closeImageDialog()
-  }, [closeImageDialog, imageUrl, insertImageUrl])
 
   if (!editor) {
     return (
@@ -268,99 +212,27 @@ export const RichTextEditor = forwardRef<
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="blog-editor-image-url">Image URL</Label>
-                <Input
-                  id="blog-editor-image-url"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  disabled={isUploadingImage}
-                />
-              </div>
-
-              <DialogFooter className="sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeImageDialog}
-                  disabled={isUploadingImage}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleInsertFromUrl}
-                  disabled={isUploadingImage || !imageUrl.trim()}
-                >
-                  Insert
-                </Button>
-              </DialogFooter>
-
-              <div className="space-y-2 border-t pt-4">
-                <Label>Upload</Label>
-                <UploadButton<OurFileRouter, 'blogImageUploader'>
-                  endpoint="blogImageUploader"
-                  onUploadBegin={() => {
-                    setIsUploadingImage(true)
-
-                    if (imageUploadTimeout.current) {
-                      clearTimeout(imageUploadTimeout.current)
-                    }
-
-                    imageUploadTimeout.current = setTimeout(() => {
-                      setIsUploadingImage(false)
-                      toast.error('Upload timed out. Please try again.')
-                    }, 120000)
-                  }}
-                  onClientUploadComplete={(res) => {
-                    if (imageUploadTimeout.current) {
-                      clearTimeout(imageUploadTimeout.current)
-                      imageUploadTimeout.current = null
-                    }
-
-                    setIsUploadingImage(false)
-
-                    const url = getFirstUploadUrl(res)
-                    if (!url) {
-                      toast.error('Upload completed but no URL received')
-                      return
-                    }
-
-                    insertImageUrl(url)
-                    closeImageDialog()
-                  }}
-                  onUploadError={(error: Error) => {
-                    if (imageUploadTimeout.current) {
-                      clearTimeout(imageUploadTimeout.current)
-                      imageUploadTimeout.current = null
-                    }
-
-                    setIsUploadingImage(false)
-                    toast.error(`Upload failed: ${error.message}`)
-                  }}
-                  config={{ mode: 'auto' }}
-                  content={{
-                    button({ ready }) {
-                      if (isUploadingImage) return <div>Uploading...</div>
-                      if (ready) return <div>Choose file</div>
-                      return 'Getting ready...'
-                    },
-                    allowedContent({ ready, fileTypes, isUploading }) {
-                      if (!ready) return 'Checking what you allow'
-                      if (isUploading) return 'Uploading...'
-                      return `Image (${fileTypes.join(', ')})`
-                    },
-                  }}
-                  appearance={{
-                    button:
-                      'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                    allowedContent: 'text-sm text-muted-foreground mt-2',
-                  }}
-                />
-              </div>
-            </div>
+            <EditorImageUploader
+              value={imageUrl}
+              onChange={setImageUrl}
+              isUploading={isUploadingImage}
+              onUploadStart={() => setIsUploadingImage(true)}
+              onUploadComplete={(url) => {
+                setIsUploadingImage(false)
+                insertImageUrl(url)
+                closeImageDialog()
+              }}
+              onUploadError={(error: Error) => {
+                setIsUploadingImage(false)
+                toast.error(`Upload failed: ${error.message}`)
+              }}
+              onInsert={() => {
+                if (imageUrl.trim()) {
+                  insertImageUrl(imageUrl)
+                  closeImageDialog()
+                }
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>

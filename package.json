@@ -13,6 +13,7 @@
     "build:analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
+    "@better-upload/client": "^3.0.6",
     "@lobehub/icons": "^2.43.1",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -43,13 +44,14 @@
     "express": "latest",
     "geist": "^1.4.2",
     "h3": "latest",
-    "lucide-react": "^0.454.0",
+    "lucide-react": "^0.562.0",
     "motion": "^12.23.12",
     "next": "16.0.10",
     "next-themes": "0.4.6",
     "react": "^19.2.3",
     "react-day-picker": "^9.9.0",
     "react-dom": "^19.2.3",
+    "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.5.0",
     "react-grab": "^0.0.54",
     "react-use-measure": "^2.1.7",

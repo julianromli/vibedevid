@@ -27,6 +27,7 @@
     "@magicui": "https://magicui.design/r/{name}.json",
     "@kokonutui": "https://kokonutui.com/r/{name}.json",
     "@efferd": "https://efferd.com/r/{name}.json",
-	"@tailark": "https://tailark.com/r/{name}.json"
+    "@tailark": "https://tailark.com/r/{name}.json",
+    "@better-upload": "https://better-upload.com/r/{name}.json"
   }
 }

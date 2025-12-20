@@ -10,15 +10,14 @@ import {
   useMemo,
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { UploadButton } from '@uploadthing/react'
 import { toast } from 'sonner'
 
 import { Navbar } from '@/components/ui/navbar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
 import { createBlogPost } from '@/lib/actions/blog'
-import type { OurFileRouter } from '@/lib/uploadthing'
 import type { User } from '@/types/homepage'
 
 const RichTextEditor = lazy(() =>
@@ -60,22 +59,6 @@ function parseHttpOrHttpsUrl(
   }
 }
 
-function getFirstUploadUrl(res: unknown): string | null {
-  if (!Array.isArray(res) || res.length === 0) return null
-
-  const first = res[0]
-  if (!first || typeof first !== 'object') return null
-
-  const record = first as Record<string, unknown>
-  const ufsUrl = record.ufsUrl
-  if (typeof ufsUrl === 'string') return ufsUrl
-
-  const url = record.url
-  if (typeof url === 'string') return url
-
-  return null
-}
-
 export default function BlogEditorClient({ user }: BlogEditorClientProps) {
   const router = useRouter()
   const [title, setTitle] = useState('')
@@ -84,7 +67,6 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [saving, setSaving] = useState(false)
   const editorRef = useRef<EditorRef>(null)
-  const coverUploadTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const initialEditorContent = useMemo(
     () => ({ type: 'doc', content: [] }) as Record<string, any>,
@@ -205,105 +187,22 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
               />
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="cover">Cover Image (optional)</Label>
-                {coverImage.trim() ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCoverImage('')}
-                    disabled={saving || isUploadingCover}
-                  >
-                    Clear
-                  </Button>
-                ) : null}
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                <Input
-                  id="cover"
-                  placeholder="https://example.com/image.jpg"
-                  value={coverImage}
-                  onChange={(e) => setCoverImage(e.target.value)}
-                />
-
-                <UploadButton<OurFileRouter, 'blogImageUploader'>
-                  endpoint="blogImageUploader"
-                  onUploadBegin={() => {
-                    setIsUploadingCover(true)
-
-                    if (coverUploadTimeout.current) {
-                      clearTimeout(coverUploadTimeout.current)
-                    }
-
-                    coverUploadTimeout.current = setTimeout(() => {
-                      setIsUploadingCover(false)
-                      toast.error('Cover upload timed out. Please try again.')
-                    }, 120000)
-                  }}
-                  onClientUploadComplete={(res) => {
-                    if (coverUploadTimeout.current) {
-                      clearTimeout(coverUploadTimeout.current)
-                      coverUploadTimeout.current = null
-                    }
-
-                    setIsUploadingCover(false)
-
-                    const url = getFirstUploadUrl(res)
-                    if (url) {
-                      setCoverImage(url)
-                      toast.success('Cover image uploaded')
-                    } else {
-                      toast.error('Upload completed but no URL received')
-                    }
-                  }}
-                  onUploadError={(error: Error) => {
-                    if (coverUploadTimeout.current) {
-                      clearTimeout(coverUploadTimeout.current)
-                      coverUploadTimeout.current = null
-                    }
-
-                    setIsUploadingCover(false)
-                    toast.error(`Upload failed: ${error.message}`)
-                  }}
-                  config={{ mode: 'auto' }}
-                  content={{
-                    button({ ready }) {
-                      if (isUploadingCover) return <div>Uploading...</div>
-                      if (ready) return <div>Upload</div>
-                      return 'Getting ready...'
-                    },
-                    allowedContent({ ready, fileTypes, isUploading }) {
-                      if (!ready) return 'Checking what you allow'
-                      if (isUploading) return 'Uploading...'
-                      return `Image (${fileTypes.join(', ')})`
-                    },
-                  }}
-                  appearance={{
-                    button:
-                      'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                    allowedContent: 'text-sm text-muted-foreground mt-2',
-                  }}
-                />
-              </div>
-
-              <p className="text-muted-foreground text-sm">
-                Paste an image URL or upload a file (max 4MB).
-              </p>
-
-              {coverImage.trim() ? (
-                <div className="overflow-hidden rounded-lg border">
-                  <img
-                    src={coverImage}
-                    alt="Cover preview"
-                    className="h-48 w-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ) : null}
-            </div>
+            <CoverImageUploader
+              value={coverImage}
+              onChange={setCoverImage}
+              isUploading={isUploadingCover}
+              onUploadStart={() => setIsUploadingCover(true)}
+              onUploadComplete={(url) => {
+                setIsUploadingCover(false)
+                setCoverImage(url)
+                toast.success('Cover image uploaded')
+              }}
+              onUploadError={(error: Error) => {
+                setIsUploadingCover(false)
+                toast.error(`Upload failed: ${error.message}`)
+              }}
+              disabled={saving}
+            />
 
             <div className="space-y-2">
               <Label>Content</Label>
