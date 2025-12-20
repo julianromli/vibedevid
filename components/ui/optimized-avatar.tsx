@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { cn } from '@/lib/utils'
 import Image from 'next/image'
+import { useCallback, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface OptimizedAvatarProps {
   src?: string | null
@@ -31,9 +31,7 @@ export function OptimizedAvatar({
   isGuest = false,
   showSkeleton = true,
 }: OptimizedAvatarProps) {
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>(
-    'loading',
-  )
+  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading')
   const [imageSrc, setImageSrc] = useState<string | null>(src)
 
   // Handle image load success
@@ -53,9 +51,7 @@ export function OptimizedAvatar({
   }, [imageSrc, fallbackSrc])
 
   // Determine final src
-  const finalSrc = isGuest
-    ? '/vibedev-guest-avatar.png'
-    : imageSrc || fallbackSrc
+  const finalSrc = isGuest ? '/vibedev-guest-avatar.png' : imageSrc || fallbackSrc
 
   const avatarClasses = cn(
     'rounded-full object-cover',
@@ -70,17 +66,10 @@ export function OptimizedAvatar({
   )
 
   return (
-    <div
-      className={cn('relative overflow-hidden rounded-full', sizeClasses[size])}
-    >
+    <div className={cn('relative overflow-hidden rounded-full', sizeClasses[size])}>
       {/* Skeleton Loading State */}
       {imageState === 'loading' && showSkeleton && (
-        <div
-          className={cn(
-            'bg-muted absolute inset-0 animate-pulse rounded-full',
-            'flex items-center justify-center',
-          )}
-        >
+        <div className={cn('bg-muted absolute inset-0 animate-pulse rounded-full', 'flex items-center justify-center')}>
           <div className="bg-muted-foreground/20 h-1/2 w-1/2 rounded-full" />
         </div>
       )}

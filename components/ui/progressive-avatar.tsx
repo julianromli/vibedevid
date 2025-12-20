@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { ProgressiveImage } from './progressive-image'
 import type { ProgressiveImageProps } from './progressive-image'
+import { ProgressiveImage } from './progressive-image'
 
 interface ProgressiveAvatarProps {
   src?: string | null
@@ -74,9 +74,7 @@ export function ProgressiveAvatar({
   onLoadingStateChange,
   onClick,
 }: ProgressiveAvatarProps) {
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>(
-    'loading',
-  )
+  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading')
 
   // Handle loading state changes
   const handleLoadingStateChange = useCallback(
@@ -152,21 +150,20 @@ export function ProgressiveAvatar({
   }
 
   return (
-    <div className={avatarClasses} onClick={onClick}>
+    <div
+      className={avatarClasses}
+      onClick={onClick}
+    >
       <ProgressiveImage {...progressiveImageProps} />
 
       {/* Error State Fallback - Avatar Specific */}
       {imageState === 'error' && finalSrc === fallbackSrc && (
         <div
-          className={cn(
-            'absolute inset-0 flex items-center justify-center',
-            'text-muted-foreground',
-            {
-              'rounded-full': rounded,
-              'rounded-lg': !rounded,
-              'bg-muted': true,
-            },
-          )}
+          className={cn('absolute inset-0 flex items-center justify-center', 'text-muted-foreground', {
+            'rounded-full': rounded,
+            'rounded-lg': !rounded,
+            'bg-muted': true,
+          })}
           style={{ backgroundColor: avatarPlaceholderColor }}
           aria-label="Avatar failed to load"
         >
@@ -188,14 +185,10 @@ export function ProgressiveAvatar({
       {/* Loading indicator overlay for avatars */}
       {showSkeleton && imageState === 'loading' && (
         <div
-          className={cn(
-            'absolute inset-0 animate-pulse',
-            'flex items-center justify-center',
-            {
-              'rounded-full': rounded,
-              'rounded-lg': !rounded,
-            },
-          )}
+          className={cn('absolute inset-0 animate-pulse', 'flex items-center justify-center', {
+            'rounded-full': rounded,
+            'rounded-lg': !rounded,
+          })}
           style={{ backgroundColor: avatarPlaceholderColor }}
           aria-hidden="true"
         >
@@ -256,16 +249,11 @@ export function AvatarGroup({
   }
 
   return (
-    <div
-      className={cn('flex items-center', spacingClasses[spacing], className)}
-    >
+    <div className={cn('flex items-center', spacingClasses[spacing], className)}>
       {visibleAvatars.map((avatar, index) => (
         <div
           key={avatar.id}
-          className={cn(
-            'relative ring-white dark:ring-gray-900',
-            ringClasses[size],
-          )}
+          className={cn('relative ring-white dark:ring-gray-900', ringClasses[size])}
           style={{ zIndex: visibleAvatars.length - index }}
         >
           <ProgressiveAvatar

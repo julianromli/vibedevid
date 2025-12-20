@@ -8,12 +8,7 @@
       "id": "full-stack-feature",
       "name": "Full Stack Feature Implementation",
       "description": "Complete feature spanning backend, frontend, and testing",
-      "triggers": [
-        "build feature",
-        "implement feature",
-        "add feature",
-        "create feature"
-      ],
+      "triggers": ["build feature", "implement feature", "add feature", "create feature"],
       "complexity": "medium-high",
       "phases": [
         {
@@ -22,11 +17,7 @@
           "parallel": false,
           "droids": ["backend-architect"],
           "description": "Design API endpoints, database schema, and system architecture",
-          "outputs": [
-            "API specification",
-            "Database schema",
-            "Architecture diagrams"
-          ]
+          "outputs": ["API specification", "Database schema", "Architecture diagrams"]
         },
         {
           "id": "phase-2-security-review",
@@ -35,11 +26,7 @@
           "droids": ["security-auditor"],
           "description": "Review architecture for security requirements and vulnerabilities",
           "dependencies": ["phase-1-architecture"],
-          "outputs": [
-            "Security requirements",
-            "Risk assessment",
-            "Security recommendations"
-          ]
+          "outputs": ["Security requirements", "Risk assessment", "Security recommendations"]
         },
         {
           "id": "phase-3-implementation",
@@ -48,11 +35,7 @@
           "droids": ["backend-typescript-architect", "frontend-developer"],
           "description": "Implement backend APIs and frontend components in parallel",
           "dependencies": ["phase-2-security-review"],
-          "outputs": [
-            "Backend implementation",
-            "Frontend components",
-            "Integration code"
-          ]
+          "outputs": ["Backend implementation", "Frontend components", "Integration code"]
         },
         {
           "id": "phase-4-testing",
@@ -61,11 +44,7 @@
           "droids": ["test-automator"],
           "description": "Create comprehensive test suite for the feature",
           "dependencies": ["phase-3-implementation"],
-          "outputs": [
-            "Unit tests",
-            "Integration tests",
-            "E2E tests"
-          ]
+          "outputs": ["Unit tests", "Integration tests", "E2E tests"]
         },
         {
           "id": "phase-5-review",
@@ -74,11 +53,7 @@
           "droids": ["code-reviewer"],
           "description": "Quality and security code review",
           "dependencies": ["phase-4-testing"],
-          "outputs": [
-            "Code review report",
-            "Quality assessment",
-            "Improvement recommendations"
-          ]
+          "outputs": ["Code review report", "Quality assessment", "Improvement recommendations"]
         }
       ]
     },
@@ -86,13 +61,7 @@
       "id": "bug-fix",
       "name": "Bug Fix Workflow",
       "description": "Systematic bug diagnosis and resolution",
-      "triggers": [
-        "fix bug",
-        "error",
-        "not working",
-        "broken",
-        "issue"
-      ],
+      "triggers": ["fix bug", "error", "not working", "broken", "issue"],
       "complexity": "simple-medium",
       "phases": [
         {
@@ -101,11 +70,7 @@
           "parallel": false,
           "droids": ["debugger"],
           "description": "Identify root cause and reproduction steps",
-          "outputs": [
-            "Root cause analysis",
-            "Reproduction steps",
-            "Impact assessment"
-          ]
+          "outputs": ["Root cause analysis", "Reproduction steps", "Impact assessment"]
         },
         {
           "id": "phase-2-fix",
@@ -114,10 +79,7 @@
           "droids": ["auto-select-by-domain"],
           "description": "Implement fix based on diagnosis",
           "dependencies": ["phase-1-diagnosis"],
-          "outputs": [
-            "Code fix",
-            "Verification steps"
-          ]
+          "outputs": ["Code fix", "Verification steps"]
         },
         {
           "id": "phase-3-testing",
@@ -126,10 +88,7 @@
           "droids": ["test-automator"],
           "description": "Create tests to prevent regression",
           "dependencies": ["phase-2-fix"],
-          "outputs": [
-            "Regression tests",
-            "Test coverage report"
-          ]
+          "outputs": ["Regression tests", "Test coverage report"]
         }
       ]
     },
@@ -137,13 +96,7 @@
       "id": "authentication-system",
       "name": "Authentication Implementation",
       "description": "Secure authentication system with best practices",
-      "triggers": [
-        "add authentication",
-        "implement login",
-        "user auth",
-        "sign in",
-        "user login"
-      ],
+      "triggers": ["add authentication", "implement login", "user auth", "sign in", "user login"],
       "complexity": "medium",
       "phases": [
         {
@@ -152,11 +105,7 @@
           "parallel": false,
           "droids": ["security-auditor"],
           "description": "Design secure authentication flow with OWASP compliance",
-          "outputs": [
-            "Auth flow diagram",
-            "Security requirements",
-            "Token strategy"
-          ]
+          "outputs": ["Auth flow diagram", "Security requirements", "Token strategy"]
         },
         {
           "id": "phase-2-architecture",
@@ -165,11 +114,7 @@
           "droids": ["backend-architect"],
           "description": "Design auth API endpoints and database schema",
           "dependencies": ["phase-1-security-design"],
-          "outputs": [
-            "API endpoints",
-            "Database schema",
-            "Session management design"
-          ]
+          "outputs": ["API endpoints", "Database schema", "Session management design"]
         },
         {
           "id": "phase-3-implementation",
@@ -178,11 +123,7 @@
           "droids": ["backend-typescript-architect", "frontend-developer"],
           "description": "Implement auth API and UI components",
           "dependencies": ["phase-2-architecture"],
-          "outputs": [
-            "Auth API",
-            "Login/Signup UI",
-            "Session handling"
-          ]
+          "outputs": ["Auth API", "Login/Signup UI", "Session handling"]
         },
         {
           "id": "phase-4-security-validation",
@@ -191,10 +132,7 @@
           "droids": ["security-auditor"],
           "description": "Validate implementation meets security requirements",
           "dependencies": ["phase-3-implementation"],
-          "outputs": [
-            "Security audit report",
-            "Vulnerability assessment"
-          ]
+          "outputs": ["Security audit report", "Vulnerability assessment"]
         },
         {
           "id": "phase-5-testing",
@@ -203,11 +141,7 @@
           "droids": ["test-automator"],
           "description": "Create auth flow tests and security tests",
           "dependencies": ["phase-4-security-validation"],
-          "outputs": [
-            "Auth flow tests",
-            "Security tests",
-            "E2E tests"
-          ]
+          "outputs": ["Auth flow tests", "Security tests", "E2E tests"]
         }
       ]
     },
@@ -215,12 +149,7 @@
       "id": "payment-processing",
       "name": "Payment System Implementation",
       "description": "Complete payment processing with security and compliance",
-      "triggers": [
-        "payment",
-        "stripe integration",
-        "payment processing",
-        "checkout"
-      ],
+      "triggers": ["payment", "stripe integration", "payment processing", "checkout"],
       "complexity": "high",
       "phases": [
         {
@@ -229,11 +158,7 @@
           "parallel": false,
           "droids": ["security-auditor"],
           "description": "Define PCI compliance and security requirements",
-          "outputs": [
-            "Security requirements",
-            "PCI compliance checklist",
-            "Data handling policies"
-          ]
+          "outputs": ["Security requirements", "PCI compliance checklist", "Data handling policies"]
         },
         {
           "id": "phase-2-architecture",
@@ -242,11 +167,7 @@
           "droids": ["backend-architect"],
           "description": "Design payment API, webhooks, and database schema",
           "dependencies": ["phase-1-security-requirements"],
-          "outputs": [
-            "Payment API design",
-            "Webhook architecture",
-            "Database schema"
-          ]
+          "outputs": ["Payment API design", "Webhook architecture", "Database schema"]
         },
         {
           "id": "phase-3-core-implementation",
@@ -255,11 +176,7 @@
           "droids": ["payment-integration", "database-admin"],
           "description": "Implement payment integration and database layer",
           "dependencies": ["phase-2-architecture"],
-          "outputs": [
-            "Stripe integration",
-            "Database migrations",
-            "Transaction handling"
-          ]
+          "outputs": ["Stripe integration", "Database migrations", "Transaction handling"]
         },
         {
           "id": "phase-4-ui-implementation",
@@ -268,11 +185,7 @@
           "droids": ["frontend-developer"],
           "description": "Build payment UI with Stripe Elements",
           "dependencies": ["phase-3-core-implementation"],
-          "outputs": [
-            "Payment forms",
-            "Checkout flow",
-            "Payment confirmation"
-          ]
+          "outputs": ["Payment forms", "Checkout flow", "Payment confirmation"]
         },
         {
           "id": "phase-5-security-hardening",
@@ -281,11 +194,7 @@
           "droids": ["security-auditor"],
           "description": "Implement security measures and validate compliance",
           "dependencies": ["phase-4-ui-implementation"],
-          "outputs": [
-            "Security implementation",
-            "Compliance validation",
-            "Security testing"
-          ]
+          "outputs": ["Security implementation", "Compliance validation", "Security testing"]
         },
         {
           "id": "phase-6-testing",
@@ -294,11 +203,7 @@
           "droids": ["test-automator", "performance-engineer"],
           "description": "Create test suite and performance validation",
           "dependencies": ["phase-5-security-hardening"],
-          "outputs": [
-            "Payment tests",
-            "Webhook tests",
-            "Performance tests"
-          ]
+          "outputs": ["Payment tests", "Webhook tests", "Performance tests"]
         },
         {
           "id": "phase-7-review",
@@ -307,11 +212,7 @@
           "droids": ["code-reviewer"],
           "description": "Comprehensive security and quality review",
           "dependencies": ["phase-6-testing"],
-          "outputs": [
-            "Review report",
-            "Deployment checklist",
-            "Production readiness assessment"
-          ]
+          "outputs": ["Review report", "Deployment checklist", "Production readiness assessment"]
         }
       ]
     },
@@ -319,12 +220,7 @@
       "id": "api-refactoring",
       "name": "API Refactoring",
       "description": "Refactor API for better performance and maintainability",
-      "triggers": [
-        "refactor api",
-        "optimize api",
-        "improve api",
-        "api performance"
-      ],
+      "triggers": ["refactor api", "optimize api", "improve api", "api performance"],
       "complexity": "medium",
       "phases": [
         {
@@ -333,11 +229,7 @@
           "parallel": true,
           "droids": ["performance-engineer", "backend-architect"],
           "description": "Analyze current performance and identify bottlenecks",
-          "outputs": [
-            "Performance metrics",
-            "Bottleneck analysis",
-            "Optimization opportunities"
-          ]
+          "outputs": ["Performance metrics", "Bottleneck analysis", "Optimization opportunities"]
         },
         {
           "id": "phase-2-design",
@@ -346,11 +238,7 @@
           "droids": ["backend-architect"],
           "description": "Design improved API structure and optimizations",
           "dependencies": ["phase-1-analysis"],
-          "outputs": [
-            "Refactored API design",
-            "Migration strategy",
-            "Backward compatibility plan"
-          ]
+          "outputs": ["Refactored API design", "Migration strategy", "Backward compatibility plan"]
         },
         {
           "id": "phase-3-implementation",
@@ -359,11 +247,7 @@
           "droids": ["backend-typescript-architect", "database-admin"],
           "description": "Implement refactored API and database optimizations",
           "dependencies": ["phase-2-design"],
-          "outputs": [
-            "Refactored code",
-            "Database optimizations",
-            "Migration scripts"
-          ]
+          "outputs": ["Refactored code", "Database optimizations", "Migration scripts"]
         },
         {
           "id": "phase-4-testing",
@@ -372,11 +256,7 @@
           "droids": ["test-automator", "performance-engineer"],
           "description": "Validate refactoring and measure improvements",
           "dependencies": ["phase-3-implementation"],
-          "outputs": [
-            "Test suite",
-            "Performance benchmarks",
-            "Regression tests"
-          ]
+          "outputs": ["Test suite", "Performance benchmarks", "Regression tests"]
         },
         {
           "id": "phase-5-review",
@@ -385,11 +265,7 @@
           "droids": ["code-reviewer"],
           "description": "Review refactored code for quality and consistency",
           "dependencies": ["phase-4-testing"],
-          "outputs": [
-            "Code review",
-            "Quality assessment",
-            "Migration plan validation"
-          ]
+          "outputs": ["Code review", "Quality assessment", "Migration plan validation"]
         }
       ]
     },
@@ -397,12 +273,7 @@
       "id": "database-optimization",
       "name": "Database Optimization",
       "description": "Optimize database queries and schema for performance",
-      "triggers": [
-        "optimize database",
-        "slow queries",
-        "database performance",
-        "improve queries"
-      ],
+      "triggers": ["optimize database", "slow queries", "database performance", "improve queries"],
       "complexity": "medium",
       "phases": [
         {
@@ -411,11 +282,7 @@
           "parallel": false,
           "droids": ["database-admin"],
           "description": "Analyze query performance and identify bottlenecks",
-          "outputs": [
-            "Query performance report",
-            "Slow query analysis",
-            "Index recommendations"
-          ]
+          "outputs": ["Query performance report", "Slow query analysis", "Index recommendations"]
         },
         {
           "id": "phase-2-optimization",
@@ -424,11 +291,7 @@
           "droids": ["database-admin"],
           "description": "Implement database optimizations",
           "dependencies": ["phase-1-analysis"],
-          "outputs": [
-            "Optimized queries",
-            "New indexes",
-            "Schema changes"
-          ]
+          "outputs": ["Optimized queries", "New indexes", "Schema changes"]
         },
         {
           "id": "phase-3-testing",
@@ -437,11 +300,7 @@
           "droids": ["test-automator", "performance-engineer"],
           "description": "Validate improvements and create performance tests",
           "dependencies": ["phase-2-optimization"],
-          "outputs": [
-            "Performance tests",
-            "Benchmark results",
-            "Load testing"
-          ]
+          "outputs": ["Performance tests", "Benchmark results", "Load testing"]
         }
       ]
     },
@@ -449,12 +308,7 @@
       "id": "security-audit",
       "name": "Security Audit & Remediation",
       "description": "Comprehensive security audit and vulnerability fixes",
-      "triggers": [
-        "security audit",
-        "security review",
-        "vulnerability scan",
-        "security check"
-      ],
+      "triggers": ["security audit", "security review", "vulnerability scan", "security check"],
       "complexity": "medium-high",
       "phases": [
         {
@@ -463,11 +317,7 @@
           "parallel": false,
           "droids": ["security-auditor"],
           "description": "Comprehensive security assessment using OWASP Top 10",
-          "outputs": [
-            "Security audit report",
-            "Vulnerability list",
-            "Risk assessment"
-          ]
+          "outputs": ["Security audit report", "Vulnerability list", "Risk assessment"]
         },
         {
           "id": "phase-2-fixes",
@@ -476,11 +326,7 @@
           "droids": ["auto-select-by-findings"],
           "description": "Fix identified vulnerabilities",
           "dependencies": ["phase-1-audit"],
-          "outputs": [
-            "Security fixes",
-            "Updated code",
-            "Security improvements"
-          ]
+          "outputs": ["Security fixes", "Updated code", "Security improvements"]
         },
         {
           "id": "phase-3-validation",
@@ -489,11 +335,7 @@
           "droids": ["security-auditor", "test-automator"],
           "description": "Validate fixes and create security tests",
           "dependencies": ["phase-2-fixes"],
-          "outputs": [
-            "Validation report",
-            "Security tests",
-            "Compliance verification"
-          ]
+          "outputs": ["Validation report", "Security tests", "Compliance verification"]
         }
       ]
     }

@@ -5,8 +5,8 @@
 
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface FilterControlsProps {
   filterOptions: string[]
@@ -31,11 +31,7 @@ export function FilterControls({
         className="flex items-center gap-2"
       >
         Filter
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
       {isOpen && (
@@ -49,9 +45,7 @@ export function FilterControls({
                   setIsOpen(false)
                 }}
                 className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selectedFilter === option
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground'
+                  selectedFilter === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                 }`}
               >
                 {option}

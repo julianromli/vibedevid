@@ -27,14 +27,13 @@ You can create a lightweight PRD directly within your AI tool of choice:
 1. Ensure you have the `create-prd.md` file from this repository accessible.
 2. In your AI tool, initiate PRD creation:
 
-    ```text
-    Use @create-prd.md
-    Here's the feature I want to build: [Describe your feature in detail]
-    Reference these files to help you: [Optional: @file1.py @file2.ts]
-    ```
+   ```text
+   Use @create-prd.md
+   Here's the feature I want to build: [Describe your feature in detail]
+   Reference these files to help you: [Optional: @file1.py @file2.ts]
+   ```
 
-
-    ![Example of initiating PRD creation](https://pbs.twimg.com/media/Go6DDlyX0AAS7JE?format=jpg&name=large)
+   ![Example of initiating PRD creation](https://pbs.twimg.com/media/Go6DDlyX0AAS7JE?format=jpg&name=large)
 
 ### 2. Generate Your Task List from the PRD
 
@@ -43,12 +42,13 @@ With your PRD drafted (e.g., `MyFeature-PRD.md`), the next step is to generate a
 1. Ensure you have `generate-tasks.md` accessible.
 2. In your AI tool, use the PRD to create tasks:
 
-    ```text
-    Now take @MyFeature-PRD.md and create tasks using @generate-tasks.md
-    ```
-    *(Note: Replace `@MyFeature-PRD.md` with the actual filename of the PRD you generated in step 1.)*
+   ```text
+   Now take @MyFeature-PRD.md and create tasks using @generate-tasks.md
+   ```
 
-    ![Example of generating tasks from PRD](https://pbs.twimg.com/media/Go6FITbWkAA-RCT?format=jpg&name=medium)
+   _(Note: Replace `@MyFeature-PRD.md` with the actual filename of the PRD you generated in step 1.)_
+
+   ![Example of generating tasks from PRD](https://pbs.twimg.com/media/Go6FITbWkAA-RCT?format=jpg&name=medium)
 
 ### 3. Examine Your Task List
 
@@ -62,13 +62,13 @@ To ensure methodical progress and allow for verification, instruct the AI to wor
 
 1. In your AI tool, tell the AI to start with the first task (e.g., `1.1`):
 
-    ```text
-    Please start on task 1.1 from the generated task list.
-    ```
+   ```text
+   Please start on task 1.1 from the generated task list.
+   ```
 
-    The AI will attempt the task and then prompt you to review.
+   The AI will attempt the task and then prompt you to review.
 
-    ![Example of starting on a task](https://pbs.twimg.com/media/Go6I41KWcAAAlHc?format=jpg&name=medium)
+   ![Example of starting on a task](https://pbs.twimg.com/media/Go6I41KWcAAAlHc?format=jpg&name=medium)
 
 ### 5. Progress
 
@@ -86,16 +86,16 @@ If you'd like to see this in action, I demonstrated it on [Claire Vo's "How I AI
 
 ## Files in this Repository
 
-* **`create-prd.md`**: Guides the AI in generating a Product Requirement Document for your feature.
-* **`generate-tasks.md`**: Takes a PRD markdown file as input and helps the AI break it down into a detailed, step-by-step implementation task list.
+- **`create-prd.md`**: Guides the AI in generating a Product Requirement Document for your feature.
+- **`generate-tasks.md`**: Takes a PRD markdown file as input and helps the AI break it down into a detailed, step-by-step implementation task list.
 
 ## Benefits
 
-* **Structured Development:** Enforces a clear process from idea to code.
-* **Step-by-Step Verification:** Allows you to review and approve AI-generated code at each small step, ensuring quality and control.
-* **Manages Complexity:** Breaks down large features into smaller, digestible tasks for the AI, reducing the chance of it getting lost or generating overly complex, incorrect code.
-* **Improved Reliability:** Offers a more dependable approach to leveraging AI for significant development work compared to single, large prompts.
-* **Clear Progress Tracking:** Provides a visual representation of completed tasks, making it easy to see how much has been done and what's next.
+- **Structured Development:** Enforces a clear process from idea to code.
+- **Step-by-Step Verification:** Allows you to review and approve AI-generated code at each small step, ensuring quality and control.
+- **Manages Complexity:** Breaks down large features into smaller, digestible tasks for the AI, reducing the chance of it getting lost or generating overly complex, incorrect code.
+- **Improved Reliability:** Offers a more dependable approach to leveraging AI for significant development work compared to single, large prompts.
+- **Clear Progress Tracking:** Provides a visual representation of completed tasks, making it easy to see how much has been done and what's next.
 
 ## How to Use
 
@@ -105,16 +105,14 @@ If you'd like to see this in action, I demonstrated it on [Claire Vo's "How I AI
    ```
 2. **Follow the Workflow:** Systematically use the `.md` files in your AI assistant as described in the workflow above.
 3. **Adapt and Iterate:**
-    * Feel free to modify the prompts within the `.md` files to better suit your specific needs or coding style.
-    * If the AI struggles with a task, try rephrasing your initial feature description or breaking down tasks even further.
-
-
+   - Feel free to modify the prompts within the `.md` files to better suit your specific needs or coding style.
+   - If the AI struggles with a task, try rephrasing your initial feature description or breaking down tasks even further.
 
 ## Tips for Success
 
-* **Be Specific:** The more context and clear instructions you provide (both in your initial feature description and any clarifications), the better the AI's output will be.
-* **Correct File Tagging:** Always ensure you're accurately tagging the PRD filename (e.g., `@MyFeature-PRD.md`) when generating tasks.
-* **Patience and Iteration:** AI is a powerful tool, but it's not magic. Be prepared to guide, correct, and iterate. This workflow is designed to make that iteration process smoother.
+- **Be Specific:** The more context and clear instructions you provide (both in your initial feature description and any clarifications), the better the AI's output will be.
+- **Correct File Tagging:** Always ensure you're accurately tagging the PRD filename (e.g., `@MyFeature-PRD.md`) when generating tasks.
+- **Patience and Iteration:** AI is a powerful tool, but it's not magic. Be prepared to guide, correct, and iterate. This workflow is designed to make that iteration process smoother.
 
 ## Contributing
 
@@ -122,8 +120,8 @@ Got ideas to improve these `.md` files or have new ones that fit this workflow? 
 
 Please feel free to:
 
-* Open an issue to discuss changes or suggest new features.
-* Submit a pull request with your enhancements.
+- Open an issue to discuss changes or suggest new features.
+- Submit a pull request with your enhancements.
 
 ---
 

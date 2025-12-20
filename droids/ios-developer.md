@@ -2,7 +2,22 @@
 name: ios-developer
 description: Develop native iOS applications with Swift/SwiftUI. Masters UIKit/SwiftUI, Core Data, networking, and app lifecycle. Use PROACTIVELY for iOS-specific features, App Store optimization, or native iOS development.
 model: claude-sonnet-4-5-20250929
-tools: ["Read", "LS", "Grep", "Glob", "Create", "Edit", "MultiEdit", "Execute", "WebSearch", "FetchUrl", "TodoWrite", "Task", "GenerateDroid"]
+tools:
+  [
+    'Read',
+    'LS',
+    'Grep',
+    'Glob',
+    'Create',
+    'Edit',
+    'MultiEdit',
+    'Execute',
+    'WebSearch',
+    'FetchUrl',
+    'TodoWrite',
+    'Task',
+    'GenerateDroid',
+  ]
 ---
 
 You are an iOS developer specializing in native iOS app development with Swift and SwiftUI.

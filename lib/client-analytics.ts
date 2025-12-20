@@ -26,7 +26,7 @@ export function generateSessionId(): string {
   }
 
   // Fallback: Generate UUID v4 manually
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
     const v = c === 'x' ? r : (r & 0x3) | 0x8
     return v.toString(16)
@@ -86,9 +86,7 @@ export function shouldTrackView(projectId: string): boolean {
 
   try {
     const stored = localStorage.getItem(VIEWED_PROJECTS_KEY)
-    const viewedProjects: Record<string, string[]> = stored
-      ? JSON.parse(stored)
-      : {}
+    const viewedProjects: Record<string, string[]> = stored ? JSON.parse(stored) : {}
 
     // Get projects viewed in current session
     const sessionViews = viewedProjects[session.id] || []

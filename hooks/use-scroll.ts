@@ -1,22 +1,22 @@
-"use client";
-import { useCallback, useEffect, useState } from "react";
+'use client'
+import { useCallback, useEffect, useState } from 'react'
 
 export function useScroll(threshold: number) {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false)
 
   const onScroll = useCallback(() => {
-    setScrolled(window.scrollY > threshold);
-  }, [threshold]);
+    setScrolled(window.scrollY > threshold)
+  }, [threshold])
 
   useEffect(() => {
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [onScroll]);
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [onScroll])
 
   // also check on first load
   useEffect(() => {
-    onScroll();
-  }, [onScroll]);
+    onScroll()
+  }, [onScroll])
 
-  return scrolled;
+  return scrolled
 }

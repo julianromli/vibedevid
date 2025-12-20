@@ -1,23 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { AlertCircle, RefreshCw, Trophy, Zap } from 'lucide-react'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { Navbar } from '@/components/ui/navbar'
-import { Footer } from '@/components/ui/footer'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/client'
 
 interface LeaderboardItem {
@@ -39,7 +33,7 @@ interface LeaderboardData {
 export default function AIRankingPage() {
   const [activeTab, setActiveTab] = useState('models')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  
+
   // Auth state
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<{
@@ -65,24 +59,17 @@ export default function AIRankingPage() {
   }
 
   // Use SWR for data fetching with polling
-  const { data, error, isLoading, isValidating, mutate } =
-    useSWR<LeaderboardData>('/api/designarena', fetcher, {
-      refreshInterval: POLLING_INTERVAL,
-      revalidateOnFocus: true,
-      dedupingInterval: 5000,
-      errorRetryCount: 3,
-    })
+  const { data, error, isLoading, isValidating, mutate } = useSWR<LeaderboardData>('/api/designarena', fetcher, {
+    refreshInterval: POLLING_INTERVAL,
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    errorRetryCount: 3,
+  })
 
   // Categories untuk filtering
   const categories = {
     models: ['All Categories', 'AI Model'],
-    builders: [
-      'All Categories',
-      'AI Builder',
-      'Design Tool',
-      'Code Editor',
-      'AI Platform',
-    ],
+    builders: ['All Categories', 'AI Builder', 'Design Tool', 'Code Editor', 'AI Platform'],
   }
 
   const scrollToSection = (sectionId: string) => {
@@ -107,8 +94,10 @@ export default function AIRankingPage() {
         console.log('[ranking] Checking authentication state...')
         const supabase = createClient()
 
-        const { data: { session } } = await supabase.auth.getSession()
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
         if (!isMounted) return
 
         console.log('[ranking] Session data:', session)
@@ -118,11 +107,7 @@ export default function AIRankingPage() {
           setIsLoggedIn(true)
 
           // Get user profile from database
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
           if (!isMounted) return
 
@@ -158,10 +143,12 @@ export default function AIRankingPage() {
 
     // Listen for auth changes
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[ranking] Auth state changed:', event, session)
       if (!isMounted) return
-      
+
       if (event === 'SIGNED_OUT' || !session) {
         setIsLoggedIn(false)
         setUser(null)
@@ -197,8 +184,8 @@ export default function AIRankingPage() {
     <div className="bg-grid-pattern relative min-h-screen">
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
-      <Navbar 
-        showNavigation={true} 
+      <Navbar
+        showNavigation={true}
         scrollToSection={scrollToSection}
         isLoggedIn={isLoggedIn}
         user={user ?? undefined}
@@ -216,9 +203,8 @@ export default function AIRankingPage() {
             </div>
           </div>
           <p className="text-muted-foreground mx-auto max-w-3xl px-2 text-sm leading-relaxed sm:text-lg lg:text-xl">
-            Ranking terbaru performance AI Models dan AI Builders untuk coding.
-            Data real-time dari DesignArena untuk membantu lo pilih tools AI
-            terbaik! 🚀
+            Ranking terbaru performance AI Models dan AI Builders untuk coding. Data real-time dari DesignArena untuk
+            membantu lo pilih tools AI terbaik! 🚀
           </p>
 
           <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:mt-6 sm:flex-row sm:gap-4">
@@ -229,9 +215,7 @@ export default function AIRankingPage() {
               size="sm"
               className="gap-2 text-xs sm:text-sm"
             >
-              <RefreshCw
-                className={`h-3 w-3 sm:h-4 sm:w-4 ${isValidating ? 'animate-spin' : ''}`}
-              />
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isValidating ? 'animate-spin' : ''}`} />
               {isValidating ? 'Refreshing...' : 'Refresh Data'}
             </Button>
             {data && (
@@ -248,7 +232,11 @@ export default function AIRankingPage() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
           <div className="mb-6 flex flex-col gap-4 sm:mb-8">
             <div className="flex justify-center">
               <TabsList className="grid w-full max-w-sm grid-cols-2 sm:max-w-md">
@@ -270,26 +258,17 @@ export default function AIRankingPage() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-2">
-              {(activeTab === 'models'
-                ? categories.models
-                : categories.builders
-              ).map((category) => (
+              {(activeTab === 'models' ? categories.models : categories.builders).map((category) => (
                 <Button
                   key={category}
                   variant={
-                    (category === 'All Categories' &&
-                      selectedCategory === 'all') ||
-                    category === selectedCategory
+                    (category === 'All Categories' && selectedCategory === 'all') || category === selectedCategory
                       ? 'default'
                       : 'outline'
                   }
                   size="sm"
                   className="h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm"
-                  onClick={() =>
-                    setSelectedCategory(
-                      category === 'All Categories' ? 'all' : category,
-                    )
-                  }
+                  onClick={() => setSelectedCategory(category === 'All Categories' ? 'all' : category)}
                 >
                   {category}
                 </Button>
@@ -306,10 +285,7 @@ export default function AIRankingPage() {
                   </div>
                   <div>
                     <CardTitle>Model Performance Ranking</CardTitle>
-                    <CardDescription>
-                      Win rate performance dari AI models terbaik untuk coding
-                      tasks
-                    </CardDescription>
+                    <CardDescription>Win rate performance dari AI models terbaik untuk coding tasks</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -317,9 +293,7 @@ export default function AIRankingPage() {
                 {isLoading ? (
                   <LoadingSkeleton />
                 ) : data ? (
-                  <LeaderboardList
-                    items={getFilteredData(data.modelPerformance)}
-                  />
+                  <LeaderboardList items={getFilteredData(data.modelPerformance)} />
                 ) : (
                   <ErrorState onRetry={handleRefresh} />
                 )}
@@ -336,10 +310,7 @@ export default function AIRankingPage() {
                   </div>
                   <div>
                     <CardTitle>Builder Performance Ranking</CardTitle>
-                    <CardDescription>
-                      Win rate performance dari AI builders dan coding tools
-                      terbaik
-                    </CardDescription>
+                    <CardDescription>Win rate performance dari AI builders dan coding tools terbaik</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -347,9 +318,7 @@ export default function AIRankingPage() {
                 {isLoading ? (
                   <LoadingSkeleton />
                 ) : data ? (
-                  <LeaderboardList
-                    items={getFilteredData(data.builderPerformance)}
-                  />
+                  <LeaderboardList items={getFilteredData(data.builderPerformance)} />
                 ) : (
                   <ErrorState onRetry={handleRefresh} />
                 )}
@@ -398,10 +367,12 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         <AlertCircle className="text-destructive h-8 w-8" />
       </div>
       <h3 className="mb-2 text-lg font-semibold">Unable to Load Data</h3>
-      <p className="text-muted-foreground mb-4">
-        Terjadi error saat mengambil data leaderboard.
-      </p>
-      <Button onClick={onRetry} variant="outline" size="sm">
+      <p className="text-muted-foreground mb-4">Terjadi error saat mengambil data leaderboard.</p>
+      <Button
+        onClick={onRetry}
+        variant="outline"
+        size="sm"
+      >
         <RefreshCw className="mr-2 h-4 w-4" />
         Try Again
       </Button>
@@ -417,9 +388,7 @@ function LeaderboardList({ items }: { items: LeaderboardItem[] }) {
           <Trophy className="text-muted-foreground h-8 w-8" />
         </div>
         <h3 className="mb-2 text-lg font-semibold">No Results Found</h3>
-        <p className="text-muted-foreground">
-          Tidak ada data yang match dengan filter kategori yang dipilih.
-        </p>
+        <p className="text-muted-foreground">Tidak ada data yang match dengan filter kategori yang dipilih.</p>
       </div>
     )
   }
@@ -427,19 +396,17 @@ function LeaderboardList({ items }: { items: LeaderboardItem[] }) {
   return (
     <div className="space-y-2 sm:space-y-3">
       {items.map((item, index) => (
-        <LeaderboardItem key={item.id} item={item} index={index} />
+        <LeaderboardItem
+          key={item.id}
+          item={item}
+          index={index}
+        />
       ))}
     </div>
   )
 }
 
-function LeaderboardItem({
-  item,
-  index,
-}: {
-  item: LeaderboardItem
-  index: number
-}) {
+function LeaderboardItem({ item, index }: { item: LeaderboardItem; index: number }) {
   const getRankIcon = (position: number) => {
     if (position === 0) {
       return (
@@ -487,8 +454,7 @@ function LeaderboardItem({
             const target = e.currentTarget
             target.style.display = 'none'
             const fallback = document.createElement('span')
-            fallback.className =
-              'text-xs sm:text-sm font-semibold text-muted-foreground'
+            fallback.className = 'text-xs sm:text-sm font-semibold text-muted-foreground'
             fallback.textContent = item.name
               .split(' ')
               .map((word) => word[0])
@@ -505,19 +471,18 @@ function LeaderboardItem({
           <h3 className="group-hover:text-foreground truncate text-sm font-bold transition-colors sm:text-base lg:text-lg">
             {item.name}
           </h3>
-          <Badge variant="outline" className="shrink-0 text-xs font-medium">
+          <Badge
+            variant="outline"
+            className="shrink-0 text-xs font-medium"
+          >
             {item.category}
           </Badge>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between sm:mb-2">
-              <span className="text-muted-foreground text-xs sm:text-sm">
-                Win Rate
-              </span>
-              <span className="text-foreground text-base font-bold sm:text-lg">
-                {item.winRate}%
-              </span>
+              <span className="text-muted-foreground text-xs sm:text-sm">Win Rate</span>
+              <span className="text-foreground text-base font-bold sm:text-lg">{item.winRate}%</span>
             </div>
             <div className="relative">
               <Progress
@@ -528,12 +493,8 @@ function LeaderboardItem({
           </div>
           {item.eloRating && (
             <div className="bg-muted/50 border-border/50 shrink-0 rounded-lg border px-2 py-1.5 text-center sm:px-3 sm:py-2 sm:text-right">
-              <div className="text-muted-foreground mb-0.5 text-xs sm:mb-1">
-                ELO Rating
-              </div>
-              <div className="text-sm font-bold sm:text-base lg:text-lg">
-                {item.eloRating}
-              </div>
+              <div className="text-muted-foreground mb-0.5 text-xs sm:mb-1">ELO Rating</div>
+              <div className="text-sm font-bold sm:text-base lg:text-lg">{item.eloRating}</div>
             </div>
           )}
         </div>

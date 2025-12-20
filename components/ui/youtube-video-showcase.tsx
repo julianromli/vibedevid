@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Play, Calendar, Users, Code, Video } from 'lucide-react'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import Image from 'next/image'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 
 interface VideoData {
   id?: string
@@ -21,28 +22,41 @@ interface VideoData {
 const getVideoIcon = (title: string, description: string): React.ReactNode => {
   const content = (title + ' ' + description).toLowerCase()
 
-  if (
-    content.includes('live') ||
-    content.includes('coding') ||
-    content.includes('session')
-  ) {
-    return <Play size={24} className="text-white" />
-  } else if (
-    content.includes('talk') ||
-    content.includes('diskusi') ||
-    content.includes('discussion')
-  ) {
-    return <Users size={24} className="text-white" />
-  } else if (
-    content.includes('workshop') ||
-    content.includes('tutorial') ||
-    content.includes('server')
-  ) {
-    return <Code size={24} className="text-white" />
+  if (content.includes('live') || content.includes('coding') || content.includes('session')) {
+    return (
+      <Play
+        size={24}
+        className="text-white"
+      />
+    )
+  } else if (content.includes('talk') || content.includes('diskusi') || content.includes('discussion')) {
+    return (
+      <Users
+        size={24}
+        className="text-white"
+      />
+    )
+  } else if (content.includes('workshop') || content.includes('tutorial') || content.includes('server')) {
+    return (
+      <Code
+        size={24}
+        className="text-white"
+      />
+    )
   } else if (content.includes('challenge') || content.includes('algorithm')) {
-    return <Video size={24} className="text-white" />
+    return (
+      <Video
+        size={24}
+        className="text-white"
+      />
+    )
   } else {
-    return <Code size={24} className="text-white" /> // default
+    return (
+      <Code
+        size={24}
+        className="text-white"
+      />
+    ) // default
   }
 }
 
@@ -84,23 +98,30 @@ const YouTubeVideoShowcase = () => {
             title: 'Next.js Tutorial: Full Stack App Development',
             description:
               'Belajar membuat full stack web app dengan Next.js, Prisma, dan PostgreSQL dari nol sampai deployment.',
-            thumbnail:
-              'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+            thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
             videoId: 'dQw4w9WgXcQ',
             publishedAt: '2024-12-20',
             viewCount: '12.5K',
-            icon: <Code size={24} className="text-white" />,
+            icon: (
+              <Code
+                size={24}
+                className="text-white"
+              />
+            ),
           },
           {
             title: 'Live Coding: Building Modern Dashboard',
-            description:
-              'Session live coding bikin dashboard admin yang modern dengan React dan Tailwind CSS.',
-            thumbnail:
-              'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
+            description: 'Session live coding bikin dashboard admin yang modern dengan React dan Tailwind CSS.',
+            thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
             videoId: '9bZkp7q19f0',
             publishedAt: '2024-12-15',
             viewCount: '8.3K',
-            icon: <Play size={24} className="text-white" />,
+            icon: (
+              <Play
+                size={24}
+                className="text-white"
+              />
+            ),
           },
           // {
           //   title: "Vibe Dev Talk: AI in Web Development", // Bermasalah
@@ -153,11 +174,7 @@ const YouTubeVideoShowcase = () => {
 
   const handlePlayVideo = (videoId: string) => {
     // Open YouTube video in new tab
-    window.open(
-      `https://www.youtube.com/watch?v=${videoId}`,
-      '_blank',
-      'noopener,noreferrer',
-    )
+    window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
   }
 
   // Animation effect untuk video cards
@@ -197,8 +214,7 @@ const YouTubeVideoShowcase = () => {
             Video Vibe Coding Terbaru
           </h2>
           <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-            Nonton video tutorial, live coding session, dan podcast tech terbaru
-            dari komunitas Vibe Coding Indonesia.
+            Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
           </p>
         </div>
 
@@ -231,8 +247,7 @@ const YouTubeVideoShowcase = () => {
           Video Vibe Coding Terbaru
         </h2>
         <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-          Nonton video tutorial, live coding session, dan podcast tech terbaru
-          dari komunitas Vibe Coding Indonesia.
+          Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
         </p>
         {error && (
           <p className="mx-4 mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-600 sm:mx-0 dark:bg-amber-900/20">
@@ -252,16 +267,11 @@ const YouTubeVideoShowcase = () => {
             className={`video-option relative cursor-pointer overflow-hidden transition-all duration-700 ease-in-out ${activeIndex === index ? 'active border-primary border-2 shadow-2xl' : 'border-border border-2 shadow-lg'} `}
             style={{
               opacity: animatedVideos.includes(index) ? 1 : 0,
-              transform: animatedVideos.includes(index)
-                ? 'translateX(0)'
-                : 'translateX(-60px)',
+              transform: animatedVideos.includes(index) ? 'translateX(0)' : 'translateX(-60px)',
               minWidth: '60px',
               borderRadius: '12px',
               backgroundColor: 'hsl(var(--muted))',
-              boxShadow:
-                activeIndex === index
-                  ? '0 20px 60px rgba(0,0,0,0.25)'
-                  : '0 10px 30px rgba(0,0,0,0.15)',
+              boxShadow: activeIndex === index ? '0 20px 60px rgba(0,0,0,0.25)' : '0 10px 30px rgba(0,0,0,0.15)',
               flex: activeIndex === index ? '7 1 0%' : '1 1 0%',
               zIndex: activeIndex === index ? 10 : 1,
               willChange: 'flex-grow, box-shadow, transform',
@@ -334,12 +344,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-title line-clamp-2 text-sm font-bold transition-all duration-700 ease-in-out md:text-base"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform:
-                          activeIndex === index
-                            ? 'translateX(0)'
-                            : 'translateX(25px)',
-                        textShadow:
-                          '0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)',
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)',
                       }}
                     >
                       {video.title}
@@ -348,12 +354,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-desc line-clamp-2 text-xs text-gray-200 transition-all duration-700 ease-in-out md:text-sm"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform:
-                          activeIndex === index
-                            ? 'translateX(0)'
-                            : 'translateX(25px)',
-                        textShadow:
-                          '0 1px 6px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)',
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 1px 6px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)',
                       }}
                     >
                       {video.description}
@@ -363,12 +365,8 @@ const YouTubeVideoShowcase = () => {
                       className="video-meta mt-1 flex items-center gap-2 text-xs text-gray-300 transition-all duration-700 ease-in-out"
                       style={{
                         opacity: activeIndex === index ? 1 : 0,
-                        transform:
-                          activeIndex === index
-                            ? 'translateX(0)'
-                            : 'translateX(25px)',
-                        textShadow:
-                          '0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)',
+                        transform: activeIndex === index ? 'translateX(0)' : 'translateX(25px)',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)',
                       }}
                     >
                       <span>{formatDate(video.publishedAt)}</span>
@@ -388,10 +386,7 @@ const YouTubeVideoShowcase = () => {
                     className="transition-all duration-700 ease-in-out"
                     style={{
                       opacity: activeIndex === index ? 1 : 0,
-                      transform:
-                        activeIndex === index
-                          ? 'translateY(0)'
-                          : 'translateY(15px)',
+                      transform: activeIndex === index ? 'translateY(0)' : 'translateY(15px)',
                     }}
                   >
                     <button
@@ -402,10 +397,7 @@ const YouTubeVideoShowcase = () => {
                       className="pointer-events-auto flex min-h-[36px] touch-manipulation items-center gap-1 rounded-full bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors duration-200 hover:bg-red-700 sm:min-h-[40px] sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
                     >
                       <Play className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="xs:inline hidden sm:inline">
-                        Tonton
-                      </span>{' '}
-                      Video
+                      <span className="xs:inline hidden sm:inline">Tonton</span> Video
                     </button>
                   </div>
                 )}

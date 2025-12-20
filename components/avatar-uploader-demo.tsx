@@ -1,12 +1,10 @@
 import React from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AvatarUploader } from '@/components/ui/avatar-uploader'
 import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function AvatarUploaderDemo() {
-  const [photo, setPhoto] = React.useState<string>(
-    'https://avatar.vercel.sh/john',
-  )
+  const [photo, setPhoto] = React.useState<string>('https://avatar.vercel.sh/john')
 
   const handleUpload = async (file: File): Promise<{ success: boolean }> => {
     // Simulate upload process
@@ -32,22 +30,17 @@ export default function AvatarUploaderDemo() {
 
       <div className="space-y-4 text-center">
         <h1 className="text-2xl font-bold">Avatar Uploader Demo</h1>
-        <p className="text-muted-foreground">
-          Click the avatar to upload and crop your image
-        </p>
+        <p className="text-muted-foreground">Click the avatar to upload and crop your image</p>
 
         <AvatarUploader onUpload={handleUpload}>
           <Avatar className="relative mx-auto size-20 cursor-pointer transition-opacity hover:opacity-80">
             <AvatarImage src={photo} />
-            <AvatarFallback className="border text-2xl font-bold">
-              JD
-            </AvatarFallback>
+            <AvatarFallback className="border text-2xl font-bold">JD</AvatarFallback>
           </Avatar>
         </AvatarUploader>
 
         <p className="text-muted-foreground text-sm">
-          Current avatar:{' '}
-          {photo.includes('blob:') ? 'Uploaded image' : 'Demo avatar'}
+          Current avatar: {photo.includes('blob:') ? 'Uploaded image' : 'Demo avatar'}
         </p>
       </div>
     </div>

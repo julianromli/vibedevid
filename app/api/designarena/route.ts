@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface ModelPerformanceData {
   id: string
@@ -53,12 +53,8 @@ export async function GET(request: NextRequest) {
 
     // Filter berdasarkan category jika diminta
     if (category !== 'all') {
-      modelData = modelData.filter((item) =>
-        item.category.toLowerCase().includes(category.toLowerCase()),
-      )
-      builderData = builderData.filter((item) =>
-        item.category.toLowerCase().includes(category.toLowerCase()),
-      )
+      modelData = modelData.filter((item) => item.category.toLowerCase().includes(category.toLowerCase()))
+      builderData = builderData.filter((item) => item.category.toLowerCase().includes(category.toLowerCase()))
     }
 
     const response: DesignArenaData = {

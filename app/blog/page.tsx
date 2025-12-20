@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
 import { BlogCard } from '@/components/blog/blog-card'
 import { Navbar } from '@/components/ui/navbar'
+import { createClient } from '@/lib/supabase/server'
 
 export const revalidate = 60
 
@@ -50,14 +50,15 @@ export default async function BlogPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Navbar isLoggedIn={!!user} user={userData ?? undefined} />
+      <Navbar
+        isLoggedIn={!!user}
+        user={userData ?? undefined}
+      />
 
       <main className="py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h1 className="mb-4 font-serif text-4xl font-bold tracking-tight md:text-6xl">
-              Blog
-            </h1>
+            <h1 className="mb-4 font-serif text-4xl font-bold tracking-tight md:text-6xl">Blog</h1>
             <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
               Tutorials, case studies, and thoughts from the VibeDev community
             </p>
@@ -85,9 +86,7 @@ export default async function BlogPage() {
             </div>
           ) : (
             <div className="py-20 text-center">
-              <p className="text-muted-foreground text-lg">
-                No blog posts yet. Be the first to write one!
-              </p>
+              <p className="text-muted-foreground text-lg">No blog posts yet. Be the first to write one!</p>
               <a
                 href="/blog/editor"
                 className="text-primary mt-4 inline-flex items-center gap-2 hover:underline"

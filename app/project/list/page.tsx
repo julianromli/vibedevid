@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/ui/navbar'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { ChevronDown, Plus } from 'lucide-react'
-import Link from 'next/link'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Button } from '@/components/ui/button'
+import { Footer } from '@/components/ui/footer'
+import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
+import { Navbar } from '@/components/ui/navbar'
+import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { fetchProjectsWithSorting, signOut } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
-import { Footer } from '@/components/ui/footer'
-import { UserDisplayName } from '@/components/ui/user-display-name'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ProjectListPage() {
   const router = useRouter()
@@ -71,10 +71,7 @@ export default function ProjectListPage() {
 
         const sessionPromise = supabase.auth.getSession()
 
-        const result = (await Promise.race([
-          sessionPromise,
-          timeoutPromise,
-        ])) as { data: { session: any }; error?: any }
+        const result = (await Promise.race([sessionPromise, timeoutPromise])) as { data: { session: any }; error?: any }
 
         const {
           data: { session },
@@ -89,11 +86,7 @@ export default function ProjectListPage() {
           setIsLoggedIn(true)
 
           // Get user profile from database
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
           if (!isMounted) return
 
@@ -180,12 +173,11 @@ export default function ProjectListPage() {
         }
 
         // Fetch ALL projects (no limit for list page)
-        const { projects: fetchedProjects, error } =
-          await fetchProjectsWithSorting(
-            sortBy,
-            selectedFilter === 'All' ? undefined : selectedFilter,
-            100, // High limit to get all projects
-          )
+        const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
+          sortBy,
+          selectedFilter === 'All' ? undefined : selectedFilter,
+          100, // High limit to get all projects
+        )
 
         if (error) {
           console.error('[ProjectList] Error fetching projects:', error)
@@ -251,9 +243,8 @@ export default function ProjectListPage() {
                 Showcase Project Developer Indonesia
               </h1>
               <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-                Temukan project keren yang dibuat oleh komunitas vibe coder
-                Indonesia. Dari AI tools sampai open source projects, semua
-                karya developer terbaik ada di sini.
+                Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source
+                projects, semua karya developer terbaik ada di sini.
               </p>
             </div>
 
@@ -268,11 +259,7 @@ export default function ProjectListPage() {
                     className="flex items-center gap-2"
                   >
                     Filter
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${
-                        isFiltersOpen ? 'rotate-180' : ''
-                      }`}
-                    />
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                   </Button>
 
                   {isFiltersOpen && (
@@ -286,9 +273,7 @@ export default function ProjectListPage() {
                               setIsFiltersOpen(false)
                             }}
                             className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                              selectedFilter === option
-                                ? 'bg-muted text-foreground'
-                                : 'text-muted-foreground'
+                              selectedFilter === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                             }`}
                           >
                             {option}
@@ -301,7 +286,10 @@ export default function ProjectListPage() {
               </div>
 
               <div className="flex flex-1 justify-center">
-                <Button asChild className="bg-primary hover:bg-primary/90">
+                <Button
+                  asChild
+                  className="bg-primary hover:bg-primary/90"
+                >
                   <Link href="/project/submit">
                     <Plus className="mr-2 h-4 w-4" />
                     Submit Project
@@ -317,11 +305,7 @@ export default function ProjectListPage() {
                   className="flex items-center gap-2"
                 >
                   {selectedTrending}
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      isTrendingOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
                 </Button>
 
                 {isTrendingOpen && (
@@ -335,9 +319,7 @@ export default function ProjectListPage() {
                             setIsTrendingOpen(false)
                           }}
                           className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                            selectedTrending === option
-                              ? 'bg-muted text-foreground'
-                              : 'text-muted-foreground'
+                            selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                           }`}
                         >
                           {option}
@@ -353,7 +335,10 @@ export default function ProjectListPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {loading
                 ? Array.from({ length: 9 }).map((_, index) => (
-                    <div key={index} className="group my-4 cursor-pointer py-0">
+                    <div
+                      key={index}
+                      className="group my-4 cursor-pointer py-0"
+                    >
                       <div className="bg-muted relative mb-4 animate-pulse overflow-hidden rounded-lg">
                         <div className="bg-muted h-64 w-full"></div>
                       </div>
@@ -446,9 +431,7 @@ export default function ProjectListPage() {
             {/* No projects message */}
             {!loading && projects.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4 text-xl">
-                  Belum ada project dengan filter yang dipilih
-                </p>
+                <p className="text-muted-foreground mb-4 text-xl">Belum ada project dengan filter yang dipilih</p>
                 <Button asChild>
                   <Link href="/project/submit">
                     <Plus className="mr-2 h-4 w-4" />
@@ -462,8 +445,7 @@ export default function ProjectListPage() {
             {!loading && projects.length > 0 && (
               <div className="mt-8 text-center">
                 <p className="text-muted-foreground">
-                  Menampilkan {projects.length} project dari komunitas developer
-                  Indonesia
+                  Menampilkan {projects.length} project dari komunitas developer Indonesia
                 </p>
               </div>
             )}

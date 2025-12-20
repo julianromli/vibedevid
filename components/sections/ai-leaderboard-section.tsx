@@ -1,22 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, useInView } from 'motion/react'
-import {
-  type AIModel,
-  type LeaderboardResponse,
-  FALLBACK_DATA,
-  PROVIDER_COLORS,
-} from '@/lib/ai-leaderboard-data'
+import { useEffect, useRef, useState } from 'react'
+import { type AIModel, FALLBACK_DATA, type LeaderboardResponse, PROVIDER_COLORS } from '@/lib/ai-leaderboard-data'
 import { cn } from '@/lib/utils'
 
-function useCountAnimation(
-  end: number,
-  duration: number = 1000,
-  shouldStart: boolean = false
-) {
+function useCountAnimation(end: number, duration: number = 1000, shouldStart: boolean = false) {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
@@ -28,7 +19,7 @@ function useCountAnimation(
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp
       const progress = Math.min((timestamp - startTime) / duration, 1)
-      const easeOut = 1 - Math.pow(1 - progress, 3)
+      const easeOut = 1 - (1 - progress) ** 3
       setCount(Math.floor(easeOut * end))
 
       if (progress < 1) {
@@ -76,7 +67,7 @@ function LeaderboardBar({
         className={cn(
           'relative flex items-center gap-3 rounded-xl border p-3 transition-all duration-300 md:gap-4 md:p-4',
           'bg-card/50 hover:bg-card border-border/50 hover:border-border',
-          isLeader && 'border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10'
+          isLeader && 'border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10',
         )}
         style={{
           boxShadow: `0 0 0 0 ${color}00`,
@@ -92,16 +83,14 @@ function LeaderboardBar({
         <div
           className={cn(
             'flex size-8 shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold md:size-10 md:text-base',
-            isLeader
-              ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black'
-              : 'bg-muted text-muted-foreground'
+            isLeader ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black' : 'bg-muted text-muted-foreground',
           )}
         >
           {model.rank}
         </div>
 
         {/* Provider Logo */}
-        <div className="relative size-8 shrink-0 overflow-hidden rounded-lg bg-white p-1.5 dark:bg-zinc-800 md:size-10 md:p-2">
+        <div className="relative size-8 shrink-0 overflow-hidden rounded-lg bg-white p-1.5 md:size-10 md:p-2 dark:bg-zinc-800">
           <Image
             src={`/logos/ai-providers/${model.providerSlug}.svg`}
             alt={model.provider}
@@ -120,16 +109,12 @@ function LeaderboardBar({
         {/* Model Info & Bar */}
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex items-baseline gap-2 md:mb-2">
-            <span className="truncate text-sm font-semibold text-foreground md:text-base">
-              {model.name}
-            </span>
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {model.provider}
-            </span>
+            <span className="text-foreground truncate text-sm font-semibold md:text-base">{model.name}</span>
+            <span className="text-muted-foreground hidden text-xs sm:inline">{model.provider}</span>
           </div>
 
           {/* Progress Bar */}
-          <div className="relative h-6 w-full overflow-hidden rounded-full bg-muted/50 md:h-7">
+          <div className="bg-muted/50 relative h-6 w-full overflow-hidden rounded-full md:h-7">
             <motion.div
               initial={{ width: 0 }}
               animate={isInView ? { width: `${barWidth}%` } : { width: 0 }}
@@ -165,18 +150,14 @@ function LeaderboardBar({
           >
             {animatedScore}
           </span>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            score
-          </span>
+          <span className="text-muted-foreground text-[10px] tracking-wider uppercase">score</span>
         </div>
 
         {/* Hover Tooltip */}
-        <div className="pointer-events-none absolute -top-12 left-1/2 z-10 -translate-x-1/2 rounded-lg bg-popover px-3 py-1.5 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        <div className="bg-popover text-popover-foreground pointer-events-none absolute -top-12 left-1/2 z-10 -translate-x-1/2 rounded-lg px-3 py-1.5 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           <div className="font-medium">{model.name}</div>
-          <div className="text-muted-foreground">
-            LiveCodeBench + SciCode + Terminal-Bench
-          </div>
-          <div className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-popover" />
+          <div className="text-muted-foreground">LiveCodeBench + SciCode + Terminal-Bench</div>
+          <div className="bg-popover absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45" />
         </div>
       </motion.div>
     </motion.div>
@@ -223,7 +204,7 @@ export function AILeaderboardSection() {
   return (
     <section
       ref={sectionRef}
-      className="bg-gradient-to-b from-transparent via-muted/30 to-transparent py-16 md:py-24 lg:py-32"
+      className="via-muted/30 bg-gradient-to-b from-transparent to-transparent py-16 md:py-24 lg:py-32"
     >
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -233,55 +214,50 @@ export function AILeaderboardSection() {
           transition={{ duration: 0.6 }}
           className="mb-10 text-center md:mb-14"
         >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary">
+          <div className="border-primary/20 bg-primary/5 text-primary mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
             <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+              <span className="bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75" />
+              <span className="bg-primary relative inline-flex size-2 rounded-full" />
             </span>
             Live Rankings
           </div>
           <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
             Benchmark AI Coding Model 2025
           </h2>
-          <p className="mx-auto max-w-2xl text-base text-muted-foreground md:text-lg">
-            Ranking model AI untuk coding berdasarkan{' '}
-            <span className="font-medium text-foreground">LiveCodeBench</span>,{' '}
-            <span className="font-medium text-foreground">SciCode</span>, dan{' '}
-            <span className="font-medium text-foreground">
-              Terminal-Bench Hard
-            </span>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-base md:text-lg">
+            Ranking model AI untuk coding berdasarkan <span className="text-foreground font-medium">LiveCodeBench</span>
+            , <span className="text-foreground font-medium">SciCode</span>, dan{' '}
+            <span className="text-foreground font-medium">Terminal-Bench Hard</span>
           </p>
         </motion.div>
 
         {/* Leaderboard */}
         <div className="space-y-2 md:space-y-3">
-          {loading ? (
-            // Loading skeleton
-            Array.from({ length: 10 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex animate-pulse items-center gap-4 rounded-xl border border-border/50 bg-card/50 p-4"
-              >
-                <div className="size-10 rounded-lg bg-muted" />
-                <div className="size-10 rounded-lg bg-muted" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-1/3 rounded bg-muted" />
-                  <div className="h-7 w-full rounded-full bg-muted" />
+          {loading
+            ? // Loading skeleton
+              Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="border-border/50 bg-card/50 flex animate-pulse items-center gap-4 rounded-xl border p-4"
+                >
+                  <div className="bg-muted size-10 rounded-lg" />
+                  <div className="bg-muted size-10 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <div className="bg-muted h-4 w-1/3 rounded" />
+                    <div className="bg-muted h-7 w-full rounded-full" />
+                  </div>
+                  <div className="bg-muted h-8 w-12 rounded" />
                 </div>
-                <div className="h-8 w-12 rounded bg-muted" />
-              </div>
-            ))
-          ) : (
-            models.map((model, index) => (
-              <LeaderboardBar
-                key={model.name}
-                model={model}
-                maxScore={maxScore}
-                index={index}
-                isInView={isInView}
-              />
-            ))
-          )}
+              ))
+            : models.map((model, index) => (
+                <LeaderboardBar
+                  key={model.name}
+                  model={model}
+                  maxScore={maxScore}
+                  index={index}
+                  isInView={isInView}
+                />
+              ))}
         </div>
 
         {/* Attribution Footer */}
@@ -289,7 +265,7 @@ export function AILeaderboardSection() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4 sm:flex-row md:mt-10"
+          className="border-border/50 bg-card/30 mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 sm:flex-row md:mt-10"
         >
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600">
@@ -309,16 +285,14 @@ export function AILeaderboardSection() {
             </div>
             <div>
               <p className="text-sm font-medium">Data from Artificial Analysis</p>
-              <p className="text-xs text-muted-foreground">
-                Independent AI model benchmarking
-              </p>
+              <p className="text-muted-foreground text-xs">Independent AI model benchmarking</p>
             </div>
           </div>
           <Link
             href="https://artificialanalysis.ai/?intelligence=coding-index"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+            className="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             View Full Rankings
             <svg

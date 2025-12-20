@@ -1,25 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/ui/navbar'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import {
-  Shield,
-  Users,
-  FileText,
-  Lock,
-  AlertTriangle,
-  CheckCircle,
-  Globe,
-  Mail,
-  ArrowLeft,
-} from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Navbar } from '@/components/ui/navbar'
+import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
 
 export default function TermsPage() {
@@ -80,7 +70,11 @@ export default function TermsPage() {
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+    >
       <div className="bg-background min-h-screen">
         <Navbar
           showNavigation={true}
@@ -144,14 +138,12 @@ export default function TermsPage() {
                 </CardHeader>
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <p>
-                    Welcome to VibeDev ID ("we," "our," or "us"). By accessing
-                    or using our platform at any domain associated with VibeDev
-                    ID (the "Service"), you ("User" or "you") agree to be bound
-                    by these Terms and Conditions ("Terms").
+                    Welcome to VibeDev ID ("we," "our," or "us"). By accessing or using our platform at any domain
+                    associated with VibeDev ID (the "Service"), you ("User" or "you") agree to be bound by these Terms
+                    and Conditions ("Terms").
                   </p>
                   <p className="text-muted-foreground bg-accent/30 rounded-lg p-4 text-sm">
-                    <strong>Important:</strong> If you do not agree to these
-                    Terms, please do not use our Service.
+                    <strong>Important:</strong> If you do not agree to these Terms, please do not use our Service.
                   </p>
                 </CardContent>
               </Card>
@@ -166,9 +158,8 @@ export default function TermsPage() {
                 </CardHeader>
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <p>
-                    VibeDev ID is a community platform for Indonesian
-                    developers, AI enthusiasts, and tech innovators. Our Service
-                    allows users to:
+                    VibeDev ID is a community platform for Indonesian developers, AI enthusiasts, and tech innovators.
+                    Our Service allows users to:
                   </p>
                   <ul className="grid list-none grid-cols-1 gap-2 md:grid-cols-2">
                     <li className="flex items-center gap-2">
@@ -210,9 +201,7 @@ export default function TermsPage() {
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold">
-                        Account Creation
-                      </h4>
+                      <h4 className="mb-3 text-lg font-semibold">Account Creation</h4>
                       <ul>
                         <li>Provide accurate, current information</li>
                         <li>Maintain confidentiality of credentials</li>
@@ -221,9 +210,7 @@ export default function TermsPage() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold">
-                        Account Security
-                      </h4>
+                      <h4 className="mb-3 text-lg font-semibold">Account Security</h4>
                       <ul>
                         <li>Responsible for all account activities</li>
                         <li>Report unauthorized use immediately</li>
@@ -246,20 +233,30 @@ export default function TermsPage() {
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <div className="space-y-6">
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold text-green-600">
-                        ✅ Allowed Content
-                      </h4>
+                      <h4 className="mb-3 text-lg font-semibold text-green-600">✅ Allowed Content</h4>
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <Badge variant="outline" className="justify-center">
+                        <Badge
+                          variant="outline"
+                          className="justify-center"
+                        >
                           Project descriptions
                         </Badge>
-                        <Badge variant="outline" className="justify-center">
+                        <Badge
+                          variant="outline"
+                          className="justify-center"
+                        >
                           Code snippets
                         </Badge>
-                        <Badge variant="outline" className="justify-center">
+                        <Badge
+                          variant="outline"
+                          className="justify-center"
+                        >
                           Profile information
                         </Badge>
-                        <Badge variant="outline" className="justify-center">
+                        <Badge
+                          variant="outline"
+                          className="justify-center"
+                        >
                           Community discussions
                         </Badge>
                       </div>
@@ -268,9 +265,7 @@ export default function TermsPage() {
                     <Separator />
 
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold text-red-600">
-                        ❌ Prohibited Content
-                      </h4>
+                      <h4 className="mb-3 text-lg font-semibold text-red-600">❌ Prohibited Content</h4>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         {[
                           'Illegal or harmful content',
@@ -304,9 +299,7 @@ export default function TermsPage() {
                 </CardHeader>
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-6 dark:from-blue-900/20 dark:to-purple-900/20">
-                    <h4 className="mb-4 text-lg font-semibold">
-                      🤝 VibeDev Community Values
-                    </h4>
+                    <h4 className="mb-4 text-lg font-semibold">🤝 VibeDev Community Values</h4>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div className="space-y-3">
                         <div className="flex items-start gap-3">
@@ -322,9 +315,7 @@ export default function TermsPage() {
                           <CheckCircle className="mt-0.5 h-5 w-5 text-green-600" />
                           <div>
                             <strong>Constructive Feedback</strong>
-                            <p className="text-muted-foreground text-sm">
-                              Provide helpful and constructive criticism
-                            </p>
+                            <p className="text-muted-foreground text-sm">Provide helpful and constructive criticism</p>
                           </div>
                         </div>
                       </div>
@@ -342,9 +333,7 @@ export default function TermsPage() {
                           <CheckCircle className="mt-0.5 h-5 w-5 text-green-600" />
                           <div>
                             <strong>Knowledge Sharing</strong>
-                            <p className="text-muted-foreground text-sm">
-                              Share knowledge and help others learn
-                            </p>
+                            <p className="text-muted-foreground text-sm">Share knowledge and help others learn</p>
                           </div>
                         </div>
                       </div>
@@ -425,7 +414,10 @@ export default function TermsPage() {
                         'Reverse engineer our platform',
                         'Distribute malicious content',
                       ].map((item, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                        <div
+                          key={index}
+                          className="flex items-center gap-2"
+                        >
                           <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
                           <span className="text-sm">{item}</span>
                         </div>
@@ -448,16 +440,14 @@ export default function TermsPage() {
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">By You</h4>
                       <p>
-                        You may terminate your account at any time. Termination
-                        does not relieve you of obligations incurred before
-                        termination.
+                        You may terminate your account at any time. Termination does not relieve you of obligations
+                        incurred before termination.
                       </p>
                     </div>
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">By Us</h4>
                       <p>
-                        We may terminate accounts for Terms violations,
-                        prohibited conduct, security risks, or extended
+                        We may terminate accounts for Terms violations, prohibited conduct, security risks, or extended
                         inactivity.
                       </p>
                     </div>
@@ -476,13 +466,10 @@ export default function TermsPage() {
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold">
-                        Governing Law
-                      </h4>
+                      <h4 className="mb-3 text-lg font-semibold">Governing Law</h4>
                       <p>
-                        These Terms are governed by the laws of the Republic of
-                        Indonesia. Disputes should be resolved through
-                        Indonesian courts.
+                        These Terms are governed by the laws of the Republic of Indonesia. Disputes should be resolved
+                        through Indonesian courts.
                       </p>
                     </div>
                     <div>
@@ -513,14 +500,10 @@ export default function TermsPage() {
               {/* Indonesian Summary */}
               <Card className="border-primary/20 from-primary/5 to-primary/10 bg-gradient-to-r">
                 <CardHeader>
-                  <CardTitle className="text-center">
-                    🇮🇩 Ringkasan Bahasa Indonesia
-                  </CardTitle>
+                  <CardTitle className="text-center">🇮🇩 Ringkasan Bahasa Indonesia</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="mb-4 text-lg">
-                    Dengan menggunakan platform VibeDev ID, Anda setuju untuk:
-                  </p>
+                  <p className="mb-4 text-lg">Dengan menggunakan platform VibeDev ID, Anda setuju untuk:</p>
                   <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-2">
                     <div className="space-y-2">
                       <p className="flex items-center gap-2">
@@ -550,13 +533,10 @@ export default function TermsPage() {
               <Card className="border-primary border-2">
                 <CardContent className="py-8 text-center">
                   <h3 className="mb-4 text-xl font-bold">
-                    By using VibeDev ID, you acknowledge that you have read,
-                    understood, and agree to be bound by these Terms and
-                    Conditions.
+                    By using VibeDev ID, you acknowledge that you have read, understood, and agree to be bound by these
+                    Terms and Conditions.
                   </h3>
-                  <p className="text-muted-foreground">
-                    Last updated: September 2025 • Effective: January 2025
-                  </p>
+                  <p className="text-muted-foreground">Last updated: September 2025 • Effective: January 2025</p>
                 </CardContent>
               </Card>
             </div>

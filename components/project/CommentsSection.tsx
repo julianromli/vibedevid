@@ -1,11 +1,11 @@
 'use client'
 
+import { Loader2, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { MessageCircle, Loader2 } from 'lucide-react'
 import { addComment, getComments } from '@/lib/actions'
 
 interface Comment {
@@ -25,23 +25,14 @@ interface CommentsSectionProps {
   currentUser: any
 }
 
-export function CommentsSection({
-  projectSlug,
-  initialComments,
-  isLoggedIn,
-  currentUser,
-}: CommentsSectionProps) {
+export function CommentsSection({ projectSlug, initialComments, isLoggedIn, currentUser }: CommentsSectionProps) {
   const [comments, setComments] = useState(initialComments)
   const [newComment, setNewComment] = useState('')
   const [guestName, setGuestName] = useState('')
   const [addingComment, setAddingComment] = useState(false)
 
   const handleAddComment = async () => {
-    if (
-      !newComment.trim() ||
-      (!isLoggedIn && !guestName.trim()) ||
-      !projectSlug
-    ) {
+    if (!newComment.trim() || (!isLoggedIn && !guestName.trim()) || !projectSlug) {
       return
     }
 
@@ -110,11 +101,7 @@ export function CommentsSection({
             <div className="flex justify-end">
               <Button
                 onClick={handleAddComment}
-                disabled={
-                  !newComment.trim() ||
-                  (!isLoggedIn && !guestName.trim()) ||
-                  addingComment
-                }
+                disabled={!newComment.trim() || (!isLoggedIn && !guestName.trim()) || addingComment}
               >
                 {addingComment ? (
                   <>
@@ -135,9 +122,7 @@ export function CommentsSection({
         {comments.length === 0 ? (
           <div className="py-8 text-center">
             <MessageCircle className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-            <p className="text-muted-foreground">
-              No comments yet. Be the first to share your thoughts!
-            </p>
+            <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
           </div>
         ) : (
           comments.map((comment) => (
@@ -159,13 +144,9 @@ export function CommentsSection({
                         className="text-sm font-medium"
                       />
                       {comment.isGuest && (
-                        <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">
-                          Guest
-                        </span>
+                        <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">Guest</span>
                       )}
-                      <span className="text-muted-foreground text-xs">
-                        {comment.timestamp}
-                      </span>
+                      <span className="text-muted-foreground text-xs">{comment.timestamp}</span>
                     </div>
                     <p className="text-muted-foreground">{comment.content}</p>
                   </div>

@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 // Test configuration
 const TEST_URL = 'http://localhost:3000'
@@ -44,35 +44,23 @@ async function getProjectStats(page: Page) {
   }
 
   // Get Total Views
-  const totalViewsElement = await page
-    .locator('span:has-text("Total Views") + span')
-    .textContent()
+  const totalViewsElement = await page.locator('span:has-text("Total Views") + span').textContent()
   stats.totalViews = parseInt(totalViewsElement?.replace(/,/g, '') || '0')
 
   // Get Unique Visitors
-  const uniqueVisitorsElement = await page
-    .locator('span:has-text("Unique Visitors") + span')
-    .textContent()
-  stats.uniqueVisitors = parseInt(
-    uniqueVisitorsElement?.replace(/,/g, '') || '0',
-  )
+  const uniqueVisitorsElement = await page.locator('span:has-text("Unique Visitors") + span').textContent()
+  stats.uniqueVisitors = parseInt(uniqueVisitorsElement?.replace(/,/g, '') || '0')
 
   // Get Today's Views
-  const todayViewsElement = await page
-    .locator('span:has-text("Today\'s Views") + span')
-    .textContent()
+  const todayViewsElement = await page.locator('span:has-text("Today\'s Views") + span').textContent()
   stats.todayViews = parseInt(todayViewsElement?.replace(/,/g, '') || '0')
 
   // Get Likes
-  const likesElement = await page
-    .locator('span:has-text("Likes") + span')
-    .textContent()
+  const likesElement = await page.locator('span:has-text("Likes") + span').textContent()
   stats.likes = parseInt(likesElement?.replace(/,/g, '') || '0')
 
   // Get Comments
-  const commentsElement = await page
-    .locator('span:has-text("Comments") + span')
-    .textContent()
+  const commentsElement = await page.locator('span:has-text("Comments") + span').textContent()
   stats.comments = parseInt(commentsElement?.replace(/,/g, '') || '0')
 
   return stats
@@ -92,10 +80,7 @@ test.describe('Views Tracking Feature', () => {
     await page.goto(TEST_URL)
 
     // Tunggu project cards muncul
-    await page.waitForSelector(
-      '[data-testid="project-card"], a[href^="/project/"]',
-      { timeout: 10000 },
-    )
+    await page.waitForSelector('[data-testid="project-card"], a[href^="/project/"]', { timeout: 10000 })
 
     // Get first project link
     const firstProjectLink = await page.locator('a[href^="/project/"]').first()
@@ -167,9 +152,7 @@ test.describe('Views Tracking Feature', () => {
     expect(secondVisitStats.todayViews).toBe(firstVisitStats.todayViews)
   })
 
-  test('should track new unique visitor in different session', async ({
-    browser,
-  }) => {
+  test('should track new unique visitor in different session', async ({ browser }) => {
     // Step 1: First session - login and visit
     const context1 = await browser.newContext()
     const page1 = await context1.newPage()
@@ -209,9 +192,7 @@ test.describe('Views Tracking Feature', () => {
 
     // Step 3: Verify new unique visitor tracked
     expect(session2Stats.totalViews).toBeGreaterThan(session1Stats.totalViews)
-    expect(session2Stats.uniqueVisitors).toBeGreaterThan(
-      session1Stats.uniqueVisitors,
-    )
+    expect(session2Stats.uniqueVisitors).toBeGreaterThan(session1Stats.uniqueVisitors)
 
     await context2.close()
   })
@@ -225,10 +206,7 @@ test.describe('Views Tracking Feature', () => {
 
     // Fill form
     await page.fill('input[name="title"]', `Test Views Project ${Date.now()}`)
-    await page.fill(
-      'textarea[name="tagline"]',
-      'Testing views tracking feature',
-    )
+    await page.fill('textarea[name="tagline"]', 'Testing views tracking feature')
     await page.fill(
       'textarea[name="description"]',
       'This is a test project to verify views tracking is working properly',

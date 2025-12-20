@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { SubmitProjectForm } from '@/components/ui/submit-project-form'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function SubmitProjectPage() {
   const supabase = await createClient()
@@ -19,9 +19,7 @@ export default async function SubmitProjectPage() {
         <div className="mx-auto max-w-2xl">
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold">Submit Your Project</h1>
-            <p className="text-muted-foreground">
-              Share your amazing project with the VibeDev community
-            </p>
+            <p className="text-muted-foreground">Share your amazing project with the VibeDev community</p>
           </div>
 
           <SubmitProjectForm userId={data.user.id} />

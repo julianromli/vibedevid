@@ -1,37 +1,28 @@
 // Server Component - No 'use client' directive!
-import { notFound, redirect } from 'next/navigation'
+
+import { Calendar, ExternalLink, Globe, Tag, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  Globe,
-  Tag,
-  Calendar,
-  User,
-  ExternalLink,
-} from 'lucide-react'
+import { notFound, redirect } from 'next/navigation'
+import { CommentsSection } from '@/components/project/CommentsSection'
+import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
+import { ProjectEditClient } from '@/components/project/ProjectEditClient'
+import { ShareButton } from '@/components/project/ShareButton'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
-import { getProjectBySlug, getComments } from '@/lib/actions'
+import { UserDisplayName } from '@/components/ui/user-display-name'
+import { getComments, getProjectBySlug } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
-import { getCurrentUser, checkProjectOwnership } from '@/lib/server/auth'
-import { isUUID, getProjectByUUID } from '@/lib/server/utils'
-import { ProjectEditClient } from '@/components/project/ProjectEditClient'
-import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
-import { CommentsSection } from '@/components/project/CommentsSection'
-import { ShareButton } from '@/components/project/ShareButton'
+import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
+import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
 // Server Component - async function
-export default async function ProjectDetailsPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   // Handle legacy UUID redirect on server
@@ -44,13 +35,12 @@ export default async function ProjectDetailsPage({
   }
 
   // Parallel data fetching on server
-  const [currentUser, { project, error: projectError }, { comments }, categories] =
-    await Promise.all([
-      getCurrentUser(),
-      getProjectBySlug(slug),
-      getComments(slug),
-      getCategories(),
-    ])
+  const [currentUser, { project, error: projectError }, { comments }, categories] = await Promise.all([
+    getCurrentUser(),
+    getProjectBySlug(slug),
+    getComments(slug),
+    getCategories(),
+  ])
 
   // Handle errors with Next.js notFound()
   if (projectError || !project) {
@@ -58,9 +48,7 @@ export default async function ProjectDetailsPage({
   }
 
   // Check ownership on server
-  const isOwner = currentUser
-    ? await checkProjectOwnership(project.author.username, currentUser.id)
-    : false
+  const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
 
   return (
     <div className="bg-grid-pattern relative min-h-screen">
@@ -96,9 +84,7 @@ export default async function ProjectDetailsPage({
             <div className="space-y-6">
               {/* Header Info */}
               <div className="flex items-center gap-2">
-                <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs">
-                  {project.category}
-                </span>
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs">{project.category}</span>
                 <span className="text-muted-foreground flex items-center gap-1 text-sm">
                   <Calendar className="h-3 w-3" />
                   {new Date(project.createdAt).toLocaleDateString()}
@@ -118,13 +104,9 @@ export default async function ProjectDetailsPage({
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-foreground mb-1 text-3xl leading-tight font-bold">
-                      {project.title}
-                    </h1>
+                    <h1 className="text-foreground mb-1 text-3xl leading-tight font-bold">{project.title}</h1>
                     {project.tagline && (
-                      <p className="text-muted-foreground text-lg leading-relaxed">
-                        {project.tagline}
-                      </p>
+                      <p className="text-muted-foreground text-lg leading-relaxed">{project.tagline}</p>
                     )}
                   </div>
                 </div>
@@ -141,9 +123,7 @@ export default async function ProjectDetailsPage({
 
               {/* Description */}
               <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <p className="text-muted-foreground text-base leading-relaxed">
-                  {project.description}
-                </p>
+                <p className="text-muted-foreground text-base leading-relaxed">{project.description}</p>
               </div>
 
               {/* Tech Stack Tags */}
@@ -170,12 +150,14 @@ export default async function ProjectDetailsPage({
                         <Globe className="text-muted-foreground h-5 w-5" />
                         <div>
                           <p className="font-medium">Live Project</p>
-                          <p className="text-muted-foreground text-sm">
-                            {project.url}
-                          </p>
+                          <p className="text-muted-foreground text-sm">{project.url}</p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
                         <a
                           href={project.url}
                           target="_blank"
@@ -231,16 +213,17 @@ export default async function ProjectDetailsPage({
                         role={project.author.role}
                       />
                     </h3>
-                    <p className="text-muted-foreground text-sm">
-                      {project.author.bio}
-                    </p>
+                    <p className="text-muted-foreground text-sm">{project.author.bio}</p>
                     <p className="text-muted-foreground mt-1 flex items-center justify-center gap-1 text-xs">
                       <User className="h-3 w-3" />
                       {project.author.location}
                     </p>
                   </div>
                   <Link href={`/${project.author.username}`}>
-                    <Button variant="outline" className="w-full bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full bg-transparent"
+                    >
                       View Profile
                     </Button>
                   </Link>
@@ -255,17 +238,11 @@ export default async function ProjectDetailsPage({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Total Views</span>
-                    <span className="font-medium">
-                      {project.views.toLocaleString()}
-                    </span>
+                    <span className="font-medium">{project.views.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">
-                      Unique Visitors
-                    </span>
-                    <span className="font-medium">
-                      {project.uniqueViews.toLocaleString()}
-                    </span>
+                    <span className="text-muted-foreground">Unique Visitors</span>
+                    <span className="font-medium">{project.uniqueViews.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Today's Views</span>

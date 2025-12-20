@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { Heart } from 'lucide-react'
+import * as React from 'react'
 
 export interface HeartButtonDisplayProps {
   likes: number
@@ -9,21 +9,13 @@ export interface HeartButtonDisplayProps {
   className?: string
 }
 
-export function HeartButtonDisplay({
-  likes = 0,
-  variant = 'default',
-  className = '',
-}: HeartButtonDisplayProps) {
+export function HeartButtonDisplay({ likes = 0, variant = 'default', className = '' }: HeartButtonDisplayProps) {
   // Display-only component, no interaction states
   const isPrimary = variant === 'primary'
 
-  const containerClasses = isPrimary
-    ? `flex items-center gap-2 ${className}`
-    : `flex items-center gap-1 ${className}`
+  const containerClasses = isPrimary ? `flex items-center gap-2 ${className}` : `flex items-center gap-1 ${className}`
 
-  const heartClasses = isPrimary
-    ? 'h-5 w-5 text-muted-foreground'
-    : 'h-4 w-4 text-muted-foreground'
+  const heartClasses = isPrimary ? 'h-5 w-5 text-muted-foreground' : 'h-4 w-4 text-muted-foreground'
 
   const textClasses = isPrimary
     ? 'text-sm font-semibold text-muted-foreground'

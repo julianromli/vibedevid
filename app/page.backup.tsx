@@ -1,18 +1,15 @@
 'use client'
 
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { ArrowRight, ChevronDown, Code, ExternalLink, Globe, Minus, Plus, Smartphone } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Script from 'next/script'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
-import { Navbar } from '@/components/ui/navbar'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { ProgressiveImage } from '@/components/ui/progressive-image'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
-import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
-import { cn } from '@/lib/utils'
-import { getCategories, getCategoryDisplayName } from '@/lib/categories'
 import {
   Drawer,
   DrawerClose,
@@ -23,22 +20,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
-import {
-  ChevronDown,
-  Code,
-  Smartphone,
-  Globe,
-  ArrowRight,
-  Plus,
-  Minus,
-  ExternalLink,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { signOut, fetchProjectsWithSorting } from '@/lib/actions'
-import Image from 'next/image'
 import { Footer } from '@/components/ui/footer'
+import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
+import { Navbar } from '@/components/ui/navbar'
+import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
+import { ProgressiveImage } from '@/components/ui/progressive-image'
+import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
+import { fetchProjectsWithSorting, signOut } from '@/lib/actions'
+import { getCategories, getCategoryDisplayName } from '@/lib/categories'
+import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 
 // Advanced Lazy Loading untuk Mobile Performance Optimization
 const TestimonialsColumns = lazy(() =>
@@ -46,15 +37,14 @@ const TestimonialsColumns = lazy(() =>
     default: module.TestimonialsColumns,
   })),
 )
+
 import { AnimatedTooltip } from '@/components/ui/animated-tooltip'
 
 // Lazy load Safari component yang heavy untuk LCP improvement
 const SafariLazy = lazy(() => Promise.resolve({ default: Safari }))
 
 // Lazy load IntegrationCard dengan delay untuk non-critical sections
-const IntegrationCardLazy = lazy(() =>
-  Promise.resolve({ default: IntegrationCard }),
-)
+const IntegrationCardLazy = lazy(() => Promise.resolve({ default: IntegrationCard }))
 
 // Performance-optimized loading skeleton untuk mobile
 const MobileOptimizedSkeleton = () => (
@@ -64,13 +54,7 @@ const MobileOptimizedSkeleton = () => (
   </div>
 )
 
-const Safari = ({
-  children,
-  url = 'vibedevid.com',
-}: {
-  children: React.ReactNode
-  url?: string
-}) => {
+const Safari = ({ children, url = 'vibedevid.com' }: { children: React.ReactNode; url?: string }) => {
   return (
     <div className="relative w-full overflow-hidden rounded-xl bg-gray-100 shadow-2xl">
       {/* Browser Chrome */}
@@ -117,9 +101,7 @@ const IntegrationCard = ({
 
         <div className="space-y-2 py-6">
           <h3 className="text-base font-medium">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm">
-            {description}
-          </p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">{description}</p>
         </div>
 
         <div className="flex gap-3 border-t border-dashed pt-6">
@@ -129,7 +111,11 @@ const IntegrationCard = ({
             size="sm"
             className="gap-1 pr-2 shadow-none"
           >
-            <Link href={link} target="_blank" rel="noopener noreferrer">
+            <Link
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Learn More
               <ExternalLink className="ml-0 !size-3.5 opacity-50" />
             </Link>
@@ -220,10 +206,7 @@ export default function HomePage() {
 
         const sessionPromise = supabase.auth.getSession()
 
-        const result = (await Promise.race([
-          sessionPromise,
-          timeoutPromise,
-        ])) as { data: { session: any }; error?: any }
+        const result = (await Promise.race([sessionPromise, timeoutPromise])) as { data: { session: any }; error?: any }
         const {
           data: { session },
         } = result
@@ -237,11 +220,7 @@ export default function HomePage() {
           setIsLoggedIn(true)
 
           // Get user profile from database
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
           if (!isMounted) return
 
@@ -258,9 +237,7 @@ export default function HomePage() {
             setUser(userData)
           } else {
             if (creatingProfile) {
-              console.log(
-                '[v0] Profile creation already in progress, skipping...',
-              )
+              console.log('[v0] Profile creation already in progress, skipping...')
               return
             }
 
@@ -269,19 +246,13 @@ export default function HomePage() {
 
             const newProfile = {
               id: session.user.id,
-              display_name:
-                session.user.user_metadata?.full_name ||
-                session.user.email?.split('@')[0] ||
-                'User',
+              display_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
               username:
                 session.user.email
                   ?.split('@')[0]
                   ?.toLowerCase()
-                  .replace(/[^a-z0-9]/g, '') ||
-                `user${Math.floor(Math.random() * 999999)}`,
-              avatar_url:
-                session.user.user_metadata?.avatar_url ||
-                '/vibedev-guest-avatar.png',
+                  .replace(/[^a-z0-9]/g, '') || `user${Math.floor(Math.random() * 999999)}`,
+              avatar_url: session.user.user_metadata?.avatar_url || '/vibedev-guest-avatar.png',
               bio: '',
               location: '',
               website: '',
@@ -293,12 +264,11 @@ export default function HomePage() {
             console.log('[v0] Attempting to insert new profile:', newProfile)
 
             try {
-              const { data: createdProfile, error: insertError } =
-                await supabase
-                  .from('users')
-                  .upsert(newProfile, { onConflict: 'id' })
-                  .select()
-                  .single()
+              const { data: createdProfile, error: insertError } = await supabase
+                .from('users')
+                .upsert(newProfile, { onConflict: 'id' })
+                .select()
+                .single()
 
               if (!isMounted) return
 
@@ -314,10 +284,7 @@ export default function HomePage() {
                 return
               }
 
-              console.log(
-                '[v0] Successfully created user profile:',
-                createdProfile,
-              )
+              console.log('[v0] Successfully created user profile:', createdProfile)
 
               const userData = {
                 name: newProfile.display_name,
@@ -410,22 +377,18 @@ export default function HomePage() {
         }
 
         // Fetch projects with new sorting function
-        const { projects: fetchedProjects, error } =
-          await fetchProjectsWithSorting(
-            sortBy,
-            selectedFilter === 'All' ? undefined : selectedFilter,
-            20, // limit
-          )
+        const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
+          sortBy,
+          selectedFilter === 'All' ? undefined : selectedFilter,
+          20, // limit
+        )
 
         if (error) {
           console.error('[v0] Error fetching projects:', error)
           return
         }
 
-        console.log(
-          '[v0] Projects fetched with sorting:',
-          fetchedProjects.length,
-        )
+        console.log('[v0] Projects fetched with sorting:', fetchedProjects.length)
         setProjects(fetchedProjects || [])
       } catch (error) {
         console.error('[v0] Error fetching projects:', error)
@@ -499,127 +462,109 @@ export default function HomePage() {
       id: 1,
       name: 'React',
       designation: '18.3',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
     },
     {
       id: 2,
       name: 'Next.js',
       designation: '15.3',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
     },
     {
       id: 3,
       name: 'Vue.js',
       designation: '3.4',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
     },
     {
       id: 4,
       name: 'Angular',
       designation: '18.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
     },
     {
       id: 5,
       name: 'Svelte',
       designation: '5.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg',
     },
     {
       id: 6,
       name: 'Tailwind CSS',
       designation: '4.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg',
     },
     {
       id: 7,
       name: 'TypeScript',
       designation: '5.6',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
     },
     {
       id: 8,
       name: 'Node.js',
       designation: '22.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
     },
     {
       id: 9,
       name: 'Express.js',
       designation: '4.19',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
     },
     {
       id: 10,
       name: 'MongoDB',
       designation: '7.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
     },
     {
       id: 11,
       name: 'PostgreSQL',
       designation: '16.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
     },
     {
       id: 12,
       name: 'Docker',
       designation: '25.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
     },
     {
       id: 13,
       name: 'AWS',
       designation: 'Cloud',
-      image:
-        'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
     },
     {
       id: 14,
       name: 'Firebase',
       designation: '10.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg',
     },
     {
       id: 15,
       name: 'Vite',
       designation: '5.0',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg',
     },
     {
       id: 16,
       name: 'Figma',
       designation: 'Design',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
     },
     {
       id: 17,
       name: 'Vercel',
       designation: 'Deploy',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg',
     },
     {
       id: 18,
       name: 'Git',
       designation: '2.45',
-      image:
-        'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
+      image: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
     },
   ]
 
@@ -728,10 +673,7 @@ export default function HomePage() {
             '@context': 'https://schema.org',
             '@type': 'Organization',
             name: 'VibeDev ID',
-            alternateName: [
-              'Komunitas Vibe Coding Indonesia',
-              'VibeDev Indonesia',
-            ],
+            alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
             url: 'https://vibedevid.com',
             logo: 'https://vibedevid.com/vibedev-logo.png',
             description:
@@ -823,9 +765,7 @@ export default function HomePage() {
                   >
                     VibeCoding Hackathon 2025 by vibecoding.id
                   </span>
-                  <span className="ml-2 font-semibold text-orange-500">
-                    Hadiah 5 JUTA RUPIAH
-                  </span>
+                  <span className="ml-2 font-semibold text-orange-500">Hadiah 5 JUTA RUPIAH</span>
                 </AnimatedGradientText>
               </Link>
 
@@ -860,15 +800,12 @@ export default function HomePage() {
               </h1>
 
               <p
-                className={`text-muted-foreground mx-auto max-w-lg text-xl leading-relaxed transition-all duration-700 ease-out text-center ${
-                  subtitleVisible
-                    ? 'blur-0 translate-y-0 opacity-100'
-                    : 'translate-y-8 opacity-0 blur-sm'
+                className={`text-muted-foreground mx-auto max-w-lg text-center text-xl leading-relaxed transition-all duration-700 ease-out ${
+                  subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm'
                 }`}
               >
-                Komunitas vibe coding Indonesia buat lo yang pengen naik level,
-                belajar coding pake AI, kolaborasi project open source, dan
-                sharing session tiap minggunya.
+                Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi
+                project open source, dan sharing session tiap minggunya.
               </p>
 
               <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
@@ -947,24 +884,24 @@ export default function HomePage() {
         {/* Trust Indicators */}
         <div className="mt-0">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden">
-              {/* Framework logos moved above Safari mockup */}
-            </div>
+            <div className="relative overflow-hidden">{/* Framework logos moved above Safari mockup */}</div>
           </div>
         </div>
       </section>
 
       {/* Project Showcase Section */}
-      <section className="bg-muted/20 py-12" id="projects">
+      <section
+        className="bg-muted/20 py-12"
+        id="projects"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
               Showcase Project Developer Indonesia
             </h2>
             <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-              Temukan project keren yang dibuat oleh komunitas vibe coder
-              Indonesia. Dari AI tools sampai open source projects, semua karya
-              developer terbaik ada di sini.
+              Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source
+              projects, semua karya developer terbaik ada di sini.
             </p>
           </div>
 
@@ -979,11 +916,7 @@ export default function HomePage() {
                   className="flex items-center gap-2"
                 >
                   Filter
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      isFiltersOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                 </Button>
 
                 {isFiltersOpen && (
@@ -997,9 +930,7 @@ export default function HomePage() {
                             setIsFiltersOpen(false)
                           }}
                           className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                            selectedFilter === option
-                              ? 'bg-muted text-foreground'
-                              : 'text-muted-foreground'
+                            selectedFilter === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                           }`}
                         >
                           {option}
@@ -1012,7 +943,10 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-1 justify-center">
-              <Button asChild className="bg-primary hover:bg-primary/90">
+              <Button
+                asChild
+                className="bg-primary hover:bg-primary/90"
+              >
                 <Link href="/project/submit">
                   <Plus className="mr-2 h-4 w-4" />
                   Submit Project
@@ -1028,11 +962,7 @@ export default function HomePage() {
                 className="flex items-center gap-2"
               >
                 {selectedTrending}
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    isTrendingOpen ? 'rotate-180' : ''
-                  }`}
-                />
+                <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
               </Button>
 
               {isTrendingOpen && (
@@ -1046,9 +976,7 @@ export default function HomePage() {
                           setIsTrendingOpen(false)
                         }}
                         className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                          selectedTrending === option
-                            ? 'bg-muted text-foreground'
-                            : 'text-muted-foreground'
+                          selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                         }`}
                       >
                         {option}
@@ -1064,7 +992,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {loading
               ? Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="group my-4 cursor-pointer py-0">
+                  <div
+                    key={index}
+                    className="group my-4 cursor-pointer py-0"
+                  >
                     <div className="bg-muted relative mb-4 animate-pulse overflow-hidden rounded-lg">
                       <div className="bg-muted h-64 w-full"></div>
                     </div>
@@ -1135,9 +1066,7 @@ export default function HomePage() {
                               className="ring-muted ring-2"
                               showSkeleton={false}
                             />
-                            <span className="text-muted-foreground text-sm font-medium">
-                              {project.author.name}
-                            </span>
+                            <span className="text-muted-foreground text-sm font-medium">{project.author.name}</span>
                           </div>
                         </div>
                         <div className="relative z-20">
@@ -1175,16 +1104,19 @@ export default function HomePage() {
       </section>
 
       {/* AI Coding Tools Integration Section */}
-      <section id="integrations" className="py-20" data-animate>
+      <section
+        id="integrations"
+        className="py-20"
+        data-animate
+      >
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-12 text-center">
             <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
               AI untuk Coding & Development Tools
             </h2>
             <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-              Explore tools AI terbaru untuk coding pake AI yang lebih efisien.
-              Integrasikan AI coding agents favorit untuk workflow development
-              yang next-level.
+              Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit
+              untuk workflow development yang next-level.
             </p>
           </div>
 
@@ -1289,15 +1221,16 @@ export default function HomePage() {
       </section>
 
       {/* Reviews Section */}
-      <section id="reviews" className="bg-muted/20 py-20" data-animate>
+      <section
+        id="reviews"
+        className="bg-muted/20 py-20"
+        data-animate
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-              Review Member Komunitas Vibe Coding
-            </h2>
+            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">Review Member Komunitas Vibe Coding</h2>
             <p className="text-muted-foreground text-xl">
-              Testimoni asli dari developer Indonesia yang udah join komunitas
-              kami
+              Testimoni asli dari developer Indonesia yang udah join komunitas kami
             </p>
           </div>
 
@@ -1345,15 +1278,16 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20" data-animate>
+      <section
+        id="faq"
+        className="py-20"
+        data-animate
+      >
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-              FAQ Komunitas Vibe Coding Indonesia
-            </h2>
+            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">FAQ Komunitas Vibe Coding Indonesia</h2>
             <p className="text-muted-foreground text-xl">
-              Semua yang perlu lo tau tentang gabung di komunitas vibe coder
-              Indonesia terbesar
+              Semua yang perlu lo tau tentang gabung di komunitas vibe coder Indonesia terbesar
             </p>
           </div>
 
@@ -1362,9 +1296,7 @@ export default function HomePage() {
               <Card
                 key={index}
                 className={`cursor-pointer transition-all duration-700 hover:shadow-md ${
-                  isVisible.faq
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-8 opacity-0'
+                  isVisible.faq ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
                 onClick={() => toggleFAQ(index)}
@@ -1383,14 +1315,10 @@ export default function HomePage() {
 
                   <div
                     className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                      openFAQ === index
-                        ? 'mt-4 max-h-96 opacity-100'
-                        : 'max-h-0 opacity-0'
+                      openFAQ === index ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <p className="text-muted-foreground text-left leading-relaxed">
-                      {faq.answer}
-                    </p>
+                    <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -1486,8 +1414,8 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">
-              Join sekarang dan nikmatin vibe coding terbaik bareng developer
-              Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!
+              Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan
+              penuh kolaborasi!
             </p>
           </div>
 

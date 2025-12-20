@@ -13,11 +13,7 @@ interface CTASectionProps {
   handleJoinWithUs: () => void
 }
 
-export function CTASection({
-  currentTime,
-  isMounted,
-  handleJoinWithUs,
-}: CTASectionProps) {
+export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASectionProps) {
   return (
     <section
       className="bg-muted text-foreground relative overflow-hidden py-32"
@@ -105,8 +101,8 @@ export function CTASection({
             </span>
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">
-            Join sekarang dan nikmatin vibe coding terbaik bareng developer
-            Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!
+            Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan
+            penuh kolaborasi!
           </p>
         </div>
 

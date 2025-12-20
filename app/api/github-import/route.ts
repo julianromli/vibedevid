@@ -37,10 +37,7 @@ function parseRepoUrl(input: string): { owner: string; repo: string } | null {
   return null
 }
 
-function pick<T extends object, K extends keyof T>(
-  obj: T,
-  keys: K[],
-): Pick<T, K> {
+function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
   const out = {} as Pick<T, K>
   for (const k of keys) out[k] = obj[k]
   return out
@@ -66,10 +63,7 @@ export async function POST(req: Request) {
     const { repoUrl } = await req.json()
     const parsed = parseRepoUrl(String(repoUrl || ''))
     if (!parsed) {
-      return NextResponse.json(
-        { error: 'Invalid GitHub repository URL' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Invalid GitHub repository URL' }, { status: 400 })
     }
 
     const { owner, repo } = parsed
@@ -79,37 +73,21 @@ export async function POST(req: Request) {
     const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
     if (token) headers['Authorization'] = `Bearer ${token}`
 
-    const repoRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}`,
-      { headers },
-    )
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers })
     if (!repoRes.ok) {
-      const msg =
-        repoRes.status === 404
-          ? 'Repository not found'
-          : 'Failed to fetch repository'
+      const msg = repoRes.status === 404 ? 'Repository not found' : 'Failed to fetch repository'
       return NextResponse.json({ error: msg }, { status: repoRes.status })
     }
     const repoData = (await repoRes.json()) as GitHubRepo
 
-    const topicsRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/topics`,
-      { headers: { ...headers, Accept: 'application/vnd.github+json' } },
-    )
-    const topicsJson = topicsRes.ok
-      ? await topicsRes.json()
-      : { names: [] as string[] }
-    const topics: string[] = Array.isArray(topicsJson.names)
-      ? topicsJson.names
-      : []
+    const topicsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/topics`, {
+      headers: { ...headers, Accept: 'application/vnd.github+json' },
+    })
+    const topicsJson = topicsRes.ok ? await topicsRes.json() : { names: [] as string[] }
+    const topics: string[] = Array.isArray(topicsJson.names) ? topicsJson.names : []
 
-    const langsRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/languages`,
-      { headers },
-    )
-    const langsJson = langsRes.ok
-      ? await langsRes.json()
-      : ({} as Record<string, number>)
+    const langsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/languages`, { headers })
+    const langsJson = langsRes.ok ? await langsRes.json() : ({} as Record<string, number>)
     const languages = Object.keys(langsJson || {})
 
     // Try to fetch README (raw markdown) to generate a better description
@@ -118,16 +96,13 @@ export async function POST(req: Request) {
       tagline?: string
     }> {
       try {
-        const readmeRes = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/readme`,
-          {
-            headers: {
-              ...headers,
-              // Ask for raw content
-              Accept: 'application/vnd.github.v3.raw',
-            },
+        const readmeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+          headers: {
+            ...headers,
+            // Ask for raw content
+            Accept: 'application/vnd.github.v3.raw',
           },
-        )
+        })
         if (!readmeRes.ok) return {}
         const md = await readmeRes.text()
 
@@ -162,9 +137,7 @@ export async function POST(req: Request) {
         // Build description and tagline from the first meaningful paragraph
         const description = best.slice(0, 1600)
         const sentenceEnd =
-          description.indexOf('.') !== -1
-            ? description.indexOf('.') + 1
-            : Math.min(100, description.length)
+          description.indexOf('.') !== -1 ? description.indexOf('.') + 1 : Math.min(100, description.length)
         const tagline = description.slice(0, sentenceEnd).trim()
         return { description, tagline }
       } catch {
@@ -174,17 +147,8 @@ export async function POST(req: Request) {
 
     const title = repoData.name?.replace(/[-_]+/g, ' ') || repo
     const readmeSummary = await fetchReadmeSummary()
-    const description = (
-      readmeSummary.description ||
-      repoData.description ||
-      ''
-    )
-      .toString()
-      .slice(0, 1600)
-    const website_url =
-      repoData.homepage && repoData.homepage.trim() !== ''
-        ? repoData.homepage
-        : ''
+    const description = (readmeSummary.description || repoData.description || '').toString().slice(0, 1600)
+    const website_url = repoData.homepage && repoData.homepage.trim() !== '' ? repoData.homepage : ''
     const image_url = buildOgImage(owner, repo)
     const domain = getDomainFromUrl(website_url) || 'github.com'
     const favicon_url = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
@@ -202,10 +166,7 @@ export async function POST(req: Request) {
       return t
     })
 
-    const tagline = (
-      readmeSummary.tagline ||
-      (description ? description.split(/\.|\n/)[0]?.slice(0, 100) : '')
-    ).trim()
+    const tagline = (readmeSummary.tagline || (description ? description.split(/\.|\n/)[0]?.slice(0, 100) : '')).trim()
 
     return NextResponse.json({
       title,

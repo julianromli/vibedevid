@@ -5,9 +5,9 @@
 
 'use client'
 
+import { Minus, Plus } from 'lucide-react'
 import Script from 'next/script'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Minus } from 'lucide-react'
 import { FAQ_DATA } from '@/lib/constants/faqs'
 
 interface FAQSectionProps {
@@ -39,15 +39,16 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
         }}
       />
 
-      <section id="faq" className="py-20" data-animate>
+      <section
+        id="faq"
+        className="py-20"
+        data-animate
+      >
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-              FAQ Komunitas Vibe Coding Indonesia
-            </h2>
+            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">FAQ Komunitas Vibe Coding Indonesia</h2>
             <p className="text-muted-foreground text-xl">
-              Semua yang perlu lo tau tentang gabung di komunitas vibe coder
-              Indonesia terbesar
+              Semua yang perlu lo tau tentang gabung di komunitas vibe coder Indonesia terbesar
             </p>
           </div>
 
@@ -56,9 +57,7 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
               <Card
                 key={index}
                 className={`cursor-pointer transition-all duration-700 hover:shadow-md ${
-                  isVisible
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-8 opacity-0'
+                  isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
                 onClick={() => toggleFAQ(index)}
@@ -77,14 +76,10 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
 
                   <div
                     className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                      openFAQ === index
-                        ? 'mt-4 max-h-96 opacity-100'
-                        : 'max-h-0 opacity-0'
+                      openFAQ === index ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <p className="text-muted-foreground text-left leading-relaxed">
-                      {faq.answer}
-                    </p>
+                    <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
                   </div>
                 </CardContent>
               </Card>

@@ -1,11 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import HomePageClient from './home-page-client'
 import type { User } from '@/types/homepage'
+import HomePageClient from './home-page-client'
 
-async function getUserData(
-  userId: string,
-  email: string,
-): Promise<User | null> {
+async function getUserData(userId: string, email: string): Promise<User | null> {
   const supabase = await createClient()
   const { data: profile } = await supabase
     .from('users')
@@ -38,5 +35,10 @@ export default async function HomePage() {
     userData = await getUserData(user.id, user.email || '')
   }
 
-  return <HomePageClient initialIsLoggedIn={!!user} initialUser={userData} />
+  return (
+    <HomePageClient
+      initialIsLoggedIn={!!user}
+      initialUser={userData}
+    />
+  )
 }

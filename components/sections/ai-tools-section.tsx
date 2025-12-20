@@ -8,16 +8,19 @@ import { IntegrationCard } from '@/components/ui/integration-card'
 
 export function AIToolsSection() {
   return (
-    <section id="integrations" className="py-20" data-animate>
+    <section
+      id="integrations"
+      className="py-20"
+      data-animate
+    >
       <div className="mx-auto max-w-5xl px-6">
         <div className="mb-12 text-center">
           <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
             AI untuk Coding & Development Tools
           </h2>
           <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-            Explore tools AI terbaru untuk coding pake AI yang lebih efisien.
-            Integrasikan AI coding agents favorit untuk workflow development
-            yang next-level.
+            Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit
+            untuk workflow development yang next-level.
           </p>
         </div>
 

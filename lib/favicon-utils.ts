@@ -57,7 +57,6 @@ async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log(`[favicon] Timeout fetching: ${faviconUrl}`)
       }
-      continue
     }
   }
 
@@ -74,9 +73,7 @@ export async function fetchFavicon(websiteUrl: string): Promise<string> {
     // Race between favicon fetch and overall timeout
     const result = await Promise.race([
       _fetchFaviconWithTimeout(websiteUrl),
-      new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error('Overall timeout')), 8000),
-      ),
+      new Promise<string>((_, reject) => setTimeout(() => reject(new Error('Overall timeout')), 8000)),
     ])
     return result
   } catch (error) {

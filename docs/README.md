@@ -6,17 +6,18 @@ Dokumentasi teknis dan operasional untuk project VibeDev ID.
 
 ## Quick Links
 
-| Document | Description |
-|----------|-------------|
+| Document                            | Description                                    |
+| ----------------------------------- | ---------------------------------------------- |
 | [Design System](./design-system.md) | Color palette, typography, components, spacing |
-| [WARP.md](../WARP.md) | Living knowledge base (main reference) |
-| [SECURITY.md](../SECURITY.md) | Security guidelines & practices |
+| [WARP.md](../WARP.md)               | Living knowledge base (main reference)         |
+| [SECURITY.md](../SECURITY.md)       | Security guidelines & practices                |
 
 ---
 
 ## Documentation Structure
 
 ### Database
+
 Dokumentasi terkait database schema, optimization, dan indexing.
 
 - [Optimization Plan](./database/optimization-plan.md) - Database fix & optimization plan
@@ -24,18 +25,21 @@ Dokumentasi terkait database schema, optimization, dan indexing.
 - [Optimization Summary](./database/optimization-summary.md) - Summary of optimizations
 
 ### Deployment
+
 Panduan deployment dan release management.
 
 - [Vercel Deployment](./deployment/vercel.md) - Vercel deployment guide
 - [Rollout & Rollback](./deployment/rollout-rollback.md) - Release rollout & rollback procedures
 
 ### Migrations
+
 Dokumentasi migrasi database dan breaking changes.
 
 - [Slug Migration](./migrations/slug-migration.md) - UUID to slug migration guide
 - [Verification Report](./migrations/verification-report.md) - Migration verification report
 
 ### Testing
+
 Testing guides dan checklists.
 
 - [Production Checklist](./testing/checklist.md) - Production verification checklist
@@ -43,6 +47,7 @@ Testing guides dan checklists.
 - [Avatar Test](./testing/avatar-test.md) - Avatar auto-delete test documentation
 
 ### Legal
+
 Dokumen legal dan kebijakan.
 
 - [Terms & Conditions](./legal/terms-and-conditions.md) - Terms of service

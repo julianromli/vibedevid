@@ -1,7 +1,7 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { VerifiedBadge } from '@/components/ui/verified-badge'
+import { cn } from '@/lib/utils'
 
 export function UserDisplayName({
   name,
@@ -20,7 +20,10 @@ export function UserDisplayName({
     <span className={cn('inline-flex items-center gap-1.5', className)}>
       <span className="truncate">{name}</span>
       {showVerified ? (
-        <VerifiedBadge className={badgeClassName} title="Verified" />
+        <VerifiedBadge
+          className={badgeClassName}
+          title="Verified"
+        />
       ) : null}
     </span>
   )

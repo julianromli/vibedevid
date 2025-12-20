@@ -1,17 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { Flag, Send } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Flag, Send } from 'lucide-react'
-import {
-  createComment,
-  getComments,
-  reportComment,
-} from '@/lib/actions/comments'
-import { toast } from 'sonner'
+import { useAuth } from '@/hooks/useAuth'
+import { createComment, getComments, reportComment } from '@/lib/actions/comments'
 
 interface Comment {
   id: string
@@ -78,14 +74,20 @@ export function CommentSection({ postId }: CommentSectionProps) {
       <h2 className="mb-6 font-serif text-2xl font-bold">Comments</h2>
 
       {isLoggedIn ? (
-        <form onSubmit={handleSubmit} className="mb-8">
+        <form
+          onSubmit={handleSubmit}
+          className="mb-8"
+        >
           <Textarea
             placeholder="Share your thoughts..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             className="mb-3 min-h-[100px]"
           />
-          <Button type="submit" disabled={submitting || !newComment.trim()}>
+          <Button
+            type="submit"
+            disabled={submitting || !newComment.trim()}
+          >
             <Send className="mr-2 h-4 w-4" />
             Post Comment
           </Button>
@@ -93,7 +95,10 @@ export function CommentSection({ postId }: CommentSectionProps) {
       ) : (
         <div className="bg-muted mb-8 rounded-lg p-4 text-center">
           <p className="text-muted-foreground">
-            <a href="/user/auth" className="text-primary hover:underline">
+            <a
+              href="/user/auth"
+              className="text-primary hover:underline"
+            >
               Sign in
             </a>{' '}
             to leave a comment
@@ -106,19 +111,18 @@ export function CommentSection({ postId }: CommentSectionProps) {
       ) : comments.length > 0 ? (
         <div className="space-y-6">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-4">
+            <div
+              key={comment.id}
+              className="flex gap-4"
+            >
               <Avatar>
                 <AvatarImage src={comment.user?.[0]?.avatar_url ?? undefined} />
-                <AvatarFallback>
-                  {comment.user?.[0]?.display_name?.charAt(0) ?? 'A'}
-                </AvatarFallback>
+                <AvatarFallback>{comment.user?.[0]?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
               </Avatar>
 
               <div className="flex-1">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="font-medium">
-                    {comment.user?.[0]?.display_name ?? 'Anonymous'}
-                  </span>
+                  <span className="font-medium">{comment.user?.[0]?.display_name ?? 'Anonymous'}</span>
                   <Button
                     variant="ghost"
                     size="icon-sm"

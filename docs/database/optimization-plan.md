@@ -1,4 +1,5 @@
 # Database Optimization & Fix Plan
+
 **Generated:** 2025-11-10  
 **Status:** Ready for Implementation  
 **Priority:** HIGH - Performance & Security Issues Detected
@@ -8,7 +9,9 @@
 ## 📊 Current Status Overview
 
 ### ✅ Good News: Critical Indexes Already Exist!
+
 Analysis shows that **most critical indexes are already in place**, including:
+
 - ✅ `idx_projects_slug` - The most critical index (already exists!)
 - ✅ `idx_likes_user_id` - Foreign key index
 - ✅ `idx_comments_user_id` - Foreign key index (partial)
@@ -22,53 +25,63 @@ Analysis shows that **most critical indexes are already in place**, including:
 ## 🔴 Critical Issues Found (47 Total)
 
 ### Issue Breakdown:
-| Category | Count | Severity | Impact |
-|----------|-------|----------|--------|
-| **Auth RLS InitPlan** | 15 | WARN | Performance degradation at scale |
-| **Multiple Permissive Policies** | 16 | WARN | Query overhead, redundant checks |
-| **Security Issues** | 4 | WARN | Security vulnerabilities |
-| **Unused Indexes** | 7 | INFO | Minor disk space usage |
-| **Missing Composite Indexes** | 4 | MEDIUM | Query optimization opportunity |
+
+| Category                         | Count | Severity | Impact                           |
+| -------------------------------- | ----- | -------- | -------------------------------- |
+| **Auth RLS InitPlan**            | 15    | WARN     | Performance degradation at scale |
+| **Multiple Permissive Policies** | 16    | WARN     | Query overhead, redundant checks |
+| **Security Issues**              | 4     | WARN     | Security vulnerabilities         |
+| **Unused Indexes**               | 7     | INFO     | Minor disk space usage           |
+| **Missing Composite Indexes**    | 4     | MEDIUM   | Query optimization opportunity   |
 
 ---
 
 ## 🎯 Fix Plan by Priority
 
 ### **PHASE 1: CRITICAL - RLS Performance Issues (15 fixes)**
+
 **Impact:** Prevents performance degradation at scale  
 **Effort:** Medium (SQL migration)  
 **Timeline:** Implement immediately
 
 #### Problem:
+
 All RLS policies use `auth.uid()` directly, which gets re-evaluated for **every row**. At scale, this causes significant slowdown.
 
 #### Solution:
+
 Wrap `auth.uid()` in a subquery: `(SELECT auth.uid())`
 
 #### Affected Tables & Policies:
 
 **1. users (2 policies)**
+
 - ❌ `Users can update own profile` - Uses `auth.uid() = id`
 - ❌ `Users can insert own profile` - Uses `auth.uid() = id`
 
 **2. projects (3 policies)**
+
 - ❌ `Users can insert own projects` - Uses `auth.uid() = author_id`
 - ❌ `Users can update own projects` - Uses `auth.uid() = author_id`
 - ❌ `Users can delete own projects` - Uses `auth.uid() = author_id`
 
 **3. comments (3 policies)**
+
 - ❌ `Secure comment insertion` - Uses `auth.uid() = user_id`
 - ❌ `Users can update own comments` - Uses `auth.uid() = user_id`
 - ❌ `Users can delete own comments` - Uses `auth.uid() = user_id`
 
 **4. likes (1 policy)**
+
 - ❌ `Users can manage their own likes` - Uses `auth.uid() = user_id`
 
 **5. views (2 policies)**
+
 - ❌ `Secure views insertion` - Uses `auth.uid() = user_id`
 - ❌ `Users can manage own views` - Uses `auth.uid() = user_id`
 
 **6. vibe_videos (3 policies)**
+
 - ❌ `Allow authenticated insert on vibe_videos` - Uses `auth.role()`
 - ❌ `Allow authenticated update on vibe_videos` - Uses `auth.role()`
 - ❌ `Allow authenticated delete on vibe_videos` - Uses `auth.role()`
@@ -76,29 +89,35 @@ Wrap `auth.uid()` in a subquery: `(SELECT auth.uid())`
 ---
 
 ### **PHASE 2: HIGH PRIORITY - Multiple Permissive Policies (16 fixes)**
+
 **Impact:** Reduces query overhead  
 **Effort:** Medium (Policy consolidation)  
 **Timeline:** Within 1 week
 
 #### Problem:
+
 Multiple overlapping policies for same role + action. Each policy must execute for every query.
 
 #### Solution:
+
 Consolidate into single policies using OR conditions where appropriate.
 
 #### Affected Tables:
 
 **1. categories (4 duplicates)**
+
 - Issue: `Admin can manage categories` + `Categories are viewable by everyone` both allow SELECT
 - Roles affected: anon, authenticated, authenticator, dashboard_user
 - Fix: Make admin policy restrictive OR consolidate
 
 **2. likes (4 duplicates)**
+
 - Issue: `Likes are viewable by everyone` + `Users can manage their own likes` both allow SELECT
 - Roles affected: anon, authenticated, authenticator, dashboard_user
 - Fix: Remove redundant SELECT permission from "manage" policy
 
 **3. views (8 duplicates)**
+
 - Issue: Multiple overlapping policies for INSERT and SELECT
 - Policies: `Secure views insertion` + `Users can manage own views` (INSERT)
 - Policies: `Views are viewable by everyone` + `Users can manage own views` (SELECT)
@@ -108,14 +127,17 @@ Consolidate into single policies using OR conditions where appropriate.
 ---
 
 ### **PHASE 3: SECURITY IMPROVEMENTS (4 fixes)**
+
 **Impact:** Enhances security posture  
 **Effort:** Low to Medium  
 **Timeline:** Within 2 weeks
 
 #### 1. Extension in Public Schema ⚠️
+
 **Issue:** Extension `unaccent` is installed in public schema  
 **Risk:** Namespace pollution, potential conflicts  
 **Fix:**
+
 ```sql
 -- Move unaccent to extensions schema
 CREATE SCHEMA IF NOT EXISTS extensions;
@@ -123,25 +145,31 @@ ALTER EXTENSION unaccent SET SCHEMA extensions;
 ```
 
 #### 2. Auth OTP Long Expiry ⚠️
+
 **Issue:** Email OTP expiry set to more than 1 hour  
 **Risk:** Security vulnerability - longer window for OTP compromise  
 **Fix:**
+
 - Go to Supabase Dashboard → Authentication → Email Auth
 - Set OTP expiry to ≤ 3600 seconds (1 hour)
 - Recommended: 1800 seconds (30 minutes)
 
 #### 3. Leaked Password Protection Disabled ⚠️
+
 **Issue:** HaveIBeenPwned integration not enabled  
 **Risk:** Users can use compromised passwords  
 **Fix:**
+
 - Go to Supabase Dashboard → Authentication → Password
 - Enable "Leaked Password Protection"
 - This checks passwords against HaveIBeenPwned.org
 
 #### 4. Vulnerable Postgres Version ⚠️
+
 **Issue:** Current version `supabase-postgres-17.4.1.074` has security patches available  
 **Risk:** Unpatched security vulnerabilities  
 **Fix:**
+
 - Upgrade Postgres in Supabase Dashboard
 - Go to Settings → Infrastructure → Upgrade Database
 - Follow Supabase upgrade process
@@ -149,6 +177,7 @@ ALTER EXTENSION unaccent SET SCHEMA extensions;
 ---
 
 ### **PHASE 4: OPTIMIZATION - Missing Composite Indexes (4 additions)**
+
 **Impact:** Query performance optimization  
 **Effort:** Low (SQL migration)  
 **Timeline:** When convenient
@@ -156,31 +185,39 @@ ALTER EXTENSION unaccent SET SCHEMA extensions;
 #### Missing Indexes:
 
 **1. Composite: likes(project_id, user_id)**
+
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_likes_project_user 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_likes_project_user
 ON likes(project_id, user_id);
 ```
+
 **Benefit:** Optimizes `toggleLike()` checks (currently does 2 separate index scans)
 
 **2. Composite: comments(project_id, created_at)**
+
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_project_created 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_project_created
 ON comments(project_id, created_at DESC);
 ```
+
 **Benefit:** Optimizes `getComments()` which filters by project and orders by date
 
 **3. Composite: projects(author_id, created_at)**
+
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_projects_author_created 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_projects_author_created
 ON projects(author_id, created_at DESC);
 ```
+
 **Benefit:** Optimizes profile page queries (user's projects sorted by date)
 
 **4. Single: users.email**
+
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email
 ON users(email);
 ```
+
 **Benefit:** Speeds up auth flows and email lookups
 
 ---
@@ -352,19 +389,19 @@ CREATE POLICY "Users can delete own views" ON views
 -- Date: 2025-11-10
 
 -- Composite index for like checks
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_likes_project_user 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_likes_project_user
 ON likes(project_id, user_id);
 
 -- Composite index for comment queries with ordering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_project_created 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_project_created
 ON comments(project_id, created_at DESC);
 
 -- Composite index for profile page queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_projects_author_created 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_projects_author_created
 ON projects(author_id, created_at DESC);
 
 -- Email lookup index for auth operations
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email
 ON users(email);
 
 -- Add documentation
@@ -399,15 +436,18 @@ ALTER DATABASE postgres SET search_path TO public, extensions;
 ## 📊 Expected Performance Improvements
 
 ### After Phase 1 (RLS Optimization):
+
 - **Write operations (INSERT/UPDATE/DELETE):** 30-50% faster
 - **Queries with RLS checks:** 20-40% faster at scale
 - **Impact increases with table size** (more rows = bigger benefit)
 
 ### After Phase 2 (Policy Consolidation):
+
 - **SELECT queries on categories/likes/views:** 10-20% faster
 - **Reduced policy evaluation overhead**
 
 ### After Phase 4 (Composite Indexes):
+
 - **Like toggle operations:** 40-60% faster
 - **Comment retrieval:** 30-50% faster
 - **Profile page queries:** 30-50% faster
@@ -417,7 +457,9 @@ ALTER DATABASE postgres SET search_path TO public, extensions;
 ## ⚠️ Important Notes
 
 ### About "Unused" Indexes:
+
 The advisors report shows 7 "unused" indexes. **DO NOT remove these:**
+
 - `idx_views_user_id` - Needed for user analytics
 - `idx_comments_user_id` - Needed for user comment queries
 - `idx_projects_category` - Needed for category filtering (will be used when implemented)
@@ -433,6 +475,7 @@ The advisors report shows 7 "unused" indexes. **DO NOT remove these:**
 ## 🚀 Deployment Strategy
 
 ### Step 1: Test in Staging (If Available)
+
 ```bash
 # Apply migrations one by one in staging
 psql -h staging-host -d vibedev -f scripts/08_optimize_rls_policies.sql
@@ -445,12 +488,14 @@ pnpm test
 ```
 
 ### Step 2: Backup Production
+
 ```bash
 # Create backup before applying
 pg_dump -h prod-host -U postgres -d vibedev > backup_$(date +%Y%m%d).sql
 ```
 
 ### Step 3: Apply to Production
+
 ```bash
 # Use Supabase apply_migration (recommended)
 # Or execute directly via psql
@@ -458,7 +503,7 @@ pg_dump -h prod-host -U postgres -d vibedev > backup_$(date +%Y%m%d).sql
 # Phase 1 - Critical (RLS fixes)
 supabase db push # Apply 08_optimize_rls_policies.sql
 
-# Phase 2 - High Priority (Policy consolidation)  
+# Phase 2 - High Priority (Policy consolidation)
 supabase db push # Apply 09_consolidate_rls_policies.sql
 
 # Phase 3 - Security (Manual via Dashboard + SQL)
@@ -471,6 +516,7 @@ supabase db push # Apply 10_add_composite_indexes.sql
 ```
 
 ### Step 4: Verify & Monitor
+
 ```sql
 -- Check policies are updated
 SELECT * FROM pg_policies WHERE schemaname = 'public';
@@ -479,8 +525,8 @@ SELECT * FROM pg_policies WHERE schemaname = 'public';
 SELECT indexname FROM pg_indexes WHERE schemaname = 'public';
 
 -- Monitor query performance
-SELECT * FROM pg_stat_statements 
-ORDER BY mean_exec_time DESC 
+SELECT * FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
 LIMIT 10;
 ```
 
@@ -489,6 +535,7 @@ LIMIT 10;
 ## ✅ Checklist
 
 ### Phase 1: RLS Optimization
+
 - [ ] Review RLS policy changes
 - [ ] Create migration file `08_optimize_rls_policies.sql`
 - [ ] Test in staging/local
@@ -497,6 +544,7 @@ LIMIT 10;
 - [ ] Monitor application logs for errors
 
 ### Phase 2: Policy Consolidation
+
 - [ ] Review policy consolidation strategy
 - [ ] Create migration file `09_consolidate_rls_policies.sql`
 - [ ] Test all affected operations (likes, views, categories)
@@ -504,6 +552,7 @@ LIMIT 10;
 - [ ] Verify no permission errors
 
 ### Phase 3: Security Improvements
+
 - [ ] Enable Leaked Password Protection (Dashboard)
 - [ ] Adjust OTP expiry to ≤1 hour (Dashboard)
 - [ ] Create migration `11_move_extension_to_extensions_schema.sql`
@@ -512,6 +561,7 @@ LIMIT 10;
 - [ ] Test all features post-upgrade
 
 ### Phase 4: Composite Indexes
+
 - [ ] Create migration file `10_add_composite_indexes.sql`
 - [ ] Apply migration (non-blocking with CONCURRENTLY)
 - [ ] Monitor index creation progress

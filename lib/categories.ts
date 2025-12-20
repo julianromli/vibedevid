@@ -55,9 +55,7 @@ export async function getCategories(): Promise<Category[]> {
 /**
  * Get category display names for dropdown/select components
  */
-export async function getCategoryOptions(): Promise<
-  { value: string; label: string }[]
-> {
+export async function getCategoryOptions(): Promise<{ value: string; label: string }[]> {
   const categories = await getCategories()
 
   return [
@@ -72,9 +70,7 @@ export async function getCategoryOptions(): Promise<
 /**
  * Get display name for a category by its name
  */
-export async function getCategoryDisplayName(
-  categoryName: string,
-): Promise<string> {
+export async function getCategoryDisplayName(categoryName: string): Promise<string> {
   const categories = await getCategories()
   const category = categories.find((cat) => cat.name === categoryName)
   return category?.display_name || categoryName

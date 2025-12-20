@@ -1,5 +1,5 @@
-import { createServerClient } from '@/lib/supabase/server'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -19,10 +19,7 @@ export async function GET(request: NextRequest) {
         // Detect if user signed in via OAuth (Google, GitHub, etc.)
         const isOAuthUser =
           user.identities &&
-          user.identities.some(
-            (identity) =>
-              identity.provider !== 'email' && identity.provider !== 'phone',
-          )
+          user.identities.some((identity) => identity.provider !== 'email' && identity.provider !== 'phone')
 
         console.log(
           `[Callback] User login detected - Email: ${user.email}, OAuth: ${isOAuthUser}, Provider(s): ${user.identities?.map((i) => i.provider).join(', ')}`,
@@ -31,10 +28,7 @@ export async function GET(request: NextRequest) {
         // Only check email confirmation for email/password signup users
         // OAuth users (Google, GitHub, etc.) are already verified by their providers
         if (!isOAuthUser && !user.email_confirmed_at) {
-          console.log(
-            '[Callback] Email/password user email not confirmed:',
-            user.email,
-          )
+          console.log('[Callback] Email/password user email not confirmed:', user.email)
           // Sign out the user and redirect to auth page with message
           await supabase.auth.signOut()
           return NextResponse.redirect(
@@ -43,17 +37,10 @@ export async function GET(request: NextRequest) {
         }
 
         // Create profile for all authenticated users (OAuth or email confirmed)
-        const { data: existingProfile } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', user.id)
-          .single()
+        const { data: existingProfile } = await supabase.from('users').select('id').eq('id', user.id).single()
 
         if (!existingProfile) {
-          console.log(
-            `[Callback] Creating profile for ${isOAuthUser ? 'OAuth' : 'email confirmed'} user:`,
-            user.email,
-          )
+          console.log(`[Callback] Creating profile for ${isOAuthUser ? 'OAuth' : 'email confirmed'} user:`, user.email)
 
           // Generate unique username with fallback for collisions
           const baseUsername =
@@ -91,14 +78,8 @@ export async function GET(request: NextRequest) {
             id: user.id,
             username: username,
             display_name:
-              user.user_metadata?.full_name ||
-              user.user_metadata?.name ||
-              user.email?.split('@')[0] ||
-              'User',
-            avatar_url:
-              user.user_metadata?.avatar_url ||
-              user.user_metadata?.picture ||
-              '/vibedev-guest-avatar.png',
+              user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || '/vibedev-guest-avatar.png',
             bio: null,
             location: null,
             website: null,
@@ -113,9 +94,7 @@ export async function GET(request: NextRequest) {
             email: user.email,
           })
 
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert(profileData)
+          const { error: insertError } = await supabase.from('users').insert(profileData)
 
           if (insertError) {
             console.error('[Callback] Profile creation error:', insertError)
@@ -125,9 +104,7 @@ export async function GET(request: NextRequest) {
             )
           }
 
-          console.log(
-            `[Callback] Profile created successfully for user: ${user.email} with username: ${username}`,
-          )
+          console.log(`[Callback] Profile created successfully for user: ${user.email} with username: ${username}`)
         }
 
         console.log('[Callback] User authenticated successfully:', user.email)
@@ -135,9 +112,7 @@ export async function GET(request: NextRequest) {
         // Handle different flows based on auth method
         if (isOAuthUser) {
           // OAuth users: Keep them signed in and redirect to home
-          console.log(
-            '[Callback] OAuth user login successful, redirecting to home',
-          )
+          console.log('[Callback] OAuth user login successful, redirecting to home')
           const forwardedHost = request.headers.get('x-forwarded-host')
           const isLocalEnv = process.env.NODE_ENV === 'development'
 
@@ -150,9 +125,7 @@ export async function GET(request: NextRequest) {
           }
         } else {
           // Email/password users: Sign out after email confirmation to force proper login
-          console.log(
-            '[Callback] Email confirmed user, signing out for security',
-          )
+          console.log('[Callback] Email confirmed user, signing out for security')
           await supabase.auth.signOut()
 
           // Redirect email/password users to auth page with success message
@@ -160,17 +133,13 @@ export async function GET(request: NextRequest) {
           const isLocalEnv = process.env.NODE_ENV === 'development'
 
           if (isLocalEnv) {
-            return NextResponse.redirect(
-              `${origin}${next}?success=Email confirmed successfully! You can now sign in.`,
-            )
+            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
           } else if (forwardedHost) {
             return NextResponse.redirect(
               `https://${forwardedHost}${next}?success=Email confirmed successfully! You can now sign in.`,
             )
           } else {
-            return NextResponse.redirect(
-              `${origin}${next}?success=Email confirmed successfully! You can now sign in.`,
-            )
+            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
           }
         }
       }
@@ -180,7 +149,5 @@ export async function GET(request: NextRequest) {
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(
-    `${origin}/user/auth?error=Could not authenticate user`,
-  )
+  return NextResponse.redirect(`${origin}/user/auth?error=Could not authenticate user`)
 }

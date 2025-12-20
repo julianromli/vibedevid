@@ -185,9 +185,7 @@ async function networkFirst(request) {
     const response = await fetch(request)
     return response
   } catch (error) {
-    return (
-      (await caches.match(request)) || new Response('Offline', { status: 503 })
-    )
+    return (await caches.match(request)) || new Response('Offline', { status: 503 })
   }
 }
 
@@ -213,9 +211,7 @@ function isHTMLPage(url) {
 }
 
 function isAPICall(url) {
-  return (
-    url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')
-  )
+  return url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')
 }
 
 function isImage(url) {

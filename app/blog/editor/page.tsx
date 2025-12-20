@@ -1,12 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import BlogEditorClient from './blog-editor-client'
 import type { User } from '@/types/homepage'
+import BlogEditorClient from './blog-editor-client'
 
-async function getUserData(
-  userId: string,
-  email: string,
-): Promise<User | null> {
+async function getUserData(userId: string, email: string): Promise<User | null> {
   const supabase = await createClient()
   const { data: profile } = await supabase
     .from('users')

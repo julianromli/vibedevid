@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  extractYouTubeVideoId,
-  isValidVideoId,
-  generateYouTubeUrl,
-  cleanDescription,
-} from '@/lib/youtube-utils'
+import { cleanDescription, extractYouTubeVideoId, generateYouTubeUrl, isValidVideoId } from '@/lib/youtube-utils'
 
 interface YouTubeOEmbedResponse {
   title: string
@@ -38,19 +33,13 @@ export async function POST(request: NextRequest) {
     const { url } = await request.json()
 
     if (!url) {
-      return NextResponse.json(
-        { error: 'URL YouTube diperlukan cuy!' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'URL YouTube diperlukan cuy!' }, { status: 400 })
     }
 
     // Extract video ID dari URL
     const videoId = extractYouTubeVideoId(url)
     if (!videoId || !isValidVideoId(videoId)) {
-      return NextResponse.json(
-        { error: 'URL YouTube tidak valid. Pastiin format yang benar ya!' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'URL YouTube tidak valid. Pastiin format yang benar ya!' }, { status: 400 })
     }
 
     const watchUrl = generateYouTubeUrl(videoId)
@@ -68,8 +57,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       return NextResponse.json(
         {
-          error:
-            'Video tidak dapat diakses. Mungkin private atau tidak tersedia.',
+          error: 'Video tidak dapat diakses. Mungkin private atau tidak tersedia.',
         },
         { status: 404 },
       )
@@ -85,8 +73,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
           'Accept-Encoding': 'gzip, deflate, br',
           DNT: '1',
@@ -104,7 +91,7 @@ export async function POST(request: NextRequest) {
           /"viewCount":{"videoViewCountRenderer":{"viewCount":{"simpleText":"([\d,]+)/,
           /"videoViewCountRenderer":{"viewCount":{"simpleText":"([\d,]+)/,
           /viewCount":{"runs":\[{"text":"([\d,]+)/,
-          /views\":{\"runs\":\[{\"text\":\"([\d,]+)/,
+          /views":{"runs":\[{"text":"([\d,]+)/,
           /shortViewCount":{"simpleText":"([\d,]+)/,
           /"shortViewCount":{"accessibility":{"accessibilityData":{"label":"([\d,]+)/,
           /<meta itemprop="interactionCount" content="(\d+)"/,
@@ -120,24 +107,18 @@ export async function POST(request: NextRequest) {
             if (!isNaN(parsedViews) && parsedViews > 0) {
               views = parsedViews
               viewsFound = true
-              console.log(
-                `[YouTube Debug] Views found using pattern: ${pattern.source}, value: ${views}`,
-              )
+              console.log(`[YouTube Debug] Views found using pattern: ${pattern.source}, value: ${views}`)
               break
             }
           }
         }
 
         if (!viewsFound) {
-          console.warn(
-            `[YouTube Debug] No views found for video ${videoId}. HTML length: ${html.length}`,
-          )
+          console.warn(`[YouTube Debug] No views found for video ${videoId}. HTML length: ${html.length}`)
           // Log first few patterns untuk debugging
           viewPatterns.slice(0, 3).forEach((pattern, i) => {
             const match = html.match(pattern)
-            console.log(
-              `[YouTube Debug] Pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`,
-            )
+            console.log(`[YouTube Debug] Pattern ${i + 1}: ${pattern.source} - Match: ${match ? match[1] : 'none'}`)
           })
         }
 
@@ -146,7 +127,7 @@ export async function POST(request: NextRequest) {
           /"publishDate":"([^"]+)"/,
           /"dateText":{"simpleText":"([^"]+)"}/,
           /"publishedTimeText":{"simpleText":"([^"]+)"}/,
-          /uploadDate\":\"([^\"]+)\"/,
+          /uploadDate":"([^"]+)"/,
           /<meta itemprop="uploadDate" content="([^"]+)"/,
           /<meta itemprop="datePublished" content="([^"]+)"/,
           /"videoDetails":{[^}]*"publishDate":"([^"]+)"/,
@@ -159,17 +140,13 @@ export async function POST(request: NextRequest) {
           if (match && match[1]) {
             publishedAt = match[1]
             publishFound = true
-            console.log(
-              `[YouTube Debug] Publish date found using pattern: ${pattern.source}, value: ${publishedAt}`,
-            )
+            console.log(`[YouTube Debug] Publish date found using pattern: ${pattern.source}, value: ${publishedAt}`)
             break
           }
         }
 
         if (!publishFound) {
-          console.warn(
-            `[YouTube Debug] No publish date found for video ${videoId}`,
-          )
+          console.warn(`[YouTube Debug] No publish date found for video ${videoId}`)
           // Log first few patterns untuk debugging
           publishPatterns.slice(0, 3).forEach((pattern, i) => {
             const match = html.match(pattern)
@@ -180,23 +157,17 @@ export async function POST(request: NextRequest) {
         }
 
         // Extract description dari microformat
-        const descriptionMatch = html.match(
-          /"description":{"simpleText":"([^"]+)"}/,
-        )
+        const descriptionMatch = html.match(/"description":{"simpleText":"([^"]+)"}/)
         if (descriptionMatch) {
           description = descriptionMatch[1]
             .replace(/\\n/g, '\n')
             .replace(/\\"/g, '"')
-            .replace(/\\u([0-9a-fA-F]{4})/g, (match, code) =>
-              String.fromCharCode(parseInt(code, 16)),
-            )
+            .replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => String.fromCharCode(parseInt(code, 16)))
         }
 
         // Fallback untuk description dari meta tags
         if (!description) {
-          const metaDescMatch = html.match(
-            /<meta name="description" content="([^"]+)"/,
-          )
+          const metaDescMatch = html.match(/<meta name="description" content="([^"]+)"/)
           if (metaDescMatch) {
             description = metaDescMatch[1]
           }
@@ -210,10 +181,7 @@ export async function POST(request: NextRequest) {
     // Combine data dari oEmbed dan scraping
     const videoData: VideoMetadata = {
       title: oembedData.title,
-      description: cleanDescription(
-        description || `Video by ${oembedData.author_name}`,
-        300,
-      ),
+      description: cleanDescription(description || `Video by ${oembedData.author_name}`, 300),
       thumbnail: oembedData.thumbnail_url.replace('hqdefault', 'maxresdefault'), // Get higher quality thumbnail
       views: views,
       publishedAt: publishedAt || 'Date not available', // Better fallback instead of today's date
@@ -225,10 +193,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(videoData)
   } catch (error) {
     console.error('YouTube API Error:', error)
-    return NextResponse.json(
-      { error: 'Terjadi error saat mengambil data video. Coba lagi ya cuy!' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Terjadi error saat mengambil data video. Coba lagi ya cuy!' }, { status: 500 })
   }
 }
 
@@ -240,8 +205,7 @@ export async function GET(request: NextRequest) {
   if (!url) {
     return NextResponse.json(
       {
-        error:
-          'Parameter "url" diperlukan. Contoh: /api/youtube?url=https://youtube.com/watch?v=VIDEO_ID',
+        error: 'Parameter "url" diperlukan. Contoh: /api/youtube?url=https://youtube.com/watch?v=VIDEO_ID',
       },
       { status: 400 },
     )

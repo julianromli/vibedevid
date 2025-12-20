@@ -1,16 +1,14 @@
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type React from 'next'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import Script from 'next/script'
-import { Toaster } from '@/components/ui/sonner'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com'
-).replace(/\/$/, '')
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com').replace(/\/$/, '')
 
 // Critical font - load with highest priority
 const geist = Geist({
@@ -45,8 +43,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default:
-      'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI',
+    default: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI',
     template: '%s | VibeDev ID',
   },
   description:
@@ -67,16 +64,13 @@ export const metadata: Metadata = {
     'project showcase indonesia',
   ],
   category: 'technology',
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com',
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia',
-    description:
-      'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
+    description: 'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com',
     siteName: 'VibeDev ID',
     images: [
@@ -93,11 +87,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia',
-    description:
-      'Belajar coding pake AI bareng komunitas vibe coding Indonesia.',
-    images: [
-      'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0',
-    ],
+    description: 'Belajar coding pake AI bareng komunitas vibe coding Indonesia.',
+    images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'],
     creator: '@vibedevid',
   },
   robots: {
@@ -132,7 +123,10 @@ export default function RootLayout({
         )}
 
         {/* Critical Resource Hints untuk faster LCP */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
@@ -142,7 +136,10 @@ export default function RootLayout({
           rel="preconnect"
           href="https://qabfrhpbfvjcgdrxdlba.supabase.co"
         />
-        <link rel="preconnect" href="https://vercel.live" />
+        <link
+          rel="preconnect"
+          href="https://vercel.live"
+        />
 
         {/* Critical images preload */}
         <link
@@ -157,12 +154,25 @@ export default function RootLayout({
           as="image"
           type="image/svg+xml"
         />
-        <link rel="preload" href="/vibedev-guest-avatar.png" as="image" />
+        <link
+          rel="preload"
+          href="/vibedev-guest-avatar.png"
+          as="image"
+        />
 
         {/* DNS prefetch untuk external resources */}
-        <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-        <link rel="dns-prefetch" href="//utfs.io" />
-        <link rel="dns-prefetch" href="//lh3.googleusercontent.com" />
+        <link
+          rel="dns-prefetch"
+          href="//cdn.jsdelivr.net"
+        />
+        <link
+          rel="dns-prefetch"
+          href="//utfs.io"
+        />
+        <link
+          rel="dns-prefetch"
+          href="//lh3.googleusercontent.com"
+        />
 
         {/* JSON-LD: Organization */}
         <script

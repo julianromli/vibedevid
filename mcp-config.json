@@ -1,14 +1,14 @@
 {
   "mcpServers": {
     "playwright": {
-      "command": "npx",
+      "command": "bunx",
       "args": ["@playwright/mcp@latest"],
       "env": {
         "NODE_ENV": "development"
       }
     },
     "shadcn-ui": {
-      "command": "npx",
+      "command": "bunx",
       "args": ["@jpisnice/shadcn-ui-mcp-server"],
       "env": {
         "NODE_ENV": "development"

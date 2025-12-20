@@ -81,12 +81,6 @@
       "Clear separation of concerns",
       "Good documentation"
     ],
-    "recommended_tools": [
-      "typescript",
-      "jest",
-      "eslint",
-      "prettier",
-      "husky"
-    ]
+    "recommended_tools": ["typescript", "jest", "eslint", "prettier", "husky"]
   }
 }

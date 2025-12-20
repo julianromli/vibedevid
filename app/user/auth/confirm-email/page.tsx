@@ -1,15 +1,15 @@
 'use client'
 
-import type React from 'react'
-import { useState, useEffect, Suspense } from 'react'
+import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import type React from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Mail, ArrowLeft, Loader2, CheckCircle, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
 
 // Component yang menggunakan useSearchParams
 function ConfirmEmailContent() {
@@ -46,9 +46,7 @@ function ConfirmEmailContent() {
         type: 'signup',
         email: email.toString(),
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/`,
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
         },
       })
 
@@ -59,8 +57,7 @@ function ConfirmEmailContent() {
       setResendSuccess(true)
       toast.success('Email konfirmasi berhasil dikirim ulang! 📧')
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An error occurred'
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
       setError(errorMessage)
       toast.error(`Gagal kirim email: ${errorMessage}`)
     } finally {
@@ -81,7 +78,10 @@ function ConfirmEmailContent() {
           </div>
 
           {/* Back Button */}
-          <Link href="/user/auth" className="absolute top-6 right-6">
+          <Link
+            href="/user/auth"
+            className="absolute top-6 right-6"
+          >
             <Button
               variant="ghost"
               size="sm"
@@ -96,12 +96,9 @@ function ConfirmEmailContent() {
             <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
               <Mail className="text-primary h-8 w-8" />
             </div>
-            <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">
-              Check your email
-            </h1>
+            <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">Check your email</h1>
             <p className="text-muted-foreground text-sm">
-              Gue sudah kirim link konfirmasi ke email lo. Klik link tersebut
-              untuk mengaktifkan akun lo.
+              Gue sudah kirim link konfirmasi ke email lo. Klik link tersebut untuk mengaktifkan akun lo.
             </p>
           </div>
 
@@ -127,7 +124,10 @@ function ConfirmEmailContent() {
               </p>
             </div>
 
-            <form onSubmit={handleResendConfirmation} className="space-y-4">
+            <form
+              onSubmit={handleResendConfirmation}
+              className="space-y-4"
+            >
               <div className="relative">
                 <Mail className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform transition-all duration-200" />
                 <Input
@@ -165,9 +165,7 @@ function ConfirmEmailContent() {
                 <div className="border-border w-full border-t transition-all duration-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background text-muted-foreground px-4 transition-all duration-200">
-                  OR
-                </span>
+                <span className="bg-background text-muted-foreground px-4 transition-all duration-200">OR</span>
               </div>
             </div>
 
@@ -185,9 +183,7 @@ function ConfirmEmailContent() {
           {/* Instructions */}
           <div className="mt-6 text-center">
             <div className="bg-muted/20 rounded-xl p-4">
-              <h3 className="text-foreground mb-2 text-sm font-medium">
-                💡 Tips:
-              </h3>
+              <h3 className="text-foreground mb-2 text-sm font-medium">💡 Tips:</h3>
               <ul className="text-muted-foreground space-y-1 text-xs">
                 <li>• Check folder spam/junk email lo</li>
                 <li>• Pastikan email address benar</li>

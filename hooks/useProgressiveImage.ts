@@ -1,11 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import {
-  generateBlurPlaceholder,
-  generateSizes,
-  validateImageProps,
-} from '@/lib/image-utils'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { generateBlurPlaceholder, generateSizes, validateImageProps } from '@/lib/image-utils'
 
 export interface UseProgressiveImageOptions {
   // Core image properties
@@ -86,14 +82,10 @@ export function useProgressiveImage({
   onIntersection,
 }: UseProgressiveImageOptions): UseProgressiveImageReturn {
   // State management
-  const [loadingState, setLoadingState] = useState<
-    'loading' | 'loaded' | 'error'
-  >('loading')
+  const [loadingState, setLoadingState] = useState<'loading' | 'loaded' | 'error'>('loading')
   const [isIntersecting, setIsIntersecting] = useState(false)
   const [shouldLoad, setShouldLoad] = useState(!enableLazyLoading)
-  const [blurDataURL, setBlurDataURL] = useState<string | undefined>(
-    customBlurDataURL,
-  )
+  const [blurDataURL, setBlurDataURL] = useState<string | undefined>(customBlurDataURL)
   const [currentSrc, setCurrentSrc] = useState<string>(src)
   const [hasPreloaded, setHasPreloaded] = useState(false)
 
@@ -178,13 +170,7 @@ export function useProgressiveImage({
     return () => {
       isCancelled = true
     }
-  }, [
-    enableBlurPlaceholder,
-    customBlurDataURL,
-    currentSrc,
-    shouldLoad,
-    placeholderColorValue,
-  ])
+  }, [enableBlurPlaceholder, customBlurDataURL, currentSrc, shouldLoad, placeholderColorValue])
 
   // Handle loading state changes
   useEffect(() => {
@@ -399,22 +385,19 @@ export function useProgressiveImageGallery({
   }, [images, preloadCount])
 
   // Register container ref
-  const registerContainer = useCallback(
-    (id: string, element: HTMLDivElement | null) => {
-      if (element) {
-        element.setAttribute('data-image-id', id)
-        containerRefs.current.set(id, element)
-        observerRef.current?.observe(element)
-      } else {
-        const existing = containerRefs.current.get(id)
-        if (existing) {
-          observerRef.current?.unobserve(existing)
-          containerRefs.current.delete(id)
-        }
+  const registerContainer = useCallback((id: string, element: HTMLDivElement | null) => {
+    if (element) {
+      element.setAttribute('data-image-id', id)
+      containerRefs.current.set(id, element)
+      observerRef.current?.observe(element)
+    } else {
+      const existing = containerRefs.current.get(id)
+      if (existing) {
+        observerRef.current?.unobserve(existing)
+        containerRefs.current.delete(id)
       }
-    },
-    [],
-  )
+    }
+  }, [])
 
   // Get image state
   const getImageState = useCallback(

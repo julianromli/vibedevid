@@ -1,28 +1,13 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import {
-  Bold,
-  Italic,
-  Code,
-  Image as ImageIcon,
-  List,
-  ListOrdered,
-} from 'lucide-react'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import { Bold, Code, Image as ImageIcon, Italic, List, ListOrdered } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-
+import { EditorImageUploader } from '@/components/blog/editor-image-uploader'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -36,7 +21,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Toggle } from '@/components/ui/toggle'
-import { EditorImageUploader } from '@/components/blog/editor-image-uploader'
 
 interface RichTextEditorProps {
   content: Record<string, any>
@@ -49,10 +33,7 @@ interface RichTextEditorHandle {
   setContent: (content: Record<string, any>) => void
 }
 
-export const RichTextEditor = forwardRef<
-  RichTextEditorHandle,
-  RichTextEditorProps
->(function RichTextEditor(
+export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(function RichTextEditor(
   { content, onChange, placeholder = 'Write something amazing...' },
   ref,
 ) {
@@ -70,19 +51,14 @@ export const RichTextEditor = forwardRef<
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [
-      StarterKit,
-      Image.configure({ inline: true }),
-      Placeholder.configure({ placeholder }),
-    ],
+    extensions: [StarterKit, Image.configure({ inline: true }), Placeholder.configure({ placeholder })],
     content: safeContent,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON())
     },
     editorProps: {
       attributes: {
-        class:
-          'prose prose-lg prose-neutral dark:prose-invert max-w-none focus:outline-none px-4 py-3 min-h-full',
+        class: 'prose prose-lg prose-neutral dark:prose-invert max-w-none focus:outline-none px-4 py-3 min-h-full',
       },
     },
   })
@@ -166,9 +142,7 @@ export const RichTextEditor = forwardRef<
         <Toggle
           size="sm"
           pressed={editor.isActive('bulletList')}
-          onPressedChange={() =>
-            editor.chain().focus().toggleBulletList().run()
-          }
+          onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
           aria-label="Bullet list"
         >
           <List className="h-4 w-4" />
@@ -177,9 +151,7 @@ export const RichTextEditor = forwardRef<
         <Toggle
           size="sm"
           pressed={editor.isActive('orderedList')}
-          onPressedChange={() =>
-            editor.chain().focus().toggleOrderedList().run()
-          }
+          onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
           aria-label="Ordered list"
         >
           <ListOrdered className="h-4 w-4" />
@@ -199,7 +171,11 @@ export const RichTextEditor = forwardRef<
           }}
         >
           <DialogTrigger asChild>
-            <Button type="button" variant="ghost" size="icon-sm">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+            >
               <ImageIcon className="h-4 w-4" />
             </Button>
           </DialogTrigger>
@@ -207,9 +183,7 @@ export const RichTextEditor = forwardRef<
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Insert image</DialogTitle>
-              <DialogDescription>
-                Paste an image URL or upload a file (max 4MB).
-              </DialogDescription>
+              <DialogDescription>Paste an image URL or upload a file (max 4MB).</DialogDescription>
             </DialogHeader>
 
             <EditorImageUploader

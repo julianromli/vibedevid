@@ -5,14 +5,14 @@
 
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Suspense, useEffect, useState } from 'react'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { Button } from '@/components/ui/button'
+import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
-import { LogoMarquee } from '@/components/ui/logo-marquee'
-import { ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { User } from '@/types/homepage'
 
@@ -23,12 +23,7 @@ interface HeroSectionProps {
   handleViewShowcase: () => void
 }
 
-export function HeroSection({
-  isLoggedIn,
-  user,
-  handleJoinWithUs,
-  handleViewShowcase,
-}: HeroSectionProps) {
+export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
 
@@ -73,9 +68,7 @@ export function HeroSection({
                 >
                   VibeCoding Hackathon 2025 by vibecoding.id
                 </span>
-                <span className="ml-2 font-semibold text-orange-500">
-                  Hadiah 5 JUTA RUPIAH
-                </span>
+                <span className="ml-2 font-semibold text-orange-500">Hadiah 5 JUTA RUPIAH</span>
               </AnimatedGradientText>
             </Link>
 
@@ -110,15 +103,12 @@ export function HeroSection({
             </h1>
 
             <p
-              className={`text-muted-foreground mx-auto max-w-lg text-xl leading-relaxed transition-all duration-700 ease-out text-center ${
-                subtitleVisible
-                  ? 'blur-0 translate-y-0 opacity-100'
-                  : 'translate-y-8 opacity-0 blur-sm'
+              className={`text-muted-foreground mx-auto max-w-lg text-center text-xl leading-relaxed transition-all duration-700 ease-out ${
+                subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm'
               }`}
             >
-              Komunitas vibe coding Indonesia buat lo yang pengen naik level,
-              belajar coding pake AI, kolaborasi project open source, dan
-              sharing session tiap minggunya.
+              Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project
+              open source, dan sharing session tiap minggunya.
             </p>
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
@@ -175,11 +165,7 @@ export function HeroSection({
 
           <div className="relative mt-12 mb-8">
             <div className="my-0 flex items-center justify-center opacity-90">
-              <Suspense
-                fallback={
-                  <div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />
-                }
-              >
+              <Suspense fallback={<div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />}>
                 <LogoMarquee />
               </Suspense>
             </div>
@@ -190,9 +176,7 @@ export function HeroSection({
       {/* Trust Indicators */}
       <div className="mt-0">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden">
-            {/* Framework logos moved above Safari mockup */}
-          </div>
+          <div className="relative overflow-hidden">{/* Framework logos moved above Safari mockup */}</div>
         </div>
       </div>
     </section>

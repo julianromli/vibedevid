@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Loader2, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { deleteProject } from '@/lib/actions'
 
 interface ProjectActionsClientProps {
@@ -22,10 +22,7 @@ interface ProjectActionsClientProps {
   projectTitle: string
 }
 
-export function ProjectActionsClient({
-  projectSlug,
-  projectTitle,
-}: ProjectActionsClientProps) {
+export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActionsClientProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -44,7 +41,11 @@ export function ProjectActionsClient({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" className="w-full" disabled={isDeleting}>
+        <Button
+          variant="destructive"
+          className="w-full"
+          disabled={isDeleting}
+        >
           {isDeleting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -62,9 +63,8 @@ export function ProjectActionsClient({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            project &quot;{projectTitle}&quot; and remove all associated data from our
-            servers.
+            This action cannot be undone. This will permanently delete your project &quot;{projectTitle}&quot; and
+            remove all associated data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

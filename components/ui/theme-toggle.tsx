@@ -1,9 +1,9 @@
 'use client'
 
 import { Moon, SunDim } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
-import { flushSync } from 'react-dom'
 import { useTheme } from 'next-themes'
+import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
 
@@ -39,8 +39,7 @@ export const ThemeToggle = ({ className }: props) => {
       })
     }).ready
 
-    const { top, left, width, height } =
-      buttonRef.current.getBoundingClientRect()
+    const { top, left, width, height } = buttonRef.current.getBoundingClientRect()
     const y = top + height / 2
     const x = left + width / 2
 
@@ -50,10 +49,7 @@ export const ThemeToggle = ({ className }: props) => {
 
     document.documentElement.animate(
       {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${maxRad}px at ${x}px ${y}px)`,
-        ],
+        clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRad}px at ${x}px ${y}px)`],
       },
       {
         duration: 700,
@@ -66,7 +62,10 @@ export const ThemeToggle = ({ className }: props) => {
   // Dont render until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <button className={cn('opacity-0', className)} disabled>
+      <button
+        className={cn('opacity-0', className)}
+        disabled
+      >
         <Moon />
       </button>
     )
@@ -84,11 +83,7 @@ export const ThemeToggle = ({ className }: props) => {
       )}
       aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      {resolvedTheme === 'dark' ? (
-        <SunDim className="size-5" />
-      ) : (
-        <Moon className="size-5" />
-      )}
+      {resolvedTheme === 'dark' ? <SunDim className="size-5" /> : <Moon className="size-5" />}
     </Button>
   )
 }

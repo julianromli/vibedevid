@@ -64,9 +64,7 @@ const { chromium } = require('playwright')
     const metrics = await page.evaluate(() => {
       const navigation = performance.getEntriesByType('navigation')[0]
       return {
-        domContentLoaded:
-          navigation.domContentLoadedEventEnd -
-          navigation.domContentLoadedEventStart,
+        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
         loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
         totalTime: navigation.loadEventEnd - navigation.fetchStart,
       }
@@ -78,9 +76,7 @@ const { chromium } = require('playwright')
     console.log(`   Total Time: ${metrics.totalTime}ms`)
 
     // Check for avatar loading
-    const avatars = await page
-      .locator('img[alt*="author"], img[alt*="avatar"]')
-      .count()
+    const avatars = await page.locator('img[alt*="author"], img[alt*="avatar"]').count()
     console.log(`👤 Found ${avatars} avatar images`)
 
     if (consoleMessages.length > 0) {

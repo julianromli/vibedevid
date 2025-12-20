@@ -11,12 +11,8 @@ export default function AdminPage() {
         <div className="space-y-8">
           {/* Header Section */}
           <div className="space-y-4 text-center">
-            <h1 className="text-foreground text-4xl font-bold">
-              Admin Dashboard 🚀
-            </h1>
-            <p className="text-muted-foreground text-xl">
-              Manage Video Vibe Coding Section
-            </p>
+            <h1 className="text-foreground text-4xl font-bold">Admin Dashboard 🚀</h1>
+            <p className="text-muted-foreground text-xl">Manage Video Vibe Coding Section</p>
           </div>
 
           {/* Video Vibe Coding Manager */}

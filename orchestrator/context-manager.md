@@ -75,6 +75,7 @@ The Context Manager provides a structured way to share and maintain context acro
 ### What Always Gets Passed Between Phases
 
 #### 1. File Paths and Locations
+
 ```json
 {
   "shared_artifacts": {
@@ -101,6 +102,7 @@ The Context Manager provides a structured way to share and maintain context acro
 ```
 
 #### 2. API Contracts and Interfaces
+
 ```json
 {
   "shared_artifacts": {
@@ -129,6 +131,7 @@ The Context Manager provides a structured way to share and maintain context acro
 ```
 
 #### 3. Database Schemas
+
 ```json
 {
   "shared_artifacts": {
@@ -136,14 +139,12 @@ The Context Manager provides a structured way to share and maintain context acro
       "users_table": {
         "name": "users",
         "columns": [
-          {"name": "id", "type": "uuid", "primary_key": true},
-          {"name": "email", "type": "varchar", "unique": true},
-          {"name": "password_hash", "type": "varchar"},
-          {"name": "created_at", "type": "timestamp"}
+          { "name": "id", "type": "uuid", "primary_key": true },
+          { "name": "email", "type": "varchar", "unique": true },
+          { "name": "password_hash", "type": "varchar" },
+          { "name": "created_at", "type": "timestamp" }
         ],
-        "indexes": [
-          {"name": "idx_users_email", "columns": ["email"]}
-        ]
+        "indexes": [{ "name": "idx_users_email", "columns": ["email"] }]
       }
     }
   }
@@ -151,6 +152,7 @@ The Context Manager provides a structured way to share and maintain context acro
 ```
 
 #### 4. Design Decisions
+
 ```json
 {
   "shared_artifacts": {
@@ -158,7 +160,10 @@ The Context Manager provides a structured way to share and maintain context acro
       "authentication_strategy": {
         "decision": "JWT with refresh tokens",
         "reasoning": "Balanced security and performance",
-        "alternatives_considered": ["Session-based auth", "OAuth2 with external providers"],
+        "alternatives_considered": [
+          "Session-based auth",
+          "OAuth2 with external providers"
+        ],
         "phase": "security-review",
         "droid": "security-auditor"
       }
@@ -172,6 +177,7 @@ The Context Manager provides a structured way to share and maintain context acro
 ### Each Droid Must Provide
 
 #### Backend Droids (backend-architect, backend-typescript-architect)
+
 - API endpoints with request/response schemas
 - Database schema changes or requirements
 - Integration points with other systems
@@ -179,6 +185,7 @@ The Context Manager provides a structured way to share and maintain context acro
 - Performance requirements
 
 #### Frontend Droids (frontend-developer, ui-ux-designer)
+
 - Component hierarchy and structure
 - State management approach
 - API integration requirements
@@ -186,6 +193,7 @@ The Context Manager provides a structured way to share and maintain context acro
 - Accessibility requirements
 
 #### Security Droids (security-auditor)
+
 - Security requirements and constraints
 - Authentication/authorization flows
 - Data protection requirements
@@ -193,6 +201,7 @@ The Context Manager provides a structured way to share and maintain context acro
 - Security testing requirements
 
 #### Testing Droids (test-automator)
+
 - Test coverage requirements
 - Testing strategy and frameworks
 - Mock/stub requirements
@@ -207,57 +216,59 @@ The Context Manager provides a structured way to share and maintain context acro
 # Template for droid phase completion
 phase_completion:
   status: completed | failed | blocked
-  duration: "X minutes"
-  
+  duration: 'X minutes'
+
   deliverables:
     files_created:
-      - path: "path/to/file"
-        purpose: "brief description"
+      - path: 'path/to/file'
+        purpose: 'brief description'
         dependencies: []
     files_modified:
-      - path: "path/to/file"
-        changes: "brief description"
-        
+      - path: 'path/to/file'
+        changes: 'brief description'
+
   key_decisions:
-    - decision: "Decision made"
-      reasoning: "Why this decision"
-      alternatives_considered: ["option1", "option2"]
-      
+    - decision: 'Decision made'
+      reasoning: 'Why this decision'
+      alternatives_considered: ['option1', 'option2']
+
   next_phase_requirements:
-    - requirement: "What next phase needs"
-      for_droid: "Which droid needs this"
-      
+    - requirement: 'What next phase needs'
+      for_droid: 'Which droid needs this'
+
   integration_points:
-    - component: "Component name"
-      with: "Other component or system"
-      interface: "How they connect"
-      
+    - component: 'Component name'
+      with: 'Other component or system'
+      interface: 'How they connect'
+
   blockers:
     - blocker: "What's blocking progress"
-      required_action: "What needs to happen"
-      
+      required_action: 'What needs to happen'
+
   suggestions:
-    - suggestion: "Recommendation for orchestration"
-      rationale: "Why this is recommended"
+    - suggestion: 'Recommendation for orchestration'
+      rationale: 'Why this is recommended'
 ```
 
 ## Context Preservation Strategies
 
 ### 1. File-Based Context Storage
+
 ```typescript
 // Save context after each phase
 interface PhaseContext {
-  phase_id: string;
-  droid: string;
-  timestamp: string;
-  outputs: any;
-  next_phase_requirements: any;
+  phase_id: string
+  droid: string
+  timestamp: string
+  outputs: any
+  next_phase_requirements: any
 }
 
 // Context is saved to ~/.factory/orchestrator/contexts/[task_id].json
 ```
 
 ### 2. In-Memory Context Passing
+
 ```typescript
 // During active orchestration, context is passed in Task tool prompts
 Task(
@@ -266,7 +277,7 @@ Task(
   prompt: `
     Context from previous phases:
     ${JSON.stringify(context.shared_artifacts, null, 2)}
-    
+
     Build a login form that integrates with the auth API at /api/auth/login
     Use the user schema with email/password fields as defined in database schema
   `
@@ -274,15 +285,16 @@ Task(
 ```
 
 ### 3. Artifact Tracking
+
 ```typescript
 interface Artifact {
-  type: "file" | "api" | "schema" | "decision";
-  name: string;
-  phase: string;
-  droid: string;
-  description: string;
-  dependencies: string[];
-  consumers: string[]; // Which phases/droids use this
+  type: 'file' | 'api' | 'schema' | 'decision'
+  name: string
+  phase: string
+  droid: string
+  description: string
+  dependencies: string[]
+  consumers: string[] // Which phases/droids use this
 }
 ```
 
@@ -306,12 +318,12 @@ interface Artifact {
 
 ```typescript
 interface Conflict {
-  type: "api_contract" | "schema" | "design" | "dependency";
-  severity: "critical" | "high" | "medium" | "low";
-  description: string;
-  affected_components: string[];
-  resolution_strategy: "reconcile" | "choose_one" | "merge" | "escalate";
-  suggested_resolution: string;
+  type: 'api_contract' | 'schema' | 'design' | 'dependency'
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  description: string
+  affected_components: string[]
+  resolution_strategy: 'reconcile' | 'choose_one' | 'merge' | 'escalate'
+  suggested_resolution: string
 }
 ```
 
@@ -320,43 +332,46 @@ interface Conflict {
 ### Context Quality Checks
 
 #### 1. Completeness Check
+
 ```typescript
 function validateContextCompleteness(context: PhaseContext): boolean {
   const required_fields = [
-    "files_created",
-    "key_decisions", 
-    "next_phase_requirements",
-    "integration_points"
-  ];
-  
-  return required_fields.every(field => context[field] !== undefined);
+    'files_created',
+    'key_decisions',
+    'next_phase_requirements',
+    'integration_points',
+  ]
+
+  return required_fields.every((field) => context[field] !== undefined)
 }
 ```
 
 #### 2. Consistency Check
+
 ```typescript
 function validateConsistency(context: OrchestratorContext): Conflict[] {
-  const conflicts = [];
-  
+  const conflicts = []
+
   // Check API contract consistency
-  conflicts.push(...checkApiContracts(context));
-  
+  conflicts.push(...checkApiContracts(context))
+
   // Check database schema consistency
-  conflicts.push(...checkSchemaConsistency(context));
-  
+  conflicts.push(...checkSchemaConsistency(context))
+
   // Check design pattern consistency
-  conflicts.push(...checkDesignConsistency(context));
-  
-  return conflicts;
+  conflicts.push(...checkDesignConsistency(context))
+
+  return conflicts
 }
 ```
 
 #### 3. Integration Readiness Check
+
 ```typescript
 function validateIntegrationReadiness(context: OrchestratorContext): {
-  ready: boolean;
-  blockers: string[];
-  recommendations: string[];
+  ready: boolean
+  blockers: string[]
+  recommendations: string[]
 } {
   // Check if all integration points have corresponding implementations
   // Verify that dependencies are satisfied
@@ -369,6 +384,7 @@ function validateIntegrationReadiness(context: OrchestratorContext): {
 ### Example 1: Authentication Feature Context Flow
 
 #### Phase 1: Security Audit (security-auditor)
+
 ```json
 {
   "shared_artifacts": {
@@ -390,6 +406,7 @@ function validateIntegrationReadiness(context: OrchestratorContext): {
 ```
 
 #### Phase 2: Backend Architecture (backend-architect)
+
 ```json
 {
   "shared_artifacts": {
@@ -397,8 +414,12 @@ function validateIntegrationReadiness(context: OrchestratorContext): {
       "auth": {
         "login": {
           "endpoint": "POST /api/auth/login",
-          "request": {"email": "string", "password": "string"},
-          "response": {"token": "string", "user": "object", "refresh_token": "string"}
+          "request": { "email": "string", "password": "string" },
+          "response": {
+            "token": "string",
+            "user": "object",
+            "refresh_token": "string"
+          }
         }
       }
     },
@@ -406,9 +427,9 @@ function validateIntegrationReadiness(context: OrchestratorContext): {
       "users": {
         "table": "users",
         "columns": [
-          {"name": "id", "type": "uuid"},
-          {"name": "email", "type": "varchar", "unique": true},
-          {"name": "password_hash", "type": "varchar"}
+          { "name": "id", "type": "uuid" },
+          { "name": "email", "type": "varchar", "unique": true },
+          { "name": "password_hash", "type": "varchar" }
         ]
       }
     }
@@ -417,13 +438,17 @@ function validateIntegrationReadiness(context: OrchestratorContext): {
 ```
 
 #### Phase 3: Implementation (backend-typescript-architect + frontend-developer)
+
 ```json
 {
   "shared_artifacts": {
     "file_paths": {
       "created": [
-        {"path": "src/api/auth.ts", "droid": "backend-typescript-architect"},
-        {"path": "src/components/auth/LoginForm.tsx", "droid": "frontend-developer"}
+        { "path": "src/api/auth.ts", "droid": "backend-typescript-architect" },
+        {
+          "path": "src/components/auth/LoginForm.tsx",
+          "droid": "frontend-developer"
+        }
       ]
     },
     "implementation_details": {

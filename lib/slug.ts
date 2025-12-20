@@ -36,10 +36,7 @@ export function slugifyTitle(input: string, maxLen: number = 80): string {
  * @param excludeProjectId - Project ID yang mau di-exclude dari pengecekan (untuk edit)
  * @returns Unique slug (dengan suffix -2, -3, dst jika diperlukan)
  */
-export async function ensureUniqueSlug(
-  baseSlug: string,
-  excludeProjectId?: string,
-): Promise<string> {
+export async function ensureUniqueSlug(baseSlug: string, excludeProjectId?: string): Promise<string> {
   const cookieStore = await cookies()
   const { url, anonKey } = getSupabaseConfig()
 
@@ -50,9 +47,7 @@ export async function ensureUniqueSlug(
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          )
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {
           // Server Component context, can be ignored
         }
@@ -67,11 +62,7 @@ export async function ensureUniqueSlug(
   while (true) {
     try {
       // Cek apakah slug sudah exist di database
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('slug', slug)
-        .limit(1)
+      const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).limit(1)
 
       if (error) {
         console.error('Error checking slug uniqueness:', error)
@@ -80,8 +71,7 @@ export async function ensureUniqueSlug(
 
       // Kalau tidak ada data, berarti slug unique
       const exists = data && data.length > 0
-      const isExcluded =
-        exists && excludeProjectId && data[0]?.id === excludeProjectId
+      const isExcluded = exists && excludeProjectId && data[0]?.id === excludeProjectId
 
       if (!exists || isExcluded) {
         return slug
@@ -136,9 +126,7 @@ export async function getProjectIdBySlug(slug: string): Promise<string | null> {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          )
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {
           // Server Component context, can be ignored
         }
@@ -147,11 +135,7 @@ export async function getProjectIdBySlug(slug: string): Promise<string | null> {
   })
 
   try {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('slug', slug)
-      .single()
+    const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).single()
 
     if (error || !data) {
       return null

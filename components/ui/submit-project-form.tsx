@@ -1,28 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { submitProject } from '@/lib/actions'
-import { Loader2, Upload, X, CheckCircle } from 'lucide-react'
 import { UploadButton } from '@uploadthing/react'
+import { CheckCircle, Loader2, Upload, X } from 'lucide-react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { getCategories, type Category } from '@/lib/categories'
-import MultipleSelector, { Option } from '@/components/ui/multiselect'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import MultipleSelector, { type Option } from '@/components/ui/multiselect'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { submitProject } from '@/lib/actions'
+import { type Category, getCategories } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
-import Image from 'next/image'
 
 // Common tech stack options for the multiselect
 const techOptions: Option[] = [
@@ -90,9 +84,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
-  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(
-    null,
-  )
+  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [selectedTags, setSelectedTags] = useState<Option[]>([])
@@ -170,11 +162,20 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
         <CardTitle>Project Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
           {/* GitHub Import (client-only to avoid hydration mismatch) */}
           {mounted && (
-            <div className="space-y-2" data-testid="github-import">
-              <Label htmlFor="github_repo" className="form-label-enhanced">
+            <div
+              className="space-y-2"
+              data-testid="github-import"
+            >
+              <Label
+                htmlFor="github_repo"
+                className="form-label-enhanced"
+              >
                 Import from GitHub
               </Label>
               <div className="flex gap-2">
@@ -200,8 +201,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                         body: JSON.stringify({ repoUrl: githubRepoUrl.trim() }),
                       })
                       const data = await res.json()
-                      if (!res.ok)
-                        throw new Error(data?.error || 'Failed to import repo')
+                      if (!res.ok) throw new Error(data?.error || 'Failed to import repo')
 
                       setTitle(data.title || '')
                       setTagline(data.tagline || '')
@@ -212,17 +212,13 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
                       // Merge tags into selector
                       if (Array.isArray(data.tags)) {
-                        const existing = new Set(
-                          selectedTags.map((t) => t.value),
-                        )
+                        const existing = new Set(selectedTags.map((t) => t.value))
                         const next: Option[] = [...selectedTags]
                         for (const raw of data.tags as string[]) {
                           const value = String(raw).toLowerCase()
                           if (existing.has(value)) continue
                           // Try to find matching default option for proper label
-                          const found = techOptions.find(
-                            (t) => t.value.toLowerCase() === value,
-                          )
+                          const found = techOptions.find((t) => t.value.toLowerCase() === value)
                           if (found) {
                             next.push(found)
                             existing.add(value)
@@ -266,7 +262,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="title" className="form-label-enhanced">
+            <Label
+              htmlFor="title"
+              className="form-label-enhanced"
+            >
               Project Title *
             </Label>
             <Input
@@ -282,7 +281,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tagline" className="form-label-enhanced">
+            <Label
+              htmlFor="tagline"
+              className="form-label-enhanced"
+            >
               Tagline
             </Label>
             <Input
@@ -300,7 +302,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="form-label-enhanced">
+            <Label
+              htmlFor="description"
+              className="form-label-enhanced"
+            >
               Description *
             </Label>
             <Textarea
@@ -334,7 +339,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category" className="form-label-enhanced">
+            <Label
+              htmlFor="category"
+              className="form-label-enhanced"
+            >
               Category *
             </Label>
             <Select
@@ -347,17 +355,26 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               </SelectTrigger>
               <SelectContent>
                 {loadingCategories ? (
-                  <SelectItem value="loading" disabled>
+                  <SelectItem
+                    value="loading"
+                    disabled
+                  >
                     Loading categories...
                   </SelectItem>
                 ) : categories.length > 0 ? (
                   categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
+                    <SelectItem
+                      key={category.id}
+                      value={category.name}
+                    >
                       {category.display_name}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="no-categories" disabled>
+                  <SelectItem
+                    value="no-categories"
+                    disabled
+                  >
                     No categories available
                   </SelectItem>
                 )}
@@ -366,7 +383,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website_url" className="form-label-enhanced">
+            <Label
+              htmlFor="website_url"
+              className="form-label-enhanced"
+            >
               Website URL
             </Label>
             <Input
@@ -382,7 +402,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="favicon_url" className="form-label-enhanced">
+            <Label
+              htmlFor="favicon_url"
+              className="form-label-enhanced"
+            >
               Favicon URL
             </Label>
             <div className="flex items-center gap-2">
@@ -425,11 +448,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               onChange={setSelectedTags}
               defaultOptions={techOptions}
               placeholder="Select technologies used in your project..."
-              emptyIndicator={
-                <p className="text-muted-foreground text-center text-sm">
-                  No technologies found.
-                </p>
-              }
+              emptyIndicator={<p className="text-muted-foreground text-center text-sm">No technologies found.</p>}
               creatable
               maxSelected={10}
               disabled={isLoading || isUploading}
@@ -438,8 +457,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
               }}
             />
             <p className="form-helper-text mt-1 text-xs">
-              Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri
-              kalau gak ada! 🚀
+              Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri kalau gak ada! 🚀
             </p>
           </div>
 
@@ -491,9 +509,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                           <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
                           Uploading...
                         </div>
-                        <p className="text-muted-foreground text-sm">
-                          Please wait while your image is being uploaded
-                        </p>
+                        <p className="text-muted-foreground text-sm">Please wait while your image is being uploaded</p>
                       </div>
                     ) : (
                       <UploadButton
@@ -519,10 +535,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                         }}
                         onClientUploadComplete={(res) => {
                           console.log('[v0] Client upload completed:', res)
-                          console.log(
-                            '[v0] Full response object:',
-                            JSON.stringify(res, null, 2),
-                          )
+                          console.log('[v0] Full response object:', JSON.stringify(res, null, 2))
 
                           // Clear timeout since upload completed
                           if (uploadTimeout) {
@@ -541,28 +554,18 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
 
                             // Try to get URL from different possible locations (prioritize new ufsUrl)
                             const imageUrl =
-                              uploadResult.ufsUrl ||
-                              uploadResult.url ||
-                              uploadResult.fileUrl ||
-                              uploadResult.key
+                              uploadResult.ufsUrl || uploadResult.url || uploadResult.fileUrl || uploadResult.key
 
                             if (imageUrl) {
                               console.log('[v0] Setting image URL:', imageUrl)
                               setUploadedImageUrl(imageUrl)
                             } else {
-                              console.error(
-                                '[v0] No URL found in upload result:',
-                                uploadResult,
-                              )
-                              setError(
-                                'Upload completed but no URL received. Please try again.',
-                              )
+                              console.error('[v0] No URL found in upload result:', uploadResult)
+                              setError('Upload completed but no URL received. Please try again.')
                             }
                           } else {
                             console.error('[v0] Invalid response format:', res)
-                            setError(
-                              'Upload completed but response format is invalid. Please try again.',
-                            )
+                            setError('Upload completed but response format is invalid. Please try again.')
                           }
                         }}
                         onUploadError={(error: Error) => {
@@ -595,28 +598,21 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                           },
                         }}
                         appearance={{
-                          button:
-                            'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
+                          button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
                           allowedContent: 'text-sm text-muted-foreground mt-2',
                         }}
                       />
                     )}
                   </div>
                   <p className="mt-2 text-sm text-gray-500">
-                    {isUploading
-                      ? 'Uploading your screenshot...'
-                      : 'Upload a screenshot of your project (max 4MB)'}
+                    {isUploading ? 'Uploading your screenshot...' : 'Upload a screenshot of your project (max 4MB)'}
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-950/20">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-950/20">{error}</div>}
 
           <div className="flex gap-4">
             <Button
@@ -627,7 +623,10 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || isUploading}>
+            <Button
+              type="submit"
+              disabled={isLoading || isUploading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

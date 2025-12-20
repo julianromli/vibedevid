@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Script from 'next/script'
-import { Navbar } from '@/components/ui/navbar'
-import { Footer } from '@/components/ui/footer'
-import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
-import { HeroSection } from '@/components/sections/hero-section'
-import { ProjectShowcase } from '@/components/sections/project-showcase'
-import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
+import { useEffect, useState } from 'react'
 import { AILeaderboardSection } from '@/components/sections/ai-leaderboard-section'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
-import { ReviewsSection } from '@/components/sections/reviews-section'
-import { FAQSection } from '@/components/sections/faq-section'
+import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
 import { CTASection } from '@/components/sections/cta-section'
+import { FAQSection } from '@/components/sections/faq-section'
+import { HeroSection } from '@/components/sections/hero-section'
+import { ProjectShowcase } from '@/components/sections/project-showcase'
+import { ReviewsSection } from '@/components/sections/reviews-section'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { useProjectFilters } from '@/hooks/useProjectFilters'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
 import type { User } from '@/types/homepage'
 
@@ -24,10 +24,7 @@ interface HomePageClientProps {
   initialUser: User | null
 }
 
-export default function HomePageClient({
-  initialIsLoggedIn,
-  initialUser,
-}: HomePageClientProps) {
+export default function HomePageClient({ initialIsLoggedIn, initialUser }: HomePageClientProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [currentTime, setCurrentTime] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn)
@@ -87,10 +84,7 @@ export default function HomePageClient({
             '@context': 'https://schema.org',
             '@type': 'Organization',
             name: 'VibeDev ID',
-            alternateName: [
-              'Komunitas Vibe Coding Indonesia',
-              'VibeDev Indonesia',
-            ],
+            alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
             url: 'https://vibedevid.com',
             logo: 'https://vibedevid.com/vibedev-logo.png',
             description:

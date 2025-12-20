@@ -9,9 +9,7 @@ export const getSupabaseConfig = () => {
 
   // If URL is invalid or missing, use fallback
   if (!isValidUrl) {
-    console.warn(
-      'Invalid or missing NEXT_PUBLIC_SUPABASE_URL. Using fallback for build.',
-    )
+    console.warn('Invalid or missing NEXT_PUBLIC_SUPABASE_URL. Using fallback for build.')
     console.warn('Current value:', url || '[EMPTY]')
     return {
       url: 'https://placeholder.supabase.co',
@@ -22,9 +20,7 @@ export const getSupabaseConfig = () => {
 
   // If we have a valid URL but missing anon key, still use fallback
   if (!anonKey) {
-    console.warn(
-      'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Using fallback for build.',
-    )
+    console.warn('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Using fallback for build.')
     return {
       url: 'https://placeholder.supabase.co',
       anonKey:
@@ -44,9 +40,7 @@ export const getSupabaseServerConfig = () => {
 
   // If URL is invalid or missing, use fallback
   if (!isValidUrl) {
-    console.warn(
-      'Invalid or missing NEXT_PUBLIC_SUPABASE_URL for server. Using fallback.',
-    )
+    console.warn('Invalid or missing NEXT_PUBLIC_SUPABASE_URL for server. Using fallback.')
     return {
       url: 'https://placeholder.supabase.co',
       serviceRoleKey: 'placeholder-service-role-key',
@@ -55,9 +49,7 @@ export const getSupabaseServerConfig = () => {
 
   // If we have a valid URL but missing service role key, still use fallback
   if (!serviceRoleKey) {
-    console.warn(
-      'Missing SUPABASE_SERVICE_ROLE_KEY. Using fallback for server operations.',
-    )
+    console.warn('Missing SUPABASE_SERVICE_ROLE_KEY. Using fallback for server operations.')
     return {
       url: 'https://placeholder.supabase.co',
       serviceRoleKey: 'placeholder-service-role-key',

@@ -1,6 +1,6 @@
+import { Shield, Users } from 'lucide-react'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
-import { Shield, Users } from 'lucide-react'
 
 export default function FeaturesSection() {
   return (
@@ -8,12 +8,10 @@ export default function FeaturesSection() {
       <div className="mx-auto max-w-5xl px-6">
         {/* Section Header */}
         <div className="mb-12 text-center md:mb-16">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            Kenapa Gabung VibeDev ID?
-          </h2>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">Kenapa Gabung VibeDev ID?</h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
-            Komunitas vibe coding Indonesia yang supportive, kolaboratif, dan
-            siap bantu lo berkembang jadi developer yang lebih baik
+            Komunitas vibe coding Indonesia yang supportive, kolaboratif, dan siap bantu lo berkembang jadi developer
+            yang lebih baik
           </p>
         </div>
 
@@ -33,13 +31,9 @@ export default function FeaturesSection() {
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="mx-auto block w-fit text-5xl font-semibold">
-                    500+
-                  </span>
+                  <span className="mx-auto block w-fit text-5xl font-semibold">500+</span>
                 </div>
-                <h2 className="mt-6 text-center text-3xl font-semibold">
-                  Vibe Coder Aktif
-                </h2>
+                <h2 className="mt-6 text-center text-3xl font-semibold">Vibe Coder Aktif</h2>
               </CardContent>
             </Card>
             <Card className="relative col-span-full overflow-hidden sm:col-span-3 lg:col-span-2">
@@ -78,7 +72,10 @@ export default function FeaturesSection() {
                         y2="72"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stopColor="white" stopOpacity="0" />
+                        <stop
+                          stopColor="white"
+                          stopOpacity="0"
+                        />
                         <stop
                           className="text-primary-600 dark:text-primary-500"
                           offset="1"
@@ -101,8 +98,7 @@ export default function FeaturesSection() {
                     Komunitas Terpercaya
                   </h2>
                   <p className="text-foreground">
-                    Diskusi berkualitas, networking real, dan kolaborasi yang
-                    meaningful.
+                    Diskusi berkualitas, networking real, dan kolaborasi yang meaningful.
                   </p>
                 </div>
               </CardContent>
@@ -116,7 +112,11 @@ export default function FeaturesSection() {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <rect width="386" height="123" rx="10" />
+                    <rect
+                      width="386"
+                      height="123"
+                      rx="10"
+                    />
                     <g clipPath="url(#clip0_0_106)">
                       <circle
                         className="text-muted-foreground dark:text-muted"
@@ -192,12 +192,9 @@ export default function FeaturesSection() {
                   </svg>
                 </div>
                 <div className="relative z-10 mt-14 space-y-2 text-center">
-                  <h2 className="text-lg font-medium transition">
-                    Level Up Bareng
-                  </h2>
+                  <h2 className="text-lg font-medium transition">Level Up Bareng</h2>
                   <p className="text-foreground">
-                    Tracking progress coding lo, share achievement, dan liat
-                    gimana skill lo berkembang.
+                    Tracking progress coding lo, share achievement, dan liat gimana skill lo berkembang.
                   </p>
                 </div>
               </CardContent>
@@ -206,15 +203,18 @@ export default function FeaturesSection() {
               <CardContent className="grid pt-6 sm:grid-cols-2">
                 <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
                   <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
-                    <Shield className="m-auto size-5" strokeWidth={1} />
+                    <Shield
+                      className="m-auto size-5"
+                      strokeWidth={1}
+                    />
                   </div>
                   <div className="space-y-2">
                     <h2 className="group-hover:text-secondary-950 text-lg font-medium text-zinc-800 transition dark:text-white">
                       Safe Space untuk Belajar
                     </h2>
                     <p className="text-foreground">
-                      Environment supportive buat semua level. Mau pemula atau
-                      expert, semua saling bantu dan grow together.
+                      Environment supportive buat semua level. Mau pemula atau expert, semua saling bantu dan grow
+                      together.
                     </p>
                   </div>
                 </div>
@@ -271,24 +271,22 @@ export default function FeaturesSection() {
               <CardContent className="grid h-full pt-6 sm:grid-cols-2">
                 <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
                   <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
-                    <Users className="m-auto size-6" strokeWidth={1} />
+                    <Users
+                      className="m-auto size-6"
+                      strokeWidth={1}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-lg font-medium transition">
-                      Kolaborasi Tanpa Batas
-                    </h2>
+                    <h2 className="text-lg font-medium transition">Kolaborasi Tanpa Batas</h2>
                     <p className="text-foreground">
-                      Bikin project bareng, share knowledge, dan build something
-                      amazing together.
+                      Bikin project bareng, share knowledge, dan build something amazing together.
                     </p>
                   </div>
                 </div>
                 <div className="relative mt-6 before:absolute before:inset-0 before:mx-auto before:w-px before:bg-(--color-border) sm:-my-6 sm:-mr-6">
                   <div className="relative flex h-full flex-col justify-center space-y-6 py-6">
                     <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
-                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        Likeur
-                      </span>
+                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">Likeur</span>
                       <div className="ring-background relative size-7 ring-4">
                         <Image
                           className="rounded-full object-cover"
@@ -309,14 +307,10 @@ export default function FeaturesSection() {
                           sizes="32px"
                         />
                       </div>
-                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        M. Irung
-                      </span>
+                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">M. Irung</span>
                     </div>
                     <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
-                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        B. Ng
-                      </span>
+                      <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">B. Ng</span>
                       <div className="ring-background relative size-7 ring-4">
                         <Image
                           className="rounded-full object-cover"

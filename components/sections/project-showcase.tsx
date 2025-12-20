@@ -5,19 +5,19 @@
 
 'use client'
 
-import { useState, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
-import { motion, useInView } from 'motion/react'
-import { Button } from '@/components/ui/button'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
-import { FilterControls } from '@/components/ui/filter-controls'
 import { ChevronDown, Plus } from 'lucide-react'
-import type { Project } from '@/types/homepage'
+import { motion, useInView } from 'motion/react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useRef, useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Button } from '@/components/ui/button'
+import { FilterControls } from '@/components/ui/filter-controls'
+import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
+import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import type { Project } from '@/types/homepage'
 
 interface ProjectShowcaseProps {
   projects: Project[]
@@ -49,16 +49,18 @@ export function ProjectShowcase({
   const isInView = useInView(gridRef, { once: true, margin: '-50px' })
 
   return (
-    <section className="bg-muted/20 py-12" id="projects">
+    <section
+      className="bg-muted/20 py-12"
+      id="projects"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
             Showcase Project Developer Indonesia
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-            Temukan project keren yang dibuat oleh komunitas vibe coder
-            Indonesia. Dari AI tools sampai open source projects, semua karya
-            developer terbaik ada di sini.
+            Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source
+            projects, semua karya developer terbaik ada di sini.
           </p>
         </div>
 
@@ -76,7 +78,10 @@ export function ProjectShowcase({
           </div>
 
           <div className="flex flex-1 justify-center">
-            <Button asChild className="bg-primary hover:bg-primary/90">
+            <Button
+              asChild
+              className="bg-primary hover:bg-primary/90"
+            >
               <Link href="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
                 Submit Project
@@ -92,11 +97,7 @@ export function ProjectShowcase({
               className="flex items-center gap-2"
             >
               {selectedTrending}
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  isTrendingOpen ? 'rotate-180' : ''
-                }`}
-              />
+              <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
             </Button>
 
             {isTrendingOpen && (
@@ -110,9 +111,7 @@ export function ProjectShowcase({
                         setIsTrendingOpen(false)
                       }}
                       className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                        selectedTrending === option
-                          ? 'bg-muted text-foreground'
-                          : 'text-muted-foreground'
+                        selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                       }`}
                     >
                       {option}
@@ -131,7 +130,10 @@ export function ProjectShowcase({
         >
           {loading
             ? Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="group my-4 cursor-pointer py-0">
+                <div
+                  key={index}
+                  className="group my-4 cursor-pointer py-0"
+                >
                   <div className="bg-muted relative mb-4 animate-pulse overflow-hidden rounded-lg">
                     <div className="bg-muted h-64 w-full"></div>
                   </div>
@@ -151,9 +153,7 @@ export function ProjectShowcase({
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, y: 30 }}
-                  animate={
-                    isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
-                  }
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                   transition={{
                     duration: 0.5,
                     delay: index * 0.08,
@@ -165,70 +165,70 @@ export function ProjectShowcase({
                     href={`/project/${project.slug}`}
                     className="group my-4 block cursor-pointer py-0"
                   >
-                  {/* Thumbnail Preview Section */}
-                  <div className="bg-background relative mb-4 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl">
-                    <AspectRatio ratio={16 / 9}>
-                      <Image
-                        src={project.image || '/vibedev-guest-avatar.png'}
-                        alt={project.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.src = '/vibedev-guest-avatar.png'
-                        }}
-                      />
-                    </AspectRatio>
-
-                    {/* Category Badge */}
-                    <div className="absolute top-3 left-3">
-                      <span className="rounded-full bg-black/70 px-2 py-1 text-xs text-white backdrop-blur-sm">
-                        {project.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Project Details Section */}
-                  <div className="space-y-3">
-                    <h3 className="text-foreground group-hover:text-primary line-clamp-2 py-0 text-lg leading-tight font-semibold transition-colors duration-300">
-                      {project.title}
-                    </h3>
-
-                    {/* Author and Stats */}
-                    <div className="flex items-center justify-between py-0">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            router.push(`/${project.author.username}`)
+                    {/* Thumbnail Preview Section */}
+                    <div className="bg-background relative mb-4 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl">
+                      <AspectRatio ratio={16 / 9}>
+                        <Image
+                          src={project.image || '/vibedev-guest-avatar.png'}
+                          alt={project.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            e.currentTarget.src = '/vibedev-guest-avatar.png'
                           }}
-                        >
-                          <OptimizedAvatar
-                            src={project.author.avatar}
-                            alt={project.author.name}
-                            size="sm"
-                            className="ring-muted ring-2"
-                            showSkeleton={false}
-                          />
-                          <UserDisplayName
-                            name={project.author.name}
-                            role={project.author.role}
-                            className="text-muted-foreground text-sm font-medium"
+                        />
+                      </AspectRatio>
+
+                      {/* Category Badge */}
+                      <div className="absolute top-3 left-3">
+                        <span className="rounded-full bg-black/70 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                          {project.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Project Details Section */}
+                    <div className="space-y-3">
+                      <h3 className="text-foreground group-hover:text-primary line-clamp-2 py-0 text-lg leading-tight font-semibold transition-colors duration-300">
+                        {project.title}
+                      </h3>
+
+                      {/* Author and Stats */}
+                      <div className="flex items-center justify-between py-0">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              router.push(`/${project.author.username}`)
+                            }}
+                          >
+                            <OptimizedAvatar
+                              src={project.author.avatar}
+                              alt={project.author.name}
+                              size="sm"
+                              className="ring-muted ring-2"
+                              showSkeleton={false}
+                            />
+                            <UserDisplayName
+                              name={project.author.name}
+                              role={project.author.role}
+                              className="text-muted-foreground text-sm font-medium"
+                            />
+                          </div>
+                        </div>
+                        <div className="relative z-20">
+                          <HeartButtonDisplay
+                            likes={project.likes || 0}
+                            variant="default"
                           />
                         </div>
                       </div>
-                      <div className="relative z-20">
-                        <HeartButtonDisplay
-                          likes={project.likes || 0}
-                          variant="default"
-                        />
-                      </div>
                     </div>
-                  </div>
                   </Link>
                 </motion.div>
               ))}

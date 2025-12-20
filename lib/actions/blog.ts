@@ -1,8 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { slugifyTitle } from '@/lib/slug'
+import { createClient } from '@/lib/supabase/server'
 
 export async function createBlogPost(data: {
   title: string
@@ -26,19 +26,14 @@ export async function createBlogPost(data: {
   }
 
   const baseSlug = slugifyTitle(data.title)
-  const { data: existing } = await supabase
-    .from('posts')
-    .select('slug')
-    .like('slug', `${baseSlug}%`)
+  const { data: existing } = await supabase.from('posts').select('slug').like('slug', `${baseSlug}%`)
 
   let slug = baseSlug
   if (existing?.some((p: { slug: string }) => p.slug === slug)) {
     slug = `${baseSlug}-${Date.now().toString(36)}`
   }
 
-  const readTime = Math.ceil(
-    JSON.stringify(data.content).split(' ').length / 200,
-  )
+  const readTime = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
 
   const { error } = await supabase.from('posts').insert({
     title: data.title,
@@ -77,11 +72,7 @@ export async function updateBlogPost(
     return { success: false, error: 'Unauthorized' }
   }
 
-  const { data: post } = await supabase
-    .from('posts')
-    .select('author_id')
-    .eq('id', id)
-    .single()
+  const { data: post } = await supabase.from('posts').select('author_id').eq('id', id).single()
 
   if (!post || post.author_id !== authData.user.id) {
     return { success: false, error: 'Not authorized' }
@@ -94,9 +85,7 @@ export async function updateBlogPost(
   }
 
   if (data.content) {
-    updateData.read_time_minutes = Math.ceil(
-      JSON.stringify(data.content).split(' ').length / 200,
-    )
+    updateData.read_time_minutes = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
   }
 
   const { error } = await supabase.from('posts').update(updateData).eq('id', id)
@@ -118,11 +107,7 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: 'Unauthorized' }
   }
 
-  const { data: post } = await supabase
-    .from('posts')
-    .select('author_id, status')
-    .eq('id', id)
-    .single()
+  const { data: post } = await supabase.from('posts').select('author_id, status').eq('id', id).single()
 
   if (!post) {
     return { success: false, error: 'Post not found' }

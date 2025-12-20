@@ -12,8 +12,7 @@ export async function getLikeStatusClient(projectIdentifier: string) {
     let projectId: string
 
     // Check if it's a UUID or slug
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     if (uuidRegex.test(projectIdentifier)) {
       // It's a UUID, use directly
@@ -86,8 +85,7 @@ export async function toggleLikeClient(projectIdentifier: string) {
     let projectId: string
 
     // Check if it's a UUID or slug
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     if (uuidRegex.test(projectIdentifier)) {
       // It's a UUID, use directly
@@ -121,10 +119,7 @@ export async function toggleLikeClient(projectIdentifier: string) {
 
     if (existingLike) {
       // Unlike
-      const { error: deleteError } = await supabase
-        .from('likes')
-        .delete()
-        .eq('id', existingLike.id)
+      const { error: deleteError } = await supabase.from('likes').delete().eq('id', existingLike.id)
 
       if (deleteError) {
         return { error: deleteError.message }

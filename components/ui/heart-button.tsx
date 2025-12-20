@@ -1,8 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { Heart } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import * as React from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { getLikeStatusClient, toggleLikeClient } from '@/lib/client-likes'
 
 export interface HeartButtonProps {
@@ -45,11 +45,7 @@ export function HeartButton({
 
       setIsLoading(true)
       try {
-        const {
-          totalLikes,
-          isLiked: dbIsLiked,
-          error,
-        } = await getLikeStatusClient(projectId)
+        const { totalLikes, isLiked: dbIsLiked, error } = await getLikeStatusClient(projectId)
 
         if (!error) {
           setLikes(totalLikes)
@@ -118,14 +114,10 @@ export function HeartButton({
 
   const heartClasses = isPrimary
     ? `h-5 w-5 transition-all duration-300 ${
-        isLiked
-          ? 'text-red-500 fill-red-500 animate-heart-pulse'
-          : 'text-muted-foreground hover:text-red-400'
+        isLiked ? 'text-red-500 fill-red-500 animate-heart-pulse' : 'text-muted-foreground hover:text-red-400'
       } ${isAnimating ? 'animate-heart-beat' : ''}`
     : `h-4 w-4 transition-all duration-300 ${
-        isLiked
-          ? 'text-red-500 fill-red-500'
-          : 'text-muted-foreground hover:text-red-400'
+        isLiked ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-400'
       } ${isAnimating ? 'animate-pulse' : ''}`
 
   const textClasses = isPrimary
@@ -143,13 +135,7 @@ export function HeartButton({
         size="sm"
         onClick={handleClick}
         className={buttonClasses}
-        title={
-          !isLoggedIn
-            ? 'Sign in to like projects'
-            : isLiked
-              ? 'Unlike this project'
-              : 'Like this project'
-        }
+        title={!isLoggedIn ? 'Sign in to like projects' : isLiked ? 'Unlike this project' : 'Like this project'}
       >
         <Heart className={heartClasses} />
         {variant === 'with-text' || variant === 'primary' ? (
@@ -160,13 +146,15 @@ export function HeartButton({
       </Button>
 
       {/* Auth Required Dialog */}
-      <AlertDialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+      <AlertDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Masuk untuk Memberi Like</AlertDialogTitle>
             <AlertDialogDescription>
-              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung
-              ke VibeDev community!
+              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung ke VibeDev community!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

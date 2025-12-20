@@ -2,13 +2,7 @@
 
 import { cn } from '@/lib/utils'
 
-export function VerifiedBadge({
-  className,
-  title = 'Verified',
-}: {
-  className?: string
-  title?: string
-}) {
+export function VerifiedBadge({ className, title = 'Verified' }: { className?: string; title?: string }) {
   return (
     <svg
       viewBox="0 0 22 22"

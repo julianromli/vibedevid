@@ -3,9 +3,9 @@
  * Handles filter state, sorting, and data fetching
  */
 
-import { useState, useEffect } from 'react'
-import { getCategories } from '@/lib/categories'
+import { useEffect, useState } from 'react'
 import { fetchProjectsWithSorting } from '@/lib/actions'
+import { getCategories } from '@/lib/categories'
 import type { Project, SortBy } from '@/types/homepage'
 
 export function useProjectFilters(authReady: boolean) {
@@ -59,22 +59,18 @@ export function useProjectFilters(authReady: boolean) {
         }
 
         // Fetch projects with new sorting function
-        const { projects: fetchedProjects, error } =
-          await fetchProjectsWithSorting(
-            sortBy,
-            selectedFilter === 'All' ? undefined : selectedFilter,
-            20, // limit
-          )
+        const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
+          sortBy,
+          selectedFilter === 'All' ? undefined : selectedFilter,
+          20, // limit
+        )
 
         if (error) {
           console.error('[useProjectFilters] Error fetching projects:', error)
           return
         }
 
-        console.log(
-          '[useProjectFilters] Projects fetched with sorting:',
-          fetchedProjects.length
-        )
+        console.log('[useProjectFilters] Projects fetched with sorting:', fetchedProjects.length)
         setProjects(fetchedProjects || [])
       } catch (error) {
         console.error('[useProjectFilters] Error fetching projects:', error)

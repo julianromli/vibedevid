@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server'
-import {
-  FALLBACK_DATA,
-  type AIModel,
-  type LeaderboardResponse,
-} from '@/lib/ai-leaderboard-data'
+import { type AIModel, FALLBACK_DATA, type LeaderboardResponse } from '@/lib/ai-leaderboard-data'
 
-const ARTIFICIAL_ANALYSIS_URL =
-  'https://artificialanalysis.ai/?intelligence=coding-index'
+const ARTIFICIAL_ANALYSIS_URL = 'https://artificialanalysis.ai/?intelligence=coding-index'
 
 function mapProviderSlug(providerName: string): string {
   const mapping: Record<string, string> = {
@@ -39,22 +34,17 @@ function inferProvider(modelName: string): { provider: string; slug: string } {
   const name = modelName.toLowerCase()
 
   if (name.includes('gemini')) return { provider: 'Google', slug: 'google' }
-  if (name.includes('claude'))
-    return { provider: 'Anthropic', slug: 'anthropic' }
-  if (name.includes('gpt') || name.includes('o1') || name.includes('o3'))
-    return { provider: 'OpenAI', slug: 'openai' }
+  if (name.includes('claude')) return { provider: 'Anthropic', slug: 'anthropic' }
+  if (name.includes('gpt') || name.includes('o1') || name.includes('o3')) return { provider: 'OpenAI', slug: 'openai' }
   if (name.includes('grok')) return { provider: 'xAI', slug: 'xai' }
   if (name.includes('kimi')) return { provider: 'Moonshot', slug: 'moonshot' }
-  if (name.includes('deepseek'))
-    return { provider: 'DeepSeek', slug: 'deepseek' }
+  if (name.includes('deepseek')) return { provider: 'DeepSeek', slug: 'deepseek' }
   if (name.includes('qwen')) return { provider: 'Alibaba', slug: 'alibaba' }
   if (name.includes('glm')) return { provider: 'Zhipu AI', slug: 'zhipu' }
-  if (name.includes('mistral') || name.includes('magistral'))
-    return { provider: 'Mistral', slug: 'mistral' }
+  if (name.includes('mistral') || name.includes('magistral')) return { provider: 'Mistral', slug: 'mistral' }
   if (name.includes('llama')) return { provider: 'Meta', slug: 'meta' }
   if (name.includes('minimax')) return { provider: 'MiniMax', slug: 'minimax' }
-  if (name.includes('doubao') || name.includes('seed'))
-    return { provider: 'ByteDance', slug: 'bytedance' }
+  if (name.includes('doubao') || name.includes('seed')) return { provider: 'ByteDance', slug: 'bytedance' }
 
   return { provider: 'Unknown', slug: 'other' }
 }
@@ -64,8 +54,7 @@ async function fetchFromArtificialAnalysis(): Promise<AIModel[] | null> {
     const response = await fetch(ARTIFICIAL_ANALYSIS_URL, {
       next: { revalidate: 86400 },
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
     })
 
@@ -76,9 +65,7 @@ async function fetchFromArtificialAnalysis(): Promise<AIModel[] | null> {
 
     const html = await response.text()
 
-    const jsonMatch = html.match(
-      /"data":"([^"]+)"/
-    )
+    const jsonMatch = html.match(/"data":"([^"]+)"/)
 
     if (!jsonMatch) {
       console.error('Could not find data in Artificial Analysis page')

@@ -2,7 +2,7 @@
  * Intersection Observer hook for scroll animations
  */
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface VisibilityState {
   [key: string]: boolean
@@ -30,7 +30,7 @@ export function useIntersectionObserver() {
           }
         })
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     )
 
     const sections = document.querySelectorAll('[data-animate]')

@@ -11,18 +11,13 @@ import { createClient } from '@/lib/supabase/client'
  * @param bucketName - Nama bucket (default: 'avatars')
  * @returns File path atau null jika bukan URL dari bucket kita
  */
-export function extractStoragePathFromUrl(
-  url: string,
-  bucketName: string = 'avatars',
-): string | null {
+export function extractStoragePathFromUrl(url: string, bucketName: string = 'avatars'): string | null {
   if (!url) return null
 
   try {
     // Pattern untuk Supabase storage URL:
     // https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
-    const supabaseStorageRegex = new RegExp(
-      `/storage/v1/object/public/${bucketName}/(.+)`,
-    )
+    const supabaseStorageRegex = new RegExp(`/storage/v1/object/public/${bucketName}/(.+)`)
     const match = url.match(supabaseStorageRegex)
 
     if (match && match[1]) {
@@ -42,20 +37,14 @@ export function extractStoragePathFromUrl(
  * @param bucketName - Nama bucket (default: 'avatars')
  * @returns Promise<boolean> - true jika berhasil dihapus
  */
-export async function deleteStorageFile(
-  filePath: string,
-  bucketName: string = 'avatars',
-): Promise<boolean> {
+export async function deleteStorageFile(filePath: string, bucketName: string = 'avatars'): Promise<boolean> {
   try {
     const supabase = createClient()
 
     const { error } = await supabase.storage.from(bucketName).remove([filePath])
 
     if (error) {
-      console.error(
-        `[Avatar Utils] Error deleting file ${filePath}:`,
-        error.message,
-      )
+      console.error(`[Avatar Utils] Error deleting file ${filePath}:`, error.message)
       return false
     }
 
@@ -82,29 +71,20 @@ export function scheduleOldAvatarDeletion(
   const filePath = extractStoragePathFromUrl(oldAvatarUrl, bucketName)
 
   if (!filePath) {
-    console.log(
-      '[Avatar Utils] Skipping deletion - not our storage file or invalid URL:',
-      oldAvatarUrl,
-    )
+    console.log('[Avatar Utils] Skipping deletion - not our storage file or invalid URL:', oldAvatarUrl)
     return
   }
 
-  console.log(
-    `[Avatar Utils] Scheduling deletion of old avatar: ${filePath} in ${delayMs}ms`,
-  )
+  console.log(`[Avatar Utils] Scheduling deletion of old avatar: ${filePath} in ${delayMs}ms`)
 
   // Schedule deletion dengan setTimeout
   setTimeout(async () => {
     try {
       const success = await deleteStorageFile(filePath, bucketName)
       if (success) {
-        console.log(
-          `[Avatar Utils] ✅ Old avatar deleted successfully: ${filePath}`,
-        )
+        console.log(`[Avatar Utils] ✅ Old avatar deleted successfully: ${filePath}`)
       } else {
-        console.log(
-          `[Avatar Utils] ❌ Failed to delete old avatar: ${filePath}`,
-        )
+        console.log(`[Avatar Utils] ❌ Failed to delete old avatar: ${filePath}`)
       }
     } catch (error) {
       console.error('[Avatar Utils] Error in scheduled deletion:', error)
@@ -118,9 +98,6 @@ export function scheduleOldAvatarDeletion(
  * @param bucketName - Nama bucket (default: 'avatars')
  * @returns boolean - true jika dari storage kita
  */
-export function isOurStorageUrl(
-  url: string,
-  bucketName: string = 'avatars',
-): boolean {
+export function isOurStorageUrl(url: string, bucketName: string = 'avatars'): boolean {
   return extractStoragePathFromUrl(url, bucketName) !== null
 }

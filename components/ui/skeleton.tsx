@@ -92,7 +92,10 @@ function CommentsSkeleton() {
       {/* Comments list */}
       <div className="space-y-4">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="rounded-lg border p-4">
+          <div
+            key={i}
+            className="rounded-lg border p-4"
+          >
             <div className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
               <div className="flex-1 space-y-2">
@@ -134,7 +137,10 @@ function ProjectStatsSkeleton() {
         <Skeleton className="mb-4 h-5 w-24" />
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between">
+            <div
+              key={i}
+              className="flex items-center justify-between"
+            >
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-6 w-8" />
             </div>
@@ -210,21 +216,16 @@ interface ProjectGridSkeletonProps {
   columns?: number
 }
 
-function ProjectGridSkeleton({
-  count = 6,
-  columns = 3,
-}: ProjectGridSkeletonProps) {
-  const gridCols =
-    columns === 2
-      ? 'md:grid-cols-2'
-      : columns === 3
-        ? 'md:grid-cols-3'
-        : `md:grid-cols-${columns}`
+function ProjectGridSkeleton({ count = 6, columns = 3 }: ProjectGridSkeletonProps) {
+  const gridCols = columns === 2 ? 'md:grid-cols-2' : columns === 3 ? 'md:grid-cols-3' : `md:grid-cols-${columns}`
 
   return (
     <div className={`grid ${gridCols} gap-6`}>
       {[...Array(count)].map((_, i) => (
-        <div key={i} className="space-y-4">
+        <div
+          key={i}
+          className="space-y-4"
+        >
           <div className="bg-muted relative overflow-hidden rounded-lg">
             <div className="aspect-video">
               <Skeleton className="h-full w-full" />
@@ -257,7 +258,10 @@ function ProfileProjectsSkeleton() {
     <div className="rounded-lg border">
       <div className="p-6">
         <Skeleton className="mb-6 h-6 w-20" />
-        <ProjectGridSkeleton count={4} columns={2} />
+        <ProjectGridSkeleton
+          count={4}
+          columns={2}
+        />
       </div>
     </div>
   )

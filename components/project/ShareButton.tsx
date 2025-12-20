@@ -1,8 +1,8 @@
 'use client'
 
+import { Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Share2 } from 'lucide-react'
 
 interface ShareButtonProps {
   projectTitle: string
@@ -18,19 +18,12 @@ export function ShareButton({ projectTitle }: ShareButtonProps) {
     switch (platform) {
       case 'twitter':
         window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            title,
-          )}&url=${encodeURIComponent(url)}`,
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
           '_blank',
         )
         break
       case 'linkedin':
-        window.open(
-          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-            url,
-          )}`,
-          '_blank',
-        )
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')
         break
       case 'copy':
         navigator.clipboard.writeText(url)

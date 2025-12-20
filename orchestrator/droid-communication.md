@@ -9,6 +9,7 @@ Phase 3 introduces direct communication between droids during orchestration, ena
 ### Communication Channels
 
 #### 1. Orchestrator-Mediated Communication
+
 ```
 Droid A → Orchestrator → Droid B
 - Most common and safest approach
@@ -18,6 +19,7 @@ Droid A → Orchestrator → Droid B
 ```
 
 #### 2. Direct Droid Communication
+
 ```
 Droid A → Droid B (via orchestrator bus)
 - For urgent clarifications during parallel execution
@@ -27,6 +29,7 @@ Droid A → Droid B (via orchestrator bus)
 ```
 
 #### 3. Broadcast Communication
+
 ```
 Droid → All Active Droids
 - Important announcements affecting multiple droids
@@ -37,69 +40,73 @@ Droid → All Active Droids
 ### Message Types
 
 #### 1. Query Messages
+
 ```typescript
 interface QueryMessage {
-  type: "query";
-  from_droid: string;
-  to_droid: string;
-  urgency: "low" | "medium" | "high" | "critical";
-  query: string;
-  context?: any;
-  expected_response_time?: number; // minutes
+  type: 'query'
+  from_droid: string
+  to_droid: string
+  urgency: 'low' | 'medium' | 'high' | 'critical'
+  query: string
+  context?: any
+  expected_response_time?: number // minutes
   metadata?: {
-    phase_id: string;
-    task_id: string;
-    correlation_id: string;
-  };
+    phase_id: string
+    task_id: string
+    correlation_id: string
+  }
 }
 ```
 
 #### 2. Response Messages
+
 ```typescript
 interface ResponseMessage {
-  type: "response";
-  from_droid: string;
-  to_droid: string;
-  correlation_id: string;
-  response: string | object;
-  action_required?: boolean;
+  type: 'response'
+  from_droid: string
+  to_droid: string
+  correlation_id: string
+  response: string | object
+  action_required?: boolean
   metadata?: {
-    response_time: number;
-    confidence: number;
-  };
+    response_time: number
+    confidence: number
+  }
 }
 ```
 
 #### 3. Coordination Messages
+
 ```typescript
 interface CoordinationMessage {
-  type: "coordination";
-  from_droid: string;
-  to_droid?: string; // null for broadcast
-  coordination_type: "dependency" | "blocker" | "discovery" | "recommendation";
+  type: 'coordination'
+  from_droid: string
+  to_droid?: string // null for broadcast
+  coordination_type: 'dependency' | 'blocker' | 'discovery' | 'recommendation'
   content: {
-    action: string;
-    impact: string;
-    timeline?: string;
-    requirements?: string[];
-  };
-  priority: "low" | "medium" | "high" | "critical";
+    action: string
+    impact: string
+    timeline?: string
+    requirements?: string[]
+  }
+  priority: 'low' | 'medium' | 'high' | 'critical'
 }
 ```
 
 #### 4. Discovery Messages
+
 ```typescript
 interface DiscoveryMessage {
-  type: "discovery";
-  from_droid: string;
-  discovery_type: "api_endpoint" | "component" | "dependency" | "conflict";
+  type: 'discovery'
+  from_droid: string
+  discovery_type: 'api_endpoint' | 'component' | 'dependency' | 'conflict'
   content: {
-    discovered: string;
-    location: string;
-    impact: string;
-    recommended_action?: string;
-  };
-  broadcast_to: string[]; // List of interested droids
+    discovered: string
+    location: string
+    impact: string
+    recommended_action?: string
+  }
+  broadcast_to: string[] // List of interested droids
 }
 ```
 
@@ -110,12 +117,14 @@ interface DiscoveryMessage {
 **Scenario**: Frontend and backend droids working in parallel need to align on API contracts.
 
 **Traditional Approach**:
+
 ```
 Phase 1: Backend designs API
 Phase 2: Frontend implements based on design
 ```
 
 **Enhanced Approach with Communication**:
+
 ```
 Phase 1: Backend starts API design
 Phase 1.5: Frontend starts UI mockups in parallel
@@ -132,11 +141,13 @@ Result: Both work together in real-time
 **Scenario**: Security droid discovers requirement that affects current implementation.
 
 **Traditional Approach**:
+
 ```
 Security droid waits until next phase to communicate
 ```
 
 **Enhanced Approach**:
+
 ```
 Security droid (during review phase) → Backend droid (still implementing):
   "CRITICAL: Password hashing algorithm needs upgrade to bcrypt"
@@ -149,11 +160,13 @@ Result: Real-time fix without phase delay
 **Scenario**: Performance engineer discovers bottleneck during testing.
 
 **Traditional Approach**:
+
 ```
 Performance engineer waits for review phase
 ```
 
 **Enhanced Approach**:
+
 ```
 Performance engineer → All droids:
   "Database query taking 3s, need caching strategy"
@@ -167,45 +180,47 @@ Result: Immediate performance optimization
 ### Message Sending
 
 #### From Droid Perspective
+
 ```typescript
 // Droid can send messages using the orchestrator
 function sendMessage(message: Message): Promise<Response> {
-  return orchestrator.sendMessage(message);
+  return orchestrator.sendMessage(message)
 }
 
 // Example: Frontend developer needs API clarification
 await orchestrator.sendMessage({
-  type: "query",
-  from_droid: "frontend-developer",
-  to_droid: "backend-architect",
-  urgency: "high",
-  query: "What data structure should I expect for user profile API response?",
+  type: 'query',
+  from_droid: 'frontend-developer',
+  to_droid: 'backend-architect',
+  urgency: 'high',
+  query: 'What data structure should I expect for user profile API response?',
   context: {
-    current_component: "UserProfile.tsx",
-    implementing_feature: "user_profile_display"
-  }
-});
+    current_component: 'UserProfile.tsx',
+    implementing_feature: 'user_profile_display',
+  },
+})
 ```
 
 #### Orchestrator Message Routing
+
 ```typescript
 class MessageRouter {
   async routeMessage(message: Message): Promise<void> {
     // 1. Validate message format and permissions
-    this.validateMessage(message);
-    
+    this.validateMessage(message)
+
     // 2. Check for conflicts with current execution
-    await this.checkForConflicts(message);
-    
+    await this.checkForConflicts(message)
+
     // 3. Route to target droid or broadcast
     if (message.to_droid) {
-      await this.sendToDroid(message);
+      await this.sendToDroid(message)
     } else {
-      await this.broadcast(message);
+      await this.broadcast(message)
     }
-    
+
     // 4. Log and track message
-    this.logMessage(message);
+    this.logMessage(message)
   }
 }
 ```
@@ -213,31 +228,32 @@ class MessageRouter {
 ### Message Handling
 
 #### Receiving Droid Responsibilities
+
 ```typescript
 // Each droid implements message handling
 class FrontendDeveloperDroid {
   async handleMessage(message: Message): Promise<void> {
     switch (message.type) {
-      case "query":
-        return this.handleQuery(message);
-      case "coordination":
-        return this.handleCoordination(message);
-      case "discovery":
-        return this.handleDiscovery(message);
+      case 'query':
+        return this.handleQuery(message)
+      case 'coordination':
+        return this.handleCoordination(message)
+      case 'discovery':
+        return this.handleDiscovery(message)
     }
   }
-  
+
   private async handleQuery(message: QueryMessage): Promise<void> {
     // Process query and respond
-    const response = await this.processQuery(message.query);
-    
+    const response = await this.processQuery(message.query)
+
     await this.orchestrator.sendMessage({
-      type: "response",
-      from_droid: "frontend-developer",
+      type: 'response',
+      from_droid: 'frontend-developer',
       to_droid: message.from_droid,
       correlation_id: message.metadata?.correlation_id,
-      response: response
-    });
+      response: response,
+    })
   }
 }
 ```
@@ -245,6 +261,7 @@ class FrontendDeveloperDroid {
 ## Communication Patterns
 
 ### Pattern 1: Query-Response Pattern
+
 ```
 Droid A: Query → Droid B
 Droid B: Response → Droid A
@@ -252,6 +269,7 @@ Use: Information gathering, clarification requests
 ```
 
 ### Pattern 2: Dependency Notification Pattern
+
 ```
 Droid A: "I'm blocked by X" → Orchestrator → Droid B
 Orchestrator: "Droid A needs X to proceed" → Droid B
@@ -260,6 +278,7 @@ Use: Cross-phase dependencies, blocking issues
 ```
 
 ### Pattern 3: Discovery Broadcast Pattern
+
 ```
 Droid A: "Found important discovery" → All relevant droids
 Multiple droids: Respond with impact analysis
@@ -267,6 +286,7 @@ Use: Architecture discoveries, security findings, performance insights
 ```
 
 ### Pattern 4: Real-time Coordination Pattern
+
 ```
 Droid A: "Making change X" → Droid B
 Droid B: "Change X affects me, suggest Y" → Droid A
@@ -277,68 +297,70 @@ Use: Parallel implementation, API contract alignment
 ## Safety and Conflict Management
 
 ### Message Validation
+
 ```typescript
 interface MessageValidation {
-  allowed_senders: string[];
-  allowed_receivers: string[];
-  content_filters: string[];
+  allowed_senders: string[]
+  allowed_receivers: string[]
+  content_filters: string[]
   urgency_limits: {
-    [droid_name: string]: number; // max messages per minute
-  };
+    [droid_name: string]: number // max messages per minute
+  }
 }
 
 class MessageValidator {
   validate(message: Message): ValidationResult {
     // Check sender permissions
     if (!this.allowedSenders.includes(message.from_droid)) {
-      return { valid: false, reason: "Unauthorized sender" };
+      return { valid: false, reason: 'Unauthorized sender' }
     }
-    
+
     // Check receiver permissions
     if (message.to_droid && !this.allowedReceivers.includes(message.to_droid)) {
-      return { valid: false, reason: "Unauthorized receiver" };
+      return { valid: false, reason: 'Unauthorized receiver' }
     }
-    
+
     // Check content for security issues
     if (this.containsSensitiveData(message.content)) {
-      return { valid: false, reason: "Sensitive data detected" };
+      return { valid: false, reason: 'Sensitive data detected' }
     }
-    
+
     // Check rate limits
     if (this.exceedsRateLimit(message.from_droid)) {
-      return { valid: false, reason: "Rate limit exceeded" };
+      return { valid: false, reason: 'Rate limit exceeded' }
     }
-    
-    return { valid: true };
+
+    return { valid: true }
   }
 }
 ```
 
 ### Conflict Detection
+
 ```typescript
 class ConflictDetector {
   detectCommunicationConflict(message: Message): Conflict[] {
-    const conflicts = [];
-    
+    const conflicts = []
+
     // Check if message conflicts with current execution plan
     if (this.conflictsWithPlan(message)) {
       conflicts.push({
-        type: "plan_conflict",
-        description: "Message conflicts with current execution plan",
-        resolution: "Pause plan or modify message"
-      });
+        type: 'plan_conflict',
+        description: 'Message conflicts with current execution plan',
+        resolution: 'Pause plan or modify message',
+      })
     }
-    
+
     // Check if message creates circular dependencies
     if (this.createsCircularDependency(message)) {
       conflicts.push({
-        type: "circular_dependency",
-        description: "Message would create circular dependency",
-        resolution: "Break cycle or reject message"
-      });
+        type: 'circular_dependency',
+        description: 'Message would create circular dependency',
+        resolution: 'Break cycle or reject message',
+      })
     }
-    
-    return conflicts;
+
+    return conflicts
   }
 }
 ```
@@ -346,61 +368,63 @@ class ConflictDetector {
 ## Performance Considerations
 
 ### Message Queue System
+
 ```typescript
 class MessageQueue {
-  private queue: Message[] = [];
-  private processing = false;
-  
+  private queue: Message[] = []
+  private processing = false
+
   async enqueue(message: Message): Promise<void> {
-    this.queue.push(message);
-    
+    this.queue.push(message)
+
     if (!this.processing) {
-      this.processQueue();
+      this.processQueue()
     }
   }
-  
+
   private async processQueue(): Promise<void> {
-    this.processing = true;
-    
+    this.processing = true
+
     while (this.queue.length > 0) {
-      const message = this.queue.shift();
-      
+      const message = this.queue.shift()
+
       try {
-        await this.processMessage(message);
+        await this.processMessage(message)
       } catch (error) {
-        this.handleError(message, error);
+        this.handleError(message, error)
       }
     }
-    
-    this.processing = false;
+
+    this.processing = false
   }
 }
 ```
 
 ### Communication Analytics
+
 ```typescript
 interface CommunicationMetrics {
-  total_messages: number;
-  messages_by_type: Record<string, number>;
-  messages_by_droid: Record<string, number>;
-  average_response_time: number;
-  conflict_rate: number;
-  success_rate: number;
+  total_messages: number
+  messages_by_type: Record<string, number>
+  messages_by_droid: Record<string, number>
+  average_response_time: number
+  conflict_rate: number
+  success_rate: number
 }
 
 class CommunicationAnalytics {
   trackMessage(message: Message): void {
-    this.metrics.total_messages++;
-    this.metrics.messages_by_type[message.type]++;
-    this.metrics.messages_by_droid[message.from_droid]++;
+    this.metrics.total_messages++
+    this.metrics.messages_by_type[message.type]++
+    this.metrics.messages_by_droid[message.from_droid]++
   }
-  
+
   generateReport(): CommunicationReport {
     return {
       summary: this.metrics,
       insights: this.generateInsights(),
-      recommendations: this.generateRecommendations()
-    };
+      recommendations: this.generateRecommendations(),
+    }
   }
 }
 ```
@@ -408,47 +432,50 @@ class CommunicationAnalytics {
 ## Integration with Existing Orchestrator
 
 ### Enhanced Task Tool
+
 ```typescript
 // Enhanced Task tool with communication capabilities
 interface TaskWithCommunication {
-  subagent_type: string;
-  description: string;
-  prompt: string;
-  communication_enabled?: boolean;
-  allow_direct_messages?: boolean;
-  communication_channels?: string[];
+  subagent_type: string
+  description: string
+  prompt: string
+  communication_enabled?: boolean
+  allow_direct_messages?: boolean
+  communication_channels?: string[]
 }
 
 // Usage
 Task({
-  subagent_type: "frontend-developer",
-  description: "Build user profile UI",
-  prompt: "...",
+  subagent_type: 'frontend-developer',
+  description: 'Build user profile UI',
+  prompt: '...',
   communication_enabled: true,
-  allow_direct_messages: ["backend-architect", "security-auditor"],
-  communication_channels: ["query", "discovery", "coordination"]
-});
+  allow_direct_messages: ['backend-architect', 'security-auditor'],
+  communication_channels: ['query', 'discovery', 'coordination'],
+})
 ```
 
 ### Phase Enhancement
+
 ```typescript
 interface EnhancedPhase {
-  id: string;
-  name: string;
-  droids: string[];
-  parallel: boolean;
-  communication_enabled: boolean;
+  id: string
+  name: string
+  droids: string[]
+  parallel: boolean
+  communication_enabled: boolean
   communication_rules: {
-    allow_inter_droid: boolean;
-    allow_broadcast: boolean;
-    message_types: string[];
-  };
+    allow_inter_droid: boolean
+    allow_broadcast: boolean
+    message_types: string[]
+  }
 }
 ```
 
 ## Usage Examples
 
 ### Example 1: API Design Collaboration
+
 ```
 Phase: Implementation (parallel)
 Droids: [backend-typescript-architect, frontend-developer]
@@ -464,6 +491,7 @@ Result: No waiting, seamless collaboration
 ```
 
 ### Example 2: Security Issue Discovery
+
 ```
 Phase: Testing
 Droid: test-automator
@@ -478,6 +506,7 @@ Result: Real-time security fix without phase delay
 ```
 
 ### Example 3: Performance Optimization
+
 ```
 Phase: Implementation (parallel)
 Discovery: Performance engineer notices slow database query
@@ -493,6 +522,7 @@ Result: Immediate performance optimization
 ## Configuration
 
 ### Enable Communication in Orchestrator Config
+
 ```json
 {
   "communication": {
@@ -503,10 +533,14 @@ Result: Immediate performance optimization
     "conflict_detection": true,
     "analytics_tracking": true
   },
-  
+
   "droid_permissions": {
     "frontend-developer": {
-      "can_send_to": ["backend-architect", "security-auditor", "test-automator"],
+      "can_send_to": [
+        "backend-architect",
+        "security-auditor",
+        "test-automator"
+      ],
       "can_broadcast": false,
       "max_urgency": "high"
     },

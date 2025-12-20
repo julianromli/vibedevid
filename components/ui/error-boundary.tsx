@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, ReactNode } from 'react'
+import { Component, type ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -12,10 +12,7 @@ interface ErrorBoundaryState {
   hasError: boolean
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false }
@@ -34,8 +31,7 @@ export class ErrorBoundary extends Component<
       return (
         this.props.fallback || (
           <div className="text-muted-foreground py-12 text-center">
-            Gagal memuat {this.props.sectionName || 'konten'}. Silakan refresh
-            halaman.
+            Gagal memuat {this.props.sectionName || 'konten'}. Silakan refresh halaman.
           </div>
         )
       )

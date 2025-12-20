@@ -1,7 +1,6 @@
 export const siteConfig = {
   title: 'VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia',
-  description:
-    'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
+  description: 'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
   author: 'VibeDev ID',
   url: 'https://www.vibedevid.com/',
   keywords: [

@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, type ReactNode } from 'react'
 import { motion, useInView } from 'motion/react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ScrollRevealProps {
@@ -12,13 +12,7 @@ interface ScrollRevealProps {
   once?: boolean
 }
 
-export function ScrollReveal({
-  children,
-  delay = 0,
-  duration = 0.5,
-  className,
-  once = true,
-}: ScrollRevealProps) {
+export function ScrollReveal({ children, delay = 0, duration = 0.5, className, once = true }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once, margin: '-100px' })
 
@@ -41,11 +35,7 @@ interface StaggerContainerProps {
   staggerDelay?: number
 }
 
-export function StaggerContainer({
-  children,
-  className,
-  staggerDelay = 0.08,
-}: StaggerContainerProps) {
+export function StaggerContainer({ children, className, staggerDelay = 0.08 }: StaggerContainerProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
 
@@ -105,11 +95,7 @@ export function ScaleIn({ children, delay = 0, className }: ScaleInProps) {
     <motion.div
       ref={ref}
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
-      animate={
-        isInView
-          ? { opacity: 1, scale: 1, y: 0 }
-          : { opacity: 0, scale: 0.95, y: 20 }
-      }
+      animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
       transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
     >

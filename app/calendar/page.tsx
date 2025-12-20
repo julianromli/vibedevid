@@ -1,36 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { CalendarDays, Clock, Filter, MapPin, Plus, Search, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Navbar } from '@/components/ui/navbar'
-import {
-  CalendarDays,
-  Clock,
-  MapPin,
-  Users,
-  Plus,
-  Filter,
-  Search,
-} from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -40,7 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Navbar } from '@/components/ui/navbar'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Event {
   id: string
@@ -131,8 +111,7 @@ export default function CalendarPage() {
   })
 
   const filteredEvents = events.filter((event) => {
-    const matchesCategory =
-      selectedCategory === 'all' || event.category === selectedCategory
+    const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory
     const matchesSearch =
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -140,9 +119,7 @@ export default function CalendarPage() {
   })
 
   const getEventsForDate = (date: Date) => {
-    return filteredEvents.filter(
-      (event) => event.date.toDateString() === date.toDateString(),
-    )
+    return filteredEvents.filter((event) => event.date.toDateString() === date.toDateString())
   }
 
   const handleAddEvent = () => {
@@ -181,15 +158,16 @@ export default function CalendarPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Navbar showNavigation={true} scrollToSection={scrollToSection} />
+      <Navbar
+        showNavigation={true}
+        scrollToSection={scrollToSection}
+      />
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold">Calendar</h1>
-          <p className="text-muted-foreground text-lg">
-            Manage your events, deadlines, and community activities
-          </p>
+          <p className="text-muted-foreground text-lg">Manage your events, deadlines, and community activities</p>
         </div>
 
         {/* Controls */}
@@ -205,7 +183,10 @@ export default function CalendarPage() {
               />
             </div>
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select
+            value={selectedCategory}
+            onValueChange={setSelectedCategory}
+          >
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Filter by category" />
@@ -219,7 +200,10 @@ export default function CalendarPage() {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
-          <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+          <Dialog
+            open={isAddEventOpen}
+            onOpenChange={setIsAddEventOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -229,9 +213,7 @@ export default function CalendarPage() {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Event</DialogTitle>
-                <DialogDescription>
-                  Create a new event for your calendar
-                </DialogDescription>
+                <DialogDescription>Create a new event for your calendar</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -239,9 +221,7 @@ export default function CalendarPage() {
                   <Input
                     id="title"
                     value={newEvent.title || ''}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, title: e.target.value })
-                    }
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     placeholder="Event title"
                   />
                 </div>
@@ -250,9 +230,7 @@ export default function CalendarPage() {
                   <Textarea
                     id="description"
                     value={newEvent.description || ''}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, description: e.target.value })
-                    }
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Event description"
                   />
                 </div>
@@ -277,9 +255,7 @@ export default function CalendarPage() {
                       id="time"
                       type="time"
                       value={newEvent.time || ''}
-                      onChange={(e) =>
-                        setNewEvent({ ...newEvent, time: e.target.value })
-                      }
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
                     />
                   </div>
                 </div>
@@ -288,9 +264,7 @@ export default function CalendarPage() {
                   <Input
                     id="location"
                     value={newEvent.location || ''}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, location: e.target.value })
-                    }
+                    onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                     placeholder="Event location"
                   />
                 </div>
@@ -383,9 +357,7 @@ export default function CalendarPage() {
                   <CalendarDays className="h-5 w-5" />
                   Date Range Selection
                 </CardTitle>
-                <CardDescription>
-                  Select a date range for planning
-                </CardDescription>
+                <CardDescription>Select a date range for planning</CardDescription>
               </CardHeader>
               <CardContent>
                 <Calendar
@@ -406,9 +378,7 @@ export default function CalendarPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  {selectedDate
-                    ? `Events for ${selectedDate.toISOString().split('T')[0]}`
-                    : 'Select a Date'}
+                  {selectedDate ? `Events for ${selectedDate.toISOString().split('T')[0]}` : 'Select a Date'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -416,18 +386,15 @@ export default function CalendarPage() {
                   <div className="space-y-3">
                     {getEventsForDate(selectedDate).length > 0 ? (
                       getEventsForDate(selectedDate).map((event) => (
-                        <div key={event.id} className="rounded-lg border p-3">
+                        <div
+                          key={event.id}
+                          className="rounded-lg border p-3"
+                        >
                           <div className="mb-2 flex items-start justify-between">
-                            <h4 className="text-sm font-semibold">
-                              {event.title}
-                            </h4>
-                            <Badge className={categoryColors[event.category]}>
-                              {event.category}
-                            </Badge>
+                            <h4 className="text-sm font-semibold">{event.title}</h4>
+                            <Badge className={categoryColors[event.category]}>{event.category}</Badge>
                           </div>
-                          <p className="text-muted-foreground mb-2 text-xs">
-                            {event.description}
-                          </p>
+                          <p className="text-muted-foreground mb-2 text-xs">{event.description}</p>
                           <div className="text-muted-foreground space-y-1 text-xs">
                             <div className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -449,15 +416,11 @@ export default function CalendarPage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground text-sm">
-                        No events for this date
-                      </p>
+                      <p className="text-muted-foreground text-sm">No events for this date</p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-sm">
-                    Select a date to view events
-                  </p>
+                  <p className="text-muted-foreground text-sm">Select a date to view events</p>
                 )}
               </CardContent>
             </Card>
@@ -479,25 +442,17 @@ export default function CalendarPage() {
                         key={event.id}
                         className="hover:bg-muted/50 flex items-start gap-3 rounded-lg p-2"
                       >
-                        <div
-                          className={`h-3 w-3 rounded-full ${event.color} mt-1.5 flex-shrink-0`}
-                        />
+                        <div className={`h-3 w-3 rounded-full ${event.color} mt-1.5 flex-shrink-0`} />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">
-                            {event.title}
-                          </p>
+                          <p className="truncate text-sm font-medium">{event.title}</p>
                           <p className="text-muted-foreground text-xs">
-                            {event.date.toISOString().split('T')[0]} at{' '}
-                            {event.time}
+                            {event.date.toISOString().split('T')[0]} at {event.time}
                           </p>
                         </div>
                       </div>
                     ))}
-                  {filteredEvents.filter((event) => event.date >= new Date())
-                    .length === 0 && (
-                    <p className="text-muted-foreground text-sm">
-                      No upcoming events
-                    </p>
+                  {filteredEvents.filter((event) => event.date >= new Date()).length === 0 && (
+                    <p className="text-muted-foreground text-sm">No upcoming events</p>
                   )}
                 </div>
               </CardContent>
@@ -511,36 +466,25 @@ export default function CalendarPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Total Events
-                    </span>
+                    <span className="text-muted-foreground text-sm">Total Events</span>
                     <Badge variant="secondary">{filteredEvents.length}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      This Month
-                    </span>
+                    <span className="text-muted-foreground text-sm">This Month</span>
                     <Badge variant="secondary">
                       {
                         filteredEvents.filter(
                           (event) =>
                             event.date.getMonth() === new Date().getMonth() &&
-                            event.date.getFullYear() ===
-                              new Date().getFullYear(),
+                            event.date.getFullYear() === new Date().getFullYear(),
                         ).length
                       }
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Upcoming
-                    </span>
+                    <span className="text-muted-foreground text-sm">Upcoming</span>
                     <Badge variant="secondary">
-                      {
-                        filteredEvents.filter(
-                          (event) => event.date >= new Date(),
-                        ).length
-                      }
+                      {filteredEvents.filter((event) => event.date >= new Date()).length}
                     </Badge>
                   </div>
                 </div>

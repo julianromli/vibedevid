@@ -1,6 +1,4 @@
 {
-  "enabledMcpjsonServers": [
-    "shadcn"
-  ],
+  "enabledMcpjsonServers": ["shadcn"],
   "enableAllProjectMcpServers": true
 }

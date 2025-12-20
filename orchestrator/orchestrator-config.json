@@ -3,7 +3,7 @@
   "title": "Orchestrator Configuration",
   "description": "Main configuration for Factory CLI Orchestrator system",
   "version": "1.0.0",
-  
+
   "orchestrator": {
     "max_concurrent_phases": 3,
     "default_timeout_minutes": 90,
@@ -11,7 +11,7 @@
     "max_retry_attempts": 2,
     "context_retention_days": 7
   },
-  
+
   "droid_settings": {
     "timeout_minutes": {
       "frontend-developer": 45,
@@ -24,21 +24,17 @@
       "performance-engineer": 40,
       "database-admin": 30
     },
-    
-    "retry_enabled": [
-      "frontend-developer",
-      "backend-typescript-architect",
-      "test-automator"
-    ]
+
+    "retry_enabled": ["frontend-developer", "backend-typescript-architect", "test-automator"]
   },
-  
+
   "task_patterns": {
     "enabled": true,
     "config_path": "~/.factory/orchestrator/task-patterns.json",
     "auto_detect_patterns": true,
     "confidence_threshold": 0.8
   },
-  
+
   "context_management": {
     "context_dir": "~/.factory/orchestrator/contexts",
     "auto_save_context": true,
@@ -51,7 +47,7 @@
       "minimum_code_review": true
     }
   },
-  
+
   "integration": {
     "factory_cli": {
       "version": ">=0.17.0",
@@ -59,14 +55,14 @@
       "context_passing_method": "prompt_based"
     }
   },
-  
+
   "monitoring": {
     "log_level": "info",
     "track_performance_metrics": true,
     "save_execution_logs": true,
     "log_dir": "~/.factory/orchestrator/logs"
   },
-  
+
   "quality_assurance": {
     "auto_conflict_detection": true,
     "integration_validation": true,
@@ -76,7 +72,7 @@
       "max_context_transfer_seconds": 5
     }
   },
-  
+
   "notifications": {
     "phase_completion": true,
     "error_occurred": true,

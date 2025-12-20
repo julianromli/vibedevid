@@ -38,10 +38,7 @@ export const ourFileRouter = {
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log(
-        '[UploadThing] upload complete (projectImageUploader) for userId:',
-        metadata.userId,
-      )
+      console.log('[UploadThing] upload complete (projectImageUploader) for userId:', metadata.userId)
 
       const ufsUrl = getUfsUrl(file)
       const url = ufsUrl ?? file.url
@@ -69,10 +66,7 @@ export const ourFileRouter = {
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log(
-        '[UploadThing] upload complete (blogImageUploader) for userId:',
-        metadata.userId,
-      )
+      console.log('[UploadThing] upload complete (blogImageUploader) for userId:', metadata.userId)
 
       const ufsUrl = getUfsUrl(file)
       const url = ufsUrl ?? file.url

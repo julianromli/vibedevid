@@ -3,10 +3,10 @@
  * Displays AI tool/integration cards with icon, title, description, and link
  */
 
+import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ExternalLink } from 'lucide-react'
 
 interface IntegrationCardProps {
   title: string
@@ -15,12 +15,7 @@ interface IntegrationCardProps {
   link?: string
 }
 
-export function IntegrationCard({
-  title,
-  description,
-  children,
-  link = '#',
-}: IntegrationCardProps) {
+export function IntegrationCard({ title, description, children, link = '#' }: IntegrationCardProps) {
   return (
     <Card className="p-6">
       <div className="relative">
@@ -28,9 +23,7 @@ export function IntegrationCard({
 
         <div className="space-y-2 py-6">
           <h3 className="text-base font-medium">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm">
-            {description}
-          </p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">{description}</p>
         </div>
 
         <div className="flex gap-3 border-t border-dashed pt-6">
@@ -40,7 +33,11 @@ export function IntegrationCard({
             size="sm"
             className="gap-1 pr-2 shadow-none"
           >
-            <Link href={link} target="_blank" rel="noopener noreferrer">
+            <Link
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Learn More
               <ExternalLink className="ml-0 !size-3.5 opacity-50" />
             </Link>

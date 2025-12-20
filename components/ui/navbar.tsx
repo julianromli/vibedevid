@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { ArrowLeft, LogOut, User } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { UserAvatar } from '@/components/ui/user-avatar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { toast } from 'sonner'
+import { MenuToggleIcon } from '@/components/menu-toggle-icon'
 import { AdaptiveLogo } from '@/components/ui/adaptive-logo'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,15 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ArrowLeft, User, LogOut } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useScroll } from '@/hooks/use-scroll'
-import { MenuToggleIcon } from '@/components/menu-toggle-icon'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { createPortal } from 'react-dom'
 
 const springTransition = {
   type: 'spring' as const,
@@ -180,12 +180,19 @@ export function Navbar({
           >
             {showBackButton ? (
               <Link href="/">
-                <Button variant="ghost" size="sm" className="hover:shadow-none">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hover:shadow-none"
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
             ) : (
-              <Link href="/" className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="flex items-center gap-2"
+              >
                 <AdaptiveLogo />
               </Link>
             )}
@@ -242,7 +249,10 @@ export function Navbar({
           >
             <ThemeToggle />
             {!userIsLoggedIn ? (
-              <Button onClick={handleSignIn} size="sm">
+              <Button
+                onClick={handleSignIn}
+                size="sm"
+              >
                 Sign In
               </Button>
             ) : (
@@ -253,10 +263,16 @@ export function Navbar({
                     size="icon"
                     className="h-9 w-9 rounded-full"
                   >
-                    <UserAvatar user={safeUser} size="md" />
+                    <UserAvatar
+                      user={safeUser}
+                      size="md"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuContent
+                  className="w-56"
+                  align="end"
+                >
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       <UserDisplayName
@@ -264,9 +280,7 @@ export function Navbar({
                         role={safeUser.role}
                         className="font-medium"
                       />
-                      <p className="text-muted-foreground w-[200px] truncate text-sm">
-                        {safeUser.email}
-                      </p>
+                      <p className="text-muted-foreground w-[200px] truncate text-sm">{safeUser.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
@@ -293,7 +307,11 @@ export function Navbar({
                 size="icon"
                 variant="ghost"
               >
-                <MenuToggleIcon className="size-6" duration={300} open={open} />
+                <MenuToggleIcon
+                  className="size-6"
+                  duration={300}
+                  open={open}
+                />
               </Button>
             )}
           </div>
@@ -311,10 +329,7 @@ export function Navbar({
                     key={i}
                     href={item.href!}
                     onClick={() => setOpen(false)}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'lg' }),
-                      'h-12 justify-start text-lg',
-                    )}
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
                   >
                     {item.label}
                   </Link>
@@ -325,10 +340,7 @@ export function Navbar({
                       item.action?.()
                       setOpen(false)
                     }}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'lg' }),
-                      'h-12 justify-start text-lg',
-                    )}
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
                   >
                     {item.label}
                   </button>
@@ -351,16 +363,17 @@ export function Navbar({
               ) : (
                 <div className="flex flex-col gap-4 border-t pt-6">
                   <div className="flex items-center gap-3">
-                    <UserAvatar user={safeUser} size="md" />
+                    <UserAvatar
+                      user={safeUser}
+                      size="md"
+                    />
                     <div>
                       <UserDisplayName
                         name={safeUser.name}
                         role={safeUser.role}
                         className="font-medium"
                       />
-                      <p className="text-muted-foreground text-sm">
-                        {safeUser.email}
-                      </p>
+                      <p className="text-muted-foreground text-sm">{safeUser.email}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">

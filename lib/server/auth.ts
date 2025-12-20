@@ -15,11 +15,7 @@ export async function getCurrentUser() {
   if (!session?.user) return null
 
   const supabase = await createClient()
-  const { data: user } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', session.user.id)
-    .single()
+  const { data: user } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
   return user
     ? {
@@ -34,16 +30,9 @@ export async function getCurrentUser() {
     : null
 }
 
-export async function checkProjectOwnership(
-  authorUsername: string,
-  userId: string,
-) {
+export async function checkProjectOwnership(authorUsername: string, userId: string) {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('username', authorUsername)
-    .single()
+  const { data } = await supabase.from('users').select('id').eq('username', authorUsername).single()
 
   return data?.id === userId
 }

@@ -1,19 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import type { ImageProps, StaticImageData } from 'next/image'
 import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
+import { generatePlaceholderColor, generateSizes, validateImageProps } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
-import {
-  generateSizes,
-  validateImageProps,
-  generatePlaceholderColor,
-} from '@/lib/image-utils'
-import type { ImageProps } from 'next/image'
-import type { StaticImageData } from 'next/image'
 
 // Extended props interface for ProgressiveImage
-export interface ProgressiveImageProps
-  extends Omit<ImageProps, 'placeholder' | 'blurDataURL'> {
+export interface ProgressiveImageProps extends Omit<ImageProps, 'placeholder' | 'blurDataURL'> {
   src: string | StaticImageData
   // Progressive loading options
   enableBlurPlaceholder?: boolean
@@ -89,15 +83,9 @@ export function ProgressiveImage({
   ...restProps
 }: ProgressiveImageProps) {
   // State management
-  const [loadingState, setLoadingState] = useState<
-    'loading' | 'loaded' | 'error'
-  >('loading')
-  const [currentSrc, setCurrentSrc] = useState<string>(
-    typeof src === 'string' ? src : src.src,
-  )
-  const [blurDataURL, setBlurDataURL] = useState<string | undefined>(
-    customBlurDataURL,
-  )
+  const [loadingState, setLoadingState] = useState<'loading' | 'loaded' | 'error'>('loading')
+  const [currentSrc, setCurrentSrc] = useState<string>(typeof src === 'string' ? src : src.src)
+  const [blurDataURL, setBlurDataURL] = useState<string | undefined>(customBlurDataURL)
 
   // Generate responsive sizes
   const responsiveSize = useMemo(() => {
@@ -108,8 +96,7 @@ export function ProgressiveImage({
 
   // Generate placeholder color if needed
   const autoPlaceholderColor = useMemo(() => {
-    const srcString =
-      typeof src === 'string' ? src : src.src || '/placeholder.svg'
+    const srcString = typeof src === 'string' ? src : src.src || '/placeholder.svg'
     return placeholderColor || generatePlaceholderColor(srcString)
   }, [placeholderColor, src])
 
@@ -136,18 +123,7 @@ export function ProgressiveImage({
         console.warn('ProgressiveImage warnings:', validation.warnings)
       }
     }
-  }, [
-    currentSrc,
-    alt,
-    width,
-    height,
-    fill,
-    priority,
-    loading,
-    enableBlurPlaceholder,
-    blurDataURL,
-    decorative,
-  ])
+  }, [currentSrc, alt, width, height, fill, priority, loading, enableBlurPlaceholder, blurDataURL, decorative])
 
   // Generate simple blur placeholder
   useEffect(() => {
@@ -199,9 +175,7 @@ export function ProgressiveImage({
     // Loading state classes
     {
       'opacity-0': loadingState === 'loading' && showSkeleton,
-      'opacity-100':
-        loadingState === 'loaded' ||
-        (loadingState === 'loading' && !showSkeleton),
+      'opacity-100': loadingState === 'loaded' || (loadingState === 'loading' && !showSkeleton),
       'opacity-80': loadingState === 'error', // Slightly faded for error state
     },
 
@@ -272,9 +246,7 @@ export function ProgressiveImage({
         style={{
           ...style,
           // Prevent layout shift
-          ...(width && height && !fill
-            ? { aspectRatio: `${width} / ${height}` }
-            : {}),
+          ...(width && height && !fill ? { aspectRatio: `${width} / ${height}` } : {}),
         }}
         onLoad={handleLoad}
         onError={handleError}
@@ -304,9 +276,7 @@ export function ProgressiveImage({
               clipRule="evenodd"
             />
           </svg>
-          <span className="px-2 text-center">
-            {alt ? 'Image unavailable' : 'Failed to load'}
-          </span>
+          <span className="px-2 text-center">{alt ? 'Image unavailable' : 'Failed to load'}</span>
         </div>
       )}
     </div>

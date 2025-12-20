@@ -1,17 +1,11 @@
 'use client'
 
+import { Cross2Icon } from '@radix-ui/react-icons'
 import { Command as CommandPrimitive, useCommandState } from 'cmdk'
 import * as React from 'react'
 import { forwardRef, useEffect } from 'react'
-
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Cross2Icon } from '@radix-ui/react-icons'
 
 export interface Option {
   value: string
@@ -75,10 +69,7 @@ interface MultipleSelectorProps {
   /** Props of `Command` */
   commandProps?: React.ComponentPropsWithoutRef<typeof Command>
   /** Props of `CommandInput` */
-  inputProps?: Omit<
-    React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
-    'value' | 'placeholder' | 'disabled'
-  >
+  inputProps?: Omit<React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>, 'value' | 'placeholder' | 'disabled'>
   /** hide the clear all button. */
   hideClearAllButton?: boolean
 }
@@ -129,18 +120,14 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
   const cloneOption = JSON.parse(JSON.stringify(groupOption)) as GroupOption
 
   for (const [key, value] of Object.entries(cloneOption)) {
-    cloneOption[key] = value.filter(
-      (val) => !picked.find((p) => p.value === val.value),
-    )
+    cloneOption[key] = value.filter((val) => !picked.find((p) => p.value === val.value))
   }
   return cloneOption
 }
 
 function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
   for (const [, value] of Object.entries(groupOption)) {
-    if (
-      value.some((option) => targetOption.find((p) => p.value === option.value))
-    ) {
+    if (value.some((option) => targetOption.find((p) => p.value === option.value))) {
       return true
     }
   }
@@ -153,31 +140,27 @@ function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
  *
  * @reference: https://github.com/hsuanyi-chou/shadcn-ui-expansions/issues/34#issuecomment-1949561607
  **/
-const CommandEmpty = forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof CommandPrimitive.Empty>
->(({ className, ...props }, forwardedRef) => {
-  const render = useCommandState((state) => state.filtered.count === 0)
+const CommandEmpty = forwardRef<HTMLDivElement, React.ComponentProps<typeof CommandPrimitive.Empty>>(
+  ({ className, ...props }, forwardedRef) => {
+    const render = useCommandState((state) => state.filtered.count === 0)
 
-  if (!render) return null
+    if (!render) return null
 
-  return (
-    <div
-      ref={forwardedRef}
-      className={cn('px-2 py-4 text-center text-sm', className)}
-      cmdk-empty=""
-      role="presentation"
-      {...props}
-    />
-  )
-})
+    return (
+      <div
+        ref={forwardedRef}
+        className={cn('px-2 py-4 text-center text-sm', className)}
+        cmdk-empty=""
+        role="presentation"
+        {...props}
+      />
+    )
+  },
+)
 
 CommandEmpty.displayName = 'CommandEmpty'
 
-const MultipleSelector = React.forwardRef<
-  MultipleSelectorRef,
-  MultipleSelectorProps
->(
+const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorProps>(
   (
     {
       value,
@@ -213,9 +196,7 @@ const MultipleSelector = React.forwardRef<
     const dropdownRef = React.useRef<HTMLDivElement>(null) // Added this
 
     const [selected, setSelected] = React.useState<Option[]>(value || [])
-    const [options, setOptions] = React.useState<GroupOption>(
-      transToGroupOption(arrayDefaultOptions, groupBy),
-    )
+    const [options, setOptions] = React.useState<GroupOption>(transToGroupOption(arrayDefaultOptions, groupBy))
     const [inputValue, setInputValue] = React.useState('')
     const debouncedSearchTerm = useDebounce(inputValue, delay || 500)
 
@@ -406,7 +387,10 @@ const MultipleSelector = React.forwardRef<
       // For async search that showing emptyIndicator
       if (onSearch && !creatable && Object.keys(options).length === 0) {
         return (
-          <CommandItem value="-" disabled>
+          <CommandItem
+            value="-"
+            disabled
+          >
             {emptyIndicator}
           </CommandItem>
         )
@@ -415,10 +399,7 @@ const MultipleSelector = React.forwardRef<
       return <CommandEmpty>{emptyIndicator}</CommandEmpty>
     }, [creatable, emptyIndicator, onSearch, options])
 
-    const selectables = React.useMemo<GroupOption>(
-      () => removePickedOption(options, selected),
-      [options, selected],
-    )
+    const selectables = React.useMemo<GroupOption>(() => removePickedOption(options, selected), [options, selected])
 
     /** Avoid Creatable Selector freezing or lagging when paste a long string. */
     const commandFilter = React.useCallback(() => {
@@ -443,15 +424,8 @@ const MultipleSelector = React.forwardRef<
           handleKeyDown(e)
           commandProps?.onKeyDown?.(e)
         }}
-        className={cn(
-          'h-auto overflow-visible bg-transparent',
-          commandProps?.className,
-        )}
-        shouldFilter={
-          commandProps?.shouldFilter !== undefined
-            ? commandProps.shouldFilter
-            : !onSearch
-        } // When onSearch is provided, we don't want to filter the options. You can still override it.
+        className={cn('h-auto overflow-visible bg-transparent', commandProps?.className)}
+        shouldFilter={commandProps?.shouldFilter !== undefined ? commandProps.shouldFilter : !onSearch} // When onSearch is provided, we don't want to filter the options. You can still override it.
         filter={commandFilter()}
       >
         <div
@@ -529,11 +503,7 @@ const MultipleSelector = React.forwardRef<
                 }
                 inputProps?.onFocus?.(event)
               }}
-              placeholder={
-                hidePlaceholderWhenSelected && selected.length !== 0
-                  ? ''
-                  : placeholder
-              }
+              placeholder={hidePlaceholderWhenSelected && selected.length !== 0 ? '' : placeholder}
               className={cn(
                 'placeholder:text-muted-foreground flex-1 bg-transparent outline-none disabled:cursor-not-allowed',
                 {
@@ -598,7 +568,10 @@ const MultipleSelector = React.forwardRef<
                     {EmptyItem()}
                     {CreatableItem()}
                     {!selectFirstItem && (
-                      <CommandItem value="-" className="hidden" />
+                      <CommandItem
+                        value="-"
+                        className="hidden"
+                      />
                     )}
                     {Object.entries(selectables).map(([key, dropdowns]) => (
                       <CommandGroup
@@ -630,11 +603,7 @@ const MultipleSelector = React.forwardRef<
                                   setOpen(false)
                                   inputRef?.current?.blur()
                                 }}
-                                className={cn(
-                                  'cursor-pointer',
-                                  option.disable &&
-                                    'cursor-not-allowed opacity-50',
-                                )}
+                                className={cn('cursor-pointer', option.disable && 'cursor-not-allowed opacity-50')}
                               >
                                 {option.label}
                               </CommandItem>

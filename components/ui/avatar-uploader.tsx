@@ -1,7 +1,9 @@
 'use client'
 
 import React from 'react'
-import Cropper, { Area, Point } from 'react-easy-crop'
+import Cropper, { type Area, type Point } from 'react-easy-crop'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Modal,
   ModalBody,
@@ -11,8 +13,6 @@ import {
   ModalTitle,
   ModalTrigger,
 } from '@/components/ui/modal'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 interface Props {
   children: React.ReactNode
@@ -37,9 +37,7 @@ export function AvatarUploader({
     url: '',
     file: null,
   })
-  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState<Area | null>(
-    null,
-  )
+  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState<Area | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -74,21 +72,15 @@ export function AvatarUploader({
           throw new Error('Failed to crop image')
         }
 
-        const file = new File(
-          [croppedImg.file],
-          photo.file?.name ?? 'cropped.jpeg',
-          {
-            type: photo.file?.type ?? 'image/jpeg',
-          },
-        )
+        const file = new File([croppedImg.file], photo.file?.name ?? 'cropped.jpeg', {
+          type: photo.file?.type ?? 'image/jpeg',
+        })
 
         await onUpload(file)
         setPhoto({ url: '', file: null })
         onOpenChange(false)
       } catch (error) {
-        throw error instanceof Error
-          ? error
-          : new Error('Failed to update image')
+        throw error instanceof Error ? error : new Error('Failed to update image')
       } finally {
         setIsPending(false)
       }
@@ -128,9 +120,7 @@ export function AvatarUploader({
                 onZoomChange={setZoom}
                 onCropComplete={handleCropComplete}
                 classes={{
-                  containerClassName: isPending
-                    ? 'opacity-80 pointer-events-none'
-                    : '',
+                  containerClassName: isPending ? 'opacity-80 pointer-events-none' : '',
                 }}
               />
             </div>
@@ -177,18 +167,12 @@ function getRadianAngle(degreeValue: number): number {
 /**
  * Returns the new bounding area of a rotated rectangle.
  */
-function rotateSize(
-  width: number,
-  height: number,
-  rotation: number,
-): { width: number; height: number } {
+function rotateSize(width: number, height: number, rotation: number): { width: number; height: number } {
   const rotRad = getRadianAngle(rotation)
 
   return {
-    width:
-      Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
-    height:
-      Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
   }
 }
 
@@ -214,11 +198,7 @@ async function getCroppedImg(
   const rotRad = getRadianAngle(rotation)
 
   // calculate bounding box of the rotated image
-  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
-    image.width,
-    image.height,
-    rotation,
-  )
+  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(image.width, image.height, rotation)
 
   // set canvas size to match the bounding box
   canvas.width = bBoxWidth
@@ -234,12 +214,7 @@ async function getCroppedImg(
   ctx.drawImage(image, 0, 0)
 
   // extract cropped image
-  const data = ctx.getImageData(
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-  )
+  const data = ctx.getImageData(pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height)
 
   // set canvas width to final desired crop size - this clears context
   canvas.width = pixelCrop.width

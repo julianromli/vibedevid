@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
 import { getImageProps } from 'next/image'
+import { useMemo } from 'react'
+import { getBackgroundImageSet, getOptimalImageProps } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
-import { ProgressiveImage } from './progressive-image'
-import { getOptimalImageProps, getBackgroundImageSet } from '@/lib/image-utils'
 import type { ProgressiveImageProps } from './progressive-image'
+import { ProgressiveImage } from './progressive-image'
 
 interface ProgressiveHeroImageProps {
   // Source images for different devices
@@ -183,10 +183,7 @@ export function ProgressiveHeroImage({
 
   const imageClasses = cn('w-full h-full', imageClassName)
 
-  const overlayClasses = cn(
-    'absolute inset-0 z-10',
-    overlay && 'pointer-events-none',
-  )
+  const overlayClasses = cn('absolute inset-0 z-10', overlay && 'pointer-events-none')
 
   // Use art direction if multiple sources provided
   if (artDirectionSources.length > 1) {
@@ -234,11 +231,7 @@ export function ProgressiveHeroImage({
         )}
 
         {/* Content */}
-        {children && (
-          <div className="absolute inset-0 z-20 flex flex-col justify-center">
-            {children}
-          </div>
-        )}
+        {children && <div className="absolute inset-0 z-20 flex flex-col justify-center">{children}</div>}
       </div>
     )
   }
@@ -278,11 +271,7 @@ export function ProgressiveHeroImage({
       )}
 
       {/* Content */}
-      {children && (
-        <div className="absolute inset-0 z-20 flex flex-col justify-center">
-          {children}
-        </div>
-      )}
+      {children && <div className="absolute inset-0 z-20 flex flex-col justify-center">{children}</div>}
     </div>
   )
 }
@@ -371,15 +360,7 @@ export function ProgressiveBackgroundImage({
       mobile: getBackgroundImageSet(mobileProps.srcSet || ''),
       desktop: getBackgroundImageSet(desktopProps.srcSet || ''),
     }
-  }, [
-    src,
-    alt,
-    mobileWidth,
-    mobileHeight,
-    desktopWidth,
-    desktopHeight,
-    quality,
-  ])
+  }, [src, alt, mobileWidth, mobileHeight, desktopWidth, desktopHeight, quality])
 
   const containerClasses = cn('relative w-full h-full', className)
 
@@ -408,9 +389,7 @@ export function ProgressiveBackgroundImage({
           className="absolute inset-0 transition-opacity duration-500"
           style={{
             backgroundColor: placeholderColor,
-            backgroundImage: customBlurDataURL
-              ? `url(${customBlurDataURL})`
-              : undefined,
+            backgroundImage: customBlurDataURL ? `url(${customBlurDataURL})` : undefined,
           }}
         />
       )}
@@ -427,9 +406,7 @@ export function ProgressiveBackgroundImage({
       )}
 
       {/* Content */}
-      {children && (
-        <div className="relative z-20 h-full w-full">{children}</div>
-      )}
+      {children && <div className="relative z-20 h-full w-full">{children}</div>}
     </div>
   )
 }

@@ -5,10 +5,7 @@ interface AdaptiveLogoProps {
   alt?: string
 }
 
-export function AdaptiveLogo({
-  className = 'w-auto h-6',
-  alt = 'VibeDev ID Logo',
-}: AdaptiveLogoProps) {
+export function AdaptiveLogo({ className = 'w-auto h-6', alt = 'VibeDev ID Logo' }: AdaptiveLogoProps) {
   return (
     <div className="relative">
       {/* Light mode logo - visible in light mode, hidden in dark mode */}

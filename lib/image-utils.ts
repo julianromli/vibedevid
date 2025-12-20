@@ -3,8 +3,8 @@
  * Provides functions for blur placeholder generation, optimal sizing, and responsive image handling
  */
 
-import { getImageProps } from 'next/image'
 import type { ImageProps } from 'next/image'
+import { getImageProps } from 'next/image'
 
 // Type definitions
 export interface BlurPlaceholderResult {
@@ -31,10 +31,7 @@ export interface ImageVariant {
  * Generate blur placeholder data URL from image source
  * Simple fallback implementation for client-side compatibility
  */
-export async function generateBlurPlaceholder(
-  src: string,
-  size: number = 10,
-): Promise<BlurPlaceholderResult> {
+export async function generateBlurPlaceholder(src: string, size: number = 10): Promise<BlurPlaceholderResult> {
   // Generate simple colored placeholder based on src
   const color = generatePlaceholderColor(src)
   const canvas = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><rect width="${size}" height="${size}" fill="${color}"/></svg>`
@@ -110,19 +107,9 @@ export function getOptimalImageProps(
  * Provides optimal sizes for different viewport widths
  */
 export function generateSizes(
-  options: {
-    mobile?: string
-    tablet?: string
-    desktop?: string
-    default?: string
-  } = {},
+  options: { mobile?: string; tablet?: string; desktop?: string; default?: string } = {},
 ): string {
-  const {
-    mobile = '100vw',
-    tablet = '50vw',
-    desktop = '33vw',
-    default: defaultSize = '100vw',
-  } = options
+  const { mobile = '100vw', tablet = '50vw', desktop = '33vw', default: defaultSize = '100vw' } = options
 
   return `(max-width: 640px) ${mobile}, (max-width: 1024px) ${tablet}, (max-width: 1536px) ${desktop}, ${defaultSize}`
 }
@@ -157,11 +144,7 @@ export function calculateOptimalSize(
 /**
  * Create multiple image variants for different use cases
  */
-export function createImageVariants(
-  baseSrc: string,
-  baseWidth: number,
-  baseHeight: number,
-): ImageVariant[] {
+export function createImageVariants(baseSrc: string, baseWidth: number, baseHeight: number): ImageVariant[] {
   const variants: ImageVariant[] = []
 
   // Different quality levels
@@ -195,9 +178,7 @@ export function isExternalImage(src: string): boolean {
 /**
  * Get image format from file extension or URL
  */
-export function getImageFormat(
-  src: string,
-): 'jpeg' | 'jpg' | 'png' | 'webp' | 'avif' | 'svg' | 'gif' | 'unknown' {
+export function getImageFormat(src: string): 'jpeg' | 'jpg' | 'png' | 'webp' | 'avif' | 'svg' | 'gif' | 'unknown' {
   const extension = src.split('.').pop()?.toLowerCase()
 
   switch (extension) {

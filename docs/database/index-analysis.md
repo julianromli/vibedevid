@@ -1,4 +1,5 @@
 # Database Index Analysis Report
+
 **Date:** 2025-11-10  
 **Project:** VibeDev ID v0  
 **Status:** ✅ Analysis Complete - **GOOD NEWS: Most Critical Indexes Already Exist!**
@@ -17,33 +18,34 @@ After comprehensive analysis of the database schema, migrations, query patterns,
 
 ### Existing Indexes (Verified via Supabase MCP)
 
-| Index | Status | Purpose |
-|-------|--------|---------|
-| `idx_projects_slug` | ✅ **EXISTS** | Primary project lookups (CRITICAL) |
-| `idx_likes_user_id` | ✅ **EXISTS** | Like operations by user |
-| `idx_comments_user_id` | ✅ **EXISTS** | Comment operations by user (partial) |
-| `idx_views_user_id` | ✅ **EXISTS** | View tracking by user (partial) |
-| `idx_projects_created_at` | ✅ **EXISTS** | Date-based sorting |
-| `idx_projects_author_id` | ✅ **EXISTS** | User's projects |
-| `idx_projects_category` | ✅ **EXISTS** | Category filtering |
-| `idx_comments_project_id` | ✅ **EXISTS** | Comments by project |
-| `idx_likes_project_id` | ✅ **EXISTS** | Likes by project |
-| `idx_views_project_id` | ✅ **EXISTS** | Views by project |
+| Index                     | Status        | Purpose                              |
+| ------------------------- | ------------- | ------------------------------------ |
+| `idx_projects_slug`       | ✅ **EXISTS** | Primary project lookups (CRITICAL)   |
+| `idx_likes_user_id`       | ✅ **EXISTS** | Like operations by user              |
+| `idx_comments_user_id`    | ✅ **EXISTS** | Comment operations by user (partial) |
+| `idx_views_user_id`       | ✅ **EXISTS** | View tracking by user (partial)      |
+| `idx_projects_created_at` | ✅ **EXISTS** | Date-based sorting                   |
+| `idx_projects_author_id`  | ✅ **EXISTS** | User's projects                      |
+| `idx_projects_category`   | ✅ **EXISTS** | Category filtering                   |
+| `idx_comments_project_id` | ✅ **EXISTS** | Comments by project                  |
+| `idx_likes_project_id`    | ✅ **EXISTS** | Likes by project                     |
+| `idx_views_project_id`    | ✅ **EXISTS** | Views by project                     |
 
 ### Missing Composite Indexes (Optimization Opportunities)
 
-| Index | Impact Level | Est. Performance Gain |
-|-------|-------------|---------------------|
-| `likes(project_id, user_id)` | **MEDIUM** | 40-60% faster |
-| `comments(project_id, created_at)` | **MEDIUM** | 30-50% faster |
-| `projects(author_id, created_at)` | **MEDIUM** | 30-50% faster |
-| `users.email` | **LOW** | 20-30% faster |
+| Index                              | Impact Level | Est. Performance Gain |
+| ---------------------------------- | ------------ | --------------------- |
+| `likes(project_id, user_id)`       | **MEDIUM**   | 40-60% faster         |
+| `comments(project_id, created_at)` | **MEDIUM**   | 30-50% faster         |
+| `projects(author_id, created_at)`  | **MEDIUM**   | 30-50% faster         |
+| `users.email`                      | **LOW**      | 20-30% faster         |
 
 ---
 
 ## 📊 Existing Indexes (Verified)
 
 ### From `01_create_tables.sql`:
+
 - ✅ `idx_projects_author_id` - Foreign key index
 - ✅ `idx_projects_category` - Category filtering
 - ✅ `idx_comments_project_id` - Foreign key index
@@ -52,9 +54,11 @@ After comprehensive analysis of the database schema, migrations, query patterns,
 - ✅ `idx_users_username` - Username lookups
 
 ### From `04_change_projects_id_to_sequential.sql`:
+
 - ✅ `idx_projects_created_at` - Date sorting
 
 ### From `06_enhance_views_table.sql`:
+
 - ✅ `idx_views_project_session` - UNIQUE constraint (session tracking)
 - ✅ `idx_views_date` - Date-based analytics
 - ✅ `idx_views_project_date` - Composite for project analytics
@@ -65,6 +69,7 @@ After comprehensive analysis of the database schema, migrations, query patterns,
 ## 🔴 Real Issues Found: RLS Policy Performance (47 Warnings)
 
 ### Supabase Advisors Report Summary:
+
 - **15 auth_rls_initplan warnings** - RLS policies re-evaluate `auth.uid()` per row
 - **16 multiple_permissive_policies warnings** - Redundant policy overhead
 - **4 security warnings** - Configuration and extension issues
@@ -80,21 +85,27 @@ After comprehensive analysis of the database schema, migrations, query patterns,
 ### Most Common Query Patterns:
 
 1. **Slug-based project lookups** (15+ occurrences)
+
    ```typescript
    .from('projects').select('*').eq('slug', slug)
    ```
+
    ✅ **INDEX EXISTS** - `idx_projects_slug` optimizes this
 
 2. **User like checks** (5+ occurrences)
+
    ```typescript
    .from('likes').eq('project_id', id).eq('user_id', userId)
    ```
+
    ⚠️ **Partial coverage** - Only `project_id` indexed
 
 3. **Comment retrieval with ordering** (2+ occurrences)
+
    ```typescript
    .from('comments').eq('project_id', id).order('created_at', {ascending: false})
    ```
+
    ⚠️ **Partial coverage** - Only `project_id` indexed, not the ordering column
 
 4. **Profile project queries** (Multiple in `[username]/page.tsx`)
@@ -108,7 +119,9 @@ After comprehensive analysis of the database schema, migrations, query patterns,
 ## 🚀 Implementation Strategy
 
 ### Phase 1: IMMEDIATE (Deploy ASAP)
+
 **Impact:** Critical performance issues resolved
+
 ```sql
 CREATE INDEX CONCURRENTLY idx_projects_slug ON projects(slug);
 CREATE INDEX CONCURRENTLY idx_likes_user_id ON likes(user_id);
@@ -116,7 +129,9 @@ CREATE INDEX CONCURRENTLY idx_likes_project_user ON likes(project_id, user_id);
 ```
 
 ### Phase 2: HIGH PRIORITY (Deploy within 1 week)
+
 **Impact:** Significant performance improvements
+
 ```sql
 CREATE INDEX CONCURRENTLY idx_comments_user_id ON comments(user_id);
 CREATE INDEX CONCURRENTLY idx_comments_project_created ON comments(project_id, created_at DESC);
@@ -124,7 +139,9 @@ CREATE INDEX CONCURRENTLY idx_views_user_id ON views(user_id) WHERE user_id IS N
 ```
 
 ### Phase 3: OPTIMIZATION (Deploy when convenient)
+
 **Impact:** Nice-to-have optimizations
+
 ```sql
 CREATE INDEX CONCURRENTLY idx_projects_author_created ON projects(author_id, created_at DESC);
 CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
@@ -135,12 +152,14 @@ CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
 ## 📝 Deployment Instructions
 
 ### Step 1: Backup Database
+
 ```bash
 # Backup before running migration
 pg_dump -h localhost -U postgres -d vibedev > backup_$(date +%Y%m%d).sql
 ```
 
 ### Step 2: Apply Migration
+
 ```bash
 # Option A: Using Supabase CLI (recommended)
 supabase db push
@@ -150,14 +169,15 @@ psql -h your-host -U postgres -d vibedev -f scripts/07_add_missing_indexes.sql
 ```
 
 ### Step 3: Verify Indexes
+
 ```sql
 -- Check all indexes on projects table
-SELECT indexname, indexdef 
-FROM pg_indexes 
+SELECT indexname, indexdef
+FROM pg_indexes
 WHERE tablename = 'projects';
 
 -- Check index sizes
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
@@ -167,13 +187,14 @@ ORDER BY pg_relation_size(indexrelid) DESC;
 ```
 
 ### Step 4: Monitor Performance
+
 ```sql
 -- Check query performance before/after
-EXPLAIN ANALYZE 
+EXPLAIN ANALYZE
 SELECT * FROM projects WHERE slug = 'example-slug';
 
 -- Check index usage statistics
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
@@ -190,18 +211,23 @@ ORDER BY idx_scan DESC;
 ## ⚠️ Important Notes
 
 ### Using CONCURRENTLY
+
 All indexes use `CREATE INDEX CONCURRENTLY` to:
+
 - ✅ Avoid locking tables during creation
 - ✅ Allow application to continue operating
 - ⚠️ Takes longer to create but safer for production
 
 ### Index Maintenance
+
 - Indexes require disk space (~10-30% of table size)
 - Indexes slightly slow down INSERT/UPDATE operations
 - Regular VACUUM ANALYZE recommended after index creation
 
 ### Rollback Strategy
+
 If performance degrades unexpectedly:
+
 ```sql
 -- Drop specific index
 DROP INDEX CONCURRENTLY idx_projects_slug;
@@ -215,11 +241,13 @@ psql -h localhost -U postgres -d vibedev < backup_20251110.sql
 ## 📈 Expected Results
 
 ### Before Migration:
+
 - Project page load: ~200-500ms (sequential scan)
 - Like toggle: ~50-100ms (partial index scan)
 - Profile page: ~300-600ms (multiple sequential scans)
 
 ### After Migration:
+
 - Project page load: ~10-50ms (index scan) - **80-95% faster** ⚡
 - Like toggle: ~10-20ms (index scan) - **60-70% faster** ⚡
 - Profile page: ~100-200ms (index scans) - **40-60% faster** ⚡
@@ -229,12 +257,14 @@ psql -h localhost -U postgres -d vibedev < backup_20251110.sql
 ## 🔍 Additional Recommendations
 
 ### Future Monitoring:
+
 1. **Set up query monitoring** with `pg_stat_statements`
 2. **Regular index analysis** using `pg_stat_user_indexes`
 3. **EXPLAIN ANALYZE** for slow queries
 4. **Consider materialized views** for complex aggregations
 
 ### Code Optimizations:
+
 1. Consider adding database-level full-text search indexes for search features
 2. Evaluate partitioning strategy for `views` table as it grows
 3. Consider caching layer (Redis) for frequently accessed data
@@ -244,6 +274,7 @@ psql -h localhost -U postgres -d vibedev < backup_20251110.sql
 ## 📚 References
 
 ### Affected Files:
+
 - `lib/actions.ts` - Primary query logic (15+ slug lookups)
 - `lib/slug.ts` - Slug resolution utilities
 - `lib/client-likes.ts` - Client-side like operations
@@ -251,6 +282,7 @@ psql -h localhost -U postgres -d vibedev < backup_20251110.sql
 - `app/project/[slug]/page.tsx` - Project detail page
 
 ### Migration Files:
+
 - `scripts/01_create_tables.sql` - Initial schema
 - `scripts/04_change_projects_id_to_sequential.sql` - ID migration
 - `scripts/06_enhance_views_table.sql` - Views enhancement

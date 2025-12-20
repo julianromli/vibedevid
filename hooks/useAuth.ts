@@ -3,7 +3,7 @@
  * Handles auth state detection, user profile fetching, and auth state changes
  */
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@/types/homepage'
 
@@ -44,11 +44,7 @@ export function useAuth() {
           clearTimeout(authReadyTimeout)
 
           // Get user profile from database
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
           if (!isMounted) return
 
@@ -70,9 +66,7 @@ export function useAuth() {
         } else {
           // Session is empty but we'll get INITIAL_SESSION event
           // Don't mark auth ready yet, wait for the event
-          console.log(
-            '[useAuth] No session in getSession(), waiting for INITIAL_SESSION...',
-          )
+          console.log('[useAuth] No session in getSession(), waiting for INITIAL_SESSION...')
         }
       } catch (error) {
         if (!isMounted) return
@@ -116,11 +110,7 @@ export function useAuth() {
     // Helper function to fetch user profile
     const fetchUserProfile = async (userId: string, email: string) => {
       try {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', userId)
-          .single()
+        const { data: profile } = await supabase.from('users').select('*').eq('id', userId).single()
 
         if (!isMounted) return
 

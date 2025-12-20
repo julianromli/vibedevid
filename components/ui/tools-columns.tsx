@@ -1,10 +1,10 @@
 'use client'
 
-import * as React from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ExternalLink, Code } from 'lucide-react'
+import { Code, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import type * as React from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 export interface Tool {
@@ -21,11 +21,7 @@ interface ToolsColumnsProps {
   className?: string
 }
 
-export function ToolsColumns({
-  tools,
-  duration = 20,
-  className,
-}: ToolsColumnsProps) {
+export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsProps) {
   return (
     <div className={cn('flex flex-col space-y-4 overflow-hidden', className)}>
       <div
@@ -35,19 +31,18 @@ export function ToolsColumns({
         }}
       >
         {[...tools, ...tools].map((tool, index) => (
-          <Card key={index} className="w-80 flex-shrink-0 p-6">
+          <Card
+            key={index}
+            className="w-80 flex-shrink-0 p-6"
+          >
             <div className="relative">
               <div className="mb-4 flex items-start space-x-4">
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${tool.gradient}`}
-                >
+                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${tool.gradient}`}>
                   {tool.icon}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="mb-2 text-base font-medium">{tool.title}</h3>
-                  <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
-                    {tool.description}
-                  </p>
+                  <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">{tool.description}</p>
                 </div>
               </div>
 

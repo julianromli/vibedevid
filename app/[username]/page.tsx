@@ -1,32 +1,19 @@
 'use client'
-import { useParams, useRouter } from 'next/navigation'
+import { ArrowLeft, Calendar, Edit, Github, Globe, Heart, MapPin, MessageCircle, Twitter } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  MapPin,
-  Calendar,
-  Globe,
-  Github,
-  Twitter,
-  Heart,
-  MessageCircle,
-  Edit,
-} from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
+import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { Navbar } from '@/components/ui/navbar'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { createClient } from '@/lib/supabase/client'
-import {
-  ProfileHeaderSkeleton,
-  ProjectGridSkeleton,
-} from '@/components/ui/skeleton'
-import { useState, useEffect } from 'react'
-import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
-import { Footer } from '@/components/ui/footer'
 
 async function updateUserProfile(username: string, profileData: any) {
   const supabase = createClient()
@@ -78,12 +65,9 @@ async function fetchUserProjects(username: string) {
   const supabase = createClient()
 
   // Single optimized query dengan JOIN dan aggregation
-  const { data: projectsData, error } = await supabase.rpc(
-    'get_user_projects_with_stats',
-    {
-      username_param: username,
-    },
-  )
+  const { data: projectsData, error } = await supabase.rpc('get_user_projects_with_stats', {
+    username_param: username,
+  })
 
   if (error) {
     console.warn('RPC not available, falling back to regular queries:', error)
@@ -104,11 +88,7 @@ async function fetchUserProjectsFallback(username: string) {
   const supabase = createClient()
 
   // Get user ID once
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('id')
-    .eq('username', username)
-    .single()
+  const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single()
 
   if (userError || !user) {
     console.error('Error fetching user for projects:', userError)
@@ -194,11 +174,7 @@ async function fetchUserProfileWithStats(username: string) {
   console.log('[v0] Fetching profile and stats for username:', username)
 
   // Single query untuk user profile
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('username', username)
-    .single()
+  const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
 
   if (userError || !user) {
     console.error('[v0] Error fetching user:', userError)
@@ -207,10 +183,7 @@ async function fetchUserProfileWithStats(username: string) {
 
   // Parallel operations untuk projects dan stats
   const [projectsResult, projectsListResult] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('id', { count: 'exact' })
-      .eq('author_id', user.id),
+    supabase.from('projects').select('id', { count: 'exact' }).eq('author_id', user.id),
     supabase.from('projects').select('id').eq('author_id', user.id),
   ])
 
@@ -226,14 +199,8 @@ async function fetchUserProfileWithStats(username: string) {
 
   // Parallel queries untuk likes dan views
   const [likesResult, viewsResult] = await Promise.all([
-    supabase
-      .from('likes')
-      .select('id', { count: 'exact' })
-      .in('project_id', projectIds),
-    supabase
-      .from('views')
-      .select('id', { count: 'exact' })
-      .in('project_id', projectIds),
+    supabase.from('likes').select('id', { count: 'exact' }).in('project_id', projectIds),
+    supabase.from('views').select('id', { count: 'exact' }).in('project_id', projectIds),
   ])
 
   const stats = {
@@ -295,11 +262,7 @@ export default function ProfilePage() {
         let isOwnerCheck = false
 
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
 
           if (profile) {
             authUser = profile
@@ -378,10 +341,7 @@ export default function ProfilePage() {
           avatar_url: profileData.avatar_url, // Fixed: use avatar_url
         }
 
-        console.log(
-          '[v0] Updated user state with new avatar:',
-          updatedUser.avatar_url,
-        )
+        console.log('[v0] Updated user state with new avatar:', updatedUser.avatar_url)
         setUser(updatedUser)
 
         if (profileData.username !== username) {
@@ -426,7 +386,10 @@ export default function ProfilePage() {
             {/* Projects Section Skeleton */}
             <div className="bg-card border-border rounded-xl border p-6">
               <div className="bg-muted mb-6 h-7 w-32 animate-pulse rounded"></div>
-              <ProjectGridSkeleton count={6} columns={2} />
+              <ProjectGridSkeleton
+                count={6}
+                columns={2}
+              />
             </div>
           </div>
         </div>
@@ -449,9 +412,7 @@ export default function ProfilePage() {
         <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="mb-4 text-2xl font-bold">User Not Found</h1>
-            <p className="text-muted-foreground mb-6">
-              The profile you're looking for doesn't exist.
-            </p>
+            <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
             <Button onClick={() => router.push('/')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
@@ -479,7 +440,11 @@ export default function ProfilePage() {
         <div className="bg-card border-border mb-8 rounded-xl border p-8">
           {isOwner && (
             <div className="mb-4 flex justify-center md:justify-end">
-              <Button onClick={handleEdit} variant="outline" size="sm">
+              <Button
+                onClick={handleEdit}
+                variant="outline"
+                size="sm"
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
@@ -487,7 +452,11 @@ export default function ProfilePage() {
           )}
 
           <div className="flex flex-col gap-6 md:flex-row">
-            <UserAvatar user={user} size="xl" className="mx-auto md:mx-0" />
+            <UserAvatar
+              user={user}
+              size="xl"
+              className="mx-auto md:mx-0"
+            />
 
             {/* User Info Section */}
             <div className="flex-1 py-0 text-center md:text-left">
@@ -497,12 +466,8 @@ export default function ProfilePage() {
                   role={user.role}
                 />
               </h1>
-              <p className="text-muted-foreground mb-4 text-lg">
-                @{user.username}
-              </p>
-              <p className="text-foreground mb-4 max-w-2xl">
-                {user.bio || 'No bio available'}
-              </p>
+              <p className="text-muted-foreground mb-4 text-lg">@{user.username}</p>
+              <p className="text-foreground mb-4 max-w-2xl">{user.bio || 'No bio available'}</p>
 
               <div className="text-muted-foreground mb-4 flex flex-wrap justify-center gap-4 text-sm md:justify-start">
                 <div className="flex items-center gap-1">
@@ -521,7 +486,11 @@ export default function ProfilePage() {
 
               <div className="mb-6 flex justify-center gap-4 md:justify-start">
                 {user.website && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
                     <a
                       href={user.website}
                       target="_blank"
@@ -533,7 +502,11 @@ export default function ProfilePage() {
                   </Button>
                 )}
                 {user.github_url && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
                     <a
                       href={user.github_url}
                       target="_blank"
@@ -545,7 +518,11 @@ export default function ProfilePage() {
                   </Button>
                 )}
                 {user.twitter_url && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
                     <a
                       href={user.twitter_url}
                       target="_blank"
@@ -561,28 +538,16 @@ export default function ProfilePage() {
 
             <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
               <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">
-                  {userStats.projects}
-                </div>
-                <div className="text-muted-foreground text-xs font-medium">
-                  Projects
-                </div>
+                <div className="text-primary text-2xl font-bold">{userStats.projects}</div>
+                <div className="text-muted-foreground text-xs font-medium">Projects</div>
               </div>
               <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">
-                  {userStats.likes}
-                </div>
-                <div className="text-muted-foreground text-xs font-medium">
-                  Likes
-                </div>
+                <div className="text-primary text-2xl font-bold">{userStats.likes}</div>
+                <div className="text-muted-foreground text-xs font-medium">Likes</div>
               </div>
               <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">
-                  {userStats.views}
-                </div>
-                <div className="text-muted-foreground text-xs font-medium">
-                  Views
-                </div>
+                <div className="text-primary text-2xl font-bold">{userStats.views}</div>
+                <div className="text-muted-foreground text-xs font-medium">Views</div>
               </div>
             </div>
           </div>
@@ -620,9 +585,7 @@ export default function ProfilePage() {
                     <h3 className="group-hover:text-primary mb-2 text-lg font-semibold transition-colors duration-300">
                       {project.title}
                     </h3>
-                    <p className="text-muted-foreground mb-3 text-sm">
-                      {project.description}
-                    </p>
+                    <p className="text-muted-foreground mb-3 text-sm">{project.description}</p>
 
                     <div className="text-muted-foreground flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">

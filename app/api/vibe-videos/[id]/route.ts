@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 interface RouteParams {
@@ -13,34 +13,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { id } = params
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Video ID diperlukan' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Video ID diperlukan' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
 
-    const { data: video, error } = await supabase
-      .from('vibe_videos')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { data: video, error } = await supabase.from('vibe_videos').select('*').eq('id', id).single()
 
     if (error) {
       if (error.code === 'PGRST116') {
         // No rows found
-        return NextResponse.json(
-          { error: 'Video tidak ditemukan' },
-          { status: 404 },
-        )
+        return NextResponse.json({ error: 'Video tidak ditemukan' }, { status: 404 })
       }
 
       console.error('Database error:', error)
-      return NextResponse.json(
-        { error: 'Gagal mengambil data video' },
-        { status: 500 },
-      )
+      return NextResponse.json({ error: 'Gagal mengambil data video' }, { status: 500 })
     }
 
     // Transform data untuk compatibility dengan frontend
@@ -60,10 +47,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ video: transformedVideo })
   } catch (error) {
     console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Terjadi error saat mengambil data video cuy!' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Terjadi error saat mengambil data video cuy!' }, { status: 500 })
   }
 }
 
@@ -72,37 +56,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const body = await request.json()
-    const {
-      title,
-      description,
-      thumbnail,
-      video_id,
-      published_at,
-      view_count,
-      position,
-    } = body
+    const { title, description, thumbnail, video_id, published_at, view_count, position } = body
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Video ID diperlukan' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Video ID diperlukan' }, { status: 400 })
     }
 
     // Validation - at least one field should be provided for update
-    if (
-      !title &&
-      !description &&
-      !thumbnail &&
-      !video_id &&
-      !published_at &&
-      !view_count &&
-      position === undefined
-    ) {
-      return NextResponse.json(
-        { error: 'Minimal satu field harus diisi untuk update!' },
-        { status: 400 },
-      )
+    if (!title && !description && !thumbnail && !video_id && !published_at && !view_count && position === undefined) {
+      return NextResponse.json({ error: 'Minimal satu field harus diisi untuk update!' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -135,25 +97,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (error) {
       if (error.code === 'PGRST116') {
         // No rows found
-        return NextResponse.json(
-          { error: 'Video tidak ditemukan' },
-          { status: 404 },
-        )
+        return NextResponse.json({ error: 'Video tidak ditemukan' }, { status: 404 })
       }
 
       if (error.code === '23505') {
         // Unique constraint violation
-        return NextResponse.json(
-          { error: 'Video dengan ID ini sudah ada dalam database' },
-          { status: 409 },
-        )
+        return NextResponse.json({ error: 'Video dengan ID ini sudah ada dalam database' }, { status: 409 })
       }
 
       console.error('Database error:', error)
-      return NextResponse.json(
-        { error: 'Gagal mengupdate video' },
-        { status: 500 },
-      )
+      return NextResponse.json({ error: 'Gagal mengupdate video' }, { status: 500 })
     }
 
     // Transform response
@@ -176,10 +129,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Terjadi error saat mengupdate video cuy!' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Terjadi error saat mengupdate video cuy!' }, { status: 500 })
   }
 }
 
@@ -189,10 +139,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { id } = params
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Video ID diperlukan' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'Video ID diperlukan' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -202,21 +149,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // TODO: Add proper admin authentication later
 
     // Get video data first for logging
-    const { data: videoToDelete } = await supabase
-      .from('vibe_videos')
-      .select('title, position')
-      .eq('id', id)
-      .single()
+    const { data: videoToDelete } = await supabase.from('vibe_videos').select('title, position').eq('id', id).single()
 
     // Delete video
     const { error } = await supabase.from('vibe_videos').delete().eq('id', id)
 
     if (error) {
       console.error('Database error:', error)
-      return NextResponse.json(
-        { error: 'Gagal menghapus video dari database' },
-        { status: 500 },
-      )
+      return NextResponse.json({ error: 'Gagal menghapus video dari database' }, { status: 500 })
     }
 
     // After deletion, we might want to reorder positions
@@ -227,9 +167,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Terjadi error saat menghapus video cuy!' },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'Terjadi error saat menghapus video cuy!' }, { status: 500 })
   }
 }

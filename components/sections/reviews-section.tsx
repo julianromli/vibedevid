@@ -57,15 +57,16 @@ const testimonials: Testimonial[] = [
 
 export function ReviewsSection() {
   return (
-    <section id="reviews" className="bg-muted/20 py-20" data-animate>
+    <section
+      id="reviews"
+      className="bg-muted/20 py-20"
+      data-animate
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            Review Member Komunitas Vibe Coding
-          </h2>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">Review Member Komunitas Vibe Coding</h2>
           <p className="text-muted-foreground text-xl">
-            Testimoni asli dari developer Indonesia yang udah join komunitas
-            kami
+            Testimoni asli dari developer Indonesia yang udah join komunitas kami
           </p>
         </div>
 

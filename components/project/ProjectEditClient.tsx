@@ -1,24 +1,18 @@
 'use client'
 
+import { Edit, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import MultipleSelector, { type Option } from '@/components/ui/multiselect'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import MultipleSelector, { Option } from '@/components/ui/multiselect'
-import { type Category } from '@/lib/categories'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Loader2, Edit } from 'lucide-react'
-import Image from 'next/image'
 import { editProject } from '@/lib/actions'
+import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 
 const MAX_DESCRIPTION_LENGTH = 1600
@@ -51,12 +45,7 @@ interface ProjectEditClientProps {
   isOwner: boolean
 }
 
-export function ProjectEditClient({
-  project,
-  categories,
-  projectSlug,
-  isOwner,
-}: ProjectEditClientProps) {
+export function ProjectEditClient({ project, categories, projectSlug, isOwner }: ProjectEditClientProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editFormData, setEditFormData] = useState({
@@ -85,9 +74,7 @@ export function ProjectEditClient({
     })
 
     // Initialize tech stack tags
-    const existingTags = project?.tags
-      ? project.tags.map((tag: string) => ({ value: tag, label: tag }))
-      : []
+    const existingTags = project?.tags ? project.tags.map((tag: string) => ({ value: tag, label: tag })) : []
     setSelectedEditTags(existingTags)
 
     // Initialize website URL and favicon
@@ -146,8 +133,12 @@ export function ProjectEditClient({
   return (
     <>
       {!isEditing && (
-        <div className="flex justify-center md:justify-start mb-4">
-          <Button onClick={handleEditProject} variant="outline" size="sm">
+        <div className="mb-4 flex justify-center md:justify-start">
+          <Button
+            onClick={handleEditProject}
+            variant="outline"
+            size="sm"
+          >
             <Edit className="mr-2 h-4 w-4" />
             Edit Project
           </Button>
@@ -161,7 +152,10 @@ export function ProjectEditClient({
             <div className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="edit-title" className="form-label-enhanced">
+                <Label
+                  htmlFor="edit-title"
+                  className="form-label-enhanced"
+                >
                   Project Title *
                 </Label>
                 <Input
@@ -181,7 +175,10 @@ export function ProjectEditClient({
 
               {/* Tagline */}
               <div className="space-y-2">
-                <Label htmlFor="edit-tagline" className="form-label-enhanced">
+                <Label
+                  htmlFor="edit-tagline"
+                  className="form-label-enhanced"
+                >
                   Tagline
                 </Label>
                 <Input
@@ -223,9 +220,7 @@ export function ProjectEditClient({
                   maxLength={MAX_DESCRIPTION_LENGTH}
                 />
                 <div className="flex items-center justify-between text-sm">
-                  <p className="text-muted-foreground">
-                    Max {MAX_DESCRIPTION_LENGTH} characters
-                  </p>
+                  <p className="text-muted-foreground">Max {MAX_DESCRIPTION_LENGTH} characters</p>
                   <span
                     className={`font-medium ${
                       editFormData.description.length > MAX_DESCRIPTION_LENGTH
@@ -245,9 +240,7 @@ export function ProjectEditClient({
                 <Label htmlFor="edit-category">Category *</Label>
                 <Select
                   value={editFormData.category}
-                  onValueChange={(value) =>
-                    setEditFormData({ ...editFormData, category: value })
-                  }
+                  onValueChange={(value) => setEditFormData({ ...editFormData, category: value })}
                   disabled={isSaving}
                 >
                   <SelectTrigger>
@@ -256,12 +249,18 @@ export function ProjectEditClient({
                   <SelectContent>
                     {categories.length > 0 ? (
                       categories.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
+                        <SelectItem
+                          key={category.id}
+                          value={category.name}
+                        >
                           {category.display_name}
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="no-categories" disabled>
+                      <SelectItem
+                        value="no-categories"
+                        disabled
+                      >
                         No categories available
                       </SelectItem>
                     )}
@@ -293,8 +292,7 @@ export function ProjectEditClient({
               <div className="space-y-2">
                 <Label htmlFor="edit-favicon">Favicon URL</Label>
                 <div className="flex items-center gap-2">
-                  {(editFaviconUrl ||
-                    (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
+                  {(editFaviconUrl || (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
                     <Image
                       src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
                       alt="Website favicon"
@@ -323,11 +321,7 @@ export function ProjectEditClient({
                   onChange={setSelectedEditTags}
                   defaultOptions={techOptions}
                   placeholder="Select technologies..."
-                  emptyIndicator={
-                    <p className="text-muted-foreground text-center text-sm">
-                      No technologies found.
-                    </p>
-                  }
+                  emptyIndicator={<p className="text-muted-foreground text-center text-sm">No technologies found.</p>}
                   creatable
                   maxSelected={10}
                   disabled={isSaving}

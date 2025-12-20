@@ -9,10 +9,7 @@ export function extractYouTubeVideoId(url: string): string | null {
     const urlObj = new URL(url.trim())
 
     // Standard watch URL: https://www.youtube.com/watch?v=VIDEO_ID
-    if (
-      urlObj.hostname.includes('youtube.com') &&
-      urlObj.pathname === '/watch'
-    ) {
+    if (urlObj.hostname.includes('youtube.com') && urlObj.pathname === '/watch') {
       return urlObj.searchParams.get('v')
     }
 
@@ -22,26 +19,17 @@ export function extractYouTubeVideoId(url: string): string | null {
     }
 
     // Shorts: https://www.youtube.com/shorts/VIDEO_ID
-    if (
-      urlObj.hostname.includes('youtube.com') &&
-      urlObj.pathname.startsWith('/shorts/')
-    ) {
+    if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.startsWith('/shorts/')) {
       return urlObj.pathname.split('/shorts/')[1]
     }
 
     // Embed: https://www.youtube.com/embed/VIDEO_ID
-    if (
-      urlObj.hostname.includes('youtube.com') &&
-      urlObj.pathname.startsWith('/embed/')
-    ) {
+    if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.startsWith('/embed/')) {
       return urlObj.pathname.split('/embed/')[1]
     }
 
     // Live URL: https://www.youtube.com/live/VIDEO_ID
-    if (
-      urlObj.hostname.includes('youtube.com') &&
-      urlObj.pathname.startsWith('/live/')
-    ) {
+    if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.startsWith('/live/')) {
       return urlObj.pathname.split('/live/')[1]
     }
 
@@ -141,10 +129,7 @@ export function parseDuration(duration: string): string {
 /**
  * Clean dan truncate description untuk preview
  */
-export function cleanDescription(
-  description: string,
-  maxLength: number = 200,
-): string {
+export function cleanDescription(description: string, maxLength: number = 200): string {
   if (!description) return ''
 
   // Remove excessive whitespace dan newlines
@@ -156,7 +141,5 @@ export function cleanDescription(
   const truncated = cleaned.substring(0, maxLength)
   const lastSpace = truncated.lastIndexOf(' ')
 
-  return lastSpace > maxLength * 0.8
-    ? truncated.substring(0, lastSpace) + '...'
-    : truncated + '...'
+  return lastSpace > maxLength * 0.8 ? truncated.substring(0, lastSpace) + '...' : truncated + '...'
 }

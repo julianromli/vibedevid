@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface UserAvatarProps {
@@ -51,18 +51,13 @@ export function UserAvatar({
         return
       }
 
-      const initialUrl =
-        user.avatar_url || user.avatar || '/vibedev-guest-avatar.png'
+      const initialUrl = user.avatar_url || user.avatar || '/vibedev-guest-avatar.png'
 
       // If user has an ID, fetch fresh avatar from database
       if (user.id) {
         try {
           const supabase = createClient()
-          const { data: profile } = await supabase
-            .from('users')
-            .select('avatar_url')
-            .eq('id', user.id)
-            .single()
+          const { data: profile } = await supabase.from('users').select('avatar_url').eq('id', user.id).single()
 
           if (profile?.avatar_url) {
             setAvatarUrl(profile.avatar_url)
@@ -104,9 +99,7 @@ export function UserAvatar({
           alt={user?.display_name || user?.name || user?.username || 'User'}
           className="object-cover"
         />
-        <AvatarFallback
-          className={cn(fallbackSizeClasses[size], fallbackClassName)}
-        >
+        <AvatarFallback className={cn(fallbackSizeClasses[size], fallbackClassName)}>
           {isLoading ? '...' : getInitials()}
         </AvatarFallback>
       </Avatar>

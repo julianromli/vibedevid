@@ -77,10 +77,7 @@ async function takeScreenshot() {
     // List available tools
     console.log('🔍 Getting available tools...')
     const toolsResponse = await sendMCPRequest('tools/list')
-    console.log(
-      'Available tools:',
-      toolsResponse.result?.tools?.map((t) => t.name) || [],
-    )
+    console.log('Available tools:', toolsResponse.result?.tools?.map((t) => t.name) || [])
 
     // Navigate to Google
     console.log('🌐 Navigating to google.com...')
@@ -108,9 +105,7 @@ async function takeScreenshot() {
     console.log('Screenshot result:', screenshotResponse)
 
     console.log('✅ Screenshot process completed!')
-    console.log(
-      '📁 Check the playwright-output directory for the screenshot file.',
-    )
+    console.log('📁 Check the playwright-output directory for the screenshot file.')
   } catch (error) {
     console.error('❌ Error taking screenshot:', error)
   }

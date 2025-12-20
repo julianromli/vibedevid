@@ -3,10 +3,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { getCategoryDisplayName } from './categories'
 import { getSupabaseConfig } from './env-config'
 import { fetchFavicon } from './favicon-utils'
-import { getCategoryDisplayName } from './categories'
-import { slugifyTitle, ensureUniqueSlug, getProjectIdBySlug } from './slug'
+import { ensureUniqueSlug, getProjectIdBySlug, slugifyTitle } from './slug'
 
 async function createClient() {
   const cookieStore = await cookies()
@@ -18,9 +18,7 @@ async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          )
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         } catch {
           // The `setAll` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing
@@ -84,27 +82,18 @@ export async function signIn(prevState: any, formData: FormData) {
 
       // Check if email is confirmed
       if (!user.email_confirmed_at) {
-        console.log(
-          '[Server Action] Email not confirmed, signing out and returning error',
-        )
+        console.log('[Server Action] Email not confirmed, signing out and returning error')
         // Sign out the user since email is not confirmed
         await supabase.auth.signOut()
         return {
-          error:
-            'Please confirm your email address before signing in. Check your inbox for the confirmation link.',
+          error: 'Please confirm your email address before signing in. Check your inbox for the confirmation link.',
           emailNotConfirmed: true,
         }
       }
 
-      console.log(
-        '[Server Action] Email confirmed, proceeding with profile creation',
-      )
+      console.log('[Server Action] Email confirmed, proceeding with profile creation')
 
-      const { data: existingProfile } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      const { data: existingProfile } = await supabase.from('users').select('id').eq('id', user.id).single()
 
       if (!existingProfile) {
         const baseUsername =
@@ -118,11 +107,7 @@ export async function signIn(prevState: any, formData: FormData) {
         const maxAttempts = 5
 
         while (attempts < maxAttempts) {
-          const { data: usernameTaken } = await supabase
-            .from('users')
-            .select('id')
-            .eq('username', username)
-            .single()
+          const { data: usernameTaken } = await supabase.from('users').select('id').eq('username', username).single()
 
           if (!usernameTaken) break
 
@@ -137,20 +122,12 @@ export async function signIn(prevState: any, formData: FormData) {
         const profileData = {
           id: user.id,
           username,
-          display_name:
-            user.user_metadata?.full_name ||
-            user.email?.split('@')[0] ||
-            'User',
-          avatar_url:
-            user.user_metadata?.avatar_url ||
-            user.user_metadata?.picture ||
-            null,
+          display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
           updated_at: new Date().toISOString(),
         }
 
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert(profileData)
+        const { error: profileError } = await supabase.from('users').insert(profileData)
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
@@ -190,10 +167,7 @@ export async function signUp(prevState: any, formData: FormData) {
           process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
           `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}`,
         data: {
-          full_name:
-            firstName && lastName
-              ? `${firstName} ${lastName}`.trim()
-              : email.toString().split('@')[0],
+          full_name: firstName && lastName ? `${firstName} ${lastName}`.trim() : email.toString().split('@')[0],
         },
       },
     })
@@ -230,14 +204,11 @@ export async function resetPassword(prevState: any, formData: FormData) {
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.toString(),
-      {
-        redirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/user/auth`,
-      },
-    )
+    const { error } = await supabase.auth.resetPasswordForEmail(email.toString(), {
+      redirectTo:
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+        `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/user/auth`,
+    })
 
     if (error) {
       return { error: error.message }
@@ -250,10 +221,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
   }
 }
 
-export async function resendConfirmationEmail(
-  prevState: any,
-  formData: FormData,
-) {
+export async function resendConfirmationEmail(prevState: any, formData: FormData) {
   if (!formData) {
     return { error: 'Form data is missing' }
   }
@@ -333,11 +301,7 @@ export async function addComment(formData: FormData) {
 }
 
 export async function getComments(projectSlug: string) {
-  if (
-    !projectSlug ||
-    typeof projectSlug !== 'string' ||
-    projectSlug.trim() === ''
-  ) {
+  if (!projectSlug || typeof projectSlug !== 'string' || projectSlug.trim() === '') {
     return { comments: [], error: 'Project slug is required' }
   }
 
@@ -434,31 +398,21 @@ export async function getProjectBySlug(slug: string) {
     const projectPk = project.id
 
     // Run analytics queries in parallel
-    const [
-      { count: likesCount },
-      { count: totalViews },
-      { count: uniqueViews },
-      { count: todayViews },
-    ] = await Promise.all([
-      supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', projectPk),
-      supabase
-        .from('views')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', projectPk),
-      supabase
-        .from('views')
-        .select('session_id', { count: 'exact', head: true })
-        .eq('project_id', projectPk)
-        .not('session_id', 'is', null),
-      supabase
-        .from('views')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', projectPk)
-        .eq('view_date', new Date().toISOString().split('T')[0]),
-    ])
+    const [{ count: likesCount }, { count: totalViews }, { count: uniqueViews }, { count: todayViews }] =
+      await Promise.all([
+        supabase.from('likes').select('*', { count: 'exact', head: true }).eq('project_id', projectPk),
+        supabase.from('views').select('*', { count: 'exact', head: true }).eq('project_id', projectPk),
+        supabase
+          .from('views')
+          .select('session_id', { count: 'exact', head: true })
+          .eq('project_id', projectPk)
+          .not('session_id', 'is', null),
+        supabase
+          .from('views')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', projectPk)
+          .eq('view_date', new Date().toISOString().split('T')[0]),
+      ])
 
     // Get the display name for the category
     const categoryDisplayName = await getCategoryDisplayName(project.category)
@@ -500,19 +454,13 @@ export async function getProjectBySlug(slug: string) {
 
 // Legacy function for backward compatibility (will be removed after migration)
 export async function getProject(projectId: string) {
-  console.warn(
-    '[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.',
-  )
+  console.warn('[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.')
 
   // For backward compatibility during migration phase
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('slug')
-      .eq('id', projectId)
-      .single()
+    const { data, error } = await supabase.from('projects').select('slug').eq('id', projectId).single()
 
     if (error || !data?.slug) {
       return { project: null, error: 'Project not found' }
@@ -525,15 +473,8 @@ export async function getProject(projectId: string) {
   }
 }
 
-export async function incrementProjectViews(
-  projectSlug: string,
-  sessionId?: string,
-) {
-  if (
-    !projectSlug ||
-    typeof projectSlug !== 'string' ||
-    projectSlug.trim() === ''
-  ) {
+export async function incrementProjectViews(projectSlug: string, sessionId?: string) {
+  if (!projectSlug || typeof projectSlug !== 'string' || projectSlug.trim() === '') {
     console.error('[Server] incrementProjectViews: projectSlug is required')
     return
   }
@@ -541,10 +482,7 @@ export async function incrementProjectViews(
   // Resolve project ID from slug
   const projectId = await getProjectIdBySlug(projectSlug.trim())
   if (!projectId) {
-    console.error(
-      '[Server] incrementProjectViews: Project not found for slug:',
-      projectSlug,
-    )
+    console.error('[Server] incrementProjectViews: Project not found for slug:', projectSlug)
     return
   }
 
@@ -563,28 +501,14 @@ export async function incrementProjectViews(
       view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     }
 
-    console.log(
-      '[Server] Incrementing view for project slug:',
-      projectSlug,
-      'ID:',
-      projectId,
-      'Session:',
-      sessionId,
-    )
+    console.log('[Server] Incrementing view for project slug:', projectSlug, 'ID:', projectId, 'Session:', sessionId)
 
     // Try to insert first
-    const { data, error } = await supabase
-      .from('views')
-      .insert(viewRecord)
-      .select()
+    const { data, error } = await supabase.from('views').insert(viewRecord).select()
 
     if (error) {
       // If it's a duplicate key error, that's expected (user already viewed in this session)
-      if (
-        error.code === '23505' ||
-        error.message?.includes('duplicate') ||
-        error.message?.includes('unique')
-      ) {
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
         console.log('[Server] View already tracked for this session')
       } else {
         console.error('[Server] Increment views error:', error)
@@ -625,10 +549,7 @@ export async function toggleLike(projectId: string) {
     }
 
     if (existingLike) {
-      const { error: deleteError } = await supabase
-        .from('likes')
-        .delete()
-        .eq('id', existingLike.id)
+      const { error: deleteError } = await supabase.from('likes').delete().eq('id', existingLike.id)
 
       if (deleteError) {
         return { error: deleteError.message }
@@ -660,11 +581,7 @@ export async function getLikeStatus(projectId: string) {
   } = await supabase.auth.getSession()
 
   try {
-    if (
-      !projectId ||
-      typeof projectId !== 'string' ||
-      projectId.trim() === ''
-    ) {
+    if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
       console.error('Get like status error: projectId is required')
       return { totalLikes: 0, isLiked: false, error: 'Project ID is required' }
     }
@@ -678,11 +595,7 @@ export async function getLikeStatus(projectId: string) {
       .eq('project_id', cleanProjectId)
 
     if (countError) {
-      console.error(
-        'Get likes count error:',
-        countError.message,
-        countError.details,
-      )
+      console.error('Get likes count error:', countError.message, countError.details)
       return { totalLikes: 0, isLiked: false, error: countError.message }
     }
 
@@ -696,11 +609,7 @@ export async function getLikeStatus(projectId: string) {
         .single()
 
       if (userLikeError && userLikeError.code !== 'PGRST116') {
-        console.error(
-          'Get user like status error:',
-          userLikeError.message,
-          userLikeError.details,
-        )
+        console.error('Get user like status error:', userLikeError.message, userLikeError.details)
       } else if (userLike) {
         isLiked = true
       }
@@ -768,22 +677,15 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     // Convert integers to strings properly
     const cleanProjectIds = projectIds
-      .filter(
-        (id) => id !== null && id !== undefined && String(id).trim() !== '',
-      )
+      .filter((id) => id !== null && id !== undefined && String(id).trim() !== '')
       .map((id) => String(id).trim())
 
     if (cleanProjectIds.length === 0) {
-      console.log(
-        '[v0] getBatchLikeStatus: No valid project IDs after cleaning',
-      )
+      console.log('[v0] getBatchLikeStatus: No valid project IDs after cleaning')
       return { likesData: {}, error: 'No valid project IDs provided' }
     }
 
-    console.log(
-      '[v0] getBatchLikeStatus: Fetching likes for projects:',
-      cleanProjectIds,
-    )
+    console.log('[v0] getBatchLikeStatus: Fetching likes for projects:', cleanProjectIds)
 
     // Get session safely
     const {
@@ -796,10 +698,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       // Continue without session - we can still get total likes
     }
 
-    console.log(
-      '[v0] getBatchLikeStatus: Session status:',
-      session ? 'logged in' : 'anonymous',
-    )
+    console.log('[v0] getBatchLikeStatus: Session status:', session ? 'logged in' : 'anonymous')
 
     // Get all likes for these projects in one query
     const { data: allLikes, error: likesError } = await supabase
@@ -810,35 +709,24 @@ export async function getBatchLikeStatus(projectIds: string[]) {
     if (likesError) {
       console.error('[v0] getBatchLikeStatus: Likes fetch error:', likesError)
       // Return empty data instead of error to not break UI
-      const emptyLikesData: Record<
-        string,
-        { totalLikes: number; isLiked: boolean }
-      > = {}
+      const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
       cleanProjectIds.forEach((projectId) => {
         emptyLikesData[projectId] = { totalLikes: 0, isLiked: false }
       })
       return { likesData: emptyLikesData, error: null }
     }
 
-    console.log(
-      '[v0] getBatchLikeStatus: Raw likes data:',
-      allLikes?.length || 0,
-      'likes found',
-    )
+    console.log('[v0] getBatchLikeStatus: Raw likes data:', allLikes?.length || 0, 'likes found')
 
     // Process the data
-    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> =
-      {}
+    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
 
     cleanProjectIds.forEach((projectId) => {
       // Convert projectId string to number for comparison since database returns integers
       const projectIdNum = parseInt(projectId)
-      const projectLikes =
-        allLikes?.filter((like) => like.project_id === projectIdNum) || []
+      const projectLikes = allLikes?.filter((like) => like.project_id === projectIdNum) || []
       const totalLikes = projectLikes.length
-      const isLiked = session?.user
-        ? projectLikes.some((like) => like.user_id === session.user.id)
-        : false
+      const isLiked = session?.user ? projectLikes.some((like) => like.user_id === session.user.id) : false
 
       // Store using original string key for consistency
       likesData[projectId] = { totalLikes, isLiked }
@@ -849,10 +737,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
   } catch (error) {
     console.error('[v0] getBatchLikeStatus: Unexpected error:', error)
     // Return safe fallback data to prevent UI breaks
-    const fallbackLikesData: Record<
-      string,
-      { totalLikes: number; isLiked: boolean }
-    > = {}
+    const fallbackLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
     if (projectIds && projectIds.length > 0) {
       projectIds.forEach((id) => {
         const projectIdStr = id.toString()
@@ -908,12 +793,7 @@ export async function submitProject(formData: FormData, userId: string) {
     const baseSlug = slugifyTitle(title.trim())
     const slug = await ensureUniqueSlug(baseSlug)
 
-    console.log(
-      '[Submit Project] Generated slug:',
-      slug,
-      'from title:',
-      title.trim(),
-    )
+    console.log('[Submit Project] Generated slug:', slug, 'from title:', title.trim())
 
     const { data: project, error } = await supabase
       .from('projects')
@@ -985,11 +865,7 @@ export async function submitProject(formData: FormData, userId: string) {
 }
 
 export async function editProject(projectSlug: string, formData: FormData) {
-  if (
-    !projectSlug ||
-    typeof projectSlug !== 'string' ||
-    projectSlug.trim() === ''
-  ) {
+  if (!projectSlug || typeof projectSlug !== 'string' || projectSlug.trim() === '') {
     return { success: false, error: 'Project slug is required' }
   }
 
@@ -1139,10 +1015,7 @@ export async function fetchProjectsWithSorting(
     const { data: projectsWithUsers, error } = await query
 
     if (error) {
-      console.error(
-        '[fetchProjectsWithSorting] Error fetching projects:',
-        error,
-      )
+      console.error('[fetchProjectsWithSorting] Error fetching projects:', error)
       return { projects: [], error: error.message }
     }
 
@@ -1152,14 +1025,10 @@ export async function fetchProjectsWithSorting(
 
     // Get likes count for all projects in parallel
     const projectIds = projectsWithUsers.map((p) => p.id)
-    const { likesData, error: likesError } =
-      await getBatchLikeStatus(projectIds)
+    const { likesData, error: likesError } = await getBatchLikeStatus(projectIds)
 
     if (likesError) {
-      console.error(
-        '[fetchProjectsWithSorting] Error fetching likes:',
-        likesError,
-      )
+      console.error('[fetchProjectsWithSorting] Error fetching likes:', likesError)
       // Continue without likes data
     }
 
@@ -1167,9 +1036,7 @@ export async function fetchProjectsWithSorting(
     const formattedProjects = await Promise.all(
       projectsWithUsers.map(async (project) => {
         // Get display name for category
-        const categoryDisplayName = await getCategoryDisplayName(
-          project.category,
-        )
+        const categoryDisplayName = await getCategoryDisplayName(project.category)
 
         const projectLikesData = (likesData && likesData[project.id]) || {
           totalLikes: 0,
@@ -1200,13 +1067,11 @@ export async function fetchProjectsWithSorting(
     // Apply category filter after formatting (client-side filtering)
     let filteredProjects = formattedProjects
     if (category && category !== 'All') {
-      filteredProjects = formattedProjects.filter(
-        (project) => project.category === category,
-      )
+      filteredProjects = formattedProjects.filter((project) => project.category === category)
     }
 
     // Apply post-processing sorting based on likes for trending and top
-    let sortedProjects = [...filteredProjects]
+    const sortedProjects = [...filteredProjects]
 
     if (sortBy === 'trending' || sortBy === 'top') {
       // Sort by likes descending, then by creation date for tie-breaking
@@ -1233,11 +1098,7 @@ export async function fetchProjectsWithSorting(
 }
 
 export async function deleteProject(projectSlug: string) {
-  if (
-    !projectSlug ||
-    typeof projectSlug !== 'string' ||
-    projectSlug.trim() === ''
-  ) {
+  if (!projectSlug || typeof projectSlug !== 'string' || projectSlug.trim() === '') {
     return { success: false, error: 'Project slug is required' }
   }
 
@@ -1275,26 +1136,29 @@ export async function deleteProject(projectSlug: string) {
     // Delete related records first (comments, likes, views) - CASCADE should handle this automatically
     // But we'll do it explicitly for safety
     await Promise.all([
-      supabase.from('comments').delete().eq('project_id', projectId), // Use UUID directly
-      supabase.from('likes').delete().eq('project_id', projectId), // Use UUID directly
-      supabase.from('views').delete().eq('project_id', projectId), // Use UUID directly
+      supabase
+        .from('comments')
+        .delete()
+        .eq('project_id', projectId), // Use UUID directly
+      supabase
+        .from('likes')
+        .delete()
+        .eq('project_id', projectId), // Use UUID directly
+      supabase
+        .from('views')
+        .delete()
+        .eq('project_id', projectId), // Use UUID directly
     ])
 
     // Then delete the project
-    const { error: deleteError } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId) // Use UUID directly, no parseInt
+    const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId) // Use UUID directly, no parseInt
 
     if (deleteError) {
       console.error('Delete project error:', deleteError)
       return { success: false, error: deleteError.message }
     }
 
-    console.log(
-      '[Delete Project] Successfully deleted project with slug:',
-      projectSlug,
-    )
+    console.log('[Delete Project] Successfully deleted project with slug:', projectSlug)
     return { success: true }
   } catch (error) {
     console.error('Delete project error:', error)

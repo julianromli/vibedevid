@@ -1,18 +1,18 @@
 'use client'
 
-import type React from 'react'
-import { useState, useTransition, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { X, Eye, EyeOff, Mail, ArrowLeft, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
-import { signIn, signUp, resetPassword } from '@/lib/actions'
+import { ArrowLeft, Eye, EyeOff, Loader2, Mail, X } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import type React from 'react'
+import { Suspense, useEffect, useState, useTransition } from 'react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { resetPassword, signIn, signUp } from '@/lib/actions'
+import { createClient } from '@/lib/supabase/client'
 
 // Email domain whitelist helper
 const allowedDomains = new Set([
@@ -93,25 +93,15 @@ function AuthPageContent() {
       console.log('[Frontend] Server action result:', result)
 
       if (result?.error) {
-        console.log(
-          '[Frontend] Sign in error:',
-          result.error,
-          'emailNotConfirmed:',
-          result.emailNotConfirmed,
-        )
+        console.log('[Frontend] Sign in error:', result.error, 'emailNotConfirmed:', result.emailNotConfirmed)
         setError(result.error)
         if (result.emailNotConfirmed) {
           // Redirect to email confirmation page if email not confirmed
           console.log('[Frontend] Redirecting to confirm email page')
-          router.push(
-            `/user/auth/confirm-email?email=${encodeURIComponent(email)}`,
-          )
+          router.push(`/user/auth/confirm-email?email=${encodeURIComponent(email)}`)
         }
       } else if (result?.success) {
-        console.log(
-          '[Frontend] Sign in success, redirecting to:',
-          result.redirect || '/',
-        )
+        console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
         toast.success('Berhasil masuk! 🎉 Selamat datang kembali!')
         router.refresh()
         router.push(result.redirect || '/')
@@ -120,9 +110,7 @@ function AuthPageContent() {
       }
     } catch (error: unknown) {
       console.error('[Frontend] Sign in error:', error)
-      setError(
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      )
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -150,9 +138,7 @@ function AuthPageContent() {
         email,
         password,
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/`,
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
           data: {
             username: username,
             display_name: username,
@@ -187,9 +173,7 @@ function AuthPageContent() {
         setSuccess(result.success)
       }
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      )
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -243,7 +227,10 @@ function AuthPageContent() {
           </div>
 
           {/* Close Button */}
-          <Link href="/" className="absolute top-6 right-6">
+          <Link
+            href="/"
+            className="absolute top-6 right-6"
+          >
             <Button
               variant="ghost"
               size="sm"
@@ -261,9 +248,7 @@ function AuthPageContent() {
                   {/* Sliding Background */}
                   <div
                     className={`bg-foreground absolute top-1 bottom-1 rounded-full shadow-lg transition-all duration-200 ease-in-out ${
-                      isSignUp
-                        ? 'right-1 left-[calc(50%)]'
-                        : 'right-[calc(50%)] left-1'
+                      isSignUp ? 'right-1 left-[calc(50%)]' : 'right-[calc(50%)] left-1'
                     }`}
                   />
 
@@ -308,24 +293,19 @@ function AuthPageContent() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-foreground text-3xl font-bold tracking-tight">
-                  Reset password
-                </h1>
+                <h1 className="text-foreground text-3xl font-bold tracking-tight">Reset password</h1>
               </div>
 
               <div className="mb-8 text-center">
                 <p className="text-muted-foreground">
-                  Enter your email address and we'll send you a link to reset
-                  your password.
+                  Enter your email address and we'll send you a link to reset your password.
                 </p>
               </div>
             </>
           )}
 
           {error && (
-            <div className="mb-4 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-red-700">
-              {error}
-            </div>
+            <div className="mb-4 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-red-700">{error}</div>
           )}
 
           {success && (
@@ -418,11 +398,7 @@ function AuthPageContent() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 h-6 w-6 -translate-y-1/2 transform p-0 transition-all duration-200"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
 
@@ -519,7 +495,10 @@ function AuthPageContent() {
               </div>
             </form>
           ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form
+              onSubmit={handleResetPassword}
+              className="space-y-4"
+            >
               <div className="relative">
                 <Mail className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform transition-all duration-200" />
                 <Input
@@ -555,8 +534,7 @@ function AuthPageContent() {
             <p className="text-muted-foreground text-xs">
               {!isForgotPassword ? (
                 <>
-                  By {isSignUp ? 'creating an account' : 'signing in'}, you
-                  agree to our{' '}
+                  By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
                   <Link
                     href="/terms"
                     className="text-foreground hover:text-primary underline"

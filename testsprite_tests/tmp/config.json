@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "faizintifada@gmail.com",
+  "loginPassword": "weusum1st",
+  "executionArgs": {
+    "projectName": "traecommunityid",
+    "projectPath": "D:\\Projects\\Vibe Code\\vibedevid_website\\traecommunityid",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-SRqJI0AWMivriuGVeVE6B25sjWhWU_6YDZdrOQfHyPN9gzp6VskgptbdgNK25OzyfQADx5HHYagPpaiu7jHW9ZWFxXS8IhN90tjHmIUsXqp2QCrZmDw7NRSJGMuWHCYoRj4"
+    }
+  },
+  "proxy": "http://2ba8b7fc-4eea-4d50-a7c0-11515e82071b:CL6KnHHOdpZg2Glc9D2J7hLnBm83psvk@tun.testsprite.com:8080"
+}
