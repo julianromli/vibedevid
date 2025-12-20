@@ -1,6 +1,14 @@
 'use client'
 
-import { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react'
+import {
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react'
 import { useRouter } from 'next/navigation'
 import { UploadButton } from '@uploadthing/react'
 import { toast } from 'sonner'
@@ -77,6 +85,11 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
   const [saving, setSaving] = useState(false)
   const editorRef = useRef<EditorRef>(null)
   const coverUploadTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const initialEditorContent = useMemo(
+    () => ({ type: 'doc', content: [] }) as Record<string, any>,
+    [],
+  )
 
   useEffect(() => {
     console.log('[BlogEditorClient] User authenticated:', user.id)
@@ -297,7 +310,7 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
               <Suspense fallback={<EditorSkeleton />}>
                 <RichTextEditor
                   ref={editorRef}
-                  content={{ type: 'doc', content: [] }}
+                  content={initialEditorContent}
                   onChange={() => {}}
                 />
               </Suspense>
