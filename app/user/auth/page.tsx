@@ -81,6 +81,11 @@ function AuthPageContent() {
     formData.append('email', email)
     formData.append('password', password)
 
+    const redirectTo = searchParams.get('redirectTo')
+    if (redirectTo) {
+      formData.append('redirectTo', redirectTo)
+    }
+
     console.log('[Frontend] Calling server action signIn with:', { email })
 
     try {
@@ -108,6 +113,7 @@ function AuthPageContent() {
           result.redirect || '/',
         )
         toast.success('Berhasil masuk! 🎉 Selamat datang kembali!')
+        router.refresh()
         router.push(result.redirect || '/')
       } else {
         console.log('[Frontend] Unexpected result structure:', result)

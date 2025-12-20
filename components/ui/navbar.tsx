@@ -81,7 +81,7 @@ export function Navbar({
       }
     : { name: 'User', email: '', avatar: '/placeholder.svg' }
 
-  const userIsLoggedIn = Boolean(isLoggedIn && user)
+  const userIsLoggedIn = Boolean(isLoggedIn)
 
   const handleSignIn = () => {
     if (onSignIn) {
@@ -105,6 +105,7 @@ export function Navbar({
         }
         toast.success('Berhasil keluar! 👋 Sampai jumpa lagi!')
         setTimeout(() => {
+          router.refresh()
           router.push('/')
         }, 100)
       } catch (error) {
@@ -126,10 +127,23 @@ export function Navbar({
 
   const navItems = [
     { label: 'Projects', href: '/project/list', type: 'link' },
+    { label: 'Blog', href: '/blog', type: 'link' },
     { label: 'Leaderboard', href: '/ai/ranking', type: 'link' },
-    { label: 'Showcase', action: () => scrollToSection?.('projects'), type: 'button' },
-    { label: 'Features', action: () => scrollToSection?.('features'), type: 'button' },
-    { label: 'Reviews', action: () => scrollToSection?.('reviews'), type: 'button' },
+    {
+      label: 'Showcase',
+      action: () => scrollToSection?.('projects'),
+      type: 'button',
+    },
+    {
+      label: 'Features',
+      action: () => scrollToSection?.('features'),
+      type: 'button',
+    },
+    {
+      label: 'Reviews',
+      action: () => scrollToSection?.('reviews'),
+      type: 'button',
+    },
     { label: 'FAQ', action: () => scrollToSection?.('faq'), type: 'button' },
   ]
 
@@ -139,8 +153,8 @@ export function Navbar({
         className={cn(
           'mx-auto w-full border-b',
           scrolled
-            ? 'md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:backdrop-blur-xl md:shadow-md bg-background/80 backdrop-blur-md border-border'
-            : 'border-transparent bg-transparent'
+            ? 'md:border-border/50 md:bg-background/80 bg-background/80 border-border backdrop-blur-md md:max-w-7xl md:rounded-2xl md:shadow-md md:backdrop-blur-xl'
+            : 'border-transparent bg-transparent',
         )}
         initial={false}
         animate={{
@@ -195,7 +209,7 @@ export function Navbar({
                     href={item.href!}
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'text-muted-foreground hover:text-foreground'
+                      'text-muted-foreground hover:text-foreground',
                     )}
                   >
                     {item.label}
@@ -206,12 +220,12 @@ export function Navbar({
                     onClick={item.action}
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'text-muted-foreground hover:text-foreground cursor-pointer'
+                      'text-muted-foreground hover:text-foreground cursor-pointer',
                     )}
                   >
                     {item.label}
                   </button>
-                )
+                ),
               )}
             </motion.div>
           )}
@@ -234,7 +248,11 @@ export function Navbar({
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-full"
+                  >
                     <UserAvatar user={safeUser} size="md" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -270,7 +288,7 @@ export function Navbar({
             <ThemeToggle />
             {showNavigation && (
               <Button
-                className="z-50 relative"
+                className="relative z-50"
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="ghost"
@@ -285,72 +303,92 @@ export function Navbar({
       {/* Mobile Menu Portal */}
       {showNavigation && (
         <MobileMenu open={open}>
-            <div className="flex flex-col justify-between h-full p-6 pt-24 pb-10">
-                <div className="flex flex-col gap-2">
-                    {navItems.map((item, i) => (
-                        item.type === 'link' ? (
-                            <Link
-                                key={i}
-                                href={item.href!}
-                                onClick={() => setOpen(false)}
-                                className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start text-lg h-12")}
-                            >
-                                {item.label}
-                            </Link>
-                        ) : (
-                             <button
-                                key={i}
-                                onClick={() => {
-                                    item.action?.()
-                                    setOpen(false)
-                                }}
-                                className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start text-lg h-12")}
-                             >
-                                {item.label}
-                             </button>
-                        )
-                    ))}
-                </div>
-                
-                <div className="flex flex-col gap-4">
-                    {!userIsLoggedIn ? (
-                         <Button onClick={() => {
-                             handleSignIn()
-                             setOpen(false)
-                         }} size="lg" className="w-full">Sign In</Button>
-                    ) : (
-                        <div className="flex flex-col gap-4 border-t pt-6">
-                            <div className="flex items-center gap-3">
-                                <UserAvatar user={safeUser} size="md" />
-                                <div>
-                                  <UserDisplayName
-                                    name={safeUser.name}
-                                    role={safeUser.role}
-                                    className="font-medium"
-                                  />
-                                  <p className="text-sm text-muted-foreground">
-                                    {safeUser.email}
-                                  </p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <Button variant="outline" className="w-full justify-start" onClick={() => {
-                                    handleProfile()
-                                    setOpen(false)
-                                }}>
-                                    <User className="mr-2 h-4 w-4" /> Profile
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => {
-                                    handleSignOut()
-                                    setOpen(false)
-                                }}>
-                                    <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                                </Button>
-                            </div>
-                        </div>
+          <div className="flex h-full flex-col justify-between p-6 pt-24 pb-10">
+            <div className="flex flex-col gap-2">
+              {navItems.map((item, i) =>
+                item.type === 'link' ? (
+                  <Link
+                    key={i}
+                    href={item.href!}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'lg' }),
+                      'h-12 justify-start text-lg',
                     )}
-                </div>
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      item.action?.()
+                      setOpen(false)
+                    }}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'lg' }),
+                      'h-12 justify-start text-lg',
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ),
+              )}
             </div>
+
+            <div className="flex flex-col gap-4">
+              {!userIsLoggedIn ? (
+                <Button
+                  onClick={() => {
+                    handleSignIn()
+                    setOpen(false)
+                  }}
+                  size="lg"
+                  className="w-full"
+                >
+                  Sign In
+                </Button>
+              ) : (
+                <div className="flex flex-col gap-4 border-t pt-6">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar user={safeUser} size="md" />
+                    <div>
+                      <UserDisplayName
+                        name={safeUser.name}
+                        role={safeUser.role}
+                        className="font-medium"
+                      />
+                      <p className="text-muted-foreground text-sm">
+                        {safeUser.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        handleProfile()
+                        setOpen(false)
+                      }}
+                    >
+                      <User className="mr-2 h-4 w-4" /> Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full justify-start"
+                      onClick={() => {
+                        handleSignOut()
+                        setOpen(false)
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </MobileMenu>
       )}
     </header>
@@ -369,13 +407,13 @@ function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
   return createPortal(
     <div
       className={cn(
-        'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 animate-in fade-in duration-300',
-        className
+        'bg-background/95 supports-[backdrop-filter]:bg-background/80 animate-in fade-in fixed inset-0 z-40 backdrop-blur-xl duration-300',
+        className,
       )}
       {...props}
     >
-        {children}
+      {children}
     </div>,
-    document.body
+    document.body,
   )
 }

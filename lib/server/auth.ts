@@ -25,7 +25,7 @@ export async function getCurrentUser() {
     ? {
         id: user.id,
         name: user.display_name,
-        email: user.email || session.user.email || '',
+        email: session.user.email || '',
         avatar: user.avatar_url || '/placeholder.svg',
         avatar_url: user.avatar_url || '/placeholder.svg',
         username: user.username,

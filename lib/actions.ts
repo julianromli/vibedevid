@@ -31,6 +31,16 @@ async function createClient() {
   })
 }
 
+function getSafeRedirectPath(value: FormDataEntryValue | null): string {
+  if (typeof value !== 'string') return '/'
+
+  const trimmed = value.trim()
+  if (!trimmed.startsWith('/')) return '/'
+  if (trimmed.startsWith('//')) return '/'
+
+  return trimmed
+}
+
 export async function signIn(prevState: any, formData: FormData) {
   console.log('[Server Action] signIn called')
 
@@ -40,6 +50,7 @@ export async function signIn(prevState: any, formData: FormData) {
 
   const email = formData.get('email')
   const password = formData.get('password')
+  const redirectTo = getSafeRedirectPath(formData.get('redirectTo'))
 
   console.log('[Server Action] signIn with email:', email)
 
@@ -89,27 +100,65 @@ export async function signIn(prevState: any, formData: FormData) {
         '[Server Action] Email confirmed, proceeding with profile creation',
       )
 
-      // Create or update user profile only if email is confirmed
-      const { error: profileError } = await supabase
+      const { data: existingProfile } = await supabase
         .from('users')
-        .upsert({
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (!existingProfile) {
+        const baseUsername =
+          user.email
+            ?.split('@')[0]
+            ?.toLowerCase()
+            .replace(/[^a-z0-9]/g, '') || `user${user.id.slice(0, 8)}`
+
+        let username = baseUsername
+        let attempts = 0
+        const maxAttempts = 5
+
+        while (attempts < maxAttempts) {
+          const { data: usernameTaken } = await supabase
+            .from('users')
+            .select('id')
+            .eq('username', username)
+            .single()
+
+          if (!usernameTaken) break
+
+          attempts++
+          username = `${baseUsername}${attempts}`
+        }
+
+        if (attempts >= maxAttempts) {
+          username = `${baseUsername}${Math.floor(Math.random() * 1000)}`
+        }
+
+        const profileData = {
           id: user.id,
-          email: user.email,
-          username: user.email?.split('@')[0] || 'user',
+          username,
           display_name:
             user.user_metadata?.full_name ||
             user.email?.split('@')[0] ||
             'User',
+          avatar_url:
+            user.user_metadata?.avatar_url ||
+            user.user_metadata?.picture ||
+            null,
           updated_at: new Date().toISOString(),
-        })
-        .select()
+        }
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError)
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert(profileData)
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+        }
       }
     }
 
-    return { success: 'Login successful', redirect: '/' }
+    return { success: 'Login successful', redirect: redirectTo }
   } catch (error) {
     console.error('Login error:', error)
     return { error: 'An unexpected error occurred. Please try again.' }

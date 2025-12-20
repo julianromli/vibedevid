@@ -1,5 +1,6 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import HomePageClient from './home-page-client'
+import BlogEditorClient from './blog-editor-client'
 import type { User } from '@/types/homepage'
 
 async function getUserData(
@@ -27,16 +28,22 @@ async function getUserData(
   }
 }
 
-export default async function HomePage() {
+export default async function BlogEditorPage() {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  let userData: User | null = null
-  if (user) {
-    userData = await getUserData(user.id, user.email || '')
+  if (!user) {
+    redirect('/user/auth?redirectTo=/blog/editor')
   }
 
-  return <HomePageClient initialIsLoggedIn={!!user} initialUser={userData} />
+  const userData = await getUserData(user.id, user.email || '')
+
+  if (!userData) {
+    console.error('[BlogEditor] User profile not found for user:', user.id)
+    redirect('/user/auth?redirectTo=/blog/editor')
+  }
+
+  return <BlogEditorClient user={userData} />
 }
