@@ -61,6 +61,57 @@ className = 'bg-card text-card-foreground border'
 
 ## Typography
 
+### Fluid Typography System
+
+Typography uses **CSS `clamp()`** for smooth, responsive scaling between mobile and desktop viewport widths. This eliminates the need for manual breakpoints and ensures consistent visual hierarchy across all screen sizes.
+
+#### Fluid Scale
+
+| Token             | Mobile | Desktop | CSS Variable      |
+| ----------------- | ------ | ------- | ----------------- |
+| `text-fluid-xs`   | 12px   | 14px    | `--text-xs`       |
+| `text-fluid-sm`   | 14px   | 16px    | `--text-sm`       |
+| `text-fluid-base` | 16px   | 18px    | `--text-base`     |
+| `text-fluid-lg`   | 18px   | 20px    | `--text-lg`       |
+| `text-fluid-xl`   | 20px   | 24px    | `--text-xl` (H6)  |
+| `text-fluid-2xl`  | 24px   | 32px    | `--text-2xl` (H5) |
+| `text-fluid-3xl`  | 30px   | 40px    | `--text-3xl` (H4) |
+| `text-fluid-4xl`  | 36px   | 48px    | `--text-4xl` (H3) |
+| `text-fluid-5xl`  | 48px   | 64px    | `--text-5xl` (H2) |
+| `text-fluid-6xl`  | 60px   | 80px    | `--text-6xl` (H1) |
+
+#### Usage
+
+```tsx
+// Using fluid utilities directly
+<h1 className="text-fluid-6xl font-bold">Hero Title</h1>
+<h2 className="text-fluid-5xl font-semibold">Section Title</h2>
+<p className="text-fluid-base">Body text with fluid scaling</p>
+<small className="text-fluid-sm">Caption text</small>
+```
+
+#### Semantic Typography Components
+
+Prefer using the semantic `Typography` components for consistent, accessible markup:
+
+```tsx
+import { H1, H2, H3, H4, P, Lead, Large, Small, Muted } from '@/components/ui/typography'
+
+<H1>Page Title</H1>
+<H2>Section Title</H2>
+<H3>Subsection Title</H3>
+<H4>Card Title</H4>
+<P>Body paragraph with optimal 65ch line length</P>
+<Lead>Lead paragraph for hero sections</Lead>
+<Large>Large emphasized text</Large>
+<Small>Small text for captions</Small>
+<Muted>Muted secondary text</Muted>
+```
+
+#### Readability
+
+Paragraphs use `max-w-[65ch]` (65 characters) for optimal line length and readability. This prevents text from becoming too wide on large screens.
+
 ### Font Families
 
 | Variable       | Font                 | Usage           |
@@ -235,7 +286,6 @@ import {
   CardFooter,
   CardAction,
 } from '@/components/ui/card'
-
 ;<Card>
   <CardHeader>
     <CardTitle>Title</CardTitle>
