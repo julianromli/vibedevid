@@ -8,6 +8,7 @@ import { Bold, Code, Image as ImageIcon, Italic, List, ListOrdered } from 'lucid
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { EditorImageUploader } from '@/components/blog/editor-image-uploader'
+import { useUploadThing } from '@/lib/uploadthing-client'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -41,6 +42,29 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
   const [imageUrl, setImageUrl] = useState('')
   const [isUploadingImage, setIsUploadingImage] = useState(false)
 
+  // UploadThing for drag-drop/paste handling
+  const { startUpload } = useUploadThing('blogImageUploader', {
+    onUploadBegin: () => {
+      console.log('[RichTextEditor] Uploading image (drag/paste)...')
+    },
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url
+      if (url) {
+        console.log('[RichTextEditor] Upload complete, inserting image:', url)
+        setIsUploadingImage(false)
+        insertImageUrl(url)
+      } else {
+        toast.error('Upload failed: No URL returned')
+        setIsUploadingImage(false)
+      }
+    },
+    onUploadError: (error) => {
+      console.error('[RichTextEditor] Upload error:', error)
+      toast.error(`Upload failed: ${error.message}`)
+      setIsUploadingImage(false)
+    },
+  })
+
   const safeContent = useMemo(() => {
     if (content && typeof content === 'object' && 'type' in content) {
       return content
@@ -51,7 +75,11 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, Image.configure({ inline: false }), Placeholder.configure({ placeholder })],
+    extensions: [
+      StarterKit,
+      Image.configure({ inline: false, allowBase64: false }),
+      Placeholder.configure({ placeholder }),
+    ],
     content: safeContent,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON())
@@ -59,6 +87,57 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     editorProps: {
       attributes: {
         class: 'prose prose-lg prose-neutral dark:prose-invert max-w-none focus:outline-none px-4 py-3 min-h-full',
+      },
+      handleDrop: (view, event, slice, moved) => {
+        // Prevent default drop handling for images to use our custom uploader
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+          const imageFile = event.dataTransfer.files[0]
+
+          if (!imageFile.type.startsWith('image/')) {
+            return false
+          }
+
+          console.log('[RichTextEditor] Image dropped, uploading via UploadThing...')
+          setIsUploadingImage(true)
+          toast.info('Uploading image...')
+
+          // Upload using UploadThing
+          startUpload([imageFile]).catch((err) => {
+            console.error('[RichTextEditor] Drop upload error:', err)
+            toast.error('Upload failed')
+            setIsUploadingImage(false)
+          })
+
+          return true // Prevent default behavior
+        }
+
+        return false // Let TipTap handle other drops
+      },
+      handlePaste: (view, event, slice) => {
+        if (event.clipboardData && event.clipboardData.files && event.clipboardData.files[0]) {
+          const imageFile = event.clipboardData.files[0]
+
+          if (imageFile.type.startsWith('image/')) {
+            console.log('[RichTextEditor] Image pasted, uploading via UploadThing...')
+
+            // Prevent default paste
+            event.preventDefault()
+
+            setIsUploadingImage(true)
+            toast.info('Uploading image...')
+
+            // Upload using UploadThing
+            startUpload([imageFile]).catch((err) => {
+              console.error('[RichTextEditor] Paste upload error:', err)
+              toast.error('Upload failed')
+              setIsUploadingImage(false)
+            })
+
+            return true
+          }
+        }
+
+        return false // Let TipTap handle other paste
       },
     },
   })
@@ -96,6 +175,8 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     (url: string) => {
       if (!editor) return
 
+      console.log('[RichTextEditor] Inserting image with URL:', url)
+
       // Use a more reliable way to insert the image
       setTimeout(() => {
         editor
@@ -108,6 +189,12 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
             },
           })
           .run()
+
+        // Log what the editor contains after insertion
+        setTimeout(() => {
+          const json = editor.getJSON()
+          console.log('[RichTextEditor] Editor JSON after image insert:', JSON.stringify(json, null, 2))
+        }, 150)
       }, 100)
     },
     [editor],
