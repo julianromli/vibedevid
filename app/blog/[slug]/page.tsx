@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { CommentSection } from '@/components/blog/comment-section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Navbar } from '@/components/ui/navbar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { createClient } from '@/lib/supabase/server'
 import { contentToHtml } from '@/lib/blog-utils'
 
@@ -80,7 +81,7 @@ export default async function BlogPostPage({ params }: Props) {
     .select(
       `
       *,
-      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio)
+      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio, role)
     `,
     )
     .eq('slug', slug)
@@ -134,7 +135,11 @@ export default async function BlogPostPage({ params }: Props) {
                   <AvatarImage src={post.author?.avatar_url ?? undefined} />
                   <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
                 </Avatar>
-                <span className="text-foreground font-medium">{post.author?.display_name ?? 'Anonymous'}</span>
+                <UserDisplayName
+                  name={post.author?.display_name ?? 'Anonymous'}
+                  role={post.author?.role ?? null}
+                  className="text-foreground font-medium"
+                />
               </Link>
 
               {post.published_at && (

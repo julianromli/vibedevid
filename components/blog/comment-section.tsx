@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useAuth } from '@/hooks/useAuth'
 import { createComment, getComments, reportComment } from '@/lib/actions/comments'
 
@@ -13,6 +14,7 @@ interface CommentUser {
   id: string
   display_name: string
   avatar_url: string | null
+  role?: number | null
 }
 
 interface CommentApi {
@@ -145,7 +147,11 @@ export function CommentSection({ postId }: CommentSectionProps) {
 
               <div className="flex-1">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="font-medium">{comment.user?.display_name ?? 'Anonymous'}</span>
+                  <UserDisplayName
+                    name={comment.user?.display_name ?? 'Anonymous'}
+                    role={comment.user?.role ?? null}
+                    className="font-medium"
+                  />
                   <Button
                     variant="ghost"
                     size="icon-sm"

@@ -60,7 +60,7 @@ export async function getComments(postId: string) {
       id,
       content,
       created_at,
-      user:users!comments_user_id_fkey(id, display_name, avatar_url)
+      user:users!comments_user_id_fkey(id, display_name, avatar_url, role)
     `,
     )
     .eq('post_id', postId)
