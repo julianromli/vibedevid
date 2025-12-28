@@ -1,19 +1,13 @@
 'use client'
 
-import { UploadButton } from '@uploadthing/react'
-import {
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Loader2,
-  Upload,
-  X,
-} from 'lucide-react'
+import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { OurFileRouter } from '@/lib/uploadthing'
 import { cn } from '@/lib/utils'
+import { useUploadThing } from '@/lib/uploadthing-client'
+import { toast } from 'sonner'
 
 interface CoverImageUploaderProps {
   value: string
@@ -25,20 +19,16 @@ interface CoverImageUploaderProps {
   disabled?: boolean
 }
 
-function getFirstUploadUrl(res: unknown): string | null {
-  if (!Array.isArray(res) || res.length === 0) return null
-
-  const first = res[0]
-  if (!first || typeof first !== 'object') return null
-
-  const record = first as Record<string, unknown>
-  const ufsUrl = record.ufsUrl
-  if (typeof ufsUrl === 'string') return ufsUrl
-
-  const url = record.url
-  if (typeof url === 'string') return url
-
-  return null
+function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
+  try {
+    const parsed = new URL(rawUrl)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null
+    }
+    return { url: parsed.toString(), isHttp: parsed.protocol === 'http:' }
+  } catch {
+    return null
+  }
 }
 
 function UrlInputSection({
@@ -70,15 +60,14 @@ function UrlInputSection({
           disabled={disabled || isUploading}
           className={cn(
             'pr-10 transition-all duration-200',
-            value &&
-              'ring-primary/20 ring-offset-background ring-2 ring-offset-2',
+            value && 'ring-primary/20 ring-offset-background ring-2 ring-offset-2',
           )}
         />
         {value && (
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             onClick={() => onChange('')}
             disabled={disabled || isUploading}
             className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
@@ -87,14 +76,12 @@ function UrlInputSection({
           </Button>
         )}
       </div>
-      <p className="text-muted-foreground text-xs">
-        Paste a direct image link from any URL
-      </p>
+      <p className="text-muted-foreground text-xs">Paste a direct image link from any URL</p>
     </div>
   )
 }
 
-function UploadZone({ isUploading }: { isUploading: boolean }) {
+function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFileSelect: (file: File) => void }) {
   return (
     <div
       className={cn(
@@ -112,18 +99,12 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
             'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
           )}
         >
-          {isUploading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <Upload className="h-6 w-6" />
-          )}
+          {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
         </div>
 
         <div className="space-y-1">
           <p className="text-lg font-medium">Drag & drop an image</p>
-          <p className="text-muted-foreground text-sm">
-            or click to browse from your device
-          </p>
+          <p className="text-muted-foreground text-sm">or click to browse from your device</p>
         </div>
 
         <div className="text-muted-foreground/70 flex items-center gap-2 text-xs">
@@ -139,21 +120,17 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
           accept="image/*"
           className="absolute inset-0 cursor-pointer opacity-0"
           disabled={isUploading}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onFileSelect(file)
+          }}
         />
       </div>
     </div>
   )
 }
 
-function ImagePreview({
-  src,
-  onClear,
-  isUploading,
-}: {
-  src: string
-  onClear: () => void
-  isUploading: boolean
-}) {
+function ImagePreview({ src, onClear, isUploading }: { src: string; onClear: () => void; isUploading: boolean }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(false)
 
@@ -170,9 +147,7 @@ function ImagePreview({
             <div className="bg-muted flex h-full w-full items-center justify-center">
               <div className="text-center">
                 <ImageIcon className="text-muted-foreground/50 mx-auto h-12 w-12" />
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Failed to load image
-                </p>
+                <p className="text-muted-foreground mt-2 text-sm">Failed to load image</p>
               </div>
             </div>
           ) : (
@@ -218,46 +193,32 @@ export function CoverImageUploader({
   onUploadError,
   disabled = false,
 }: CoverImageUploaderProps) {
-  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleUploadBegin = useCallback(() => {
-    onUploadStart()
-
-    if (uploadTimeoutRef.current) {
-      clearTimeout(uploadTimeoutRef.current)
-    }
-
-    uploadTimeoutRef.current = setTimeout(() => {
-      onUploadError(new Error('Cover upload timed out. Please try again.'))
-    }, 120000)
-  }, [onUploadStart, onUploadError])
-
-  const handleUploadComplete = useCallback(
-    (res: unknown) => {
-      if (uploadTimeoutRef.current) {
-        clearTimeout(uploadTimeoutRef.current)
-        uploadTimeoutRef.current = null
-      }
-
-      const url = getFirstUploadUrl(res)
+  const { startUpload } = useUploadThing('blogImageUploader', {
+    onUploadBegin: () => {
+      onUploadStart()
+    },
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url
       if (url) {
         onUploadComplete(url)
       } else {
-        onUploadError(new Error('Upload completed but no URL received'))
+        onUploadError(new Error('No URL returned from upload'))
       }
     },
-    [onUploadComplete, onUploadError],
-  )
-
-  const handleUploadError = useCallback(
-    (error: Error) => {
-      if (uploadTimeoutRef.current) {
-        clearTimeout(uploadTimeoutRef.current)
-        uploadTimeoutRef.current = null
-      }
+    onUploadError: (error) => {
       onUploadError(error)
     },
-    [onUploadError],
+  })
+
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        await startUpload([file])
+      } catch (err) {
+        onUploadError(err instanceof Error ? err : new Error('Upload failed'))
+      }
+    },
+    [startUpload, onUploadError],
   )
 
   const hasImage = value.trim() !== ''
@@ -284,25 +245,9 @@ export function CoverImageUploader({
 
       {!hasImage ? (
         <div className="space-y-4">
-          <UploadZone isUploading={isUploading} />
-
-          <UploadButton<OurFileRouter, 'blogImageUploader'>
-            endpoint="blogImageUploader"
-            onUploadBegin={handleUploadBegin}
-            onClientUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            config={{ mode: 'auto' }}
-            content={{
-              button({ ready }) {
-                if (isUploading) return <div>Uploading...</div>
-                if (ready) return <div>Upload</div>
-                return 'Getting ready...'
-              },
-            }}
-            appearance={{
-              button: 'hidden',
-              allowedContent: 'hidden',
-            }}
+          <UploadZone
+            isUploading={isUploading}
+            onFileSelect={handleFileSelect}
           />
 
           <UrlInputSection
@@ -312,9 +257,7 @@ export function CoverImageUploader({
             isUploading={isUploading}
           />
 
-          <p className="text-muted-foreground/70 text-xs">
-            Paste an image URL or upload a file (max 4MB).
-          </p>
+          <p className="text-muted-foreground/70 text-xs">Paste an image URL or upload a file (max 4MB).</p>
         </div>
       ) : (
         <ImagePreview

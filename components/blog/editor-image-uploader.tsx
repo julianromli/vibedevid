@@ -1,19 +1,12 @@
 'use client'
 
-import { UploadButton } from '@uploadthing/react'
-import {
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Loader2,
-  Upload,
-  X,
-} from 'lucide-react'
+import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { OurFileRouter } from '@/lib/uploadthing'
 import { cn } from '@/lib/utils'
+import { useUploadThing } from '@/lib/uploadthing-client'
 
 interface EditorImageUploaderProps {
   value: string
@@ -24,22 +17,6 @@ interface EditorImageUploaderProps {
   onUploadError: (error: Error) => void
   disabled?: boolean
   onInsert?: () => void
-}
-
-function getFirstUploadUrl(res: unknown): string | null {
-  if (!Array.isArray(res) || res.length === 0) return null
-
-  const first = res[0]
-  if (!first || typeof first !== 'object') return null
-
-  const record = first as Record<string, unknown>
-  const ufsUrl = record.ufsUrl
-  if (typeof ufsUrl === 'string') return ufsUrl
-
-  const url = record.url
-  if (typeof url === 'string') return url
-
-  return null
 }
 
 function UrlInputSection({
@@ -59,7 +36,10 @@ function UrlInputSection({
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="image-url" className="text-sm font-medium">
+      <Label
+        htmlFor="image-url"
+        className="text-sm font-medium"
+      >
         Image URL
       </Label>
       <div className="relative flex gap-2">
@@ -75,7 +55,7 @@ function UrlInputSection({
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             onClick={() => onChange('')}
             disabled={disabled || isUploading}
             className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
@@ -99,7 +79,7 @@ function UrlInputSection({
   )
 }
 
-function UploadZone({ isUploading }: { isUploading: boolean }) {
+function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFileSelect: (file: File) => void }) {
   return (
     <div
       className={cn(
@@ -117,18 +97,12 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
             'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
           )}
         >
-          {isUploading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Upload className="h-5 w-5" />
-          )}
+          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
         </div>
 
         <div className="space-y-1">
           <p className="text-base font-medium">Drag & drop an image</p>
-          <p className="text-muted-foreground text-xs">
-            or click to browse from your device
-          </p>
+          <p className="text-muted-foreground text-xs">or click to browse from your device</p>
         </div>
 
         <div className="text-muted-foreground/70 flex items-center gap-2 text-[10px]">
@@ -144,6 +118,10 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
           accept="image/*"
           className="absolute inset-0 cursor-pointer opacity-0"
           disabled={isUploading}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onFileSelect(file)
+          }}
         />
       </div>
     </div>
@@ -160,46 +138,32 @@ export function EditorImageUploader({
   disabled = false,
   onInsert,
 }: EditorImageUploaderProps) {
-  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleUploadBegin = useCallback(() => {
-    onUploadStart()
-
-    if (uploadTimeoutRef.current) {
-      clearTimeout(uploadTimeoutRef.current)
-    }
-
-    uploadTimeoutRef.current = setTimeout(() => {
-      onUploadError(new Error('Upload timed out. Please try again.'))
-    }, 120000)
-  }, [onUploadStart, onUploadError])
-
-  const handleUploadComplete = useCallback(
-    (res: unknown) => {
-      if (uploadTimeoutRef.current) {
-        clearTimeout(uploadTimeoutRef.current)
-        uploadTimeoutRef.current = null
-      }
-
-      const url = getFirstUploadUrl(res)
+  const { startUpload } = useUploadThing('blogImageUploader', {
+    onUploadBegin: () => {
+      onUploadStart()
+    },
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url
       if (url) {
         onUploadComplete(url)
       } else {
-        onUploadError(new Error('Upload completed but no URL received'))
+        onUploadError(new Error('No URL returned from upload'))
       }
     },
-    [onUploadComplete, onUploadError],
-  )
-
-  const handleUploadError = useCallback(
-    (error: Error) => {
-      if (uploadTimeoutRef.current) {
-        clearTimeout(uploadTimeoutRef.current)
-        uploadTimeoutRef.current = null
-      }
+    onUploadError: (error) => {
       onUploadError(error)
     },
-    [onUploadError],
+  })
+
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        await startUpload([file])
+      } catch (err) {
+        onUploadError(err instanceof Error ? err : new Error('Upload failed'))
+      }
+    },
+    [startUpload, onUploadError],
   )
 
   const hasImage = value.trim() !== ''
@@ -208,25 +172,9 @@ export function EditorImageUploader({
     <div className="space-y-4">
       {!hasImage ? (
         <>
-          <UploadZone isUploading={isUploading} />
-
-          <UploadButton<OurFileRouter, 'blogImageUploader'>
-            endpoint="blogImageUploader"
-            onUploadBegin={handleUploadBegin}
-            onClientUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            config={{ mode: 'auto' }}
-            content={{
-              button({ ready }) {
-                if (isUploading) return <div>Uploading...</div>
-                if (ready) return <div>Choose file</div>
-                return 'Getting ready...'
-              },
-            }}
-            appearance={{
-              button: 'hidden',
-              allowedContent: 'hidden',
-            }}
+          <UploadZone
+            isUploading={isUploading}
+            onFileSelect={handleFileSelect}
           />
 
           <UrlInputSection
@@ -238,9 +186,7 @@ export function EditorImageUploader({
             showInsert={!!onInsert}
           />
 
-          <p className="text-muted-foreground/60 text-[10px]">
-            Paste a URL or upload an image (max 4MB)
-          </p>
+          <p className="text-muted-foreground/60 text-[10px]">Paste a URL or upload an image (max 4MB)</p>
         </>
       ) : (
         <div className="space-y-3">
