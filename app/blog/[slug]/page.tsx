@@ -42,17 +42,11 @@ export default async function BlogPostPage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
   if (process.env.NODE_ENV !== 'production') {
     console.log('[BlogPostPage auth]', {
       slug,
       hasUser: Boolean(user),
-      hasSession: Boolean(session),
       userId: user?.id ?? null,
-      sessionUserId: session?.user?.id ?? null,
     })
   }
 
