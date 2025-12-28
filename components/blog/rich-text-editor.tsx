@@ -63,8 +63,9 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     },
   })
 
+  // Only sync from prop if content is externally changed and we're not focused
   useEffect(() => {
-    if (!editor) return
+    if (!editor || editor.isFocused) return
 
     const current = editor.getJSON()
     if (JSON.stringify(current) !== JSON.stringify(safeContent)) {
@@ -94,7 +95,11 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
   const insertImageUrl = useCallback(
     (url: string) => {
       if (!editor) return
-      editor.chain().focus().setImage({ src: url }).run()
+
+      // Delay focus slightly to ensure dialog/modal closure doesn't steal it back
+      setTimeout(() => {
+        editor.chain().focus().setImage({ src: url }).run()
+      }, 100)
     },
     [editor],
   )

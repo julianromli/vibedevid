@@ -163,10 +163,8 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
     [title, excerpt, coverImage, isUploadingCover, router, mode, initialData, selectedTags],
   )
 
-  const handleEditorChange = useCallback(() => {
-    if (editorRef.current) {
-      setCurrentContent(editorRef.current.getContent())
-    }
+  const handleEditorChange = useCallback((json: Record<string, any>) => {
+    setCurrentContent(json)
   }, [])
 
   const handleTagSearch = async (query: string): Promise<Option[]> => {
