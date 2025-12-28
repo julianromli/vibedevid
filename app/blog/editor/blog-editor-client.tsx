@@ -10,6 +10,9 @@ import { Label } from '@/components/ui/label'
 import { Navbar } from '@/components/ui/navbar'
 import { createBlogPost, updateBlogPost } from '@/lib/actions/blog'
 import type { User } from '@/types/homepage'
+import { PreviewDialog } from '@/components/blog/preview-dialog'
+import MultipleSelector, { Option } from '@/components/ui/multiselect'
+import { getTags } from '@/lib/actions/blog'
 
 const RichTextEditor = lazy(() =>
   import('@/components/blog/rich-text-editor').then((mod) => ({
@@ -50,8 +53,6 @@ function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } |
   }
 }
 
-import { PreviewDialog } from '@/components/blog/preview-dialog'
-
 export default function BlogEditorClient({ user, initialData, mode = 'create' }: BlogEditorClientProps) {
   const router = useRouter()
   const [title, setTitle] = useState(initialData?.title || '')
@@ -60,6 +61,11 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [saving, setSaving] = useState(false)
   const editorRef = useRef<EditorRef>(null)
+
+  // Tags state
+  const [selectedTags, setSelectedTags] = useState<Option[]>(
+    initialData?.tags?.map((t: string) => ({ label: t, value: t })) || [],
+  )
 
   // Memoize content for preview
   const [currentContent, setCurrentContent] = useState<any>(initialData?.content || { type: 'doc', content: [] })
@@ -112,13 +118,14 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
       setSaving(true)
 
       try {
-        let result
+        let result: any
         const postData = {
           title: title.trim(),
           excerpt: excerpt.trim() || undefined,
           content: editorContent,
           cover_image: parsedCoverImageUrl?.url || undefined,
           status,
+          tags: selectedTags.map((t) => t.label),
         }
 
         if (mode === 'edit' && initialData?.id) {
@@ -130,29 +137,26 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
         if (result.success) {
           toast.success(status === 'published' ? 'Post published!' : 'Draft saved!')
           if (mode === 'create') {
-            // If created draft, go to edit mode or dashboard. If published, view it.
             if (status === 'published') {
-              router.push(`/blog/${(result as any).slug}`)
+              router.push(`/blog/${result.slug}`)
             } else {
               router.push('/dashboard/posts')
             }
           } else {
             if (status === 'published') {
-              router.push(`/blog/${initialData?.slug || (result as any).slug}`)
-            } else {
-              // Stay on page or show success
+              router.push(`/blog/${result.slug || initialData?.slug}`)
             }
           }
         } else {
           toast.error(result.error ?? 'Failed to save')
         }
-      } catch {
+      } catch (error) {
         toast.error('Something went wrong')
       } finally {
         setSaving(false)
       }
     },
-    [title, excerpt, coverImage, isUploadingCover, router, mode, initialData],
+    [title, excerpt, coverImage, isUploadingCover, router, mode, initialData, selectedTags],
   )
 
   const handleEditorChange = useCallback(() => {
@@ -160,6 +164,11 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
       setCurrentContent(editorRef.current.getContent())
     }
   }, [])
+
+  const handleTagSearch = async (query: string): Promise<Option[]> => {
+    const tags = await getTags(query)
+    return tags.map((t) => ({ label: t.name, value: t.name }))
+  }
 
   return (
     <div className="bg-background min-h-screen">
@@ -223,6 +232,18 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
                 placeholder="A brief summary of your post"
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <MultipleSelector
+                value={selectedTags}
+                onChange={setSelectedTags}
+                onSearch={handleTagSearch}
+                placeholder="Add tags..."
+                creatable
+                emptyIndicator={<p className="text-muted-foreground text-center text-sm">No tags found.</p>}
               />
             </div>
 

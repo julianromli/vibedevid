@@ -8,20 +8,16 @@ import { Navbar } from '@/components/ui/navbar'
 import { createClient } from '@/lib/supabase/server'
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 export const revalidate = 300
 
 export async function generateMetadata({ params }: Props) {
-  const { id } = await params
+  const { slug } = await params
   const supabase = await createClient()
 
-  const { data: post } = await supabase
-    .from('posts')
-    .select('title, excerpt, cover_image')
-    .eq('id', id)
-    .single()
+  const { data: post } = await supabase.from('posts').select('title, excerpt, cover_image').eq('slug', slug).single()
 
   if (!post) {
     return { title: 'Post Not Found' }
@@ -37,7 +33,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { id } = await params
+  const { slug } = await params
   const supabase = await createClient()
 
   const {
@@ -72,7 +68,7 @@ export default async function BlogPostPage({ params }: Props) {
       author:users!posts_author_id_fkey(id, display_name, avatar_url, bio)
     `,
     )
-    .eq('id', id)
+    .eq('slug', slug)
     .single()
 
   if (error || !post || post.status !== 'published') {
@@ -81,7 +77,10 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="bg-background min-h-screen">
-      <Navbar isLoggedIn={!!user} user={userData ?? undefined} />
+      <Navbar
+        isLoggedIn={!!user}
+        user={userData ?? undefined}
+      />
 
       <header className="relative h-[50vh] overflow-hidden">
         {post.cover_image ? (
@@ -109,9 +108,7 @@ export default async function BlogPostPage({ params }: Props) {
 
         <div className="absolute right-0 bottom-0 left-0 pb-12 md:pb-20">
           <div className="mx-auto max-w-4xl px-4 md:px-8">
-            <h1 className="mb-6 text-3xl font-bold tracking-tight md:text-5xl">
-              {post.title}
-            </h1>
+            <h1 className="mb-6 text-3xl font-bold tracking-tight md:text-5xl">{post.title}</h1>
 
             <div className="text-muted-foreground flex flex-wrap items-center gap-6 text-sm">
               <Link
@@ -119,16 +116,10 @@ export default async function BlogPostPage({ params }: Props) {
                 className="hover:text-foreground flex items-center gap-2 transition-colors"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={post.author?.[0]?.avatar_url ?? undefined}
-                  />
-                  <AvatarFallback>
-                    {post.author?.[0]?.display_name?.charAt(0) ?? 'A'}
-                  </AvatarFallback>
+                  <AvatarImage src={post.author?.[0]?.avatar_url ?? undefined} />
+                  <AvatarFallback>{post.author?.[0]?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
                 </Avatar>
-                <span className="text-foreground font-medium">
-                  {post.author?.[0]?.display_name ?? 'Anonymous'}
-                </span>
+                <span className="text-foreground font-medium">{post.author?.[0]?.display_name ?? 'Anonymous'}</span>
               </Link>
 
               {post.published_at && (
@@ -150,17 +141,11 @@ export default async function BlogPostPage({ params }: Props) {
       </header>
 
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
-        {post.excerpt && (
-          <p className="text-muted-foreground mb-8 text-xl italic">
-            {post.excerpt}
-          </p>
-        )}
+        {post.excerpt && <p className="text-muted-foreground mb-8 text-xl italic">{post.excerpt}</p>}
 
         <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
           {post.content && typeof post.content === 'object' ? (
-            <div
-              dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }}
-            />
+            <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
           ) : (
             <p>{post.content}</p>
           )}

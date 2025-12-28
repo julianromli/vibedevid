@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 interface BlogCardProps {
   post: {
     id: string
+    slug: string
     title: string
     excerpt: string | null
     cover_image: string | null
@@ -19,7 +20,7 @@ interface BlogCardProps {
 export function BlogCard({ post }: BlogCardProps) {
   return (
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blog/${post.slug}`}
       className="group bg-card hover:shadow-primary/5 relative block overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-lg"
     >
       <div className="relative aspect-[16/9] overflow-hidden">
@@ -53,9 +54,7 @@ export function BlogCard({ post }: BlogCardProps) {
             </div>
           )}
 
-          <h3 className="mb-2 line-clamp-2 text-xl text-white md:text-2xl">
-            {post.title}
-          </h3>
+          <h3 className="mb-2 line-clamp-2 text-xl text-white md:text-2xl">{post.title}</h3>
 
           <div className="flex items-center gap-4 text-sm text-white/80">
             {post.read_time_minutes && (
@@ -76,9 +75,7 @@ export function BlogCard({ post }: BlogCardProps) {
 
       {post.excerpt && (
         <div className="border-t p-4">
-          <p className="text-muted-foreground line-clamp-2 text-sm">
-            {post.excerpt}
-          </p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">{post.excerpt}</p>
         </div>
       )}
     </Link>
