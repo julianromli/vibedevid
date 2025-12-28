@@ -39,21 +39,21 @@ export async function createBlogPost(data: {
 
   const readTime = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
 
-  const { data: post, error } = await supabase
-    .from('posts')
-    .insert({
-      title: data.title,
-      slug,
-      content: data.content,
-      excerpt: data.excerpt,
-      cover_image: data.cover_image,
-      author_id: authData.user.id,
-      read_time_minutes: readTime,
-      status: data.status || 'published',
-      published_at: data.status === 'published' ? new Date().toISOString() : null,
-    })
-    .select('id')
-    .single()
+  const insertData = {
+    title: data.title,
+    slug,
+    content: data.content,
+    excerpt: data.excerpt,
+    cover_image: data.cover_image,
+    author_id: authData.user.id,
+    read_time_minutes: readTime,
+    status: data.status || 'published',
+    published_at: data.status === 'published' ? new Date().toISOString() : null,
+  }
+
+  console.log('[createBlogPost] Inserting data:', insertData)
+
+  const { data: post, error } = await supabase.from('posts').insert(insertData).select('id, slug').single()
 
   if (error || !post) {
     console.error('Create post error:', error)
@@ -88,9 +88,18 @@ export async function updateBlogPost(
     return { success: false, error: 'Unauthorized' }
   }
 
-  const { data: post } = await supabase.from('posts').select('author_id, status, slug').eq('id', id).single()
+  const { data: post, error: fetchError } = await supabase
+    .from('posts')
+    .select('author_id, status, slug')
+    .eq('id', id)
+    .single()
 
-  if (!post || post.author_id !== authData.user.id) {
+  if (fetchError || !post) {
+    console.error('Update fetch error:', fetchError)
+    return { success: false, error: 'Post not found' }
+  }
+
+  if (post.author_id !== authData.user.id) {
     return { success: false, error: 'Not authorized' }
   }
 
@@ -238,9 +247,13 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: 'Unauthorized' }
   }
 
-  const { data: post } = await supabase.from('posts').select('author_id, status').eq('id', id).single()
+  const { data: post, error: fetchError } = await supabase
+    .from('posts')
+    .select('author_id, status')
+    .eq('id', id)
+    .single()
 
-  if (!post) {
+  if (fetchError || !post) {
     return { success: false, error: 'Post not found' }
   }
 

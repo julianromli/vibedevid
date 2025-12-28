@@ -136,15 +136,19 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
 
         if (result.success) {
           toast.success(status === 'published' ? 'Post published!' : 'Draft saved!')
+
+          const finalSlug = result.slug || initialData?.slug
+          console.log('[BlogEditor] Redirecting with slug:', finalSlug)
+
           if (mode === 'create') {
             if (status === 'published') {
-              router.push(`/blog/${result.slug}`)
+              router.push(`/blog/${finalSlug}`)
             } else {
               router.push('/dashboard/posts')
             }
           } else {
             if (status === 'published') {
-              router.push(`/blog/${result.slug || initialData?.slug}`)
+              router.push(`/blog/${finalSlug}`)
             }
           }
         } else {
