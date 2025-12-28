@@ -41,6 +41,20 @@ export default async function BlogPostPage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[BlogPostPage auth]', {
+      slug,
+      hasUser: Boolean(user),
+      hasSession: Boolean(session),
+      userId: user?.id ?? null,
+      sessionUserId: session?.user?.id ?? null,
+    })
+  }
+
   let userData = null
   if (user) {
     const { data: profile } = await supabase
@@ -113,14 +127,14 @@ export default async function BlogPostPage({ params }: Props) {
 
             <div className="text-muted-foreground flex flex-wrap items-center gap-6 text-sm">
               <Link
-                href={`/${post.author?.[0]?.display_name?.toLowerCase().replace(/\s+/g, '')}`}
+                href={`/${post.author?.display_name?.toLowerCase().replace(/\s+/g, '')}`}
                 className="hover:text-foreground flex items-center gap-2 transition-colors"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={post.author?.[0]?.avatar_url ?? undefined} />
-                  <AvatarFallback>{post.author?.[0]?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
+                  <AvatarImage src={post.author?.avatar_url ?? undefined} />
+                  <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
                 </Avatar>
-                <span className="text-foreground font-medium">{post.author?.[0]?.display_name ?? 'Anonymous'}</span>
+                <span className="text-foreground font-medium">{post.author?.display_name ?? 'Anonymous'}</span>
               </Link>
 
               {post.published_at && (

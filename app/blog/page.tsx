@@ -2,6 +2,22 @@ import { BlogCard } from '@/components/blog/blog-card'
 import { Navbar } from '@/components/ui/navbar'
 import { createClient } from '@/lib/supabase/server'
 
+interface BlogAuthor {
+  display_name: string
+  avatar_url: string | null
+}
+
+interface BlogPostListItem {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  cover_image: string | null
+  published_at: string | null
+  read_time_minutes: number | null
+  author: BlogAuthor | null
+}
+
 export const revalidate = 60
 
 export default async function BlogPage() {
@@ -31,7 +47,7 @@ export default async function BlogPage() {
     }
   }
 
-  const { data: posts } = await supabase
+  const { data: postsData } = await supabase
     .from('posts')
     .select(
       `
@@ -49,6 +65,9 @@ export default async function BlogPage() {
     .eq('status', 'published')
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
+    .returns<BlogPostListItem[]>()
+
+  const posts = postsData ?? []
 
   return (
     <div className="bg-background min-h-screen">
@@ -66,7 +85,7 @@ export default async function BlogPage() {
             </p>
           </div>
 
-          {posts && posts.length > 0 ? (
+          {posts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
                 <BlogCard
@@ -79,7 +98,7 @@ export default async function BlogPage() {
                     cover_image: post.cover_image,
                     published_at: post.published_at,
                     read_time_minutes: post.read_time_minutes,
-                    author: post.author?.[0] ?? {
+                    author: post.author ?? {
                       display_name: 'Anonymous',
                       avatar_url: null,
                     },
