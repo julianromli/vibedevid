@@ -108,9 +108,12 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
         content: [],
       }
 
-      const contentStr = JSON.stringify(editorContent)
+      // Log content before saving for debugging
+      console.log('[BlogEditorClient] Content before save:', JSON.stringify(editorContent, null, 2))
+
+      const contentJson = JSON.stringify(editorContent)
       const minLength = status === 'draft' ? 10 : 100
-      if (contentStr.length < minLength) {
+      if (contentJson.length < minLength) {
         toast.error('Content is too short')
         return
       }
@@ -122,7 +125,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
         const postData = {
           title: title.trim(),
           excerpt: excerpt.trim() || undefined,
-          content: editorContent,
+          content: contentJson,
           cover_image: parsedCoverImageUrl?.url || undefined,
           status,
           tags: selectedTags.map((t) => t.label),

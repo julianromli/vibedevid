@@ -4,9 +4,30 @@ import { revalidatePath } from 'next/cache'
 import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 
+function normalizeEditorContent(content: unknown): Record<string, any> {
+  if (!content) return { type: 'doc', content: [] }
+
+  if (typeof content === 'string') {
+    try {
+      const parsed = JSON.parse(content)
+      if (parsed && typeof parsed === 'object') {
+        return parsed as Record<string, any>
+      }
+    } catch {
+      return { type: 'doc', content: [] }
+    }
+  }
+
+  if (typeof content === 'object') {
+    return content as Record<string, any>
+  }
+
+  return { type: 'doc', content: [] }
+}
+
 export async function createBlogPost(data: {
   title: string
-  content: Record<string, any>
+  content: Record<string, any> | string
   excerpt?: string
   cover_image?: string
   status?: 'published' | 'draft'
@@ -23,9 +44,12 @@ export async function createBlogPost(data: {
     return { success: false, error: 'Title must be at least 5 characters' }
   }
 
+  const normalizedContent = normalizeEditorContent(data.content)
+
   // Allow shorter content for drafts
   const minLength = data.status === 'draft' ? 10 : 100
-  if (!data.content || JSON.stringify(data.content).length < minLength) {
+  const contentStr = JSON.stringify(normalizedContent)
+  if (!normalizedContent || contentStr.length < minLength) {
     return { success: false, error: 'Content is too short' }
   }
 
@@ -37,12 +61,12 @@ export async function createBlogPost(data: {
     slug = `${baseSlug}-${Date.now().toString(36)}`
   }
 
-  const readTime = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
+  const readTime = Math.ceil(contentStr.split(' ').length / 200)
 
   const insertData = {
     title: data.title,
     slug,
-    content: data.content,
+    content: normalizedContent,
     excerpt: data.excerpt,
     cover_image: data.cover_image,
     author_id: authData.user.id,
@@ -50,6 +74,9 @@ export async function createBlogPost(data: {
     status: data.status || 'published',
     published_at: data.status === 'published' ? new Date().toISOString() : null,
   }
+
+  // Log content being saved to database
+  console.log('[createBlogPost] Content to save:', JSON.stringify(normalizedContent, null, 2))
 
   const { data: post, error } = await supabase.from('posts').insert(insertData).select('id, slug').single()
 
@@ -72,7 +99,7 @@ export async function updateBlogPost(
   id: string,
   data: Partial<{
     title: string
-    content: Record<string, any>
+    content: Record<string, any> | string
     excerpt: string
     cover_image: string
     status: 'published' | 'draft' | 'archived'
@@ -108,8 +135,10 @@ export async function updateBlogPost(
     updateData.slug = slugifyTitle(data.title)
   }
 
-  if (data.content) {
-    updateData.read_time_minutes = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
+  if (typeof data.content !== 'undefined') {
+    const normalizedContent = normalizeEditorContent(data.content)
+    updateData.content = normalizedContent
+    updateData.read_time_minutes = Math.ceil(JSON.stringify(normalizedContent).split(' ').length / 200)
   }
 
   // Handle publishing status change
