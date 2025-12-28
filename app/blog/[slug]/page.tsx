@@ -6,6 +6,7 @@ import { CommentSection } from '@/components/blog/comment-section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Navbar } from '@/components/ui/navbar'
 import { createClient } from '@/lib/supabase/server'
+import { contentToHtml } from '@/lib/blog-utils'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -157,59 +158,4 @@ export default async function BlogPostPage({ params }: Props) {
       </div>
     </article>
   )
-}
-
-function contentToHtml(content: Record<string, any>): string {
-  return contentToHtmlRecursive(content)
-}
-
-function contentToHtmlRecursive(node: any): string {
-  if (typeof node === 'string') return node
-
-  if (!node || !node.type) return ''
-
-  switch (node.type) {
-    case 'doc':
-      return node.content?.map(contentToHtmlRecursive).join('') ?? ''
-    case 'paragraph':
-      return `<p>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</p>`
-    case 'heading': {
-      const level = node.attrs?.level ?? 2
-      return `<h${level}>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</h${level}>`
-    }
-    case 'bulletList':
-      return `<ul>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</ul>`
-    case 'orderedList':
-      return `<ol>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</ol>`
-    case 'listItem':
-      return `<li>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</li>`
-    case 'codeBlock':
-      return `<pre><code>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</code></pre>`
-    case 'image':
-      return `<img src="${node.attrs?.src ?? ''}" alt="${node.attrs?.alt ?? ''}" />`
-    case 'text': {
-      let html = node.text ?? ''
-      if (node.marks) {
-        node.marks.forEach((mark: any) => {
-          switch (mark.type) {
-            case 'bold':
-              html = `<strong>${html}</strong>`
-              break
-            case 'italic':
-              html = `<em>${html}</em>`
-              break
-            case 'code':
-              html = `<code>${html}</code>`
-              break
-            case 'link':
-              html = `<a href="${mark.attrs?.href ?? ''}">${html}</a>`
-              break
-          }
-        })
-      }
-      return html
-    }
-    default:
-      return node.content?.map(contentToHtmlRecursive).join('') ?? ''
-  }
 }

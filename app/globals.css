@@ -1,6 +1,8 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+
 
 :root {
   --background: oklch(0.99 0 0);

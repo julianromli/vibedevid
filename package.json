@@ -34,6 +34,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "^2.56.0",
     "@tailwindcss/postcss": "^4.1.9",
+    "@tailwindcss/typography": "^0.5.19",
     "@uploadthing/react": "latest",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
