@@ -1,7 +1,13 @@
 'use client'
 
 import { UploadButton } from '@uploadthing/react'
-import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
+import {
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Loader2,
+  Upload,
+  X,
+} from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,7 +70,8 @@ function UrlInputSection({
           disabled={disabled || isUploading}
           className={cn(
             'pr-10 transition-all duration-200',
-            value && 'ring-primary/20 ring-offset-background ring-2 ring-offset-2',
+            value &&
+              'ring-primary/20 ring-offset-background ring-2 ring-offset-2',
           )}
         />
         {value && (
@@ -80,7 +87,9 @@ function UrlInputSection({
           </Button>
         )}
       </div>
-      <p className="text-muted-foreground text-xs">Paste a direct image link from any URL</p>
+      <p className="text-muted-foreground text-xs">
+        Paste a direct image link from any URL
+      </p>
     </div>
   )
 }
@@ -103,12 +112,18 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
             'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
           )}
         >
-          {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
+          {isUploading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            <Upload className="h-6 w-6" />
+          )}
         </div>
 
         <div className="space-y-1">
-          <p className="font-serif text-lg font-medium">Drag & drop an image</p>
-          <p className="text-muted-foreground text-sm">or click to browse from your device</p>
+          <p className="text-lg font-medium">Drag & drop an image</p>
+          <p className="text-muted-foreground text-sm">
+            or click to browse from your device
+          </p>
         </div>
 
         <div className="text-muted-foreground/70 flex items-center gap-2 text-xs">
@@ -130,7 +145,15 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
   )
 }
 
-function ImagePreview({ src, onClear, isUploading }: { src: string; onClear: () => void; isUploading: boolean }) {
+function ImagePreview({
+  src,
+  onClear,
+  isUploading,
+}: {
+  src: string
+  onClear: () => void
+  isUploading: boolean
+}) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState(false)
 
@@ -147,7 +170,9 @@ function ImagePreview({ src, onClear, isUploading }: { src: string; onClear: () 
             <div className="bg-muted flex h-full w-full items-center justify-center">
               <div className="text-center">
                 <ImageIcon className="text-muted-foreground/50 mx-auto h-12 w-12" />
-                <p className="text-muted-foreground mt-2 text-sm">Failed to load image</p>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Failed to load image
+                </p>
               </div>
             </div>
           ) : (
@@ -287,7 +312,9 @@ export function CoverImageUploader({
             isUploading={isUploading}
           />
 
-          <p className="text-muted-foreground/70 text-xs">Paste an image URL or upload a file (max 4MB).</p>
+          <p className="text-muted-foreground/70 text-xs">
+            Paste an image URL or upload a file (max 4MB).
+          </p>
         </div>
       ) : (
         <ImagePreview

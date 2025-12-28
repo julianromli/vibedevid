@@ -1,7 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { toast } from 'sonner'
 import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
 import { Button } from '@/components/ui/button'
@@ -34,7 +42,9 @@ interface BlogEditorClientProps {
   user: User
 }
 
-function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
+function parseHttpOrHttpsUrl(
+  rawUrl: string,
+): { url: string; isHttp: boolean } | null {
   try {
     const parsed = new URL(rawUrl)
 
@@ -57,7 +67,10 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
   const [saving, setSaving] = useState(false)
   const editorRef = useRef<EditorRef>(null)
 
-  const initialEditorContent = useMemo(() => ({ type: 'doc', content: [] }) as Record<string, any>, [])
+  const initialEditorContent = useMemo(
+    () => ({ type: 'doc', content: [] }) as Record<string, any>,
+    [],
+  )
 
   useEffect(() => {
     console.log('[BlogEditorClient] User authenticated:', user.id)
@@ -75,7 +88,9 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
     }
 
     const trimmedCoverImage = coverImage.trim()
-    const parsedCoverImageUrl = trimmedCoverImage ? parseHttpOrHttpsUrl(trimmedCoverImage) : null
+    const parsedCoverImageUrl = trimmedCoverImage
+      ? parseHttpOrHttpsUrl(trimmedCoverImage)
+      : null
 
     if (trimmedCoverImage && !parsedCoverImageUrl) {
       toast.error('Cover image URL must be http(s)')
@@ -126,15 +141,12 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
 
   return (
     <div className="bg-background min-h-screen">
-      <Navbar
-        isLoggedIn={true}
-        user={user}
-      />
+      <Navbar isLoggedIn={true} user={user} />
 
       <main className="py-12">
         <div className="mx-auto max-w-4xl px-4">
           <div className="mb-8 flex items-center justify-between">
-            <h1 className="font-serif text-3xl font-bold">Write a Post</h1>
+            <h1 className="text-3xl font-bold">Write a Post</h1>
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -152,10 +164,7 @@ export default function BlogEditorClient({ user }: BlogEditorClientProps) {
             </div>
           </div>
 
-          <div
-            className="space-y-6"
-            data-editor
-          >
+          <div className="space-y-6" data-editor>
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input

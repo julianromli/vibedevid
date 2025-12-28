@@ -53,7 +53,9 @@ export function BlogCard({ post }: BlogCardProps) {
             </div>
           )}
 
-          <h3 className="mb-2 line-clamp-2 font-serif text-xl text-white md:text-2xl">{post.title}</h3>
+          <h3 className="mb-2 line-clamp-2 text-xl text-white md:text-2xl">
+            {post.title}
+          </h3>
 
           <div className="flex items-center gap-4 text-sm text-white/80">
             {post.read_time_minutes && (
@@ -74,7 +76,9 @@ export function BlogCard({ post }: BlogCardProps) {
 
       {post.excerpt && (
         <div className="border-t p-4">
-          <p className="text-muted-foreground line-clamp-2 text-sm">{post.excerpt}</p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">
+            {post.excerpt}
+          </p>
         </div>
       )}
     </Link>

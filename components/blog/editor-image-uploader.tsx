@@ -1,7 +1,13 @@
 'use client'
 
 import { UploadButton } from '@uploadthing/react'
-import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
+import {
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Loader2,
+  Upload,
+  X,
+} from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,10 +59,7 @@ function UrlInputSection({
 }) {
   return (
     <div className="space-y-2">
-      <Label
-        htmlFor="image-url"
-        className="text-sm font-medium"
-      >
+      <Label htmlFor="image-url" className="text-sm font-medium">
         Image URL
       </Label>
       <div className="relative flex gap-2">
@@ -114,12 +117,18 @@ function UploadZone({ isUploading }: { isUploading: boolean }) {
             'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
           )}
         >
-          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+          {isUploading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Upload className="h-5 w-5" />
+          )}
         </div>
 
         <div className="space-y-1">
-          <p className="font-serif text-base font-medium">Drag & drop an image</p>
-          <p className="text-muted-foreground text-xs">or click to browse from your device</p>
+          <p className="text-base font-medium">Drag & drop an image</p>
+          <p className="text-muted-foreground text-xs">
+            or click to browse from your device
+          </p>
         </div>
 
         <div className="text-muted-foreground/70 flex items-center gap-2 text-[10px]">
@@ -229,7 +238,9 @@ export function EditorImageUploader({
             showInsert={!!onInsert}
           />
 
-          <p className="text-muted-foreground/60 text-[10px]">Paste a URL or upload an image (max 4MB)</p>
+          <p className="text-muted-foreground/60 text-[10px]">
+            Paste a URL or upload an image (max 4MB)
+          </p>
         </>
       ) : (
         <div className="space-y-3">
