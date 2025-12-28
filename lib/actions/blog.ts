@@ -9,6 +9,7 @@ export async function createBlogPost(data: {
   content: Record<string, any>
   excerpt?: string
   cover_image?: string
+  status?: 'published' | 'draft'
 }) {
   const supabase = await createClient()
   const { data: authData } = await supabase.auth.getUser()
@@ -21,7 +22,9 @@ export async function createBlogPost(data: {
     return { success: false, error: 'Title must be at least 5 characters' }
   }
 
-  if (!data.content || JSON.stringify(data.content).length < 100) {
+  // Allow shorter content for drafts
+  const minLength = data.status === 'draft' ? 10 : 100
+  if (!data.content || JSON.stringify(data.content).length < minLength) {
     return { success: false, error: 'Content is too short' }
   }
 
@@ -43,8 +46,8 @@ export async function createBlogPost(data: {
     cover_image: data.cover_image,
     author_id: authData.user.id,
     read_time_minutes: readTime,
-    status: 'published',
-    published_at: new Date().toISOString(),
+    status: data.status || 'published',
+    published_at: data.status === 'published' ? new Date().toISOString() : null,
   })
 
   if (error) {
@@ -53,6 +56,7 @@ export async function createBlogPost(data: {
   }
 
   revalidatePath('/blog')
+  revalidatePath('/dashboard/posts')
   return { success: true, slug }
 }
 
@@ -63,6 +67,7 @@ export async function updateBlogPost(
     content: Record<string, any>
     excerpt: string
     cover_image: string
+    status: 'published' | 'draft' | 'archived'
   }>,
 ) {
   const supabase = await createClient()
@@ -72,7 +77,7 @@ export async function updateBlogPost(
     return { success: false, error: 'Unauthorized' }
   }
 
-  const { data: post } = await supabase.from('posts').select('author_id').eq('id', id).single()
+  const { data: post } = await supabase.from('posts').select('author_id, status').eq('id', id).single()
 
   if (!post || post.author_id !== authData.user.id) {
     return { success: false, error: 'Not authorized' }
@@ -88,6 +93,11 @@ export async function updateBlogPost(
     updateData.read_time_minutes = Math.ceil(JSON.stringify(data.content).split(' ').length / 200)
   }
 
+  // Handle publishing status change
+  if (data.status === 'published' && post.status !== 'published') {
+    updateData.published_at = new Date().toISOString()
+  }
+
   const { error } = await supabase.from('posts').update(updateData).eq('id', id)
 
   if (error) {
@@ -96,7 +106,62 @@ export async function updateBlogPost(
 
   revalidatePath('/blog')
   revalidatePath(`/blog/${id}`)
+  revalidatePath('/dashboard/posts')
   return { success: true }
+}
+
+export async function getAuthorPosts(page = 1, status: 'published' | 'draft' | 'archived' | 'all' = 'all') {
+  const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
+
+  if (!authData.user) {
+    return { success: false, error: 'Unauthorized', data: [], total: 0 }
+  }
+
+  const pageSize = 10
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let query = supabase
+    .from('posts')
+    .select('id, title, slug, status, created_at, published_at, view_count, excerpt, cover_image', { count: 'exact' })
+    .eq('author_id', authData.user.id)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (status !== 'all') {
+    query = query.eq('status', status)
+  }
+
+  const { data, count, error } = await query
+
+  if (error) {
+    console.error('Error fetching author posts:', error)
+    return { success: false, error: 'Failed to fetch posts', data: [], total: 0 }
+  }
+
+  return { success: true, data: data || [], total: count || 0 }
+}
+
+export async function getPostForEdit(id: string) {
+  const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
+
+  if (!authData.user) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  const { data, error } = await supabase.from('posts').select('*').eq('id', id).single()
+
+  if (error || !data) {
+    return { success: false, error: 'Post not found' }
+  }
+
+  if (data.author_id !== authData.user.id) {
+    return { success: false, error: 'Not authorized' }
+  }
+
+  return { success: true, data }
 }
 
 export async function deleteBlogPost(id: string) {
