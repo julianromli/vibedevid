@@ -11,9 +11,14 @@ export function contentToHtmlRecursive(node: any): string {
       return node.content?.map(contentToHtmlRecursive).join('') ?? ''
 
     case 'paragraph': {
+      // Check if this paragraph ONLY contains an image
+      if (node.content?.length === 1 && node.content[0].type === 'image') {
+        return contentToHtmlRecursive(node.content[0])
+      }
+
       const children = node.content?.map(contentToHtmlRecursive).join('') ?? ''
-      // Ensure empty paragraphs render as a space/line
-      return `<p>${children || '<br />'}</p>`
+      const content = children.trim() ? children : '&nbsp;'
+      return `<p>${content}</p>`
     }
 
     case 'heading': {
@@ -38,14 +43,29 @@ export function contentToHtmlRecursive(node: any): string {
 
     case 'image': {
       const attrs = node.attrs || {}
-      const src = attrs.src || attrs.url || ''
-      const alt = attrs.alt || ''
-      const title = attrs.title || ''
+      // Support multiple attribute names for the source URL
+      const src = attrs.src || attrs.url || node.src || node.url || ''
+      const alt = attrs.alt || node.alt || ''
+      const title = attrs.title || node.title || ''
+
       if (!src) {
-        console.warn('[BlogUtils] Image node missing src:', node)
+        console.warn('[BlogUtils] Image node missing src. Node:', JSON.stringify(node))
         return ''
       }
-      return `<img src="${src}" alt="${alt}" title="${title}" class="rounded-lg border shadow-sm my-8 mx-auto max-w-full h-auto" />`
+
+      // Render as a figure-like block with consistent responsive styling
+      return `
+        <div class="not-prose my-10 flex flex-col items-center">
+          <img 
+            src="${src}" 
+            alt="${alt}" 
+            title="${title}" 
+            class="rounded-2xl border border-border/40 shadow-xl max-w-full h-auto"
+            loading="lazy"
+          />
+          ${alt ? `<p class="text-muted-foreground mt-4 text-center text-sm font-medium italic">${alt}</p>` : ''}
+        </div>
+      `
     }
 
     case 'horizontalRule':

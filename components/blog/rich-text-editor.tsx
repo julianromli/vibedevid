@@ -51,7 +51,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, Image.configure({ inline: true }), Placeholder.configure({ placeholder })],
+    extensions: [StarterKit, Image.configure({ inline: false }), Placeholder.configure({ placeholder })],
     content: safeContent,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON())
@@ -96,9 +96,18 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     (url: string) => {
       if (!editor) return
 
-      // Delay focus slightly to ensure dialog/modal closure doesn't steal it back
+      // Use a more reliable way to insert the image
       setTimeout(() => {
-        editor.chain().focus().setImage({ src: url }).run()
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'image',
+            attrs: {
+              src: url,
+            },
+          })
+          .run()
       }, 100)
     },
     [editor],

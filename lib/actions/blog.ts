@@ -51,8 +51,6 @@ export async function createBlogPost(data: {
     published_at: data.status === 'published' ? new Date().toISOString() : null,
   }
 
-  console.log('[createBlogPost] Inserting data:', insertData)
-
   const { data: post, error } = await supabase.from('posts').insert(insertData).select('id, slug').single()
 
   if (error || !post) {
