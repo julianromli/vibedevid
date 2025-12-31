@@ -322,6 +322,73 @@ export function Navbar({
           {/* Mobile Menu Toggle */}
           <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
+            {/* Mobile Sign In / User Menu - always visible regardless of showNavigation */}
+            {!userIsLoggedIn ? (
+              <Button
+                onClick={handleSignIn}
+                size="sm"
+              >
+                Sign In
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-full"
+                  >
+                    <UserAvatar
+                      user={safeUser}
+                      size="md"
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-56"
+                  align="end"
+                >
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <UserDisplayName
+                        name={safeUser.name}
+                        role={safeUser.role}
+                        className="font-medium"
+                      />
+                      <p className="w-[200px] truncate text-muted-foreground text-sm">{safeUser.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/blog/editor"
+                      className="flex items-center"
+                    >
+                      <PenSquare className="mr-2 h-4 w-4" />
+                      <span>Write</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleProfile}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/dashboard/posts"
+                      className="flex items-center"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>My Posts</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {showNavigation && (
               <Button
                 className="relative z-50"
