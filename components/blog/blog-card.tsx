@@ -1,3 +1,5 @@
+'use client'
+
 import { format } from 'date-fns'
 import { Calendar, Clock, Edit } from 'lucide-react'
 import Link from 'next/link'
