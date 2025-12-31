@@ -1,6 +1,17 @@
 'use client'
 
-import { CheckSquare, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Text } from 'lucide-react'
+import {
+  CheckSquare,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  ImageIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Text,
+} from 'lucide-react'
 import {
   EditorBubble,
   EditorCommand,
@@ -39,102 +50,116 @@ interface NovelEditorHandle {
 }
 
 /**
- * Slash command suggestion items for the editor
+ * Create slash command suggestion items for the editor
+ * @param onImageUpload - Callback to trigger image upload
  */
-const suggestionItems = createSuggestionItems([
-  {
-    title: 'Text',
-    description: 'Just start typing with plain text.',
-    searchTerms: ['p', 'paragraph'],
-    icon: <Text size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleNode('paragraph', 'paragraph').run()
+const createEditorSuggestionItems = (onImageUpload: () => void) =>
+  createSuggestionItems([
+    {
+      title: 'Text',
+      description: 'Just start typing with plain text.',
+      searchTerms: ['p', 'paragraph'],
+      icon: <Text size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleNode('paragraph', 'paragraph').run()
+      },
     },
-  },
-  {
-    title: 'Heading 1',
-    description: 'Big section heading.',
-    searchTerms: ['title', 'big', 'large'],
-    icon: <Heading1 size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
+    {
+      title: 'Heading 1',
+      description: 'Big section heading.',
+      searchTerms: ['title', 'big', 'large'],
+      icon: <Heading1 size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
+      },
     },
-  },
-  {
-    title: 'Heading 2',
-    description: 'Medium section heading.',
-    searchTerms: ['subtitle', 'medium'],
-    icon: <Heading2 size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
+    {
+      title: 'Heading 2',
+      description: 'Medium section heading.',
+      searchTerms: ['subtitle', 'medium'],
+      icon: <Heading2 size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
+      },
     },
-  },
-  {
-    title: 'Heading 3',
-    description: 'Small section heading.',
-    searchTerms: ['subtitle', 'small'],
-    icon: <Heading3 size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
+    {
+      title: 'Heading 3',
+      description: 'Small section heading.',
+      searchTerms: ['subtitle', 'small'],
+      icon: <Heading3 size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
+      },
     },
-  },
-  {
-    title: 'To-do List',
-    description: 'Track tasks with a to-do list.',
-    searchTerms: ['todo', 'task', 'list', 'check', 'checkbox'],
-    icon: <CheckSquare size={18} />,
-    command: ({ editor, range }) => {
-      // Use toggleList with taskList type for task list functionality
-      editor.chain().focus().deleteRange(range).toggleList('taskList', 'taskItem').run()
+    {
+      title: 'Image',
+      description: 'Upload an image from your device.',
+      searchTerms: ['photo', 'picture', 'media', 'img', 'upload'],
+      icon: <ImageIcon size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run()
+        // Trigger file picker after closing slash command
+        setTimeout(() => onImageUpload(), 100)
+      },
     },
-  },
-  {
-    title: 'Bullet List',
-    description: 'Create a simple bullet list.',
-    searchTerms: ['unordered', 'point'],
-    icon: <List size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleBulletList().run()
+    {
+      title: 'To-do List',
+      description: 'Track tasks with a to-do list.',
+      searchTerms: ['todo', 'task', 'list', 'check', 'checkbox'],
+      icon: <CheckSquare size={18} />,
+      command: ({ editor, range }) => {
+        // Use toggleList with taskList type for task list functionality
+        editor.chain().focus().deleteRange(range).toggleList('taskList', 'taskItem').run()
+      },
     },
-  },
-  {
-    title: 'Numbered List',
-    description: 'Create a list with numbering.',
-    searchTerms: ['ordered'],
-    icon: <ListOrdered size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run()
+    {
+      title: 'Bullet List',
+      description: 'Create a simple bullet list.',
+      searchTerms: ['unordered', 'point'],
+      icon: <List size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleBulletList().run()
+      },
     },
-  },
-  {
-    title: 'Quote',
-    description: 'Capture a quote.',
-    searchTerms: ['blockquote'],
-    icon: <Quote size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleNode('paragraph', 'paragraph').toggleBlockquote().run()
+    {
+      title: 'Numbered List',
+      description: 'Create a list with numbering.',
+      searchTerms: ['ordered'],
+      icon: <ListOrdered size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleOrderedList().run()
+      },
     },
-  },
-  {
-    title: 'Code',
-    description: 'Capture a code snippet.',
-    searchTerms: ['codeblock'],
-    icon: <Code size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
+    {
+      title: 'Quote',
+      description: 'Capture a quote.',
+      searchTerms: ['blockquote'],
+      icon: <Quote size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleNode('paragraph', 'paragraph').toggleBlockquote().run()
+      },
     },
-  },
-])
+    {
+      title: 'Code',
+      description: 'Capture a code snippet.',
+      searchTerms: ['codeblock'],
+      icon: <Code size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
+      },
+    },
+  ])
 
 /**
- * Slash command extension configured with suggestion items
+ * Create slash command extension with dynamic suggestion items
  */
-const slashCommand = Command.configure({
-  suggestion: {
-    items: () => suggestionItems,
-    render: renderItems,
-  },
-})
+const createSlashCommand = (onImageUpload: () => void) =>
+  Command.configure({
+    suggestion: {
+      items: () => createEditorSuggestionItems(onImageUpload),
+      render: renderItems,
+    },
+  })
 
 /**
  * Novel Editor wrapper component with forwardRef pattern
@@ -148,9 +173,14 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   // Store editor instance reference for setContent and image uploads
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorInstanceRef = useRef<any>(null)
+  // Hidden file input ref for image upload via slash command
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // UploadThing for drag-drop/paste image handling
   const { startUpload } = useUploadThing('blogImageUploader', {
+    onUploadBegin: () => {
+      toast.info('Uploading image...')
+    },
     onClientUploadComplete: (res) => {
       const url = res?.[0]?.ufsUrl || res?.[0]?.url
       if (url && editorInstanceRef.current) {
@@ -169,6 +199,30 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
       toast.error(`Upload failed: ${error.message}`)
     },
   })
+
+  // Handle file selection from hidden input
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file && file.type.startsWith('image/')) {
+        startUpload([file])
+      }
+      // Reset input so same file can be selected again
+      e.target.value = ''
+    },
+    [startUpload],
+  )
+
+  // Trigger file picker for image upload
+  const triggerImageUpload = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  // Create slash command with image upload callback
+  const slashCommand = useMemo(() => createSlashCommand(triggerImageUpload), [triggerImageUpload])
+
+  // Create suggestion items with image upload callback
+  const suggestionItems = useMemo(() => createEditorSuggestionItems(triggerImageUpload), [triggerImageUpload])
 
   // Memoize initial content to prevent re-renders
   const safeContent = useMemo(() => {
@@ -219,10 +273,19 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
       return result as typeof exts
     }
     return exts
-  }, [placeholder])
+  }, [placeholder, slashCommand])
 
   return (
     <div className="flex max-h-[70vh] min-h-[320px] flex-col overflow-hidden rounded-lg border bg-card md:min-h-[420px]">
+      {/* Hidden file input for image upload via slash command */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileInputChange}
+        className="hidden"
+        aria-hidden="true"
+      />
       <EditorRoot>
         <EditorContent
           className="flex-1 overflow-y-auto"

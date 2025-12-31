@@ -13,7 +13,7 @@ import {
   Text,
 } from 'lucide-react'
 import { EditorBubbleItem, useEditor } from 'novel'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
@@ -96,6 +96,8 @@ interface NovelNodeSelectorProps {
 export function NovelNodeSelector({ className }: NovelNodeSelectorProps) {
   const { editor } = useEditor()
   const [isOpen, setIsOpen] = useState(false)
+  // Container ref to render dropdown within bubble menu
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Find the currently active node type
   const activeNode = useMemo(() => {
@@ -106,7 +108,10 @@ export function NovelNodeSelector({ className }: NovelNodeSelectorProps) {
   if (!editor) return null
 
   return (
-    <div className={cn('flex items-center', className)}>
+    <div
+      ref={containerRef}
+      className={cn('relative flex items-center', className)}
+    >
       <DropdownMenu
         open={isOpen}
         onOpenChange={setIsOpen}
@@ -130,7 +135,10 @@ export function NovelNodeSelector({ className }: NovelNodeSelectorProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          className="w-44"
+          side="bottom"
+          sideOffset={4}
+          container={containerRef.current}
+          className="z-[99999] w-44"
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
           {NODE_TYPES.map((node) => (

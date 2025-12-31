@@ -3,7 +3,7 @@
 import { useCompletion } from '@ai-sdk/react'
 import { Check, ChevronDown, Loader2, RefreshCcw, Sparkles, X } from 'lucide-react'
 import { EditorBubbleItem, useEditor } from 'novel'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
@@ -102,18 +102,37 @@ export function NovelAISelector() {
   const [showResponse, setShowResponse] = useState(false)
   const [selectedText, setSelectedText] = useState('')
   const [lastCommand, setLastCommand] = useState<AICommand | null>(null)
+  // Container ref to render dropdown within bubble menu
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { completion, isLoading, complete, setCompletion } = useCompletion({
     api: '/api/ai/completion',
     streamProtocol: 'text',
-    onFinish: () => {
+    onFinish: (prompt, completion) => {
+      console.log(
+        '[AI Selector] onFinish - prompt:',
+        prompt?.substring(0, 50),
+        'completion:',
+        completion?.substring(0, 100),
+      )
       setShowResponse(true)
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[AI Selector] onError:', error)
       setCompletion('Failed to generate. Please try again.')
       setShowResponse(true)
     },
   })
+
+  // Debug: Log state changes
+  console.log(
+    '[AI Selector] State - showResponse:',
+    showResponse,
+    'isLoading:',
+    isLoading,
+    'completion length:',
+    completion?.length,
+  )
 
   const handleCommand = useCallback(
     async (command: AICommand) => {
@@ -161,7 +180,10 @@ export function NovelAISelector() {
   if (!editor) return null
 
   return (
-    <div className="flex flex-col">
+    <div
+      ref={containerRef}
+      className="relative flex flex-col"
+    >
       <div className="flex items-center">
         <DropdownMenu
           open={isOpen}
@@ -186,7 +208,10 @@ export function NovelAISelector() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
-            className="w-48"
+            side="bottom"
+            sideOffset={4}
+            container={containerRef.current}
+            className="z-[99999] w-48"
             onCloseAutoFocus={(e) => e.preventDefault()}
           >
             {AI_COMMANDS.map((command) => (
