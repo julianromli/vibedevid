@@ -105,6 +105,7 @@ export function NovelAISelector() {
 
   const { completion, isLoading, complete, setCompletion } = useCompletion({
     api: '/api/ai/completion',
+    streamProtocol: 'text',
     onFinish: () => {
       setShowResponse(true)
     },

@@ -22,6 +22,7 @@ export function NovelGenerativeMenu({ className }: NovelGenerativeMenuProps) {
 
   const { isLoading, complete, setCompletion, stop } = useCompletion({
     api: '/api/ai/completion',
+    streamProtocol: 'text',
     onFinish: (_, completion) => {
       if (!editor) return
 
