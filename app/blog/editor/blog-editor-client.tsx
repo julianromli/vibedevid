@@ -4,25 +4,24 @@ import { useRouter } from 'next/navigation'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
+import { PreviewDialog } from '@/components/blog/preview-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import MultipleSelector, { type Option } from '@/components/ui/multiselect'
 import { Navbar } from '@/components/ui/navbar'
-import { createBlogPost, updateBlogPost } from '@/lib/actions/blog'
+import { createBlogPost, getTags, updateBlogPost } from '@/lib/actions/blog'
 import type { User } from '@/types/homepage'
-import { PreviewDialog } from '@/components/blog/preview-dialog'
-import MultipleSelector, { Option } from '@/components/ui/multiselect'
-import { getTags } from '@/lib/actions/blog'
 
-const RichTextEditor = lazy(() =>
-  import('@/components/blog/rich-text-editor').then((mod) => ({
-    default: mod.RichTextEditor,
+const NovelEditor = lazy(() =>
+  import('@/components/blog/novel-editor').then((mod) => ({
+    default: mod.NovelEditor,
   })),
 )
 
 function EditorSkeleton() {
   return (
-    <div className="bg-card flex min-h-[400px] items-center justify-center overflow-hidden rounded-lg border">
+    <div className="flex min-h-[400px] items-center justify-center overflow-hidden rounded-lg border bg-card">
       <div className="text-muted-foreground">Loading editor...</div>
     </div>
   )
@@ -157,7 +156,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
         } else {
           toast.error(result.error ?? 'Failed to save')
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Something went wrong')
       } finally {
         setSaving(false)
@@ -176,7 +175,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navbar
         isLoggedIn={true}
         user={user}
@@ -185,7 +184,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
       <main className="py-12">
         <div className="mx-auto max-w-4xl px-4">
           <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold">{mode === 'edit' ? 'Edit Post' : 'Write a Post'}</h1>
+            <h1 className="font-bold text-3xl">{mode === 'edit' ? 'Edit Post' : 'Write a Post'}</h1>
             <div className="flex gap-3">
               <PreviewDialog
                 post={{
@@ -226,7 +225,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
                 placeholder="Give your post a catchy title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="text-lg font-semibold"
+                className="font-semibold text-lg"
               />
             </div>
 
@@ -248,7 +247,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
                 onSearch={handleTagSearch}
                 placeholder="Add tags..."
                 creatable
-                emptyIndicator={<p className="text-muted-foreground text-center text-sm">No tags found.</p>}
+                emptyIndicator={<p className="text-center text-muted-foreground text-sm">No tags found.</p>}
               />
             </div>
 
@@ -272,7 +271,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
             <div className="space-y-2">
               <Label>Content</Label>
               <Suspense fallback={<EditorSkeleton />}>
-                <RichTextEditor
+                <NovelEditor
                   ref={editorRef}
                   content={initialEditorContent}
                   onChange={handleEditorChange}

@@ -1,21 +1,8 @@
 'use client'
 
-import {
-  Bold,
-  CheckSquare,
-  Code,
-  Heading1,
-  Heading2,
-  Heading3,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Text,
-} from 'lucide-react'
+import { CheckSquare, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Text } from 'lucide-react'
 import {
   EditorBubble,
-  EditorBubbleItem,
   EditorCommand,
   EditorCommandEmpty,
   EditorCommandItem,
@@ -23,11 +10,12 @@ import {
   EditorContent,
   EditorRoot,
   type JSONContent,
-  useEditor,
 } from 'novel'
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { Toggle } from '@/components/ui/toggle'
+import { toast } from 'sonner'
+import { useUploadThing } from '@/lib/uploadthing-client'
 import { cn } from '@/lib/utils'
+import { NovelAISelector } from './novel-ai-selector'
 import {
   Command,
   createSuggestionItems,
@@ -35,13 +23,14 @@ import {
   handleCommandNavigation,
   renderItems,
 } from './novel-extensions'
+import { NovelLinkSelector } from './novel-link-selector'
+import { NovelNodeSelector } from './novel-node-selector'
+import { NovelTextButtons } from './novel-text-buttons'
 
 interface NovelEditorProps {
   content: Record<string, unknown>
   onChange: (content: Record<string, unknown>) => void
   placeholder?: string
-  /** API endpoint for AI completion. Will be used in future AI autocomplete feature */
-  completionApi?: string
 }
 
 interface NovelEditorHandle {
@@ -148,47 +137,6 @@ const slashCommand = Command.configure({
 })
 
 /**
- * Bubble menu component for text formatting
- */
-function BubbleMenuContent() {
-  const { editor } = useEditor()
-
-  if (!editor) return null
-
-  return (
-    <>
-      <EditorBubbleItem onSelect={(editor) => editor.chain().focus().toggleBold().run()}>
-        <Toggle
-          size="sm"
-          pressed={editor.isActive('bold')}
-          className="rounded-none border-none"
-        >
-          <Bold className="h-4 w-4" />
-        </Toggle>
-      </EditorBubbleItem>
-      <EditorBubbleItem onSelect={(editor) => editor.chain().focus().toggleItalic().run()}>
-        <Toggle
-          size="sm"
-          pressed={editor.isActive('italic')}
-          className="rounded-none border-none"
-        >
-          <Italic className="h-4 w-4" />
-        </Toggle>
-      </EditorBubbleItem>
-      <EditorBubbleItem onSelect={(editor) => editor.chain().focus().toggleCode().run()}>
-        <Toggle
-          size="sm"
-          pressed={editor.isActive('code')}
-          className="rounded-none border-none"
-        >
-          <Code className="h-4 w-4" />
-        </Toggle>
-      </EditorBubbleItem>
-    </>
-  )
-}
-
-/**
  * Novel Editor wrapper component with forwardRef pattern
  * Provides the same interface as RichTextEditor for compatibility
  */
@@ -197,8 +145,30 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   ref,
 ) {
   const [editorContent, setEditorContent] = useState<JSONContent | null>(null)
-  // Store editor instance reference for setContent
-  const editorInstanceRef = useRef<{ commands: { setContent: (content: JSONContent) => void } } | null>(null)
+  // Store editor instance reference for setContent and image uploads
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const editorInstanceRef = useRef<any>(null)
+
+  // UploadThing for drag-drop/paste image handling
+  const { startUpload } = useUploadThing('blogImageUploader', {
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url
+      if (url && editorInstanceRef.current) {
+        editorInstanceRef.current
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'image',
+            attrs: { src: url },
+          })
+          .run()
+        toast.success('Image uploaded')
+      }
+    },
+    onUploadError: (error) => {
+      toast.error(`Upload failed: ${error.message}`)
+    },
+  })
 
   // Memoize initial content to prevent re-renders
   const safeContent = useMemo(() => {
@@ -209,15 +179,12 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   }, [content])
 
   // Store editor content reference for getContent
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = useCallback(
-    ({
-      editor,
-    }: {
-      editor: { getJSON: () => JSONContent; commands: { setContent: (content: JSONContent) => void } }
-    }) => {
+    ({ editor }: { editor: any }) => {
       const json = editor.getJSON()
       setEditorContent(json)
-      // Store editor instance for setContent
+      // Store editor instance for setContent and image insertion
       editorInstanceRef.current = editor
       onChange(json as Record<string, unknown>)
     },
@@ -268,6 +235,28 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
             handleDOMEvents: {
               keydown: (_view, event) => handleCommandNavigation(event),
             },
+            handleDrop: (_view, event, _slice, moved) => {
+              if (!moved && event.dataTransfer?.files?.[0]) {
+                const file = event.dataTransfer.files[0]
+                if (file.type.startsWith('image/')) {
+                  event.preventDefault()
+                  toast.info('Uploading image...')
+                  startUpload([file])
+                  return true
+                }
+              }
+              return false
+            },
+            handlePaste: (_view, event) => {
+              const file = event.clipboardData?.files?.[0]
+              if (file?.type.startsWith('image/')) {
+                event.preventDefault()
+                toast.info('Uploading image...')
+                startUpload([file])
+                return true
+              }
+              return false
+            },
             attributes: {
               class: cn(
                 'prose prose-lg prose-neutral dark:prose-invert max-w-none',
@@ -304,9 +293,17 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
             tippyOptions={{
               placement: 'top',
             }}
-            className="flex w-fit max-w-[90vw] overflow-hidden rounded border border-muted bg-background shadow-xl"
+            className="flex w-fit max-w-[90vw] flex-col overflow-hidden rounded border border-muted bg-background shadow-xl"
           >
-            <BubbleMenuContent />
+            <div className="flex items-center">
+              <NovelNodeSelector />
+              <div className="mx-0.5 h-6 w-px bg-muted" />
+              <NovelLinkSelector />
+              <div className="mx-0.5 h-6 w-px bg-muted" />
+              <NovelTextButtons />
+              <div className="mx-0.5 h-6 w-px bg-muted" />
+              <NovelAISelector />
+            </div>
           </EditorBubble>
         </EditorContent>
       </EditorRoot>
