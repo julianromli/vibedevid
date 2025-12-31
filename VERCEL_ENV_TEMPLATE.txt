@@ -11,6 +11,7 @@ UPLOADTHING_TOKEN                 # Your UploadThing API token
 # Optional environment variables:
 NEXT_PUBLIC_SITE_URL              # Your production URL (e.g., https://vibedev.id)
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL  # OAuth redirect URL
+OPENROUTER_API_KEY                # OpenRouter API key for AI features (get from openrouter.ai)
 
 # IMPORTANT NOTES:
 # 1. NEXT_PUBLIC_SUPABASE_URL must be a valid URL starting with https://
@@ -18,4 +19,5 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL  # OAuth redirect URL
 # 3. Get your actual values from:
 #    - Supabase: Project Settings > API
 #    - UploadThing: Dashboard > API Keys
-# 4. Keep UPLOADTHING_TOKEN and SUPABASE_SERVICE_ROLE_KEY private (don't expose in client code)
+#    - OpenRouter: https://openrouter.ai/keys
+# 4. Keep UPLOADTHING_TOKEN, SUPABASE_SERVICE_ROLE_KEY, and OPENROUTER_API_KEY private (don't expose in client code)
