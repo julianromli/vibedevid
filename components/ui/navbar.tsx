@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, LogOut, User } from 'lucide-react'
+import { ArrowLeft, FileText, LogOut, PenSquare, User } from 'lucide-react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -99,7 +99,6 @@ export function Navbar({
         const supabase = createClient()
         const { error } = await supabase.auth.signOut()
         if (error) {
-          console.error('Sign out error:', error)
           toast.error('Gagal keluar. Coba lagi!')
           return
         }
@@ -108,8 +107,7 @@ export function Navbar({
           router.refresh()
           router.push('/')
         }, 100)
-      } catch (error) {
-        console.error('Unexpected sign out error:', error)
+      } catch (_error) {
         toast.error('Terjadi kesalahan saat keluar')
       }
     }
@@ -153,7 +151,7 @@ export function Navbar({
         className={cn(
           'mx-auto w-full border-b',
           scrolled
-            ? 'md:border-border/50 md:bg-background/80 bg-background/80 border-border backdrop-blur-md md:max-w-7xl md:rounded-2xl md:shadow-md md:backdrop-blur-xl'
+            ? 'border-border bg-background/80 backdrop-blur-md md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:shadow-md md:backdrop-blur-xl'
             : 'border-transparent bg-transparent',
         )}
         initial={false}
@@ -227,7 +225,7 @@ export function Navbar({
                     onClick={item.action}
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'text-muted-foreground hover:text-foreground cursor-pointer',
+                      'cursor-pointer text-muted-foreground hover:text-foreground',
                     )}
                   >
                     {item.label}
@@ -256,44 +254,68 @@ export function Navbar({
                 Sign In
               </Button>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <>
+                {/* Write Button - prominent CTA for logged-in users */}
+                <Link href="/blog/editor">
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-full"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
                   >
-                    <UserAvatar
-                      user={safeUser}
-                      size="md"
-                    />
+                    <PenSquare className="h-4 w-4" />
+                    Write
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56"
-                  align="end"
-                >
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <UserDisplayName
-                        name={safeUser.name}
-                        role={safeUser.role}
-                        className="font-medium"
+                </Link>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full"
+                    >
+                      <UserAvatar
+                        user={safeUser}
+                        size="md"
                       />
-                      <p className="text-muted-foreground w-[200px] truncate text-sm">{safeUser.email}</p>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-56"
+                    align="end"
+                  >
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <UserDisplayName
+                          name={safeUser.name}
+                          role={safeUser.role}
+                          className="font-medium"
+                        />
+                        <p className="w-[200px] truncate text-muted-foreground text-sm">{safeUser.email}</p>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleProfile}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleProfile}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/dashboard/posts"
+                        className="flex items-center"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>My Posts</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             )}
           </motion.div>
 
@@ -362,6 +384,20 @@ export function Navbar({
                 </Button>
               ) : (
                 <div className="flex flex-col gap-4 border-t pt-6">
+                  {/* Write Button for mobile */}
+                  <Link
+                    href="/blog/editor"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Button
+                      className="w-full gap-2"
+                      size="lg"
+                    >
+                      <PenSquare className="h-4 w-4" />
+                      Write a Post
+                    </Button>
+                  </Link>
+
                   <div className="flex items-center gap-3">
                     <UserAvatar
                       user={safeUser}
@@ -389,15 +425,27 @@ export function Navbar({
                     </Button>
                     <Button
                       variant="outline"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full justify-start"
-                      onClick={() => {
-                        handleSignOut()
-                        setOpen(false)
-                      }}
+                      className="w-full justify-start"
+                      asChild
                     >
-                      <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                      <Link
+                        href="/dashboard/posts"
+                        onClick={() => setOpen(false)}
+                      >
+                        <FileText className="mr-2 h-4 w-4" /> My Posts
+                      </Link>
                     </Button>
                   </div>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => {
+                      handleSignOut()
+                      setOpen(false)
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                  </Button>
                 </div>
               )}
             </div>
@@ -420,7 +468,7 @@ function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
   return createPortal(
     <div
       className={cn(
-        'bg-background/95 supports-[backdrop-filter]:bg-background/80 animate-in fade-in fixed inset-0 z-40 backdrop-blur-xl duration-300',
+        'fade-in fixed inset-0 z-40 animate-in bg-background/95 backdrop-blur-xl duration-300 supports-[backdrop-filter]:bg-background/80',
         className,
       )}
       {...props}
