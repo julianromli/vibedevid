@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CommentSection } from '@/components/blog/comment-section'
@@ -7,30 +8,84 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Navbar } from '@/components/ui/navbar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { createClient } from '@/lib/supabase/server'
 import { contentToHtml } from '@/lib/blog-utils'
+import { createClient } from '@/lib/supabase/server'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com').replace(/\/$/, '')
+const DEFAULT_OG_IMAGE = 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'
+
 export const revalidate = 300
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const supabase = await createClient()
 
-  const { data: post } = await supabase.from('posts').select('title, excerpt, cover_image').eq('slug', slug).single()
+  const { data: post } = await supabase
+    .from('posts')
+    .select(`
+      title,
+      excerpt,
+      cover_image,
+      published_at,
+      author:users!posts_author_id_fkey(display_name),
+      tags:blog_post_tags(post_tags(name))
+    `)
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single()
 
   if (!post) {
-    return { title: 'Post Not Found' }
+    return {
+      title: 'Post Not Found',
+      description: 'The blog post you are looking for does not exist.',
+    }
   }
+
+  const postUrl = `${SITE_URL}/blog/${slug}`
+  const ogImage = post.cover_image || DEFAULT_OG_IMAGE
+  // Supabase returns author as object when using foreign key join with .single()
+  const author = post.author as unknown as { display_name: string } | null
+  const authorName = author?.display_name || 'VibeDev ID'
+  // Extract tags from nested structure with proper type guard
+  const tags = post.tags as unknown as Array<{ post_tags: { name: string } | null }> | null
+  const postTags = tags?.map((t) => t.post_tags?.name).filter((name): name is string => Boolean(name)) ?? []
 
   return {
     title: post.title,
-    description: post.excerpt,
+    description: post.excerpt || `Baca artikel ${post.title} di VibeDev ID Blog`,
+    keywords: postTags.length > 0 ? postTags : undefined,
+    authors: [{ name: authorName }],
+    alternates: {
+      canonical: postUrl,
+    },
     openGraph: {
-      images: post.cover_image ? [post.cover_image] : [],
+      title: post.title,
+      description: post.excerpt || `Baca artikel ${post.title} di VibeDev ID Blog`,
+      url: postUrl,
+      siteName: 'VibeDev ID',
+      locale: 'id_ID',
+      type: 'article',
+      publishedTime: post.published_at || undefined,
+      authors: [authorName],
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt || `Baca artikel ${post.title} di VibeDev ID Blog`,
+      images: [ogImage],
+      creator: '@vibedevid',
     },
   }
 }
