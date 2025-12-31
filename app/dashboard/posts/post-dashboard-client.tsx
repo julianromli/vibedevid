@@ -140,9 +140,7 @@ export function PostDashboardClient() {
                 <FileText className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="mb-2 text-lg font-medium">No posts found</p>
-              <p className="mb-4 text-muted-foreground">
-                You haven't created any posts in this category yet.
-              </p>
+              <p className="mb-4 text-muted-foreground">You haven't created any posts in this category yet.</p>
               {activeTab !== 'all' && (
                 <Button
                   variant="outline"
@@ -152,9 +150,9 @@ export function PostDashboardClient() {
                 </Button>
               )}
               {activeTab === 'all' && (
-                 <Link href="/blog/editor">
+                <Link href="/blog/editor">
                   <Button variant="outline">Create your first post</Button>
-                 </Link>
+                </Link>
               )}
             </div>
           ) : (
@@ -173,19 +171,18 @@ export function PostDashboardClient() {
                       >
                         {post.title}
                       </Link>
-                      <Badge variant={getStatusColor(post.status)} className="capitalize shrink-0">
+                      <Badge
+                        variant={getStatusColor(post.status)}
+                        className="capitalize shrink-0"
+                      >
                         {post.status}
                       </Badge>
                     </div>
 
                     {post.excerpt ? (
-                      <p className="text-muted-foreground line-clamp-2 md:line-clamp-3">
-                        {post.excerpt}
-                      </p>
+                      <p className="text-muted-foreground line-clamp-2 md:line-clamp-3">{post.excerpt}</p>
                     ) : (
-                      <p className="text-muted-foreground/60 italic text-sm">
-                        No description provided.
-                      </p>
+                      <p className="text-muted-foreground/60 italic text-sm">No description provided.</p>
                     )}
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
@@ -196,7 +193,7 @@ export function PostDashboardClient() {
                           {formatDate(post.published_at || post.created_at)}
                         </span>
                       </span>
-                      
+
                       {post.status === 'published' && (
                         <span className="flex items-center gap-1.5">
                           <Eye className="h-3.5 w-3.5" />
@@ -279,8 +276,7 @@ export function PostDashboardClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your blog post
-              and remove all associated data.
+              This action cannot be undone. This will permanently delete your blog post and remove all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

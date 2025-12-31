@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { BlogGuideModal } from '@/components/blog/blog-guide-modal'
 import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
 import { PreviewDialog } from '@/components/blog/preview-dialog'
 import { Button } from '@/components/ui/button'
@@ -281,6 +282,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
           </div>
         </div>
       </main>
+      <BlogGuideModal />
     </div>
   )
 }
