@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { BlogCard } from '@/components/blog/blog-card'
 import { FloatingWriteButton } from '@/components/blog/floating-write-button'
 import { Button } from '@/components/ui/button'
+import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { createClient } from '@/lib/supabase/server'
 
@@ -176,6 +177,8 @@ export default async function BlogPage() {
 
       {/* Floating Write Button for mobile/scroll access */}
       <FloatingWriteButton isLoggedIn={!!user} />
+
+      <Footer />
     </div>
   )
 }

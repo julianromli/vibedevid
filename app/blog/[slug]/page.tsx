@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { CommentSection } from '@/components/blog/comment-section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { contentToHtml } from '@/lib/blog-utils'
@@ -246,6 +247,8 @@ export default async function BlogPostPage({ params }: Props) {
 
         <CommentSection postId={post.id} />
       </div>
+
+      <Footer />
     </article>
   )
 }
