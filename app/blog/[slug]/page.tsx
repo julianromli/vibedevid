@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CommentSection } from '@/components/blog/comment-section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Navbar } from '@/components/ui/navbar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { createClient } from '@/lib/supabase/server'
@@ -75,11 +76,16 @@ export default async function BlogPostPage({ params }: Props) {
     .select(
       `
       *,
-      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio, role)
+      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio, role),
+      tags:blog_post_tags(post_tags(name))
     `,
     )
     .eq('slug', slug)
     .single()
+
+  // Flatten tags from nested structure
+  const postTags: string[] =
+    post?.tags?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name).filter(Boolean) ?? []
 
   if (error || !post || post.status !== 'published') {
     notFound()
@@ -150,6 +156,22 @@ export default async function BlogPostPage({ params }: Props) {
                 </span>
               )}
             </div>
+
+            {/* Tags Section */}
+            {postTags.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {postTags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="border-foreground/20 bg-background/50 px-3 py-1 text-sm backdrop-blur-sm transition-colors hover:border-foreground/40 hover:bg-background/80"
+                  >
+                    <span className="text-muted-foreground">#</span>
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </header>

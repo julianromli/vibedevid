@@ -11,6 +11,10 @@ interface BlogAuthor {
   avatar_url: string | null
 }
 
+interface BlogPostTag {
+  post_tags: { name: string } | null
+}
+
 interface BlogPostListItem {
   id: string
   title: string
@@ -21,6 +25,7 @@ interface BlogPostListItem {
   read_time_minutes: number | null
   author: BlogAuthor | null
   author_id?: string
+  tags?: BlogPostTag[]
 }
 
 export const revalidate = 60
@@ -64,16 +69,21 @@ export default async function BlogPage() {
       published_at,
       read_time_minutes,
       author_id,
-      author:users!posts_author_id_fkey(display_name, avatar_url)
+      author:users!posts_author_id_fkey(display_name, avatar_url),
+      tags:blog_post_tags(post_tags(name))
     `,
     )
-
     .eq('status', 'published')
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
     .returns<BlogPostListItem[]>()
 
-  const posts = postsData ?? []
+  // Flatten tags from nested structure to string array
+  const posts =
+    postsData?.map((post) => ({
+      ...post,
+      tags: (post.tags?.map((t) => t.post_tags?.name).filter(Boolean) as string[]) || [],
+    })) ?? []
 
   return (
     <div className="min-h-screen bg-background">
@@ -134,6 +144,7 @@ export default async function BlogPage() {
                       display_name: 'Anonymous',
                       avatar_url: null,
                     },
+                    tags: post.tags,
                   }}
                   isOwner={user?.id === post.author_id}
                 />

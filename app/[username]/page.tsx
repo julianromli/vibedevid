@@ -1,10 +1,25 @@
 'use client'
-import { ArrowLeft, Calendar, Edit, Github, Globe, Heart, MapPin, MessageCircle, Twitter } from 'lucide-react'
+import { format } from 'date-fns'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Clock,
+  Edit,
+  FileText,
+  Github,
+  Globe,
+  Heart,
+  MapPin,
+  MessageCircle,
+  Twitter,
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Footer } from '@/components/ui/footer'
@@ -216,6 +231,53 @@ async function fetchUserProfileWithStats(username: string) {
   return { user, stats }
 }
 
+interface BlogPostTag {
+  post_tags: { name: string } | null
+}
+
+interface UserBlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  cover_image: string | null
+  published_at: string | null
+  read_time_minutes: number | null
+  tags?: BlogPostTag[]
+}
+
+async function fetchUserBlogPosts(userId: string): Promise<UserBlogPost[]> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      `
+      id,
+      title,
+      slug,
+      excerpt,
+      cover_image,
+      published_at,
+      read_time_minutes,
+      tags:blog_post_tags(post_tags(name))
+    `,
+    )
+    .eq('author_id', userId)
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(6)
+    .returns<UserBlogPost[]>()
+
+  if (error) {
+    console.error('[v0] Error fetching user blog posts:', error)
+    return []
+  }
+
+  return data || []
+}
+
 export default function ProfilePage() {
   const params = useParams()
   const router = useRouter()
@@ -224,8 +286,10 @@ export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [userProjects, setUserProjects] = useState<any[]>([])
+  const [userPosts, setUserPosts] = useState<UserBlogPost[]>([])
   const [userStats, setUserStats] = useState({
     projects: 0,
+    posts: 0,
     likes: 0,
     views: 0,
   })
@@ -280,20 +344,23 @@ export default function ProfilePage() {
         console.log('[v0] Profile user loaded:', profileUser.username)
         console.log('[v0] Loaded stats:', stats)
 
-        // Load projects in parallel (non-blocking)
+        // Load projects and blog posts in parallel (non-blocking)
         const projectsPromise = fetchUserProjects(username)
+        const postsPromise = fetchUserBlogPosts(profileUser.id)
 
         // Batch all state updates
         setIsLoggedIn(!!session?.user)
         if (authUser) setCurrentUser(authUser)
         setIsOwner(isOwnerCheck)
         setUser(profileUser)
-        setUserStats(stats)
 
-        // Wait for projects and update state
-        const projects = await projectsPromise
+        // Wait for projects and posts
+        const [projects, posts] = await Promise.all([projectsPromise, postsPromise])
         console.log('[v0] Loaded projects count:', projects.length)
+        console.log('[v0] Loaded blog posts count:', posts.length)
         setUserProjects(projects)
+        setUserPosts(posts)
+        setUserStats({ ...stats, posts: posts.length })
       } catch (error) {
         console.error('[v0] Error loading profile data:', error)
       } finally {
@@ -390,6 +457,31 @@ export default function ProfilePage() {
                 count={6}
                 columns={2}
               />
+            </div>
+
+            {/* Blog Posts Section Skeleton */}
+            <div className="bg-card border-border rounded-xl border p-6">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="h-10 w-10 animate-pulse rounded-lg bg-muted"></div>
+                <div className="h-7 w-28 animate-pulse rounded bg-muted"></div>
+              </div>
+              <div className="flex gap-4 overflow-hidden">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-[300px] flex-shrink-0"
+                  >
+                    <div className="overflow-hidden rounded-xl border">
+                      <div className="aspect-[16/9] animate-pulse bg-muted"></div>
+                      <div className="space-y-2 p-4">
+                        <div className="h-5 w-full animate-pulse rounded bg-muted"></div>
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
+                        <div className="h-3 w-1/2 animate-pulse rounded bg-muted"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -536,10 +628,14 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
+            <div className="flex flex-wrap justify-center gap-4 md:flex-col md:items-end md:justify-start md:gap-3">
               <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
                 <div className="text-primary text-2xl font-bold">{userStats.projects}</div>
                 <div className="text-muted-foreground text-xs font-medium">Projects</div>
+              </div>
+              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
+                <div className="text-primary text-2xl font-bold">{userStats.posts}</div>
+                <div className="text-muted-foreground text-xs font-medium">Posts</div>
               </div>
               <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
                 <div className="text-primary text-2xl font-bold">{userStats.likes}</div>
@@ -603,6 +699,126 @@ export default function ProfilePage() {
             ) : (
               <div className="py-8 text-center">
                 <p className="text-muted-foreground">No projects yet</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Blog Posts Section - Horizontal Scroll Design */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold">Blog Posts</h2>
+              </div>
+              {userPosts.length > 4 && (
+                <Link
+                  href="/blog"
+                  className="group flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
+                >
+                  View all
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
+            </div>
+
+            {userPosts.length > 0 ? (
+              <div className="-mx-6 px-6">
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+                  {userPosts.map((post) => {
+                    // Flatten tags
+                    const tags = post.tags?.map((t) => t.post_tags?.name).filter(Boolean) || []
+
+                    return (
+                      <Link
+                        key={post.id}
+                        href={`/blog/${post.slug}`}
+                        className="group block w-[300px] flex-shrink-0"
+                      >
+                        <div className="relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+                          {/* Cover Image */}
+                          <div className="relative aspect-[16/9] overflow-hidden">
+                            {post.cover_image ? (
+                              <img
+                                src={post.cover_image}
+                                alt={post.title}
+                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                                <FileText className="h-8 w-8 text-muted-foreground/50" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                            {/* Tags overlay */}
+                            {tags.length > 0 && (
+                              <div className="absolute bottom-3 left-3 flex gap-1.5">
+                                {tags.slice(0, 2).map((tag) => (
+                                  <Badge
+                                    key={tag}
+                                    variant="secondary"
+                                    className="border-white/20 bg-white/20 px-2 py-0.5 text-xs text-white backdrop-blur-sm"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-4">
+                            <h3 className="mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-primary">
+                              {post.title}
+                            </h3>
+
+                            {post.excerpt && (
+                              <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+                            )}
+
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              {post.read_time_minutes && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {post.read_time_minutes} min
+                                </span>
+                              )}
+                              {post.published_at && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {format(new Date(post.published_at), 'MMM d')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <FileText className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">No blog posts yet</p>
+                {isOwner && (
+                  <Link href="/blog/editor">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                    >
+                      Write your first post
+                    </Button>
+                  </Link>
+                )}
               </div>
             )}
           </CardContent>
