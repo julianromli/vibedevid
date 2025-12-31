@@ -1,34 +1,25 @@
 'use client'
 import { format } from 'date-fns'
-import {
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  Clock,
-  Edit,
-  FileText,
-  Github,
-  Globe,
-  Heart,
-  MapPin,
-  MessageCircle,
-  Twitter,
-} from 'lucide-react'
+import { ArrowLeft, FilePenLine, FolderOpen, FileText, LayoutGrid, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Badge } from '@/components/ui/badge'
+
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
-import { UserAvatar } from '@/components/ui/user-avatar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
 import { createClient } from '@/lib/supabase/client'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+// New Components
+import { ProfileHeader } from '@/components/profile/profile-header'
+import { ProfileStats } from '@/components/profile/profile-stats'
+import { ProjectTab } from '@/components/profile/project-tab'
+import { BlogTab } from '@/components/profile/blog-tab'
+import { EmptyState } from '@/components/profile/empty-state'
 
 async function updateUserProfile(username: string, profileData: any) {
   const supabase = createClient()
@@ -39,7 +30,7 @@ async function updateUserProfile(username: string, profileData: any) {
       username: profileData.username,
       display_name: profileData.displayName,
       bio: profileData.bio,
-      avatar_url: profileData.avatar_url, // Fixed: use avatar_url instead of avatar
+      avatar_url: profileData.avatar_url,
       location: profileData.location,
       website: profileData.website,
       github_url: profileData.github_url,
@@ -58,24 +49,6 @@ async function updateUserProfile(username: string, profileData: any) {
   return { success: true, data }
 }
 
-// Function didn't used
-// async function fetchUserProfile(username: string) {
-//   const supabase = createClient();
-
-//   const { data: user, error } = await supabase
-//     .from("users")
-//     .select("*")
-//     .eq("username", username)
-//     .single();
-
-//   if (error) {
-//     console.error("Error fetching user profile:", error);
-//     return null;
-//   }
-
-//   return user;
-// }
-
 async function fetchUserProjects(username: string) {
   const supabase = createClient()
 
@@ -86,23 +59,20 @@ async function fetchUserProjects(username: string) {
 
   if (error) {
     console.warn('RPC not available, falling back to regular queries:', error)
-    // Fallback to regular queries if RPC doesn't exist
     return await fetchUserProjectsFallback(username)
   }
 
   return (projectsData || []).map((project: any) => ({
     ...project,
-    likes: project.likes_count || project.likes || 0, // Handle both field names for backward compatibility
+    likes: project.likes_count || project.likes || 0,
     thumbnail_url: project.image_url,
     url: project.website_url,
   }))
 }
 
-// Fallback function dengan optimized queries
 async function fetchUserProjectsFallback(username: string) {
   const supabase = createClient()
 
-  // Get user ID once
   const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single()
 
   if (userError || !user) {
@@ -110,7 +80,6 @@ async function fetchUserProjectsFallback(username: string) {
     return []
   }
 
-  // Get projects with basic info
   const { data: projects, error } = await supabase
     .from('projects')
     .select(
@@ -129,13 +98,12 @@ async function fetchUserProjectsFallback(username: string) {
     )
     .eq('author_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(10) // Limit untuk performance
+    .limit(10)
 
   if (error || !projects?.length) {
     return []
   }
 
-  // Batch count queries untuk semua projects sekaligus
   const projectIds = projects.map((p) => p.id)
 
   const [likesData, viewsData, commentsData] = await Promise.all([
@@ -144,7 +112,6 @@ async function fetchUserProjectsFallback(username: string) {
     supabase.from('comments').select('project_id').in('project_id', projectIds),
   ])
 
-  // Count stats per project
   const likeCounts =
     likesData.data?.reduce(
       (acc, like) => {
@@ -174,7 +141,7 @@ async function fetchUserProjectsFallback(username: string) {
 
   return projects.map((project) => ({
     ...project,
-    likes: likeCounts[project.id] || 0, // Changed from likes_count to likes for consistency
+    likes: likeCounts[project.id] || 0,
     views_count: viewCounts[project.id] || 0,
     comments_count: commentCounts[project.id] || 0,
     thumbnail_url: project.image_url,
@@ -182,13 +149,11 @@ async function fetchUserProjectsFallback(username: string) {
   }))
 }
 
-// Optimized: Single query untuk mendapatkan user profile dan stats sekaligus
 async function fetchUserProfileWithStats(username: string) {
   const supabase = createClient()
 
   console.log('[v0] Fetching profile and stats for username:', username)
 
-  // Single query untuk user profile
   const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
 
   if (userError || !user) {
@@ -196,7 +161,6 @@ async function fetchUserProfileWithStats(username: string) {
     return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
   }
 
-  // Parallel operations untuk projects dan stats
   const [projectsResult, projectsListResult] = await Promise.all([
     supabase.from('projects').select('id', { count: 'exact' }).eq('author_id', user.id),
     supabase.from('projects').select('id').eq('author_id', user.id),
@@ -212,7 +176,6 @@ async function fetchUserProfileWithStats(username: string) {
     }
   }
 
-  // Parallel queries untuk likes dan views
   const [likesResult, viewsResult] = await Promise.all([
     supabase.from('likes').select('id', { count: 'exact' }).in('project_id', projectIds),
     supabase.from('views').select('id', { count: 'exact' }).in('project_id', projectIds),
@@ -267,7 +230,7 @@ async function fetchUserBlogPosts(userId: string): Promise<UserBlogPost[]> {
     .eq('status', 'published')
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
-    .limit(6)
+    .limit(10) // Increased limit since we have a dedicated tab
     .returns<UserBlogPost[]>()
 
   if (error) {
@@ -299,7 +262,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  // Optimized: Single useEffect dengan parallel data loading
   useEffect(() => {
     window.scrollTo(0, 0)
 
@@ -310,7 +272,6 @@ export default function ProfilePage() {
         console.log('[v0] Loading profile data for username:', username)
         const supabase = createClient()
 
-        // Parallel operations untuk auth check dan profile data
         const [sessionResult, profileWithStatsResult] = await Promise.all([
           supabase.auth.getSession(),
           fetchUserProfileWithStats(username),
@@ -321,7 +282,6 @@ export default function ProfilePage() {
         } = sessionResult
         const { user: profileUser, stats } = profileWithStatsResult
 
-        // Handle authentication state
         let authUser = null
         let isOwnerCheck = false
 
@@ -334,7 +294,6 @@ export default function ProfilePage() {
           }
         }
 
-        // Check if profile user exists
         if (!profileUser) {
           console.log('[v0] Profile user not found')
           setLoading(false)
@@ -344,17 +303,14 @@ export default function ProfilePage() {
         console.log('[v0] Profile user loaded:', profileUser.username)
         console.log('[v0] Loaded stats:', stats)
 
-        // Load projects and blog posts in parallel (non-blocking)
         const projectsPromise = fetchUserProjects(username)
         const postsPromise = fetchUserBlogPosts(profileUser.id)
 
-        // Batch all state updates
         setIsLoggedIn(!!session?.user)
         if (authUser) setCurrentUser(authUser)
         setIsOwner(isOwnerCheck)
         setUser(profileUser)
 
-        // Wait for projects and posts
         const [projects, posts] = await Promise.all([projectsPromise, postsPromise])
         console.log('[v0] Loaded projects count:', projects.length)
         console.log('[v0] Loaded blog posts count:', posts.length)
@@ -375,22 +331,10 @@ export default function ProfilePage() {
     setShowEditDialog(true)
   }
 
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  const handleProfile = () => {
-    if (currentUser?.username) {
-      router.push(`/${currentUser.username}`)
-    }
-  }
-
   const handleSaveProfile = async (profileData: any) => {
     setSaving(true)
     try {
-      console.log('[v0] Saving profile with avatar:', profileData.avatar_url) // Updated debug log
+      console.log('[v0] Saving profile with avatar:', profileData.avatar_url)
 
       const result = await updateUserProfile(username, profileData)
       if (result.success) {
@@ -405,7 +349,7 @@ export default function ProfilePage() {
           website: profileData.website,
           github_url: profileData.github_url,
           twitter_url: profileData.twitter_url,
-          avatar_url: profileData.avatar_url, // Fixed: use avatar_url
+          avatar_url: profileData.avatar_url,
         }
 
         console.log('[v0] Updated user state with new avatar:', updatedUser.avatar_url)
@@ -427,7 +371,6 @@ export default function ProfilePage() {
   }
 
   const scrollToSection = (sectionId: string) => {
-    // For profile pages, redirect to homepage sections if needed
     if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
       router.push(`/#${sectionId}`)
     }
@@ -436,7 +379,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="bg-grid-pattern relative min-h-screen">
-        {/* Background Gradient Overlay */}
         <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
         <Navbar
@@ -447,41 +389,13 @@ export default function ProfilePage() {
         />
         <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="space-y-8">
-            {/* Profile Header Skeleton */}
             <ProfileHeaderSkeleton />
-
-            {/* Projects Section Skeleton */}
             <div className="bg-card border-border rounded-xl border p-6">
               <div className="bg-muted mb-6 h-7 w-32 animate-pulse rounded"></div>
               <ProjectGridSkeleton
                 count={6}
                 columns={2}
               />
-            </div>
-
-            {/* Blog Posts Section Skeleton */}
-            <div className="bg-card border-border rounded-xl border p-6">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="h-10 w-10 animate-pulse rounded-lg bg-muted"></div>
-                <div className="h-7 w-28 animate-pulse rounded bg-muted"></div>
-              </div>
-              <div className="flex gap-4 overflow-hidden">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-[300px] flex-shrink-0"
-                  >
-                    <div className="overflow-hidden rounded-xl border">
-                      <div className="aspect-[16/9] animate-pulse bg-muted"></div>
-                      <div className="space-y-2 p-4">
-                        <div className="h-5 w-full animate-pulse rounded bg-muted"></div>
-                        <div className="h-4 w-3/4 animate-pulse rounded bg-muted"></div>
-                        <div className="h-3 w-1/2 animate-pulse rounded bg-muted"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
@@ -492,7 +406,6 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="bg-grid-pattern relative min-h-screen">
-        {/* Background Gradient Overlay */}
         <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
         <Navbar
@@ -517,7 +430,6 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-grid-pattern relative min-h-screen">
-      {/* Background Gradient Overlay */}
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
       <Navbar
@@ -527,312 +439,136 @@ export default function ProfilePage() {
         scrollToSection={scrollToSection}
       />
 
-      {/* Profile Header */}
       <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
-        <div className="bg-card border-border mb-8 rounded-xl border p-8">
-          {isOwner && (
-            <div className="mb-4 flex justify-center md:justify-end">
-              <Button
-                onClick={handleEdit}
-                variant="outline"
-                size="sm"
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Button>
-            </div>
-          )}
+        {/* Header & Stats */}
+        <ProfileHeader
+          user={user}
+          isOwner={isOwner}
+          onEdit={handleEdit}
+        />
 
-          <div className="flex flex-col gap-6 md:flex-row">
-            <UserAvatar
-              user={user}
-              size="xl"
-              className="mx-auto md:mx-0"
-            />
-
-            {/* User Info Section */}
-            <div className="flex-1 py-0 text-center md:text-left">
-              <h1 className="mb-2 text-3xl font-bold">
-                <UserDisplayName
-                  name={user.display_name || user.username}
-                  role={user.role}
-                />
-              </h1>
-              <p className="text-muted-foreground mb-4 text-lg">@{user.username}</p>
-              <p className="text-foreground mb-4 max-w-2xl">{user.bio || 'No bio available'}</p>
-
-              <div className="text-muted-foreground mb-4 flex flex-wrap justify-center gap-4 text-sm md:justify-start">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {user.location || 'Location not specified'}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Joined{' '}
-                  {new Date(user.joined_at).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </div>
-              </div>
-
-              <div className="mb-6 flex justify-center gap-4 md:justify-start">
-                {user.website && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
-                    <a
-                      href={user.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Globe className="mr-2 h-4 w-4" />
-                      Website
-                    </a>
-                  </Button>
-                )}
-                {user.github_url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
-                    <a
-                      href={user.github_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github className="mr-2 h-4 w-4" />
-                      GitHub
-                    </a>
-                  </Button>
-                )}
-                {user.twitter_url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
-                    <a
-                      href={user.twitter_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Twitter className="mr-2 h-4 w-4" />
-                      Twitter
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-4 md:flex-col md:items-end md:justify-start md:gap-3">
-              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">{userStats.projects}</div>
-                <div className="text-muted-foreground text-xs font-medium">Projects</div>
-              </div>
-              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">{userStats.posts}</div>
-                <div className="text-muted-foreground text-xs font-medium">Posts</div>
-              </div>
-              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">{userStats.likes}</div>
-                <div className="text-muted-foreground text-xs font-medium">Likes</div>
-              </div>
-              <div className="bg-muted/30 hover:bg-muted/50 min-w-[80px] rounded-xl p-4 text-center transition-colors duration-200">
-                <div className="text-primary text-2xl font-bold">{userStats.views}</div>
-                <div className="text-muted-foreground text-xs font-medium">Views</div>
-              </div>
-            </div>
-          </div>
+        <div className="mb-8">
+          <ProfileStats stats={userStats} />
         </div>
 
-        {/* Projects */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="mb-6 text-xl font-semibold">Projects</h2>
+        {/* Content Tabs */}
+        <Tabs
+          defaultValue="projects"
+          className="w-full"
+        >
+          <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2 scrollbar-hide">
+            <TabsList className="bg-muted/50 p-1 h-auto">
+              <TabsTrigger
+                value="projects"
+                className="px-4 py-2 gap-2 data-[state=active]:bg-background"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Projects
+                <span className="ml-1 rounded-full bg-muted-foreground/20 px-2 py-0.5 text-xs">
+                  {userStats.projects}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="blog"
+                className="px-4 py-2 gap-2 data-[state=active]:bg-background"
+              >
+                <FileText className="h-4 w-4" />
+                Blog Posts
+                <span className="ml-1 rounded-full bg-muted-foreground/20 px-2 py-0.5 text-xs">{userStats.posts}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="about"
+                className="px-4 py-2 gap-2 data-[state=active]:bg-background"
+              >
+                <User className="h-4 w-4" />
+                About
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent
+            value="projects"
+            className="mt-0 focus-visible:outline-none"
+          >
             {userProjects.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                {userProjects.map((project) => (
-                  <Link
-                    key={project.id}
-                    href={`/project/${project.slug}`}
-                    className="group block cursor-pointer"
-                  >
-                    <div className="bg-muted relative mb-4 overflow-hidden rounded-lg">
-                      <AspectRatio ratio={16 / 9}>
-                        <Image
-                          src={project.thumbnail_url || '/placeholder.svg'}
-                          alt={project.title}
-                          fill
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg'
-                          }}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                        />
-                      </AspectRatio>
-                    </div>
-
-                    <h3 className="group-hover:text-primary mb-2 text-lg font-semibold transition-colors duration-300">
-                      {project.title}
-                    </h3>
-                    <p className="text-muted-foreground mb-3 text-sm">{project.description}</p>
-
-                    <div className="text-muted-foreground flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-4 w-4" />
-                        {project.likes || 0}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        {project.comments_count || 0}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <ProjectTab projects={userProjects} />
             ) : (
-              <div className="py-8 text-center">
-                <p className="text-muted-foreground">No projects yet</p>
-              </div>
+              <EmptyState
+                icon={FolderOpen}
+                title="No Projects Yet"
+                description={
+                  isOwner
+                    ? "You haven't showcased any projects yet. Start building your portfolio!"
+                    : "This user hasn't added any projects yet."
+                }
+                actionLabel="Add Project"
+                actionLink="/project/new"
+                isOwner={isOwner}
+              />
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Blog Posts Section - Horizontal Scroll Design */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="h-5 w-5 text-primary" />
-                </div>
-                <h2 className="text-xl font-semibold">Blog Posts</h2>
-              </div>
-              {userPosts.length > 4 && (
-                <Link
-                  href="/blog"
-                  className="group flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
-                >
-                  View all
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              )}
-            </div>
-
+          <TabsContent
+            value="blog"
+            className="mt-0 focus-visible:outline-none"
+          >
             {userPosts.length > 0 ? (
-              <div className="-mx-6 px-6">
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
-                  {userPosts.map((post) => {
-                    // Flatten tags
-                    const tags = post.tags?.map((t) => t.post_tags?.name).filter(Boolean) || []
-
-                    return (
-                      <Link
-                        key={post.id}
-                        href={`/blog/${post.slug}`}
-                        className="group block w-[300px] flex-shrink-0"
-                      >
-                        <div className="relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-                          {/* Cover Image */}
-                          <div className="relative aspect-[16/9] overflow-hidden">
-                            {post.cover_image ? (
-                              <img
-                                src={post.cover_image}
-                                alt={post.title}
-                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                                <FileText className="h-8 w-8 text-muted-foreground/50" />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                            {/* Tags overlay */}
-                            {tags.length > 0 && (
-                              <div className="absolute bottom-3 left-3 flex gap-1.5">
-                                {tags.slice(0, 2).map((tag) => (
-                                  <Badge
-                                    key={tag}
-                                    variant="secondary"
-                                    className="border-white/20 bg-white/20 px-2 py-0.5 text-xs text-white backdrop-blur-sm"
-                                  >
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="p-4">
-                            <h3 className="mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-primary">
-                              {post.title}
-                            </h3>
-
-                            {post.excerpt && (
-                              <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
-                            )}
-
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              {post.read_time_minutes && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {post.read_time_minutes} min
-                                </span>
-                              )}
-                              {post.published_at && (
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {format(new Date(post.published_at), 'MMM d')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
+              <BlogTab posts={userPosts} />
             ) : (
-              <div className="py-8 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <FileText className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground">No blog posts yet</p>
-                {isOwner && (
-                  <Link href="/blog/editor">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                    >
-                      Write your first post
-                    </Button>
-                  </Link>
-                )}
-              </div>
+              <EmptyState
+                icon={FilePenLine}
+                title="No Blog Posts Yet"
+                description={
+                  isOwner
+                    ? 'Share your thoughts and knowledge with the community.'
+                    : "This user hasn't written any blog posts yet."
+                }
+                actionLabel="Write First Post"
+                actionLink="/blog/editor"
+                isOwner={isOwner}
+              />
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          <TabsContent
+            value="about"
+            className="mt-0 focus-visible:outline-none"
+          >
+            <div className="bg-card border-border rounded-xl border p-8">
+              <h3 className="text-xl font-bold mb-6">About {user.display_name || user.username}</h3>
+
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="whitespace-pre-wrap leading-relaxed text-base">{user.bio || 'No bio available.'}</p>
+              </div>
+
+              <div className="mt-8 pt-8 border-t grid gap-4 sm:grid-cols-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground block mb-1">Joined</span>
+                  <span className="font-medium">
+                    {new Date(user.joined_at).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block mb-1">Location</span>
+                  <span className="font-medium">{user.location || 'Not specified'}</span>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* ProfileEditDialog component */}
       <ProfileEditDialog
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         defaultValues={{
           name: user?.display_name || '',
           username: user?.username || '',
-          avatar: user?.avatar_url || '/placeholder.svg', // Keep as avatar for dialog compatibility
+          avatar: user?.avatar_url || '/placeholder.svg',
           bio: user?.bio || '',
           location: user?.location || '',
           website: user?.website || '',
@@ -843,7 +579,6 @@ export default function ProfilePage() {
         saving={saving}
       />
 
-      {/* Footer */}
       <Footer />
     </div>
   )
