@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: Props) {
         user={userData ?? undefined}
       />
 
-      <header className="relative h-[50vh] overflow-hidden">
+      <header className="relative min-h-[60vh] overflow-hidden pt-16">
         {post.cover_image ? (
           <img
             src={post.cover_image}
