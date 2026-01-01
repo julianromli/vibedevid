@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
 import { CommentSection } from '@/components/blog/comment-section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -149,6 +150,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="bg-background min-h-screen">
+      <BlogViewTracker postId={post.id} />
       <Navbar
         isLoggedIn={!!user}
         user={userData ?? undefined}

@@ -161,35 +161,56 @@ async function fetchUserProfileWithStats(username: string) {
     return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
   }
 
-  const [projectsResult, projectsListResult] = await Promise.all([
+  // Fetch projects and posts in parallel
+  const [projectsResult, projectsListResult, postsListResult] = await Promise.all([
     supabase.from('projects').select('id', { count: 'exact' }).eq('author_id', user.id),
     supabase.from('projects').select('id').eq('author_id', user.id),
+    supabase.from('posts').select('id').eq('author_id', user.id).eq('status', 'published'),
   ])
 
   const projectCount = projectsResult.count || 0
   const projectIds = projectsListResult.data?.map((p) => p.id) || []
+  const postIds = postsListResult.data?.map((p) => p.id) || []
 
-  if (projectIds.length === 0) {
+  // No projects and no posts - return early with zeros
+  if (projectIds.length === 0 && postIds.length === 0) {
     return {
       user,
       stats: { projects: projectCount, likes: 0, views: 0 },
     }
   }
 
-  const [likesResult, viewsResult] = await Promise.all([
-    supabase.from('likes').select('id', { count: 'exact' }).in('project_id', projectIds),
-    supabase.from('views').select('id', { count: 'exact' }).in('project_id', projectIds),
+  // Fetch counts in parallel based on available data
+  const [likesResult, projectViewsResult, blogViewsResult] = await Promise.all([
+    // Likes from projects
+    projectIds.length > 0
+      ? supabase.from('likes').select('id', { count: 'exact' }).in('project_id', projectIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
+    // Views from projects
+    projectIds.length > 0
+      ? supabase.from('views').select('id', { count: 'exact' }).in('project_id', projectIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
+    // Views from blog posts
+    postIds.length > 0
+      ? supabase.from('views').select('id', { count: 'exact' }).in('post_id', postIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
   ])
+
+  const projectViews = projectViewsResult.count || 0
+  const blogViews = blogViewsResult.count || 0
+  const totalViews = projectViews + blogViews
 
   const stats = {
     projects: projectCount,
     likes: likesResult.count || 0,
-    views: viewsResult.count || 0,
+    views: totalViews,
   }
 
   console.log('[v0] Loaded profile and stats:', {
     username: user.username,
     stats,
+    projectViews,
+    blogViews,
   })
   return { user, stats }
 }

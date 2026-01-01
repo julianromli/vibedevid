@@ -521,6 +521,47 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
   }
 }
 
+export async function incrementBlogPostViews(postId: string, sessionId?: string) {
+  if (!postId || typeof postId !== 'string' || postId.trim() === '') {
+    console.error('[Server] incrementBlogPostViews: postId is required')
+    return
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  try {
+    // Prepare view record with session-based tracking
+    const viewRecord = {
+      post_id: postId.trim(),
+      user_id: session?.user?.id || null,
+      session_id: sessionId || null,
+      ip_address: null,
+      view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+    }
+
+    console.log('[Server] Incrementing view for blog post:', postId, 'Session:', sessionId)
+
+    // Try to insert first
+    const { data, error } = await supabase.from('views').insert(viewRecord).select()
+
+    if (error) {
+      // If it's a duplicate key error, that's expected (user already viewed in this session)
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        console.log('[Server] Blog view already tracked for this session')
+      } else {
+        console.error('[Server] Increment blog views error:', error)
+      }
+    } else {
+      console.log('[Server] Blog view tracked successfully:', data)
+    }
+  } catch (error) {
+    console.error('[Server] Increment blog views error:', error)
+  }
+}
+
 export async function toggleLike(projectId: string) {
   const supabase = await createClient()
   const {
