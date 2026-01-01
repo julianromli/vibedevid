@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { ArrowLeft, Calendar, Clock } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -140,6 +140,12 @@ export default async function BlogPostPage({ params }: Props) {
     .eq('slug', slug)
     .single()
 
+  // Fetch view count for this post
+  const { count: viewCount } = await supabase
+    .from('views')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', post?.id)
+
   // Flatten tags from nested structure
   const postTags: string[] =
     post?.tags?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name).filter(Boolean) ?? []
@@ -213,6 +219,11 @@ export default async function BlogPostPage({ params }: Props) {
                   {post.read_time_minutes} min read
                 </span>
               )}
+
+              <span className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                {(viewCount || 0).toLocaleString()} views
+              </span>
             </div>
 
             {/* Tags Section */}
