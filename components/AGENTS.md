@@ -28,6 +28,7 @@ components/
 │   ├── card.tsx               # Card containers
 │   ├── input.tsx              # Form inputs
 │   ├── avatar.tsx             # Avatar display
+│   ├── comment-section.tsx    # ⭐ Unified comments (Blog + Project)
 │   ├── ...                    # 50+ more UI components
 ├── sections/            # Page section components (self-contained)
 │   ├── hero-section.tsx
@@ -40,15 +41,13 @@ components/
 │   └── community-features-section.tsx
 ├── blog/               # Blog-specific components
 │   ├── blog-card.tsx
-│   ├── comment-section.tsx
 │   ├── cover-image-uploader.tsx
 │   ├── editor-image-uploader.tsx
 │   └── rich-text-editor.tsx
 ├── project/            # Project-specific components
 │   ├── ProjectActionsClient.tsx
 │   ├── ProjectEditClient.tsx
-│   ├── ShareButton.tsx
-│   └── CommentsSection.tsx
+│   └── ShareButton.tsx
 └── *.tsx               # Root-level components (legacy)
     ├── client-theme-provider.tsx
     ├── theme-provider.tsx
@@ -305,10 +304,11 @@ Self-contained page sections extracted from monolithic pages:
 Blog-specific functionality:
 
 - `blog-card.tsx` - Blog post preview card
-- `comment-section.tsx` - Comments list and form
 - `cover-image-uploader.tsx` - Cover image upload
 - `editor-image-uploader.tsx` - Inline image upload for editor
 - `rich-text-editor.tsx` - Markdown/rich text editor
+
+> **Note**: Comments moved to unified `components/ui/comment-section.tsx`
 
 #### Project Components (`components/project/`)
 
@@ -317,7 +317,93 @@ Project-specific functionality:
 - `ProjectActionsClient.tsx` - Like, share actions
 - `ProjectEditClient.tsx` - Project editing form
 - `ShareButton.tsx` - Share functionality
-- `CommentsSection.tsx` - Project comments
+
+> **Note**: Comments moved to unified `components/ui/comment-section.tsx`
+
+### ⭐ Unified Comments Pattern (IMPORTANT)
+
+The comments feature is **centralized** for both Blog and Project pages using a single component.
+
+#### Location
+
+- **Component**: `components/ui/comment-section.tsx`
+- **Types**: `types/comments.ts`
+- **Server Actions**: `lib/actions/comments.ts`
+
+#### Usage Pattern
+
+```tsx
+// In Blog page (app/blog/[slug]/page.tsx)
+import { CommentSection } from '@/components/ui/comment-section'
+import { getComments } from '@/lib/actions/comments'
+
+// Fetch comments server-side
+const { comments: initialComments } = await getComments('post', post.id)
+
+// Render component
+<CommentSection
+  entityType="post"           // 'post' for blog, 'project' for projects
+  entityId={post.id}          // UUID of the entity
+  initialComments={initialComments}
+  isLoggedIn={!!user}
+  currentUser={{ id, name, avatar }}
+  allowGuest={false}          // Blog requires login
+/>
+
+// In Project page (app/project/[slug]/page.tsx)
+<CommentSection
+  entityType="project"
+  entityId={project.id}
+  initialComments={initialComments}
+  isLoggedIn={!!currentUser}
+  currentUser={currentUser ? { id, name, avatar } : null}
+  allowGuest={true}           // Projects allow guest comments
+/>
+```
+
+#### Features
+
+| Feature | Description |
+|---------|-------------|
+| Server-side prefetch | `initialComments` prop for fast initial render |
+| Guest commenting | Configurable via `allowGuest` prop |
+| Report feature | Logged-in users can report inappropriate comments |
+| Loading spinner | Shows during comment submission |
+| Comment count | Displayed in header |
+| Toast notifications | Success/error feedback via sonner |
+| Card-based UI | Modern card layout for each comment |
+| Newest first | Comments sorted by newest first |
+| Relative timestamps | "2h ago", "Yesterday", etc. |
+| Guest badge | Visual indicator for guest comments |
+| Role badge | Shows user roles via UserDisplayName |
+
+#### Props Interface
+
+```tsx
+interface CommentSectionProps {
+  entityType: 'post' | 'project'  // Type of parent entity
+  entityId: string                 // UUID of parent entity
+  initialComments: Comment[]       // Pre-fetched comments
+  isLoggedIn: boolean              // User authentication state
+  currentUser?: {                  // Current user info (optional)
+    id: string
+    name: string
+    avatar?: string
+  } | null
+  allowGuest?: boolean             // Allow guest comments (default: false)
+}
+```
+
+#### ❌ DON'T: Create Separate Comment Components
+
+```tsx
+// ❌ BAD: Creating feature-specific comment components
+// components/blog/comment-section.tsx
+// components/project/CommentsSection.tsx
+
+// ✅ GOOD: Use unified component
+import { CommentSection } from '@/components/ui/comment-section'
+```
 
 ### Theme & Hydration Safety
 
@@ -375,13 +461,16 @@ export function ClientThemeProvider({
 **Blog Components**:
 
 - Blog card: [`blog/blog-card.tsx`](blog/blog-card.tsx)
-- Comments: [`blog/comment-section.tsx`](blog/comment-section.tsx)
 - Rich text editor: [`blog/rich-text-editor.tsx`](blog/rich-text-editor.tsx)
 
 **Project Components**:
 
 - Actions: [`project/ProjectActionsClient.tsx`](project/ProjectActionsClient.tsx)
 - Share: [`project/ShareButton.tsx`](project/ShareButton.tsx)
+
+**Unified Components** (shared across features):
+
+- Comments: [`ui/comment-section.tsx`](ui/comment-section.tsx) ⭐
 
 **Utility Components**:
 
@@ -425,7 +514,7 @@ findstr /s /i "'use client'" components\*.tsx components\**\*.tsx
 - **Client components**: Add `'use client'` directive for interactive components (hooks, state, events)
 - **Absolute imports**: Always use `@/` prefix (e.g., `@/components/ui/button`)
 - **Rich text**: Blog editor requires proper image upload handling
-- **Comments**: Ensure proper loading states for comments section
+- **Comments**: Use unified `CommentSection` from `@/components/ui/comment-section` for both Blog and Project
 - **Forms**: Use proper validation before submission
 - **Responsive**: Test components across different screen sizes
 

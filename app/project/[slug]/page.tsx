@@ -4,19 +4,20 @@ import { Calendar, ExternalLink, Globe, Tag, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { CommentsSection } from '@/components/project/CommentsSection'
 import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
 import { ProjectEditClient } from '@/components/project/ProjectEditClient'
 import { ShareButton } from '@/components/project/ShareButton'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { getComments, getProjectBySlug } from '@/lib/actions'
+import { getProjectBySlug } from '@/lib/actions'
+import { getComments } from '@/lib/actions/comments'
 import { getCategories } from '@/lib/categories'
 import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
@@ -35,10 +36,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   }
 
   // Parallel data fetching on server
-  const [currentUser, { project, error: projectError }, { comments }, categories] = await Promise.all([
+  const [currentUser, { project, error: projectError }, categories] = await Promise.all([
     getCurrentUser(),
     getProjectBySlug(slug),
-    getComments(slug),
     getCategories(),
   ])
 
@@ -46,6 +46,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   if (projectError || !project) {
     notFound()
   }
+
+  // Fetch comments using project.id (UUID)
+  const { comments: initialComments } = await getComments('project', project.id)
 
   // Check ownership on server
   const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
@@ -183,12 +186,22 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               )}
             </div>
 
-            {/* Comments Section - Client Component */}
-            <CommentsSection
-              projectSlug={slug}
-              initialComments={comments}
+            {/* Comments Section - Unified Component */}
+            <CommentSection
+              entityType="project"
+              entityId={project.id}
+              initialComments={initialComments}
               isLoggedIn={!!currentUser}
-              currentUser={currentUser}
+              currentUser={
+                currentUser
+                  ? {
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      avatar: currentUser.avatar,
+                    }
+                  : null
+              }
+              allowGuest={true}
             />
           </div>
 
@@ -254,7 +267,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Comments</span>
-                    <span className="font-medium">{comments.length}</span>
+                    <span className="font-medium">{initialComments.length}</span>
                   </div>
                 </div>
               </CardContent>

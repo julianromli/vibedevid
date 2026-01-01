@@ -27,9 +27,8 @@ lib/
 │   ├── middleware.ts            # Middleware for auth
 │   └── admin.ts                 # Admin client (service role)
 ├── actions/                     # Server actions by feature
-│   ├── actions.ts               # Main CRUD actions (projects, users)
 │   ├── blog.ts                  # Blog post actions
-│   └── comments.ts              # Comment actions
+│   └── comments.ts              # ⭐ Unified comment actions (Blog + Project)
 ├── constants/                   # Constant definitions
 │   └── faqs.ts                  # FAQ data
 ├── server/                      # Server utilities
@@ -247,7 +246,7 @@ export async function deleteBlogPost(id: string) {
 
 **Example**: [`lib/actions/blog.ts`](actions/blog.ts)
 
-#### ✅ DO: Comment Actions
+#### ✅ DO: Comment Actions (Unified)
 
 ```tsx
 // lib/actions/comments.ts
@@ -255,42 +254,90 @@ export async function deleteBlogPost(id: string) {
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import type { CreateCommentInput, CommentResult, GetCommentsResult } from '@/types/comments'
 
-export async function addComment(postId: string, content: string) {
-  try {
-    const supabase = await createClient()
+// Create comment for both Blog and Project
+export async function createComment(input: CreateCommentInput): Promise<CommentResult> {
+  const { entityType, entityId, content, guestName } = input
+  const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { success: false, error: 'Unauthorized' }
-    }
-
-    const { data, error } = await supabase
-      .from('comments')
-      .insert({
-        post_id: postId,
-        user_id: user.id,
-        content,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    revalidatePath(`/blog/${postId}`)
-
-    return { success: true, data }
-  } catch (error) {
-    console.error('Add comment error:', error)
-    return { success: false, error: 'Failed to add comment' }
+  // Build insert data based on entity type
+  const insertData = {
+    content: content.trim(),
+    user_id: authData.user?.id ?? null,
+    ...(entityType === 'post' ? { post_id: entityId } : { project_id: entityId }),
+    ...(!authData.user && guestName ? { author_name: guestName.trim() } : {}),
   }
+
+  const { error } = await supabase.from('comments').insert(insertData)
+  if (error) return { success: false, error: 'Failed to add comment' }
+
+  revalidatePath(entityType === 'post' ? '/blog' : '/project')
+  return { success: true }
+}
+
+// Get comments for Blog or Project
+export async function getComments(
+  entityType: 'post' | 'project',
+  entityId: string
+): Promise<GetCommentsResult> {
+  const supabase = await createClient()
+  const filterColumn = entityType === 'post' ? 'post_id' : 'project_id'
+
+  const { data, error } = await supabase
+    .from('comments')
+    .select(`id, content, created_at, user_id, author_name, users(id, display_name, avatar_url, role)`)
+    .eq(filterColumn, entityId)
+    .order('created_at', { ascending: false })
+
+  if (error) return { comments: [], error: 'Failed to load comments' }
+  return { comments: normalizeComments(data) }
+}
+
+// Report comment for moderation
+export async function reportComment(commentId: string, reason: string): Promise<CommentResult> {
+  const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
+
+  if (!authData.user) return { success: false, error: 'Login required' }
+
+  const { error } = await supabase.from('comment_reports').insert({
+    comment_id: commentId,
+    reporter_id: authData.user.id,
+    reason: reason.trim(),
+  })
+
+  if (error) return { success: false, error: 'Failed to report' }
+  return { success: true }
 }
 ```
 
 **Example**: [`lib/actions/comments.ts`](actions/comments.ts)
+
+#### ⭐ Comment Actions - Key Points
+
+| Function | Purpose | Entity Support |
+|----------|---------|----------------|
+| `createComment()` | Create new comment | Blog (`post`) + Project (`project`) |
+| `getComments()` | Fetch comments with user info | Blog (`post`) + Project (`project`) |
+| `reportComment()` | Report inappropriate comment | Both (requires login) |
+
+**Usage Pattern**:
+
+```tsx
+// In Server Component (page.tsx)
+import { getComments } from '@/lib/actions/comments'
+
+// For Blog post
+const { comments } = await getComments('post', postId)
+
+// For Project
+const { comments } = await getComments('project', projectId)
+```
+
+> **Note**: Legacy `addComment()` and `getComments()` functions in `lib/actions.ts` have been removed.
+> Always use `@/lib/actions/comments` for all comment operations.
 
 #### ✅ DO: Slug Generation with Uniqueness Check
 
@@ -560,9 +607,9 @@ export function truncateText(text: string, maxLength: number): string {
 
 **Server Actions**:
 
-- Main actions: [`actions.ts`](actions.ts) - Core CRUD operations
+- Main actions: [`actions.ts`](actions.ts) - Core CRUD operations (projects, users, likes)
 - Blog actions: [`actions/blog.ts`](actions/blog.ts)
-- Comment actions: [`actions/comments.ts`](actions/comments.ts)
+- Comment actions: [`actions/comments.ts`](actions/comments.ts) ⭐ Unified for Blog + Project
 - Slug handling: [`slug.ts`](slug.ts)
 
 **Client-Side Utilities**:
@@ -629,7 +676,7 @@ findstr /s /i "functionName" lib\*.ts lib\actions\*.ts
 - **Slug generation**: Always check uniqueness before inserting (see `slug.ts`)
 - **Analytics**: Fail silently on tracking errors (don't break user experience)
 - **Blog actions**: Blog actions require proper authorization checks
-- **Comments**: Comments require post existence validation
+- **Comments**: Use unified `@/lib/actions/comments` for both Blog and Project comments
 
 ## Server Action Checklist
 

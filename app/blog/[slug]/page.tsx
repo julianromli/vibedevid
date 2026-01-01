@@ -4,7 +4,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
-import { CommentSection } from '@/components/blog/comment-section'
+import { CommentSection } from '@/components/ui/comment-section'
+import { getComments } from '@/lib/actions/comments'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Footer } from '@/components/ui/footer'
@@ -109,6 +110,7 @@ export default async function BlogPostPage({ params }: Props) {
   }
 
   let userData = null
+  let commentUser: { id: string; name: string; avatar?: string } | null = null
   if (user) {
     const { data: profile } = await supabase
       .from('users')
@@ -124,6 +126,11 @@ export default async function BlogPostPage({ params }: Props) {
         avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
         username: profile.username,
         role: profile.role ?? null,
+      }
+      commentUser = {
+        id: profile.id,
+        name: profile.display_name,
+        avatar: profile.avatar_url || undefined,
       }
     }
   }
@@ -141,10 +148,10 @@ export default async function BlogPostPage({ params }: Props) {
     .single()
 
   // Fetch view count for this post
-  const { count: viewCount } = await supabase
-    .from('views')
-    .select('*', { count: 'exact', head: true })
-    .eq('post_id', post?.id)
+  const [{ count: viewCount }, { comments: initialComments }] = await Promise.all([
+    supabase.from('views').select('*', { count: 'exact', head: true }).eq('post_id', post?.id),
+    getComments('post', post?.id ?? ''),
+  ])
 
   // Flatten tags from nested structure
   const postTags: string[] =
@@ -258,7 +265,14 @@ export default async function BlogPostPage({ params }: Props) {
 
         <hr className="border-border my-12" />
 
-        <CommentSection postId={post.id} />
+        <CommentSection
+          entityType="post"
+          entityId={post.id}
+          initialComments={initialComments}
+          isLoggedIn={!!user}
+          currentUser={commentUser}
+          allowGuest={false}
+        />
       </div>
 
       <Footer />

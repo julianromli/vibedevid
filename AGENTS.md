@@ -141,6 +141,44 @@ bun tsc --noEmit
 - **Database**: [docs/database/](docs/database/) - Optimization & indexing docs
 - **Migrations**: [docs/migrations/](docs/migrations/) - Migration guides
 
+## ⭐ Unified Patterns (Cross-Feature)
+
+### Comments System
+
+Comments are **centralized** - one component and one set of server actions for both Blog and Project.
+
+| Resource | Location | Purpose |
+|----------|----------|---------|
+| Component | `components/ui/comment-section.tsx` | Unified UI component |
+| Types | `types/comments.ts` | Shared TypeScript types |
+| Actions | `lib/actions/comments.ts` | Server actions (CRUD + report) |
+
+**Quick Usage**:
+
+```tsx
+// Import
+import { CommentSection } from '@/components/ui/comment-section'
+import { getComments } from '@/lib/actions/comments'
+
+// Fetch (server-side)
+const { comments } = await getComments('post', postId)      // For Blog
+const { comments } = await getComments('project', projectId) // For Project
+
+// Render
+<CommentSection
+  entityType="post"           // 'post' | 'project'
+  entityId={id}               // UUID
+  initialComments={comments}  // Pre-fetched
+  isLoggedIn={!!user}
+  currentUser={{ id, name, avatar }}
+  allowGuest={false}          // true for Project, false for Blog
+/>
+```
+
+**Key Features**: Server-side prefetch, guest comments (configurable), report feature, loading states, toast notifications, newest-first ordering.
+
+> See `components/AGENTS.md` for detailed component documentation.
+
 ## Definition of Done
 
 Before considering a task complete:
