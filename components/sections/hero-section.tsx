@@ -54,21 +54,19 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
         <div className="space-y-12">
           <div className="space-y-8 text-center">
             <Link
-              href="https://vibecoding.id/hackathon"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/blog"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
             >
               <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_#8fdfff4f]">
-                🏆 <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />{' '}
+                ✨ <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />{' '}
                 <span
                   className={cn(
                     `animate-gradient inline bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
                   )}
                 >
-                  VibeCoding Hackathon 2025 by vibecoding.id
+                  Fitur Baru: Blog VibeDev ID
                 </span>
-                <span className="ml-2 font-semibold text-orange-500">Hadiah 5 JUTA RUPIAH</span>
+                <span className="ml-2 font-semibold text-orange-500">Baca Artikel Terbaru →</span>
               </AnimatedGradientText>
             </Link>
 
