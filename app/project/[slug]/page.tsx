@@ -22,6 +22,73 @@ import { getCategories } from '@/lib/categories'
 import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
+/**
+ * Format plain text description to HTML with proper line breaks and bullet points
+ */
+function formatDescription(text: string): string {
+  if (!text) return ''
+
+  // Normalize Windows line endings (CRLF) to Unix (LF)
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+
+  // Escape HTML entities to prevent XSS
+  const escaped = normalized
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+
+  // Split by double newlines for paragraphs, single newlines for line breaks
+  const paragraphs = escaped.split(/\n\n+/)
+
+  return paragraphs
+    .map((paragraph) => {
+      // Check if paragraph contains bullet points
+      const lines = paragraph.split('\n')
+      const hasBullets = lines.some((line) => /^[\s]*[•\-\*]\s/.test(line))
+
+      if (hasBullets) {
+        // Format as list
+        const listItems = lines
+          .map((line) => {
+            const bulletMatch = line.match(/^[\s]*[•\-\*]\s*(.*)$/)
+            if (bulletMatch) {
+              return `<li>${bulletMatch[1]}</li>`
+            }
+            // Non-bullet line in a bullet section - treat as regular text
+            return line.trim() ? `<p>${line}</p>` : ''
+          })
+          .filter(Boolean)
+          .join('')
+
+        // Check if there's a header before the list (like "🚀 Fitur Utama:")
+        const firstLine = lines[0]
+        const isHeader = firstLine && !/^[\s]*[•\-\*]\s/.test(firstLine)
+
+        if (isHeader) {
+          const headerLine = `<p class="font-semibold mt-4 mb-2">${firstLine}</p>`
+          const remainingItems = lines
+            .slice(1)
+            .map((line) => {
+              const bulletMatch = line.match(/^[\s]*[•\-\*]\s*(.*)$/)
+              return bulletMatch ? `<li>${bulletMatch[1]}</li>` : ''
+            })
+            .filter(Boolean)
+            .join('')
+          return `${headerLine}<ul class="list-disc list-inside space-y-1 mb-4">${remainingItems}</ul>`
+        }
+
+        return `<ul class="list-disc list-inside space-y-1 mb-4">${listItems}</ul>`
+      }
+
+      // Regular paragraph - convert single newlines to <br>
+      const formattedParagraph = paragraph.replace(/\n/g, '<br>')
+      return `<p class="mb-4">${formattedParagraph}</p>`
+    })
+    .join('')
+}
+
 // Server Component - async function
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -126,7 +193,10 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
               {/* Description */}
               <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <p className="text-muted-foreground text-base leading-relaxed">{project.description}</p>
+                <div
+                  className="text-muted-foreground text-base leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: formatDescription(project.description) }}
+                />
               </div>
 
               {/* Tech Stack Tags */}
