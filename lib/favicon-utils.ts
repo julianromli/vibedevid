@@ -5,11 +5,44 @@
 const DEFAULT_FAVICON = '/default-favicon.svg'
 
 /**
- * Extract domain from URL
+ * Validate if a string is a proper URL with valid hostname
+ * Must have protocol, valid hostname with TLD (e.g., example.com)
+ */
+function isValidUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false
+
+  // Trim and check for empty/whitespace-only strings
+  const trimmed = url.trim()
+  if (!trimmed || trimmed.length < 4) return false
+
+  try {
+    const urlObj = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`)
+
+    // Must have a valid hostname (not empty, not just protocol)
+    if (!urlObj.hostname || urlObj.hostname.length < 1) return false
+
+    // Hostname must contain at least one dot (TLD requirement)
+    // This prevents "https" or "http" being treated as valid domains
+    if (!urlObj.hostname.includes('.')) return false
+
+    // Hostname should not be just numbers (invalid domain)
+    if (/^\d+$/.test(urlObj.hostname.replace(/\./g, ''))) return false
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Extract domain from URL with strict validation
  */
 function extractDomain(url: string): string | null {
+  if (!isValidUrl(url)) return null
+
   try {
-    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`)
+    const trimmed = url.trim()
+    const urlObj = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`)
     return urlObj.origin
   } catch {
     return null
