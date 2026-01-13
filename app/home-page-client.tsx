@@ -51,7 +51,7 @@ export default function HomePageClient({ initialIsLoggedIn, initialUser }: HomeP
   }, [])
 
   const handleJoinWithUs = () => {
-    window.open('https://s.id/vibedev', '_blank')
+    window.open('https://dub.sh/vibedevid-form', '_blank')
   }
 
   const handleViewShowcase = () => {

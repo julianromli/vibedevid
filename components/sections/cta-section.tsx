@@ -112,7 +112,7 @@ export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASect
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleJoinWithUs}
           >
-            Gabung Vibe Dev ID Sekarang
+            Join Community
           </Button>
         </div>
       </div>

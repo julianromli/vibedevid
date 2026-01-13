@@ -110,33 +110,21 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
             </p>
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
-              {!isLoggedIn ? (
-                <>
-                  <Button
-                    size="lg"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={handleJoinWithUs}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                    Gabung Komunitas Gratis
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={handleViewShowcase}
-                  >
-                    Lihat Project & Event
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={handleViewShowcase}
-                >
-                  Lihat Showcase Kami
-                </Button>
-              )}
+              <Button
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleJoinWithUs}
+              >
+                <ArrowRight className="h-4 w-4" />
+                Join Community
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleViewShowcase}
+              >
+                Our Showcase
+              </Button>
             </div>
           </div>
 
