@@ -126,7 +126,6 @@ export function Navbar({
   const navItems = [
     { label: 'Projects', href: '/project/list', type: 'link' },
     { label: 'Blog', href: '/blog', type: 'link' },
-    { label: 'Leaderboard', href: '/ai/ranking', type: 'link' },
     {
       label: 'Showcase',
       action: () => scrollToSection?.('projects'),
