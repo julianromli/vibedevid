@@ -6,7 +6,7 @@ const { createClient } = require('@supabase/supabase-js')
 // Direct environment variables
 const supabaseUrl = 'https://qabfrhpbfvjcgdrxdlba.supabase.co'
 const supabaseServiceRoleKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYmZyaHBiZnZqY2dkcnhkbGJhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcwMDE3NywiZXhwIjoyMDcxMjc2MTc3fQ.j2UXpgqGzoFL03xVMdpwxMtt2FPzTZ50nYwaLANUAhU'
+  ''
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error('❌ Missing Supabase environment variables!')
