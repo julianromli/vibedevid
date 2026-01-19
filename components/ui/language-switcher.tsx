@@ -46,10 +46,9 @@ export function LanguageSwitcher() {
     // Add new locale prefix (except for default locale which uses root)
     const finalPath = newLocale === routing.defaultLocale ? newPath : `/${newLocale}${newPath}`
 
-    startTransition(() => {
-      router.push(finalPath)
-      router.refresh()
-    })
+    // Force hard navigation to ensure middleware runs and cookies are set correctly
+    // This resolves the issue where page content doesn't update immediately on language switch
+    window.location.href = finalPath
   }
 
   return (
