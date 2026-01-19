@@ -22,7 +22,7 @@ bun build
 # Type checking (CRITICAL: build ignores TS errors via ignoreBuildErrors: true)
 bun tsc --noEmit
 
-# Linting & Formatting
+# Linting & Formatting (Biome)
 bun lint
 bun format
 
@@ -35,8 +35,14 @@ bunx playwright test tests/views-tracking.spec.ts
 # Run single test by name
 bunx playwright test -g "should track views when visiting project page"
 
+# Run unit tests only
+bunx playwright test tests/unit/
+
 # Run tests in headed mode (see browser)
 bunx playwright test --headed
+
+# Run tests in debug mode (step through)
+bunx playwright test --debug
 
 # Run tests in specific browser
 bunx playwright test --project=chromium
@@ -50,12 +56,12 @@ bunx playwright test --project=chromium
 - 2-space indentation, no semicolons, single quotes (Biome enforced)
 - Biome: Unified linter + formatter (replaces ESLint + Prettier)
 - Tailwind utility-first CSS (Biome's `useSortedClasses` auto-sorts classes)
-- Unused vars allowed (Biome rule disabled for both JS and TS)
+- Line width: 120 characters max
 
 **Imports**:
 
 - Use `@/` prefix for absolute imports (e.g., `import { createClient } from '@/lib/supabase/client'`)
-- Group imports: React → Third-party → Internal (@/)
+- Group imports: React -> Third-party -> Internal (@/)
 - Named exports preferred over default exports (except Next.js pages/layouts)
 
 **Types**:
@@ -68,7 +74,7 @@ bunx playwright test --project=chromium
 
 - Components: `PascalCase` (e.g., `HeroSection.tsx`)
 - Hooks: `use` prefix (e.g., `useAuth.ts`)
-- Utils: `camelCase` (e.g., `slug.ts`)
+- Utils/lib: `camelCase` (e.g., `slug.ts`)
 - Constants: `UPPER_SNAKE_CASE`
 - Files: Match export name or Next.js convention (`page.tsx`, `route.ts`)
 
@@ -84,10 +90,7 @@ bunx playwright test --project=chromium
 - Keep scope small and imperative mood
 - Examples: `feat: add user profile page`, `fix: resolve theme hydration issue`
 
-**Branch Strategy**:
-
-- Main branch: `main`
-- Work directly or use feature branches as needed
+**Branch Strategy**: Main branch is `main`. Work directly or use feature branches.
 
 ## Security & Secrets
 
@@ -97,87 +100,52 @@ bunx playwright test --project=chromium
 - **Auth whitelist**: Email domain restrictions enforced (do not expand without review)
 - **PII handling**: Never log sensitive user data
 
-## JIT Index - Directory Map
+## Directory Map
 
-### Package Structure
+| Directory | Purpose | Details |
+|-----------|---------|---------|
+| `components/` | React UI components | [components/AGENTS.md](components/AGENTS.md) |
+| `hooks/` | Custom React hooks | [hooks/AGENTS.md](hooks/AGENTS.md) |
+| `lib/` | Server utilities, actions | [lib/AGENTS.md](lib/AGENTS.md) |
+| `app/` | Next.js App Router routes | [app/AGENTS.md](app/AGENTS.md) |
+| `tests/` | Playwright E2E tests | [tests/AGENTS.md](tests/AGENTS.md) |
+| `scripts/` | Database migrations | [scripts/AGENTS.md](scripts/AGENTS.md) |
 
-- **Components**: `components/` → [see components/AGENTS.md](components/AGENTS.md)
-- **Hooks**: `hooks/` → [see hooks/AGENTS.md](hooks/AGENTS.md)
-- **Server utilities**: `lib/` → [see lib/AGENTS.md](lib/AGENTS.md)
-- **App routes**: `app/` → [see app/AGENTS.md](app/AGENTS.md)
-- **E2E tests**: `tests/` → [see tests/AGENTS.md](tests/AGENTS.md)
-- **Database migrations**: `scripts/` → [see scripts/AGENTS.md](scripts/AGENTS.md)
+**Key Documentation**:
+- [WARP.md](WARP.md) - Living knowledge base (READ THIS FIRST)
+- [docs/design-system.md](docs/design-system.md) - Colors, typography, components
+- [docs/README.md](docs/README.md) - All documentation index
 
-### Quick Find Commands
-
-```bash
-# Find a component by name
-bunx find components -name "*ComponentName*"
-
-# Find a hook
-bunx find hooks -name "use*"
-
-# Find a route handler
-bunx find app -name "page.tsx" -o -name "route.ts"
-
-# Find server actions
-bunx find lib -name "actions.ts"
-
-# Search for a function/variable across codebase
-# Note: ripgrep (rg) is not installed, use findstr on Windows
-findstr /s /i "functionName" *.ts *.tsx
-
-# Find all TypeScript files with errors
-bun tsc --noEmit
-```
-
-### Project Documentation
-
-- **Docs Index**: [docs/README.md](docs/README.md) - All documentation
-- **Main guide**: [WARP.md](WARP.md) - Living knowledge base (READ THIS FIRST)
-- **Design System**: [docs/design-system.md](docs/design-system.md) - Colors, typography, components
-- **Security**: [SECURITY.md](SECURITY.md)
-- **Deployment**: [docs/deployment/vercel.md](docs/deployment/vercel.md)
-- **Database**: [docs/database/](docs/database/) - Optimization & indexing docs
-- **Migrations**: [docs/migrations/](docs/migrations/) - Migration guides
-
-## ⭐ Unified Patterns (Cross-Feature)
+## Unified Patterns
 
 ### Comments System
 
 Comments are **centralized** - one component and one set of server actions for both Blog and Project.
 
-| Resource | Location | Purpose |
-|----------|----------|---------|
-| Component | `components/ui/comment-section.tsx` | Unified UI component |
-| Types | `types/comments.ts` | Shared TypeScript types |
-| Actions | `lib/actions/comments.ts` | Server actions (CRUD + report) |
+| Resource | Location |
+|----------|----------|
+| Component | `components/ui/comment-section.tsx` |
+| Types | `types/comments.ts` |
+| Actions | `lib/actions/comments.ts` |
 
-**Quick Usage**:
-
+**Usage**:
 ```tsx
-// Import
 import { CommentSection } from '@/components/ui/comment-section'
 import { getComments } from '@/lib/actions/comments'
 
-// Fetch (server-side)
-const { comments } = await getComments('post', postId)      // For Blog
-const { comments } = await getComments('project', projectId) // For Project
+// Fetch: 'post' for Blog, 'project' for Project
+const { comments } = await getComments('post', postId)
 
 // Render
 <CommentSection
-  entityType="post"           // 'post' | 'project'
-  entityId={id}               // UUID
-  initialComments={comments}  // Pre-fetched
+  entityType="post"
+  entityId={id}
+  initialComments={comments}
   isLoggedIn={!!user}
   currentUser={{ id, name, avatar }}
-  allowGuest={false}          // true for Project, false for Blog
+  allowGuest={false}
 />
 ```
-
-**Key Features**: Server-side prefetch, guest comments (configurable), report feature, loading states, toast notifications, newest-first ordering.
-
-> See `components/AGENTS.md` for detailed component documentation.
 
 ## Definition of Done
 
