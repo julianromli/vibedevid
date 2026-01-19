@@ -1,4 +1,0 @@
-This is a test file for upload functionality testing.
-Content: Sample project screenshot
-Date: 2025-08-26
-Purpose: Testing file upload in project submission form
