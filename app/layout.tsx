@@ -4,6 +4,7 @@ import type React from 'next'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import Script from 'next/script'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
@@ -41,75 +42,81 @@ const instrumentSerif = Instrument_Serif({
   adjustFontFallback: true,
 })
 
-export const metadata: Metadata = {
-  title: {
-    default: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI',
-    template: '%s | VibeDev ID',
-  },
-  description:
-    'Gabung VibeDev ID, komunitas vibe coding Indonesia. Belajar coding pake AI, kolab di project open source, dan ketemu vibe coder Indonesia. Event rutin + support komunitas.',
-  applicationName: 'VibeDev ID',
-  generator: 'VibeDev ID',
-  keywords: [
-    'vibe coding',
-    'komunitas vibe coding',
-    'komunitas vibe coding indonesia',
-    'vibe coder indonesia',
-    'coding pake AI',
-    'AI untuk coding',
-    'komunitas developer indonesia',
-    'open source indonesia',
-    'belajar coding AI',
-    'developer community indonesia',
-    'project showcase indonesia',
-  ],
-  category: 'technology',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com'),
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia',
-    description: 'Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com',
-    siteName: 'VibeDev ID',
-    images: [
-      {
-        url: 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0',
-        width: 1200,
-        height: 630,
-        alt: 'Komunitas Vibe Coding Indonesia',
-      },
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: 'metadata' })
+
+  return {
+    title: {
+      default: t('title'),
+      template: t('titleTemplate'),
+    },
+    description: t('description'),
+    applicationName: 'VibeDev ID',
+    generator: 'VibeDev ID',
+    keywords: [
+      'vibe coding',
+      'komunitas vibe coding',
+      'komunitas vibe coding indonesia',
+      'vibe coder indonesia',
+      'coding pake AI',
+      'AI untuk coding',
+      'komunitas developer indonesia',
+      'open source indonesia',
+      'belajar coding AI',
+      'developer community indonesia',
+      'project showcase indonesia',
     ],
-    locale: 'id_ID',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia',
-    description: 'Belajar coding pake AI bareng komunitas vibe coding Indonesia.',
-    images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'],
-    creator: '@vibedevid',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  icons: {
-    icon: '/vibedev-guest-avatar.png',
-    shortcut: '/vibedev-guest-avatar.png',
-    apple: '/vibedev-guest-avatar.png',
-  },
+    category: 'technology',
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com'),
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      title: t('ogTitle'),
+      description: t('ogDescription'),
+      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com',
+      siteName: 'VibeDev ID',
+      images: [
+        {
+          url: 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0',
+          width: 1200,
+          height: 630,
+          alt: t('ogImageAlt'),
+        },
+      ],
+      locale: locale === 'en' ? 'en_US' : 'id_ID',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('ogTitle'),
+      description: t('twitterDescription'),
+      images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'],
+      creator: '@vibedevid',
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    icons: {
+      icon: '/vibedev-guest-avatar.png',
+      shortcut: '/vibedev-guest-avatar.png',
+      apple: '/vibedev-guest-avatar.png',
+    },
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+
   return (
     <html
-      lang="id"
+      lang={locale}
       suppressHydrationWarning
       className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}
     >

@@ -1,4 +1,13 @@
 {
+  "metadata": {
+    "title": "VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia | Coding Pake AI",
+    "titleTemplate": "%s | VibeDev ID",
+    "description": "Gabung VibeDev ID, komunitas vibe coding Indonesia. Belajar coding pake AI, kolab di project open source, dan ketemu vibe coder Indonesia. Event rutin + support komunitas.",
+    "ogTitle": "VibeDev ID - Komunitas Vibe Coding No. 1 di Indonesia",
+    "ogDescription": "Komunitas vibe coding Indonesia: belajar coding pake AI, project open source, event rutin.",
+    "ogImageAlt": "Komunitas Vibe Coding Indonesia",
+    "twitterDescription": "Belajar coding pake AI bareng komunitas vibe coding Indonesia."
+  },
   "common": {
     "signIn": "Masuk",
     "signOut": "Keluar",
