@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 import bundleAnalyzer from '@next/bundle-analyzer'
+import createNextIntlPlugin from 'next-intl/plugin'
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -206,12 +209,6 @@ const nextConfig = {
         port: '',
         pathname: '/@lobehub/icons@latest/icons/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'www.designarena.ai',
-        port: '',
-        pathname: '/model-logos/**',
-      },
       // Favicon support for any domain
       {
         protocol: 'https',
@@ -259,4 +256,4 @@ const nextConfig = {
   },
 }
 
-export default withBundleAnalyzer(nextConfig)
+export default withNextIntl(withBundleAnalyzer(nextConfig))

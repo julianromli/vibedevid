@@ -1,0 +1,32 @@
+{
+  "common": {
+    "signIn": "Masuk",
+    "signOut": "Keluar",
+    "profile": "Profil",
+    "myPosts": "Postingan Saya",
+    "write": "Tulis",
+    "writePost": "Tulis Postingan"
+  },
+  "navbar": {
+    "projects": "Projects",
+    "blog": "Blog",
+    "showcase": "Showcase",
+    "features": "Fitur",
+    "reviews": "Ulasan",
+    "faq": "FAQ"
+  },
+  "hero": {
+    "announcement": "Fitur Baru: Blog VibeDev ID",
+    "readLatest": "Baca Artikel Terbaru →",
+    "titleLine1": ["Komunitas", "Vibe", "Coding"],
+    "titleLine2": ["No.", "1", "di", "Indonesia"],
+    "subtitle": "Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project open source, dan sharing session tiap minggunya.",
+    "joinCommunity": "Join Community",
+    "ourShowcase": "Our Showcase"
+  },
+  "toast": {
+    "signOutSuccess": "Berhasil keluar! 👋 Sampai jumpa lagi!",
+    "signOutError": "Gagal keluar. Coba lagi!",
+    "generalError": "Terjadi kesalahan saat keluar"
+  }
+}

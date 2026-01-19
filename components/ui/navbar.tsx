@@ -17,10 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useScroll } from '@/hooks/use-scroll'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -62,6 +64,7 @@ export function Navbar({
   const [open, setOpen] = useState(false)
   const scrolled = useScroll(10)
   const router = useRouter()
+  const t = useSafeTranslations()
 
   useEffect(() => {
     if (open) {
@@ -99,16 +102,16 @@ export function Navbar({
         const supabase = createClient()
         const { error } = await supabase.auth.signOut()
         if (error) {
-          toast.error('Gagal keluar. Coba lagi!')
+          toast.error(t('toast.signOutError'))
           return
         }
-        toast.success('Berhasil keluar! 👋 Sampai jumpa lagi!')
+        toast.success(t('toast.signOutSuccess'))
         setTimeout(() => {
           router.refresh()
           router.push('/')
         }, 100)
       } catch (_error) {
-        toast.error('Terjadi kesalahan saat keluar')
+        toast.error(t('toast.generalError'))
       }
     }
   }
@@ -124,24 +127,24 @@ export function Navbar({
   }
 
   const navItems = [
-    { label: 'Projects', href: '/project/list', type: 'link' },
-    { label: 'Blog', href: '/blog', type: 'link' },
+    { label: t('navbar.projects'), href: '/project/list', type: 'link' },
+    { label: t('navbar.blog'), href: '/blog', type: 'link' },
     {
-      label: 'Showcase',
+      label: t('navbar.showcase'),
       action: () => scrollToSection?.('projects'),
       type: 'button',
     },
     {
-      label: 'Features',
+      label: t('navbar.features'),
       action: () => scrollToSection?.('features'),
       type: 'button',
     },
     {
-      label: 'Reviews',
+      label: t('navbar.reviews'),
       action: () => scrollToSection?.('reviews'),
       type: 'button',
     },
-    { label: 'FAQ', action: () => scrollToSection?.('faq'), type: 'button' },
+    { label: t('navbar.faq'), action: () => scrollToSection?.('faq'), type: 'button' },
   ]
 
   return (
@@ -244,13 +247,14 @@ export function Navbar({
             }}
             transition={springTransition}
           >
+            <LanguageSwitcher />
             <ThemeToggle />
             {!userIsLoggedIn ? (
               <Button
                 onClick={handleSignIn}
                 size="sm"
               >
-                Sign In
+                {t('common.signIn')}
               </Button>
             ) : (
               <>
@@ -262,7 +266,7 @@ export function Navbar({
                     className="gap-1.5"
                   >
                     <PenSquare className="h-4 w-4" />
-                    Write
+                    {t('common.write')}
                   </Button>
                 </Link>
 
@@ -296,7 +300,7 @@ export function Navbar({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleProfile}>
                       <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
+                      <span>{t('common.profile')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
@@ -304,13 +308,13 @@ export function Navbar({
                         className="flex items-center"
                       >
                         <FileText className="mr-2 h-4 w-4" />
-                        <span>My Posts</span>
+                        <span>{t('common.myPosts')}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sign Out</span>
+                      <span>{t('common.signOut')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -320,6 +324,7 @@ export function Navbar({
 
           {/* Mobile Menu Toggle */}
           <div className="flex items-center gap-2 md:hidden">
+            <LanguageSwitcher />
             <ThemeToggle />
             {/* Mobile Sign In / User Menu - always visible regardless of showNavigation */}
             {!userIsLoggedIn ? (
@@ -327,7 +332,7 @@ export function Navbar({
                 onClick={handleSignIn}
                 size="sm"
               >
-                Sign In
+                {t('common.signIn')}
               </Button>
             ) : (
               <DropdownMenu>
@@ -364,12 +369,12 @@ export function Navbar({
                       className="flex items-center"
                     >
                       <PenSquare className="mr-2 h-4 w-4" />
-                      <span>Write</span>
+                      <span>{t('common.write')}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleProfile}>
                     <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>{t('common.profile')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
@@ -377,13 +382,13 @@ export function Navbar({
                       className="flex items-center"
                     >
                       <FileText className="mr-2 h-4 w-4" />
-                      <span>My Posts</span>
+                      <span>{t('common.myPosts')}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span>{t('common.signOut')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -446,7 +451,7 @@ export function Navbar({
                   size="lg"
                   className="w-full"
                 >
-                  Sign In
+                  {t('common.signIn')}
                 </Button>
               ) : (
                 <div className="flex flex-col gap-4 border-t pt-6">
@@ -460,7 +465,7 @@ export function Navbar({
                       size="lg"
                     >
                       <PenSquare className="h-4 w-4" />
-                      Write a Post
+                      {t('common.writePost')}
                     </Button>
                   </Link>
 
@@ -487,7 +492,7 @@ export function Navbar({
                         setOpen(false)
                       }}
                     >
-                      <User className="mr-2 h-4 w-4" /> Profile
+                      <User className="mr-2 h-4 w-4" /> {t('common.profile')}
                     </Button>
                     <Button
                       variant="outline"
@@ -498,7 +503,7 @@ export function Navbar({
                         href="/dashboard/posts"
                         onClick={() => setOpen(false)}
                       >
-                        <FileText className="mr-2 h-4 w-4" /> My Posts
+                        <FileText className="mr-2 h-4 w-4" /> {t('common.myPosts')}
                       </Link>
                     </Button>
                   </div>
@@ -510,7 +515,7 @@ export function Navbar({
                       setOpen(false)
                     }}
                   >
-                    <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                    <LogOut className="mr-2 h-4 w-4" /> {t('common.signOut')}
                   </Button>
                 </div>
               )}

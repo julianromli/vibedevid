@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
 import HomePageClient from './home-page-client'

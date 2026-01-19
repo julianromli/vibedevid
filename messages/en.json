@@ -1,0 +1,32 @@
+{
+  "common": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "profile": "Profile",
+    "myPosts": "My Posts",
+    "write": "Write",
+    "writePost": "Write a Post"
+  },
+  "navbar": {
+    "projects": "Projects",
+    "blog": "Blog",
+    "showcase": "Showcase",
+    "features": "Features",
+    "reviews": "Reviews",
+    "faq": "FAQ"
+  },
+  "hero": {
+    "announcement": "New Feature: VibeDev ID Blog",
+    "readLatest": "Read Latest Articles →",
+    "titleLine1": ["Vibe", "Coding", "Community"],
+    "titleLine2": ["#1", "in", "Indonesia"],
+    "subtitle": "Indonesia's vibe coding community for those who want to level up, learn AI-powered coding, collaborate on open source projects, and join weekly sharing sessions.",
+    "joinCommunity": "Join Community",
+    "ourShowcase": "Our Showcase"
+  },
+  "toast": {
+    "signOutSuccess": "Successfully signed out! 👋 See you again!",
+    "signOutError": "Failed to sign out. Please try again!",
+    "generalError": "An error occurred while signing out"
+  }
+}

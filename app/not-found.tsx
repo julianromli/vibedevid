@@ -4,21 +4,10 @@ import { Compass, Home } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { useAuth } from '@/hooks/useAuth'
 
 export default function NotFound() {
-  const auth = useAuth()
-
   return (
     <div className="bg-background flex min-h-screen flex-col">
-      <Navbar
-        showNavigation={true}
-        isLoggedIn={auth.isLoggedIn}
-        user={auth.user ?? undefined}
-      />
-
       <main className="flex flex-1 items-center justify-center">
         <div className="flex w-full items-center justify-center py-20">
           <div className="border-border relative flex items-center border-x">
@@ -29,10 +18,7 @@ export default function NotFound() {
                   <EmptyTitle className="from-foreground to-muted-foreground/50 bg-gradient-to-b bg-clip-text font-mono text-8xl font-black text-transparent md:text-9xl">
                     404
                   </EmptyTitle>
-                  <EmptyDescription className="mt-4 text-lg text-nowrap">
-                    Halaman yang lo cari mungkin udah <br />
-                    dipindah atau nggak ada, bro.
-                  </EmptyDescription>
+                  <EmptyDescription className="mt-4 text-lg text-nowrap">Page not found</EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent className="mt-8">
                   <div className="flex gap-4">
@@ -41,7 +27,7 @@ export default function NotFound() {
                       size="lg"
                     >
                       <Link href="/">
-                        <Home className="mr-2 h-4 w-4" /> Balik Home
+                        <Home className="mr-2 h-4 w-4" /> Home
                       </Link>
                     </Button>
 
@@ -51,7 +37,7 @@ export default function NotFound() {
                       size="lg"
                     >
                       <Link href="/project/list">
-                        <Compass className="mr-2 h-4 w-4" /> Explore Project
+                        <Compass className="mr-2 h-4 w-4" /> Explore Projects
                       </Link>
                     </Button>
                   </div>
@@ -62,8 +48,6 @@ export default function NotFound() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   )
 }

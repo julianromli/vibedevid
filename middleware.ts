@@ -1,12 +1,52 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { routing } from './i18n/routing'
 import { getSupabaseConfig } from './lib/env-config'
 
+// Detect locale from request
+function getLocale(request: NextRequest): string {
+  // 1. Check URL for locale prefix
+  const pathname = request.nextUrl.pathname
+  for (const locale of routing.locales) {
+    if (pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`) {
+      return locale
+    }
+  }
+
+  // 2. Check cookie
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
+  if (cookieLocale && routing.locales.includes(cookieLocale as 'id' | 'en')) {
+    return cookieLocale
+  }
+
+  // 3. Check Accept-Language header
+  const acceptLanguage = request.headers.get('Accept-Language')
+  if (acceptLanguage) {
+    const preferredLocale = acceptLanguage.split(',')[0].split('-')[0]
+    if (routing.locales.includes(preferredLocale as 'id' | 'en')) {
+      return preferredLocale
+    }
+  }
+
+  // 4. Default
+  return routing.defaultLocale
+}
+
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+  const { pathname } = request.nextUrl
+
+  // Create response
+  const response = NextResponse.next({ request })
+
+  // Detect and set locale cookie (don't redirect, just set cookie for client-side detection)
+  const locale = getLocale(request)
+  response.cookies.set('NEXT_LOCALE', locale, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365, // 1 year
+    sameSite: 'lax',
   })
 
+  // Now handle Supabase auth
   try {
     const { url, anonKey } = getSupabaseConfig()
     const requestUrl = new URL(request.url)
@@ -17,11 +57,9 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          // Copy cookies to response
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     })
@@ -35,20 +73,20 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     // Check for email confirmation requirements
-    const isAuthPath = requestUrl.pathname.startsWith('/user/auth')
-    const isConfirmEmailPath = requestUrl.pathname.includes('/confirm-email')
-    const isCallbackPath = requestUrl.pathname.includes('/auth/callback')
+    const isAuthPath = pathname.startsWith('/user/auth')
+    const isConfirmEmailPath = pathname.includes('/confirm-email')
+    const isCallbackPath = pathname.includes('/auth/callback')
 
     // If user is logged in but email is not confirmed
     if (user && !user.email_confirmed_at && !isAuthPath && !isCallbackPath) {
-      console.log('[Middleware] Redirecting unconfirmed user:', user.email, 'from:', requestUrl.pathname)
+      console.log('[Middleware] Redirecting unconfirmed user:', user.email, 'from:', pathname)
 
       // Sign out unconfirmed user and redirect
       await supabase.auth.signOut()
 
       return NextResponse.redirect(
         new URL(
-          `/user/auth/confirm-email?email=${encodeURIComponent(user.email || '')}&from=${encodeURIComponent(requestUrl.pathname)}`,
+          `/user/auth/confirm-email?email=${encodeURIComponent(user.email || '')}&from=${encodeURIComponent(pathname)}`,
           requestUrl.origin,
         ),
       )
@@ -64,15 +102,7 @@ export async function middleware(request: NextRequest) {
     // Continue without authentication if there's an error
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object instead of the supabaseResponse object
-
-  return supabaseResponse
+  return response
 }
 
 export const config = {

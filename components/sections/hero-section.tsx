@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { cn } from '@/lib/utils'
 import type { User } from '@/types/homepage'
 
@@ -26,12 +27,15 @@ interface HeroSectionProps {
 export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const t = useSafeTranslations('hero')
+
+  // Get translated title words
+  const titleLine1 = t.raw('titleLine1') as string[]
+  const titleLine2 = t.raw('titleLine2') as string[]
 
   // Animated title effect
   useEffect(() => {
-    const titlePart1 = ['Komunitas', 'Vibe', 'Coding']
-    const titlePart2 = ['No.', '1', 'di', 'Indonesia']
-    const words = [...titlePart1, ...titlePart2]
+    const words = [...titleLine1, ...titleLine2]
 
     words.forEach((word, index) => {
       setTimeout(() => {
@@ -45,7 +49,7 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
       },
       words.length * 100 + 200,
     )
-  }, [])
+  }, [titleLine1, titleLine2])
 
   return (
     <section className="bg-grid-pattern relative mt-0 py-20 lg:py-32">
@@ -58,20 +62,19 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
             >
               <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_#8fdfff4f]">
-                ✨ <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />{' '}
                 <span
                   className={cn(
                     `animate-gradient inline bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
                   )}
                 >
-                  Fitur Baru: Blog VibeDev ID
+                  {t('announcement')}
                 </span>
-                <span className="ml-2 font-semibold text-orange-500">Baca Artikel Terbaru →</span>
+                <span className="ml-2 font-semibold text-orange-500">{t('readLatest')}</span>
               </AnimatedGradientText>
             </Link>
 
             <h1 className="text-foreground text-4xl leading-10 leading-tight font-bold tracking-tight md:text-6xl lg:text-7xl xl:text-8xl">
-              {['Komunitas', 'Vibe', 'Coding'].map((word, index) => (
+              {titleLine1.map((word, index) => (
                 <span
                   key={index}
                   className={`mr-3 inline-block leading-3 transition-all duration-700 ease-out ${
@@ -85,15 +88,15 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
                 </span>
               ))}
               <br />
-              {['No.', '1', 'di', 'Indonesia'].map((word, index) => (
+              {titleLine2.map((word, index) => (
                 <span
-                  key={index + 3}
+                  key={index + titleLine1.length}
                   className={`mr-3 inline-block leading-3 transition-all duration-700 ease-out ${
-                    animatedWords.includes(index + 3)
+                    animatedWords.includes(index + titleLine1.length)
                       ? 'blur-0 translate-y-0 opacity-100'
                       : 'translate-y-8 opacity-0 blur-sm'
                   }`}
-                  style={{ transitionDelay: `${(index + 3) * 100}ms` }}
+                  style={{ transitionDelay: `${(index + titleLine1.length) * 100}ms` }}
                 >
                   {word}
                 </span>
@@ -105,8 +108,7 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
                 subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm'
               }`}
             >
-              Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project
-              open source, dan sharing session tiap minggunya.
+              {t('subtitle')}
             </p>
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
@@ -116,14 +118,14 @@ export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShow
                 onClick={handleJoinWithUs}
               >
                 <ArrowRight className="h-4 w-4" />
-                Join Community
+                {t('joinCommunity')}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={handleViewShowcase}
               >
-                Our Showcase
+                {t('ourShowcase')}
               </Button>
             </div>
           </div>
