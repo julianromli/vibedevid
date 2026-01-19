@@ -5,8 +5,11 @@
 
 import Image from 'next/image'
 import { IntegrationCard } from '@/components/ui/integration-card'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 export function AIToolsSection() {
+  const t = useSafeTranslations('aiTools')
+
   return (
     <section
       id="integrations"
@@ -15,19 +18,14 @@ export function AIToolsSection() {
     >
       <div className="mx-auto max-w-5xl px-6">
         <div className="mb-12 text-center">
-          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            AI untuk Coding & Development Tools
-          </h2>
-          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-            Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit
-            untuk workflow development yang next-level.
-          </p>
+          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
         </div>
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <IntegrationCard
             title="Lovable"
-            description="AI co-engineer yang build full-stack apps dari single prompt. Integrates dengan auth, payments, dan databases otomatis."
+            description={t('tools.lovable.description')}
             link="https://lovable.dev/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -43,7 +41,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="v0.app"
-            description="AI-powered design-to-code platform yang convert ideas jadi functional apps. Rapid prototyping dengan visual interface builder."
+            description={t('tools.v0.description')}
             link="https://v0.app/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -59,7 +57,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="OpenAI Codex"
-            description="AI programming assistant yang bisa generate, explain, dan debug code. Supports multiple languages dengan natural language interface."
+            description={t('tools.openai.description')}
             link="https://github.com/openai/codex"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -75,7 +73,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Cursor"
-            description="AI-powered code editor yang understand codebase lo. Natural language to code dengan intelligent completion dan real-time suggestions."
+            description={t('tools.cursor.description')}
             link="https://cursor.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -91,7 +89,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Warp"
-            description="Modern terminal dengan Active AI features, command suggestions, dan intelligent autocompletion untuk workflow yang lebih efficient."
+            description={t('tools.warp.description')}
             link="https://warp.dev/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -107,7 +105,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Trae"
-            description="AI-powered development framework yang accelerate project creation dengan intelligent code generation dan automation tools."
+            description={t('tools.trae.description')}
             link="https://trae.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">

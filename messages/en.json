@@ -37,5 +37,143 @@
     "signOutSuccess": "Successfully signed out! 👋 See you again!",
     "signOutError": "Failed to sign out. Please try again!",
     "generalError": "An error occurred while signing out"
+  },
+  "projectShowcase": {
+    "title": "Indonesian Developer Project Showcase",
+    "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
+    "submitButton": "Submit Project",
+    "loadMoreButton": "Load More Projects"
+  },
+  "youtubeShowcase": {
+    "title": "Latest Vibe Coding Videos",
+    "description": "Watch the latest tutorials, live coding sessions, and tech podcasts from the Vibe Coding Indonesia community.",
+    "viewAll": "View All Videos on Our Channel",
+    "watch": "Watch",
+    "error": "Failed to load videos. Please try refreshing the page!"
+  },
+  "features": {
+    "title": "Why Join VibeDev ID?",
+    "subtitle": "A supportive, collaborative Indonesian vibe coding community ready to help you grow into a better developer",
+    "stats": {
+      "title": "Active Vibe Coders"
+    },
+    "trusted": {
+      "title": "Trusted Community",
+      "description": "Quality discussions, real networking, and meaningful collaboration."
+    },
+    "levelUp": {
+      "title": "Level Up Together",
+      "description": "Track your coding progress, share achievements, and see your skills grow."
+    },
+    "safeSpace": {
+      "title": "Safe Space to Learn",
+      "description": "Supportive environment for all levels. Whether beginner or expert, everyone helps each other grow together."
+    },
+    "collaboration": {
+      "title": "Limitless Collaboration",
+      "description": "Build projects together, share knowledge, and build something amazing together."
+    }
+  },
+  "aiLeaderboard": {
+    "badge": "Live Rankings",
+    "title": "AI Coding Model Benchmark 2025",
+    "description": "AI coding model rankings based on <liveCodeBench>LiveCodeBench</liveCodeBench>, <sciCode>SciCode</sciCode>, and <terminalBench>Terminal-Bench Hard</terminalBench>",
+    "attribution": {
+      "title": "Data from Artificial Analysis",
+      "subtitle": "Independent AI model benchmarking"
+    },
+    "viewFull": "View Full Rankings",
+    "score": "SCORE"
+  },
+  "aiTools": {
+    "title": "AI for Coding & Development Tools",
+    "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
+    "tools": {
+      "lovable": {
+        "description": "AI co-engineer that builds full-stack apps from a single prompt. Integrates with auth, payments, and databases automatically."
+      },
+      "v0": {
+        "description": "AI-powered design-to-code platform that converts ideas into functional apps. Rapid prototyping with a visual interface builder."
+      },
+      "openai": {
+        "description": "AI programming assistant that can generate, explain, and debug code. Supports multiple languages with a natural language interface."
+      },
+      "cursor": {
+        "description": "AI-powered code editor that understands your codebase. Natural language to code with intelligent completion and real-time suggestions."
+      },
+      "warp": {
+        "description": "Modern terminal with Active AI features, command suggestions, and intelligent autocompletion for a more efficient workflow."
+      },
+      "trae": {
+        "description": "AI-powered development framework that accelerates project creation with intelligent code generation and automation tools."
+      }
+    }
+  },
+  "reviews": {
+    "title": "Vibe Coding Community Member Reviews",
+    "subtitle": "Real testimonials from Indonesian developers who have joined our community",
+    "testimonials": {
+      "0": {
+        "text": "VibeDev ID changed how I learn coding! From being stuck alone, now I have solid friends for discussion and project collaboration. Networking here is top-notch!",
+        "role": "Frontend Developer, Tokopedia"
+      },
+      "1": {
+        "text": "A truly supportive community! I successfully launched my first fintech startup thanks to feedback and mentorship from senior developers at VibeDev ID. A real game changer!",
+        "role": "Founder, PayKita"
+      },
+      "2": {
+        "text": "As a fresh graduate, VibeDev ID gave me exposure to real-world projects and quality code reviews. Now I'm confident working at a big tech company.",
+        "role": "Backend Developer, Gojek"
+      },
+      "3": {
+        "text": "The project showcase at VibeDev ID became my best portfolio. Many recruiters approached me after seeing the works I shared on this platform.",
+        "role": "Full Stack Developer, Bukalapak"
+      },
+      "4": {
+        "text": "From hobby project to profitable business! Collaborating with VibeDev ID members helped me find the right co-founder and now our startup has secured seed funding.",
+        "role": "CTO, EduTech Solutions"
+      },
+      "5": {
+        "text": "Workshops and tech talks at VibeDev ID are always up to date with the latest tech. I can keep up with React, Next.js, and AI development trends thanks to this community.",
+        "role": "Senior React Developer, Traveloka"
+      }
+    }
+  },
+  "faq": {
+    "title": "Vibe Coding Indonesia Community FAQ",
+    "subtitle": "Everything you need to know about joining the largest Indonesian vibe coder community",
+    "items": {
+      "0": {
+        "question": "What is VibeDev ID?",
+        "answer": "VibeDev ID is the #1 Indonesian vibe coding community for developers, AI enthusiasts, and tech innovators who share a vision to create cool digital products. We connect like-minded Indonesian vibe coders to collaborate, learn coding with AI, and grow together."
+      },
+      "1": {
+        "question": "How do I join this vibe coding community?",
+        "answer": "Joining the Indonesian vibe coding community is super easy! Click the 'Join Community' button and complete your profile. We welcome developers of all levels - from beginners just learning to code with AI to experienced professionals."
+      },
+      "2": {
+        "question": "Is there a cost to join the Indonesian vibe coding community?",
+        "answer": "Basic membership in our vibe coding community is 100% free! You get access to community forums, project showcases, networking opportunities, and learning to code with AI alongside other members. All core features are free for all Indonesian vibe coders."
+      },
+      "3": {
+        "question": "Can I collaborate on projects with other members?",
+        "answer": "Collaboration is the core of our vibe coding community! You can find teammates to code with AI, join existing open source projects, or start your own project. Many Indonesian vibe coders here have successfully built startups together."
+      },
+      "4": {
+        "question": "What technology and AI tools are supported?",
+        "answer": "Our Indonesian vibe coding community embraces all modern technologies! Active members work with React, Next.js, Python, AI/ML frameworks, and AI coding tools like GitHub Copilot, ChatGPT, and Claude. If it's cutting-edge tech, you'll surely find expert vibe coders here."
+      }
+    }
+  },
+  "cta": {
+    "titleLine1": "Ready to Be Part of",
+    "titleLine2": "Vibe Coding Indonesia Community?",
+    "description": "Join now and enjoy the best vibe coding experience with other Indonesian developers. Free, supportive, and full of collaboration!",
+    "button": "Join Community"
+  },
+  "footer": {
+    "copyright": "© 2025 VibeDev ID - The largest Indonesian vibe coding community for future developers.",
+    "privacy": "Privacy Policy",
+    "close": "Close"
   }
 }

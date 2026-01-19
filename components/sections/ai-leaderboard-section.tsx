@@ -4,6 +4,7 @@ import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { type AIModel, FALLBACK_DATA, type LeaderboardResponse, PROVIDER_COLORS } from '@/lib/ai-leaderboard-data'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +50,7 @@ function LeaderboardBar({
   const color = PROVIDER_COLORS[model.providerSlug] || '#6B7280'
   const animatedScore = useCountAnimation(model.score, 800, isInView)
   const isLeader = model.rank === 1
+  const t = useSafeTranslations('aiLeaderboard')
 
   return (
     <motion.div
@@ -150,7 +152,7 @@ function LeaderboardBar({
           >
             {animatedScore}
           </span>
-          <span className="text-muted-foreground text-[10px] tracking-wider uppercase">score</span>
+          <span className="text-muted-foreground text-[10px] tracking-wider uppercase">{t('score')}</span>
         </div>
 
         {/* Hover Tooltip */}
@@ -169,6 +171,7 @@ export function AILeaderboardSection() {
   const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const t = useSafeTranslations('aiLeaderboard')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -219,16 +222,10 @@ export function AILeaderboardSection() {
               <span className="bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-primary relative inline-flex size-2 rounded-full" />
             </span>
-            Live Rankings
+            {t('badge')}
           </div>
-          <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            Benchmark AI Coding Model 2025
-          </h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-base md:text-lg">
-            Ranking model AI untuk coding berdasarkan <span className="text-foreground font-medium">LiveCodeBench</span>
-            , <span className="text-foreground font-medium">SciCode</span>, dan{' '}
-            <span className="text-foreground font-medium">Terminal-Bench Hard</span>
-          </p>
+          <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-base md:text-lg">{t('description')}</p>
         </motion.div>
 
         {/* Leaderboard */}
@@ -284,8 +281,8 @@ export function AILeaderboardSection() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium">Data from Artificial Analysis</p>
-              <p className="text-muted-foreground text-xs">Independent AI model benchmarking</p>
+              <p className="text-sm font-medium">{t('attribution.title')}</p>
+              <p className="text-muted-foreground text-xs">{t('attribution.subtitle')}</p>
             </div>
           </div>
           <Link
@@ -294,7 +291,7 @@ export function AILeaderboardSection() {
             rel="noopener noreferrer"
             className="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
-            View Full Rankings
+            {t('viewFull')}
             <svg
               className="size-4"
               fill="none"

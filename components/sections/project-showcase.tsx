@@ -17,6 +17,7 @@ import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import type { Project } from '@/types/homepage'
 
 interface ProjectShowcaseProps {
@@ -42,6 +43,7 @@ export function ProjectShowcase({
   filterOptions,
 }: ProjectShowcaseProps) {
   const router = useRouter()
+  const t = useSafeTranslations('projectShowcase')
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)
@@ -55,13 +57,8 @@ export function ProjectShowcase({
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            Showcase Project Developer Indonesia
-          </h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-            Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source
-            projects, semua karya developer terbaik ada di sini.
-          </p>
+          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-xl">{t('description')}</p>
         </div>
 
         {/* Filter Controls */}
@@ -84,7 +81,7 @@ export function ProjectShowcase({
             >
               <Link href="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
-                Submit Project
+                {t('submitButton')}
               </Link>
             </Button>
           </div>
@@ -242,7 +239,7 @@ export function ProjectShowcase({
               onClick={() => setVisibleProjects((prev) => prev + 6)}
               className="px-8 py-2"
             >
-              Muat Project Lainnya
+              {t('loadMoreButton')}
             </Button>
           </div>
         )}

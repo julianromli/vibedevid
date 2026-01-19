@@ -5,6 +5,7 @@ import Image from 'next/image'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface VideoData {
   id?: string
@@ -61,6 +62,7 @@ const getVideoIcon = (title: string, description: string): React.ReactNode => {
 }
 
 const YouTubeVideoShowcase = () => {
+  const t = useSafeTranslations('youtubeShowcase')
   const [activeIndex, setActiveIndex] = useState(0)
   const [animatedVideos, setAnimatedVideos] = useState<number[]>([])
   const [vibeVideos, setVibeVideos] = useState<VideoData[]>([])
@@ -90,7 +92,7 @@ const YouTubeVideoShowcase = () => {
         setError(null)
       } catch (error) {
         console.error('Error fetching videos:', error)
-        setError('Gagal memuat video. Coba refresh halaman ya!')
+        setError(t('error'))
 
         // Fallback ke hardcoded data jika API gagal
         const fallbackVideos: VideoData[] = [
@@ -123,39 +125,6 @@ const YouTubeVideoShowcase = () => {
               />
             ),
           },
-          // {
-          //   title: "Vibe Dev Talk: AI in Web Development", // Bermasalah
-          //   description:
-          //     "Diskusi mendalam tentang peran AI dalam pengembangan web modern dan masa depan coding.",
-          //   thumbnail:
-          //     "https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg",
-          //   videoId: "jNQXAC9IVRw",
-          //   publishedAt: "2024-12-10",
-          //   viewCount: "15.2K",
-          //   icon: <Users size={24} className="text-white" />,
-          // },
-          // {
-          //   title: "Workshop: TypeScript untuk React Developer", // Bermasalah
-          //   description:
-          //     "Deep dive ke TypeScript patterns dan best practices untuk React development.",
-          //   thumbnail:
-          //     "https://img.youtube.com/vi/astISOttCQ0/maxresdefault.jpg",
-          //   videoId: "astISOttCQ0",
-          //   publishedAt: "2024-12-05",
-          //   viewCount: "9.8K",
-          //   icon: <Code size={24} className="text-white" />,
-          // },
-          // {
-          //   title: "Coding Challenge: Algorithm Problem Solving", // Bermasalah
-          //   description:
-          //     "Challenge solve berbagai algoritma populer - dari sorting sampai dynamic programming!",
-          //   thumbnail:
-          //     "https://img.youtube.com/vi/kJpTvmborXU/maxresdefault.jpg",
-          //   videoId: "kJpTvmborXU",
-          //   publishedAt: "2024-11-30",
-          //   viewCount: "22.1K",
-          //   icon: <Video size={24} className="text-white" />,
-          // },
         ]
         setVibeVideos(fallbackVideos)
       } finally {
@@ -210,12 +179,8 @@ const YouTubeVideoShowcase = () => {
       <div className="text-foreground w-full font-sans">
         {/* Header Section */}
         <div className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
-          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            Video Vibe Coding Terbaru
-          </h2>
-          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-            Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
-          </p>
+          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
         </div>
 
         {/* Loading skeleton */}
@@ -243,12 +208,8 @@ const YouTubeVideoShowcase = () => {
     <div className="text-foreground w-full font-sans">
       {/* Header Section */}
       <div className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
-        <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-          Video Vibe Coding Terbaru
-        </h2>
-        <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-          Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.
-        </p>
+        <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+        <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
         {error && (
           <p className="mx-4 mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-600 sm:mx-0 dark:bg-amber-900/20">
             ⚠️ {error}
@@ -397,7 +358,7 @@ const YouTubeVideoShowcase = () => {
                       className="pointer-events-auto flex min-h-[36px] touch-manipulation items-center gap-1 rounded-full bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors duration-200 hover:bg-red-700 sm:min-h-[40px] sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
                     >
                       <Play className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="xs:inline hidden sm:inline">Tonton</span> Video
+                      <span className="xs:inline hidden sm:inline">{t('watch')}</span> Video
                     </button>
                   </div>
                 )}
@@ -415,7 +376,7 @@ const YouTubeVideoShowcase = () => {
           rel="noopener noreferrer"
           className="text-primary hover:text-primary/80 inline-flex items-center gap-2 font-medium transition-colors duration-200"
         >
-          Lihat Semua Video di Channel Kami
+          {t('viewAll')}
           <svg
             className="h-4 w-4"
             fill="none"
