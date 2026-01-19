@@ -35,16 +35,57 @@ function getLocale(request: NextRequest): string {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Create response
+  // 1. Handle /en route - Strict English
+  if (pathname.startsWith('/en')) {
+    const newPath = pathname.replace(/^\/en/, '') || '/'
+    const url = request.nextUrl.clone()
+    url.pathname = newPath
+    
+    // Create rewrite response
+    const response = NextResponse.rewrite(url)
+    
+    // Force EN cookie
+    response.cookies.set('NEXT_LOCALE', 'en', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+
+    // Run auth logic on this response
+    return handleAuth(request, response)
+  }
+
+  // 2. Handle root route - Strict Indonesian
+  if (pathname === '/') {
+    const response = NextResponse.next({ request })
+    
+    // Force ID cookie
+    response.cookies.set('NEXT_LOCALE', 'id', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+
+    return handleAuth(request, response)
+  }
+
+  // 3. All other routes - Standard behavior
   const response = NextResponse.next({ request })
 
-  // Detect and set locale cookie (don't redirect, just set cookie for client-side detection)
+  // Detect and set locale cookie
   const locale = getLocale(request)
   response.cookies.set('NEXT_LOCALE', locale, {
     path: '/',
     maxAge: 60 * 60 * 24 * 365, // 1 year
     sameSite: 'lax',
   })
+
+  return handleAuth(request, response)
+}
+
+// Extract auth logic to helper to avoid duplication
+async function handleAuth(request: NextRequest, response: NextResponse) {
+  const { pathname } = request.nextUrl
 
   // Now handle Supabase auth
   try {

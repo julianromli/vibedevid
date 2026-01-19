@@ -1,25 +1,23 @@
 'use client'
 import { format } from 'date-fns'
-import { ArrowLeft, FilePenLine, FolderOpen, FileText, LayoutGrid, User } from 'lucide-react'
+import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-
+import { BlogTab } from '@/components/profile/blog-tab'
+import { EmptyState } from '@/components/profile/empty-state'
+// New Components
+import { ProfileHeader } from '@/components/profile/profile-header'
+import { ProfileStats } from '@/components/profile/profile-stats'
+import { ProjectTab } from '@/components/profile/project-tab'
 import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
-import { createClient } from '@/lib/supabase/client'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-// New Components
-import { ProfileHeader } from '@/components/profile/profile-header'
-import { ProfileStats } from '@/components/profile/profile-stats'
-import { ProjectTab } from '@/components/profile/project-tab'
-import { BlogTab } from '@/components/profile/blog-tab'
-import { EmptyState } from '@/components/profile/empty-state'
+import { createClient } from '@/lib/supabase/client'
 
 async function updateUserProfile(username: string, profileData: any) {
   const supabase = createClient()
