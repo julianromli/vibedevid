@@ -7,6 +7,7 @@ import Script from 'next/script'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { AgentationProvider } from '@/components/agentation-provider'
 import './globals.css'
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com').replace(/\/$/, '')
@@ -219,6 +220,7 @@ export default async function RootLayout({
           {children}
           <Toaster />
         </ClientThemeProvider>
+        <AgentationProvider />
         <Analytics />
         <SpeedInsights />
 

@@ -158,3 +158,114 @@ Before considering a task complete:
 - [ ] No secrets committed (check `.env.local` usage)
 - [ ] Changes documented if needed (update WARP.md for major patterns)
 - [ ] Git commit follows Conventional Commits format
+
+## Skills System Overview
+
+**See also**: [Global Skills Documentation](~/.kiro/steering/AGENTS.md)
+
+This workspace has access to:
+- **2 Workspace Skills** (project-specific, in `.claude/skills/`)
+- **9+ Global Skills** (cross-workspace, in `~/.kiro/skills/`)
+
+New skills added to `~/.kiro/skills/` are automatically discovered and available.
+
+<skills_system priority="1">
+
+## Available Skills
+
+<!-- SKILLS_TABLE_START -->
+<usage>
+When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
+
+How to use skills:
+- Invoke: `npx openskills read <skill-name>` (run in your shell)
+  - For multiple: `npx openskills read skill-one,skill-two`
+- The skill content will load with detailed instructions on how to complete the task
+- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
+
+Skill Locations:
+- **Workspace Skills** (`.claude/skills/`): Project-specific capabilities
+- **Global Skills** (`~/.kiro/skills/`): Cross-workspace capabilities, automatically discovered
+
+Usage notes:
+- Only use skills listed in <available_skills> below or any new skills added to `~/.kiro/skills/`
+- New skills added to `~/.kiro/skills/` are automatically available - no configuration needed
+- Do not invoke a skill that is already loaded in your context
+- Each skill invocation is stateless
+- For complete skills list and discovery, see [Global Skills Documentation](~/.kiro/steering/AGENTS.md)
+</usage>
+
+<available_skills>
+
+<!-- WORKSPACE SKILLS (stored in project .claude/skills/) -->
+<skill>
+<name>frontend-design</name>
+<description>Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>webapp-testing</name>
+<description>Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.</description>
+<location>project</location>
+</skill>
+
+<!-- GLOBAL SKILLS (stored in ~/.kiro/skills/) -->
+<skill>
+<name>agent-browser</name>
+<description>Browser automation & interaction capabilities for web testing and automation tasks.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>audit-website</name>
+<description>Website auditing & analysis for performance, accessibility, and quality assessment.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>brainstorming</name>
+<description>Creative ideation & brainstorming for feature design, content strategy, and problem-solving.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>copywriting</name>
+<description>Content writing & copywriting for marketing, documentation, and user-facing text.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>programmatic-seo</name>
+<description>SEO optimization & strategy for programmatic content generation and search visibility.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>remotion-best-practices</name>
+<description>Remotion video library best practices for creating programmatic videos and animations.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>security-review</name>
+<description>Security code review & auditing for identifying vulnerabilities and security best practices.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>seo-audit</name>
+<description>SEO audit & analysis for on-page optimization, technical SEO, and content strategy.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>supabase-postgres-best-practices</name>
+<description>Supabase & PostgreSQL optimization for database design, queries, and performance tuning.</description>
+<location>global</location>
+</skill>
+
+</available_skills>
+<!-- SKILLS_TABLE_END -->
+
+</skills_system>
