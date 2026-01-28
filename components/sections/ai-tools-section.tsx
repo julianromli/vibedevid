@@ -24,15 +24,15 @@ export function AIToolsSection() {
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <IntegrationCard
-            title="Lovable"
-            description={t('tools.lovable.description')}
-            link="https://lovable.dev/"
+            title="Claude Code"
+            description={t('tools.claudeCode.description')}
+            link="https://code.claude.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
               <Image
                 className="h-8 w-8"
-                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/lovable.svg"
-                alt="Lovable"
+                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/claude.svg"
+                alt="Claude Code"
                 width={32}
                 height={32}
               />
@@ -40,15 +40,15 @@ export function AIToolsSection() {
           </IntegrationCard>
 
           <IntegrationCard
-            title="v0.app"
-            description={t('tools.v0.description')}
-            link="https://v0.app/"
+            title="OpenCode"
+            description={t('tools.opencode.description')}
+            link="https://opencode.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
               <Image
                 className="h-8 w-8"
-                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/v0.svg"
-                alt="v0"
+                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/opencode.svg"
+                alt="OpenCode"
                 width={32}
                 height={32}
               />
@@ -56,15 +56,31 @@ export function AIToolsSection() {
           </IntegrationCard>
 
           <IntegrationCard
-            title="OpenAI Codex"
-            description={t('tools.openai.description')}
-            link="https://github.com/openai/codex"
+            title="Droid"
+            description={t('tools.droid.description')}
+            link="https://factory.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
               <Image
                 className="h-8 w-8"
-                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg"
-                alt="OpenAI Codex"
+                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/factory.svg"
+                alt="Droid"
+                width={32}
+                height={32}
+              />
+            </div>
+          </IntegrationCard>
+
+          <IntegrationCard
+            title="Antigravity"
+            description={t('tools.antigravity.description')}
+            link="https://antigravity.google/"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
+              <Image
+                className="h-8 w-8"
+                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/google.svg"
+                alt="Antigravity"
                 width={32}
                 height={32}
               />
@@ -88,31 +104,15 @@ export function AIToolsSection() {
           </IntegrationCard>
 
           <IntegrationCard
-            title="Warp"
-            description={t('tools.warp.description')}
-            link="https://warp.dev/"
+            title="Kiro"
+            description={t('tools.kiro.description')}
+            link="https://kiro.dev/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
               <Image
                 className="h-8 w-8"
-                src="/warpdev.jpg"
-                alt="Warp"
-                width={32}
-                height={32}
-              />
-            </div>
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Trae"
-            description={t('tools.trae.description')}
-            link="https://trae.ai/"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
-              <Image
-                className="h-8 w-8"
-                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/trae.svg"
-                alt="Trae"
+                src="https://unpkg.com/@lobehub/icons-static-svg@latest/icons/kiro.svg"
+                alt="Kiro"
                 width={32}
                 height={32}
               />

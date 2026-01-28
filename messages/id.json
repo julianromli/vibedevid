@@ -105,25 +105,25 @@
   },
   "aiTools": {
     "title": "AI untuk Coding & Development Tools",
-    "description": "Explore tools AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
+    "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
     "tools": {
-      "lovable": {
-        "description": "AI co-engineer yang build full-stack apps dari single prompt. Integrates dengan auth, payments, dan databases otomatis."
+      "claudeCode": {
+        "description": "Asisten coding agentik yang otomatis menarik konteks ke prompt. Fitur dukungan CLAUDE.md, integrasi MCP, dan berfungsi langsung di terminal."
       },
-      "v0": {
-        "description": "AI-powered design-to-code platform yang convert ideas jadi functional apps. Rapid prototyping dengan visual interface builder."
+      "opencode": {
+        "description": "Agen coding AI open source dengan 80K+ GitHub stars. Mendukung LSP, 75+ provider LLM, privacy-first tanpa penyimpanan kode."
       },
-      "openai": {
-        "description": "AI programming assistant yang bisa generate, explain, dan debug code. Supports multiple languages dengan natural language interface."
+      "droid": {
+        "description": "Agen coding AI enterprise-grade yang bekerja di mana saja: IDE, web, CLI, Slack. Mengotomasi coding, testing, dan deployment."
+      },
+      "antigravity": {
+        "description": "IDE bertenaga AI dari Google dengan kemampuan agentik. Perencanaan otonom, akses sistem langsung, validasi mandiri, ditenagai Gemini 3 Pro."
       },
       "cursor": {
-        "description": "AI-powered code editor yang understand codebase lo. Natural language to code dengan intelligent completion dan real-time suggestions."
+        "description": "Editor kode AI dengan mode Agent, autocomplete Tab, dan pemahaman codebase mendalam. Mendukung banyak model AI."
       },
-      "warp": {
-        "description": "Modern terminal dengan Active AI features, command suggestions, dan intelligent autocompletion untuk workflow yang lebih efficient."
-      },
-      "trae": {
-        "description": "AI-powered development framework yang accelerate project creation dengan intelligent code generation dan automation tools."
+      "kiro": {
+        "description": "IDE agentik dari AWS dengan spec-driven development. Fitur advanced steering, custom agents, dukungan MCP, dan mode autopilot."
       }
     }
   },

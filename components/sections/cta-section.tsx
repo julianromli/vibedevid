@@ -16,7 +16,7 @@ interface CTASectionProps {
 
 export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASectionProps) {
   const t = useTranslations('cta')
-  
+
   return (
     <section
       className="bg-muted text-foreground relative overflow-hidden py-32"
@@ -103,9 +103,7 @@ export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASect
               {t('titleLine2')}
             </span>
           </h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">
-            {t('description')}
-          </p>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">{t('description')}</p>
         </div>
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">

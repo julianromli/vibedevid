@@ -107,23 +107,23 @@
     "title": "AI for Coding & Development Tools",
     "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
     "tools": {
-      "lovable": {
-        "description": "AI co-engineer that builds full-stack apps from a single prompt. Integrates with auth, payments, and databases automatically."
+      "claudeCode": {
+        "description": "Agentic coding assistant that automatically pulls context into prompts. Features CLAUDE.md support, MCP integration, and works directly in your terminal."
       },
-      "v0": {
-        "description": "AI-powered design-to-code platform that converts ideas into functional apps. Rapid prototyping with a visual interface builder."
+      "opencode": {
+        "description": "Open source AI coding agent with 80K+ GitHub stars. LSP-enabled, supports 75+ LLM providers, privacy-first with no code storage."
       },
-      "openai": {
-        "description": "AI programming assistant that can generate, explain, and debug code. Supports multiple languages with a natural language interface."
+      "droid": {
+        "description": "Enterprise-grade AI coding agents that work everywhere: IDE, web, CLI, Slack. Automates coding, testing, and deployment."
+      },
+      "antigravity": {
+        "description": "Google's AI-powered IDE with agentic capabilities. Autonomous planning, direct system access, self-validation, powered by Gemini 3 Pro."
       },
       "cursor": {
-        "description": "AI-powered code editor that understands your codebase. Natural language to code with intelligent completion and real-time suggestions."
+        "description": "AI code editor with Agent mode, Tab autocomplete, and deep codebase understanding. Supports multiple AI models."
       },
-      "warp": {
-        "description": "Modern terminal with Active AI features, command suggestions, and intelligent autocompletion for a more efficient workflow."
-      },
-      "trae": {
-        "description": "AI-powered development framework that accelerates project creation with intelligent code generation and automation tools."
+      "kiro": {
+        "description": "AWS's agentic IDE with spec-driven development. Features advanced steering, custom agents, MCP support, and autopilot mode."
       }
     }
   },
