@@ -5,6 +5,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface CTASectionProps {
@@ -14,6 +15,8 @@ interface CTASectionProps {
 }
 
 export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASectionProps) {
+  const t = useTranslations('cta')
+  
   return (
     <section
       className="bg-muted text-foreground relative overflow-hidden py-32"
@@ -94,15 +97,14 @@ export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASect
             {isMounted ? currentTime : '--:--:--'}
           </p>
           <h2 className="mb-6 text-5xl leading-tight font-bold tracking-tight lg:text-6xl">
-            Siap Jadi Bagian
+            {t('titleLine1')}
             <br />
             <span className="dark:from-primary dark:via-accent-foreground dark:to-primary bg-gradient-to-r from-slate-800 via-slate-600 to-slate-900 bg-clip-text font-extrabold text-transparent">
-              Komunitas Vibe Coding Indonesia?
+              {t('titleLine2')}
             </span>
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">
-            Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan
-            penuh kolaborasi!
+            {t('description')}
           </p>
         </div>
 
@@ -112,7 +114,7 @@ export function CTASection({ currentTime, isMounted, handleJoinWithUs }: CTASect
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleJoinWithUs}
           >
-            Join Community
+            {t('button')}
           </Button>
         </div>
       </div>

@@ -5,39 +5,21 @@
   "agents": {
     "frontend-specialist": {
       "description": "Expert in React, Vue, and modern CSS",
-      "commonSubagents": [
-        "subagents/code/coder-agent",
-        "subagents/code/tester",
-        "subagents/code/reviewer"
-      ],
+      "commonSubagents": ["subagents/code/coder-agent", "subagents/code/tester", "subagents/code/reviewer"],
       "commonTools": [],
-      "commonContext": [
-        "core/standards/code",
-        "core/standards/patterns"
-      ]
+      "commonContext": ["core/standards/code", "core/standards/patterns"]
     },
     "backend-specialist": {
       "description": "Expert in API design and database architecture",
-      "commonSubagents": [
-        "subagents/code/coder-agent",
-        "subagents/code/tester",
-        "subagents/code/reviewer"
-      ],
+      "commonSubagents": ["subagents/code/coder-agent", "subagents/code/tester", "subagents/code/reviewer"],
       "commonTools": [],
-      "commonContext": [
-        "core/standards/code",
-        "core/standards/patterns"
-      ]
+      "commonContext": ["core/standards/code", "core/standards/patterns"]
     },
     "devops-specialist": {
       "description": "Expert in CI/CD and infrastructure automation",
-      "commonSubagents": [
-        "subagents/code/build-agent"
-      ],
+      "commonSubagents": ["subagents/code/build-agent"],
       "commonTools": [],
-      "commonContext": [
-        "core/standards/code"
-      ]
+      "commonContext": ["core/standards/code"]
     },
     "codebase-agent": {
       "description": "Multi-language implementation agent for modular and functional development",
@@ -48,10 +30,7 @@
         "subagents/core/documentation"
       ],
       "commonTools": [],
-      "commonContext": [
-        "core/standards/code",
-        "core/standards/patterns"
-      ]
+      "commonContext": ["core/standards/code", "core/standards/patterns"]
     }
   }
 }

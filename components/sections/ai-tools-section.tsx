@@ -4,11 +4,11 @@
  */
 
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { IntegrationCard } from '@/components/ui/integration-card'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 export function AIToolsSection() {
-  const t = useSafeTranslations('aiTools')
+  const t = useTranslations('aiTools')
 
   return (
     <section

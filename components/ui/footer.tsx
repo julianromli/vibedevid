@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,21 +16,21 @@ import {
 
 export function Footer() {
   const [isPrivacyDrawerOpen, setIsPrivacyDrawerOpen] = useState(false)
+  const t = useTranslations('footer')
+  const commonT = useTranslations('common')
 
   return (
     <footer className="bg-muted/50 border-border relative border-t py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between md:flex-row">
-          <div className="text-muted-foreground mb-4 text-sm md:mb-0">
-            © 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.
-          </div>
+          <div className="text-muted-foreground mb-4 text-sm md:mb-0">{t('copyright')}</div>
           <div className="flex space-x-6 text-sm">
             <Drawer
               open={isPrivacyDrawerOpen}
               onOpenChange={setIsPrivacyDrawerOpen}
             >
               <DrawerTrigger asChild>
-                <button className="text-muted-foreground hover:text-foreground">Privacy Policy</button>
+                <button className="text-muted-foreground hover:text-foreground">{t('privacy')}</button>
               </DrawerTrigger>
               <DrawerContent>
                 <div className="mx-auto w-full max-w-4xl">
@@ -118,7 +119,7 @@ export function Footer() {
                   </div>
                   <DrawerFooter>
                     <DrawerClose asChild>
-                      <Button variant="outline">Close</Button>
+                      <Button variant="outline">{commonT('close')}</Button>
                     </DrawerClose>
                   </DrawerFooter>
                 </div>

@@ -3,8 +3,8 @@
 import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { type AIModel, FALLBACK_DATA, type LeaderboardResponse, PROVIDER_COLORS } from '@/lib/ai-leaderboard-data'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +50,7 @@ function LeaderboardBar({
   const color = PROVIDER_COLORS[model.providerSlug] || '#6B7280'
   const animatedScore = useCountAnimation(model.score, 800, isInView)
   const isLeader = model.rank === 1
-  const t = useSafeTranslations('aiLeaderboard')
+  const t = useTranslations('aiLeaderboard')
 
   return (
     <motion.div
@@ -171,7 +171,7 @@ export function AILeaderboardSection() {
   const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
-  const t = useSafeTranslations('aiLeaderboard')
+  const t = useTranslations('aiLeaderboard')
 
   useEffect(() => {
     const controller = new AbortController()

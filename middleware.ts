@@ -40,10 +40,10 @@ export async function middleware(request: NextRequest) {
     const newPath = pathname.replace(/^\/en/, '') || '/'
     const url = request.nextUrl.clone()
     url.pathname = newPath
-    
+
     // Create rewrite response
     const response = NextResponse.rewrite(url)
-    
+
     // Force EN cookie
     response.cookies.set('NEXT_LOCALE', 'en', {
       path: '/',
@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
   // 2. Handle root route - Strict Indonesian
   if (pathname === '/') {
     const response = NextResponse.next({ request })
-    
+
     // Force ID cookie
     response.cookies.set('NEXT_LOCALE', 'id', {
       path: '/',

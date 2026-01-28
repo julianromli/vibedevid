@@ -8,12 +8,12 @@
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { cn } from '@/lib/utils'
 import type { User } from '@/types/homepage'
 
@@ -27,7 +27,7 @@ interface HeroSectionProps {
 export function HeroSection({ isLoggedIn, user, handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const t = useSafeTranslations('hero')
+  const t = useTranslations('hero')
 
   // Get translated title words
   const titleLine1 = t.raw('titleLine1') as string[]

@@ -4,6 +4,7 @@ import { ArrowLeft, FileText, LogOut, PenSquare, User } from 'lucide-react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
@@ -22,7 +23,6 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useScroll } from '@/hooks/use-scroll'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -64,7 +64,7 @@ export function Navbar({
   const [open, setOpen] = useState(false)
   const scrolled = useScroll(10)
   const router = useRouter()
-  const t = useSafeTranslations()
+  const t = useTranslations()
 
   useEffect(() => {
     if (open) {

@@ -116,6 +116,25 @@ bunx playwright test --project=chromium
 - [docs/design-system.md](docs/design-system.md) - Colors, typography, components
 - [docs/README.md](docs/README.md) - All documentation index
 
+## i18n (Internationalization) Best Practices
+
+**Architecture**: Use `useTranslations` from 'next-intl' directly. Do NOT create custom wrapper hooks - they create maintenance burden by duplicating translation sources.
+
+**Component Patterns**:
+- Components using `useTranslations` require `'use client'` directive even if they appear server-side
+- Use `t.raw('key')` for arrays (hero titles, testimonials) - use `t('key')` for strings
+- Keep translation keys hierarchical: `section.subsection.key`
+- Always update BOTH `messages/en.json` and `messages/id.json` simultaneously
+
+**Common Pitfalls**:
+- Hardcoded text hides easily in section components - use code review to catch incomplete i18n
+- The `useSafeTranslations` custom hook was removed (anti-pattern) - use next-intl native
+- Type checking will show pre-existing errors - verify errors are from your changes before fixing
+
+**Tool Constraints**:
+- Morph edit has 30s timeout - use standard edit tool for files >100 lines
+- When updating >5 files, delegate to CoderAgent subagent for efficiency
+
 ## Unified Patterns
 
 ### Comments System

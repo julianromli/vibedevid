@@ -2,10 +2,10 @@
 
 import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 
 interface VideoData {
   id?: string
@@ -62,7 +62,7 @@ const getVideoIcon = (title: string, description: string): React.ReactNode => {
 }
 
 const YouTubeVideoShowcase = () => {
-  const t = useSafeTranslations('youtubeShowcase')
+  const t = useTranslations('youtubeShowcase')
   const [activeIndex, setActiveIndex] = useState(0)
   const [animatedVideos, setAnimatedVideos] = useState<number[]>([])
   const [vibeVideos, setVibeVideos] = useState<VideoData[]>([])

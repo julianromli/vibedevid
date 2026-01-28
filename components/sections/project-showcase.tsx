@@ -10,6 +10,7 @@ import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -17,7 +18,6 @@ import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { useSafeTranslations } from '@/hooks/useSafeTranslations'
 import type { Project } from '@/types/homepage'
 
 interface ProjectShowcaseProps {
@@ -30,9 +30,6 @@ interface ProjectShowcaseProps {
   filterOptions: string[]
 }
 
-// Hardcoded trending options
-const trendingOptions = ['Trending', 'Top', 'Newest']
-
 export function ProjectShowcase({
   projects,
   loading,
@@ -43,7 +40,10 @@ export function ProjectShowcase({
   filterOptions,
 }: ProjectShowcaseProps) {
   const router = useRouter()
-  const t = useSafeTranslations('projectShowcase')
+  const t = useTranslations('projectShowcase')
+
+  // Translated trending options
+  const trendingOptions = [t('trendingOptions.trending'), t('trendingOptions.top'), t('trendingOptions.newest')]
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)

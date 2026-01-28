@@ -5,8 +5,7 @@ const { createClient } = require('@supabase/supabase-js')
 
 // Direct environment variables
 const supabaseUrl = 'https://qabfrhpbfvjcgdrxdlba.supabase.co'
-const supabaseServiceRoleKey =
-  ''
+const supabaseServiceRoleKey = ''
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error('❌ Missing Supabase environment variables!')

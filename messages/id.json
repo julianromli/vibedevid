@@ -14,7 +14,8 @@
     "profile": "Profil",
     "myPosts": "Postingan Saya",
     "write": "Tulis",
-    "writePost": "Tulis Postingan"
+    "writePost": "Tulis Postingan",
+    "close": "Tutup"
   },
   "navbar": {
     "projects": "Projects",
@@ -42,20 +43,37 @@
     "title": "Showcase Project Developer Indonesia",
     "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
     "submitButton": "Submit Project",
-    "loadMoreButton": "Muat Project Lainnya"
+    "loadMoreButton": "Muat Project Lainnya",
+    "trendingOptions": {
+      "trending": "Trending",
+      "top": "Top",
+      "newest": "Terbaru"
+    }
   },
   "youtubeShowcase": {
     "title": "Video Vibe Coding Terbaru",
     "description": "Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.",
     "viewAll": "Lihat Semua Video di Channel Kami",
     "watch": "Tonton",
-    "error": "Gagal memuat video. Coba refresh halaman ya!"
+    "videoLabel": "Video",
+    "error": "Gagal memuat video. Coba refresh halaman ya!",
+    "fallbackVideos": {
+      "0": {
+        "title": "Tutorial Next.js: Full Stack App Development",
+        "description": "Belajar membuat full stack web app dengan Next.js, Prisma, dan PostgreSQL dari nol sampai deployment."
+      },
+      "1": {
+        "title": "Live Coding: Bikin Dashboard Modern",
+        "description": "Session live coding bikin dashboard admin yang modern dengan React dan Tailwind CSS."
+      }
+    }
   },
   "features": {
     "title": "Kenapa Gabung VibeDev ID?",
     "subtitle": "Komunitas vibe coding Indonesia yang supportive, kolaboratif, dan siap bantu lo berkembang jadi developer yang lebih baik",
     "stats": {
-      "title": "Vibe Coder Aktif"
+      "title": "Vibe Coder Aktif",
+      "count": "500+"
     },
     "trusted": {
       "title": "Komunitas Terpercaya",
@@ -82,7 +100,7 @@
       "title": "Data from Artificial Analysis",
       "subtitle": "Independent AI model benchmarking"
     },
-    "viewFull": "View Full Rankings",
+    "viewFull": "Lihat Ranking Lengkap",
     "score": "SCORE"
   },
   "aiTools": {
@@ -115,26 +133,32 @@
     "testimonials": {
       "0": {
         "text": "VibeDev ID ngubah cara gue belajar coding! Dari yang tadinya stuck sendirian, sekarang punya temen-temen yang solid buat diskusi dan kolaborasi project. Networking di sini top banget!",
+        "name": "Rizki Pratama",
         "role": "Frontend Developer, Tokopedia"
       },
       "1": {
         "text": "Komunitas yang benar-benar supportive! Gue berhasil launch startup fintech pertama gue berkat feedback dan mentorship dari senior developer di VibeDev ID. Game changer banget!",
+        "name": "Sari Indrawati",
         "role": "Founder, PayKita"
       },
       "2": {
         "text": "Sebagai fresh graduate, VibeDev ID kasih gue exposure ke real-world projects dan code review yang berkualitas. Sekarang gue udah confident kerja di tech company besar.",
+        "name": "Amanda Putri",
         "role": "Backend Developer, Gojek"
       },
       "3": {
         "text": "Project showcase di VibeDev ID jadi portfolio terbaik gue. Banyak recruiter yang approach gue setelah liat karya-karya yang gue share di platform ini.",
+        "name": "Budi Santoso",
         "role": "Full Stack Developer, Bukalapak"
       },
       "4": {
         "text": "Dari hobby project jadi bisnis yang profitable! Kolaborasi sama member VibeDev ID bikin gue nemuin co-founder yang tepat dan sekarang startup kami udah dapetin seed funding.",
+        "name": "Dimas Ardiansyah",
         "role": "CTO, EduTech Solutions"
       },
       "5": {
         "text": "Workshop dan tech talk di VibeDev ID selalu update dengan teknologi terbaru. Gue bisa ngikutin trend React, Next.js, sampai AI development berkat komunitas ini.",
+        "name": "Maya Sari",
         "role": "Senior React Developer, Traveloka"
       }
     }
@@ -173,7 +197,6 @@
   },
   "footer": {
     "copyright": "© 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.",
-    "privacy": "Privacy Policy",
-    "close": "Tutup"
+    "privacy": "Privacy Policy"
   }
 }

@@ -5,6 +5,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { lazy, Suspense } from 'react'
 import type { Testimonial } from '@/types/homepage'
 
@@ -15,47 +16,27 @@ const TestimonialsColumns = lazy(() =>
   })),
 )
 
-// Hardcoded testimonials data
-const testimonials: Testimonial[] = [
-  {
-    text: 'VibeDev ID ngubah cara gue belajar coding! Dari yang tadinya stuck sendirian, sekarang punya temen-temen yang solid buat diskusi dan kolaborasi project. Networking di sini top banget!',
-    image: 'https://github.com/shadcn.png',
-    name: 'Rizki Pratama',
-    role: 'Frontend Developer, Tokopedia',
-  },
-  {
-    text: 'Komunitas yang benar-benar supportive! Gue berhasil launch startup fintech pertama gue berkat feedback dan mentorship dari senior developer di VibeDev ID. Game changer banget!',
-    image: '/professional-woman-dark-hair.png',
-    name: 'Sari Indrawati',
-    role: 'Founder, PayKita',
-  },
-  {
-    text: 'Sebagai fresh graduate, VibeDev ID kasih gue exposure ke real-world projects dan code review yang berkualitas. Sekarang gue udah confident kerja di tech company besar.',
-    image: '/blonde-woman-glasses.png',
-    name: 'Amanda Putri',
-    role: 'Backend Developer, Gojek',
-  },
-  {
-    text: 'Project showcase di VibeDev ID jadi portfolio terbaik gue. Banyak recruiter yang approach gue setelah liat karya-karya yang gue share di platform ini.',
-    image: '/asian-man-short-hair.png',
-    name: 'Budi Santoso',
-    role: 'Full Stack Developer, Bukalapak',
-  },
-  {
-    text: 'Dari hobby project jadi bisnis yang profitable! Kolaborasi sama member VibeDev ID bikin gue nemuin co-founder yang tepat dan sekarang startup kami udah dapetin seed funding.',
-    image: 'https://github.com/shadcn.png',
-    name: 'Dimas Ardiansyah',
-    role: 'CTO, EduTech Solutions',
-  },
-  {
-    text: 'Workshop dan tech talk di VibeDev ID selalu update dengan teknologi terbaru. Gue bisa ngikutin trend React, Next.js, sampai AI development berkat komunitas ini.',
-    image: 'https://github.com/shadcn.png',
-    name: 'Maya Sari',
-    role: 'Senior React Developer, Traveloka',
-  },
-]
-
 export function ReviewsSection() {
+  const t = useTranslations('reviews')
+  const testimonialsRaw = t.raw('testimonials') as Record<string, { text: string; name: string; role: string }>
+
+  // Convert translations to Testimonial array with images
+  const images = [
+    'https://github.com/shadcn.png',
+    '/professional-woman-dark-hair.png',
+    '/blonde-woman-glasses.png',
+    '/asian-man-short-hair.png',
+    'https://github.com/shadcn.png',
+    'https://github.com/shadcn.png',
+  ]
+
+  const testimonials: Testimonial[] = Object.values(testimonialsRaw).map((item, index) => ({
+    text: item.text,
+    image: images[index],
+    name: item.name,
+    role: item.role,
+  }))
+
   return (
     <section
       id="reviews"
@@ -64,10 +45,8 @@ export function ReviewsSection() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">Review Member Komunitas Vibe Coding</h2>
-          <p className="text-muted-foreground text-xl">
-            Testimoni asli dari developer Indonesia yang udah join komunitas kami
-          </p>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
         </div>
 
         <div className="flex max-h-[600px] justify-center gap-6 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">

@@ -30,6 +30,8 @@ hooks/
 └── use-scroll.ts                 # Scroll position tracking
 ```
 
+> **Note**: `useSafeTranslations.ts` was removed - use next-intl's `useTranslations` directly instead. Custom translation hooks create maintenance burden by duplicating translation sources between hooks and messages/*.json files.
+
 ### Naming Rules
 
 - **File names**: `useX.ts` or `use-x.ts` (kebab-case for multi-word)
@@ -296,6 +298,30 @@ export function useProgressiveImage(src: string, placeholder: string): string {
 ```
 
 **Example**: [`hooks/useProgressiveImage.ts`](useProgressiveImage.ts)
+
+#### ❌ DON'T: Create Custom Translation Hooks
+
+```tsx
+// ❌ BAD: Custom translation hook duplicates translation sources
+// hooks/useSafeTranslations.ts
+export function useSafeTranslations(namespace?: string) {
+  const t = useTranslations(namespace)
+  // Hardcoded fallback translations create maintenance burden
+  return t
+}
+
+// ✅ GOOD: Use next-intl directly in components
+// components/sections/hero-section.tsx
+'use client'
+import { useTranslations } from 'next-intl'
+
+export function HeroSection() {
+  const t = useTranslations('hero') // Use directly, no wrapper needed
+  return <h1>{t('title')}</h1>
+}
+```
+
+**Why**: Custom hooks duplicate translations (in hook + messages/*.json), create sync issues, and add unnecessary abstraction.
 
 #### ❌ DON'T: Forget Cleanup
 

@@ -270,6 +270,46 @@ export function GoodComponent({ data }: { data: Data }) {
 <div className="text-blue-500">Text</div>
 ```
 
+### i18n (Internationalization)
+
+**Standard Pattern**: Use next-intl's `useTranslations` hook directly:
+
+```tsx
+// components/sections/hero-section.tsx
+'use client'
+
+import { useTranslations } from 'next-intl'
+
+export function HeroSection() {
+  const t = useTranslations('hero')
+  
+  // For simple strings
+  const title = t('title')
+  
+  // For arrays (like animated title words)
+  const titleWords = t.raw('titleLine1') as string[]
+  
+  return (
+    <section>
+      <h1>{title}</h1>
+      {titleWords.map((word, i) => <span key={i}>{word}</span>)}
+    </section>
+  )
+}
+```
+
+**Critical Rules**:
+- Always add `'use client'` when using `useTranslations` (even for server-looking components)
+- Use `t.raw()` for array data, `t()` for string data
+- Both `messages/en.json` and `messages/id.json` must have identical key structures
+- Check ALL components - hardcoded text hides in sections AND ui components
+
+**Files to Update Together**:
+When adding translations, always update:
+1. `messages/en.json` - English translations
+2. `messages/id.json` - Indonesian translations  
+3. Component file - Replace hardcoded text with `t('key')`
+
 ### Component Categories
 
 #### Base UI (`components/ui/`)
