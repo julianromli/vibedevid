@@ -4,6 +4,7 @@ import { ChevronDown, Plus } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function ProjectListPage() {
   const router = useRouter()
+  const t = useTranslations('projectList')
 
   // State management
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -239,13 +241,8 @@ export default function ProjectListPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-12 text-center">
-              <h1 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-                Showcase Project Developer Indonesia
-              </h1>
-              <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-                Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source
-                projects, semua karya developer terbaik ada di sini.
-              </p>
+              <h1 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h1>
+              <p className="text-muted-foreground mx-auto max-w-2xl text-xl">{t('description')}</p>
             </div>
 
             {/* Filter Controls - sama seperti homepage */}
@@ -258,7 +255,7 @@ export default function ProjectListPage() {
                     onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                     className="flex items-center gap-2"
                   >
-                    Filter
+                    {t('filter')}
                     <ChevronDown className={`h-4 w-4 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                   </Button>
 
@@ -292,7 +289,7 @@ export default function ProjectListPage() {
                 >
                   <Link href="/project/submit">
                     <Plus className="mr-2 h-4 w-4" />
-                    Submit Project
+                    {t('submitButton')}
                   </Link>
                 </Button>
               </div>
@@ -431,11 +428,11 @@ export default function ProjectListPage() {
             {/* No projects message */}
             {!loading && projects.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4 text-xl">Belum ada project dengan filter yang dipilih</p>
+                <p className="text-muted-foreground mb-4 text-xl">{t('noProjects')}</p>
                 <Button asChild>
                   <Link href="/project/submit">
                     <Plus className="mr-2 h-4 w-4" />
-                    Jadi yang Pertama Submit Project
+                    {t('beFirst')}
                   </Link>
                 </Button>
               </div>
@@ -444,9 +441,7 @@ export default function ProjectListPage() {
             {/* Stats info */}
             {!loading && projects.length > 0 && (
               <div className="mt-8 text-center">
-                <p className="text-muted-foreground">
-                  Menampilkan {projects.length} project dari komunitas developer Indonesia
-                </p>
+                <p className="text-muted-foreground">{t('showingProjects', { count: projects.length })}</p>
               </div>
             )}
           </div>
