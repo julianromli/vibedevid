@@ -2,7 +2,6 @@
 
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
-import { AILeaderboardSection } from '@/components/sections/ai-leaderboard-section'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
 import { CTASection } from '@/components/sections/cta-section'
@@ -182,10 +181,6 @@ export default function HomePageClient({ initialIsLoggedIn, initialUser }: HomeP
       </ErrorBoundary>
 
       <CommunityFeaturesSection />
-
-      <ErrorBoundary sectionName="AI Leaderboard">
-        <AILeaderboardSection />
-      </ErrorBoundary>
 
       <AIToolsSection />
 
