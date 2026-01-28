@@ -120,6 +120,10 @@ bunx playwright test --project=chromium
 
 **Architecture**: Use `useTranslations` from 'next-intl' directly. Do NOT create custom wrapper hooks - they create maintenance burden by duplicating translation sources.
 
+**Provider Setup**:
+- `NextIntlClientProvider` MUST wrap all children in `app/layout.tsx` to enable client-side translations
+- This bridges server-side request configuration to client components
+
 **Component Patterns**:
 - Components using `useTranslations` require `'use client'` directive even if they appear server-side
 - Use `t.raw('key')` for arrays (hero titles, testimonials) - use `t('key')` for strings
@@ -130,6 +134,7 @@ bunx playwright test --project=chromium
 - Hardcoded text hides easily in section components - use code review to catch incomplete i18n
 - The `useSafeTranslations` custom hook was removed (anti-pattern) - use next-intl native
 - Type checking will show pre-existing errors - verify errors are from your changes before fixing
+- **Missing NextIntlClientProvider** causes "Failed to call useTranslations context not found" error
 
 **Tool Constraints**:
 - Morph edit has 30s timeout - use standard edit tool for files >100 lines
