@@ -744,6 +744,103 @@ export async function submitProject(formData: FormData, userId: string) {
 
     console.log('[Submit Project] Generated slug:', slug, 'from title:', title.trim())
 
+    // Query public.users table to get the correct public.users.id for the authenticated user
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single()
+
+    const publicUserId = profile?.id || userId
+
+    console.log('[Submit Project] Auth userId:', userId)
+    console.log('[Submit Project] Public users ID:', publicUserId)
+    console.log('[Submit Project] Using userId for project:', publicUserId)
+
+    const { data: project, error } = await supabase
+      .from('projects')
+      .insert({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        website_url: websiteUrl?.trim() || null,
+        image_url: imageUrl?.trim() || null,
+        tagline: tagline?.trim() || null,
+        favicon_url: faviconUrl,
+        author_id: publicUserId,
+        tags: tags,
+        slug: slug, // Add slug column
+      })
+      .select('slug')
+      .single()
+
+    if (error) {
+      console.error('Submit project error:', error)
+
+      // Handle unique constraint violation (collision during race condition)
+      if (error.code === '23505' && error.message?.includes('slug')) {
+        console.log('[Submit Project] Slug collision detected, retrying...')
+
+        // Retry with incremented slug
+        try {
+          const retrySlug = await ensureUniqueSlug(baseSlug)
+          const { data: retryProject, error: retryError } = await supabase
+            .from('projects')
+            .insert({
+              title: title.trim(),
+              description: description.trim(),
+              category,
+              website_url: websiteUrl?.trim() || null,
+              image_url: imageUrl?.trim() || null,
+              tagline: tagline?.trim() || null,
+              favicon_url: faviconUrl,
+              author_id: userId,
+              tags: tags,
+              slug: retrySlug,
+            })
+            .select('slug')
+            .single()
+
+          if (retryError) {
+            console.error('Submit project retry error:', retryError)
+            return { success: false, error: retryError.message }
+          }
+
+          return { success: true, slug: retryProject.slug }
+        } catch (retryErr) {
+          console.error('Submit project retry failed:', retryErr)
+          return {
+            success: false,
+            error: 'An unexpected error occurred'
+          }
+        }
+      }
+    }
+    }
+
+    // Auto-fetch favicon if website URL is provided
+    let faviconUrl = '/default-favicon.svg'
+    if (websiteUrl?.trim()) {
+      try {
+        faviconUrl = await fetchFavicon(websiteUrl.trim())
+      } catch (e) {
+        console.warn('Failed to fetch favicon, using default', e)
+      }
+    }
+
+    if (!title || !description || !category) {
+      return {
+        success: false,
+        error: 'Title, description, and category are required',
+      }
+    }
+
+    // Generate slug from title
+    const baseSlug = slugifyTitle(title.trim())
+    const slug = await ensureUniqueSlug(baseSlug)
+
+    console.log('[Submit Project] Generated slug:', slug, 'from title:', title.trim())
+
     const { data: project, error } = await supabase
       .from('projects')
       .insert({
