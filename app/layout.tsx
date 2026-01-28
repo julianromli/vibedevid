@@ -4,6 +4,7 @@ import type React from 'next'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import Script from 'next/script'
+import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -216,10 +217,12 @@ export default async function RootLayout({
         />
       </head>
       <body suppressHydrationWarning={true}>
-        <ClientThemeProvider>
-          {children}
-          <Toaster />
-        </ClientThemeProvider>
+        <NextIntlClientProvider>
+          <ClientThemeProvider>
+            {children}
+            <Toaster />
+          </ClientThemeProvider>
+        </NextIntlClientProvider>
         <AgentationProvider />
         <Analytics />
         <SpeedInsights />
