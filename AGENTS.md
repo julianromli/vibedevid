@@ -147,6 +147,12 @@ const { comments } = await getComments('post', postId)
 />
 ```
 
+### Authentication Security
+
+- **Server-Side**: MUST use `supabase.auth.getUser()` to validate sessions. `getSession()` is insecure on server as it blindly trusts cookies.
+- **Client-Side**: `useAuth` hook uses `getSession()` for speed but listens to `onAuthStateChange`.
+- **Legacy Compat**: `getServerSession` (`lib/server/auth.ts`) wraps `getUser()` but returns `{ user }` to match legacy structure.
+
 ## Definition of Done
 
 Before considering a task complete:
