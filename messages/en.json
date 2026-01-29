@@ -198,5 +198,290 @@
   "footer": {
     "copyright": "© 2025 VibeDev ID - The largest Indonesian vibe coding community for future developers.",
     "privacy": "Privacy Policy"
+  },
+  "projectList": {
+    "title": "Indonesian Developer Project Showcase",
+    "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
+    "filter": "Filter",
+    "submitButton": "Submit Project",
+    "noProjects": "No projects found with the selected filter",
+    "beFirst": "Be the First to Submit a Project",
+    "showingProjects": "Showing {count} projects from the Indonesian developer community"
+  },
+  "projectSubmit": {
+    "title": "Submit Your Project",
+    "description": "Share your amazing project with the VibeDev community",
+    "form": {
+      "projectDetails": "Project Details",
+      "importGithub": "Import from GitHub",
+      "importGithubPlaceholder": "owner/repo or https://github.com/owner/repo",
+      "importGithubHelper": "We'll pull name, description, homepage, tags, and preview.",
+      "importing": "Importing...",
+      "import": "Import",
+      "projectTitle": "Project Title",
+      "projectTitlePlaceholder": "Enter your project title",
+      "tagline": "Tagline",
+      "taglinePlaceholder": "A short tagline that describes your project in one sentence",
+      "taglineHelper": "A short tagline that describes your project in one sentence! ✨",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your project, its features, and what makes it special",
+      "descriptionHelper": "Maximum {max} characters for consistency!",
+      "category": "Category",
+      "selectCategory": "Select a category",
+      "loadingCategories": "Loading categories...",
+      "noCategories": "No categories available",
+      "websiteUrl": "Website URL",
+      "websitePlaceholder": "https://your-project.com",
+      "faviconUrl": "Favicon URL",
+      "faviconPlaceholder": "https://example.com/favicon.ico or https://example.com/favicon.svg",
+      "faviconHelper": "Enter the favicon URL for your project! Small icon that appears in the browser tab 🎯",
+      "faviconAuto": "Favicon will be automatically fetched from this website! 🌐 Or enter a manual URL to override.",
+      "techStack": "Tech Stack / Tags",
+      "techStackPlaceholder": "Select technologies used in your project...",
+      "techStackEmpty": "No technologies found.",
+      "techStackHelper": "Select the technologies you used in this project. You can add your own if not listed! 🚀",
+      "screenshot": "Project Screenshot",
+      "uploading": "Uploading...",
+      "uploadButton": "Choose File",
+      "uploadReady": "Getting ready...",
+      "uploadAllowed": "Image ({fileTypes})",
+      "uploadHelper": "Upload a screenshot of your project (max 4MB)",
+      "uploadSuccess": "Image uploaded successfully!",
+      "cancel": "Cancel",
+      "submit": "Submit Project",
+      "submitting": "Submitting..."
+    },
+    "toast": {
+      "success": "Awesome! 🚀 Your project has been submitted successfully!",
+      "error": "Oops, there was an error! 😅 Please try again!"
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create an account",
+    "username": "Username",
+    "usernamePlaceholder": "Username",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset password",
+    "resetPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "sendingReset": "Sending reset link...",
+    "sendResetLink": "Send reset link",
+    "backToSignIn": "Back to sign in",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "orContinueWith": "OR CONTINUE WITH",
+    "orSignUpWith": "OR SIGN UP WITH",
+    "google": "Google",
+    "github": "GitHub",
+    "termsAgreement": "By {action}, you agree to our",
+    "termsLink": "Terms & Service",
+    "rememberPassword": "Remember your password?",
+    "emailDomainError": "Email domain {domain} is not allowed. Please use Gmail, Yahoo, or Outlook.",
+    "emailFormatError": "Invalid email format. Make sure there's an '@' and a domain.",
+    "success": {
+      "signIn": "Successfully signed in! 🎉 Welcome back!"
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "description": "Manage your events, deadlines, and community activities",
+    "searchPlaceholder": "Search events...",
+    "filterByCategory": "Filter by category",
+    "allCategories": "All Categories",
+    "meetings": "Meetings",
+    "workshops": "Workshops",
+    "social": "Social",
+    "deadlines": "Deadlines",
+    "other": "Other",
+    "addEvent": "Add Event",
+    "calendarView": "Calendar View",
+    "selectDate": "Select a date to view events",
+    "dateRange": "Date Range Selection",
+    "selectRange": "Select a date range for planning",
+    "eventsFor": "Events for {date}",
+    "selectDatePrompt": "Select a Date",
+    "noEvents": "No events for this date",
+    "upcomingEvents": "Upcoming Events",
+    "nextEvents": "Next events in your calendar",
+    "noUpcoming": "No upcoming events",
+    "calendarStats": "Calendar Stats",
+    "totalEvents": "Total Events",
+    "thisMonth": "This Month",
+    "upcoming": "Upcoming",
+    "newEvent": {
+      "title": "Add New Event",
+      "description": "Create a new event for your calendar",
+      "eventTitle": "Title",
+      "eventTitlePlaceholder": "Event title",
+      "eventDescription": "Description",
+      "eventDescriptionPlaceholder": "Event description",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "locationPlaceholder": "Event location",
+      "attendees": "Attendees",
+      "category": "Category",
+      "cancel": "Cancel",
+      "add": "Add Event"
+    }
+  },
+  "terms": {
+    "title": "Terms and Conditions",
+    "subtitle": "Terms and Conditions for using the VibeDev ID platform",
+    "effective": "Effective: January 2025",
+    "updated": "Updated: September 2025",
+    "quickNav": "Quick Navigation",
+    "acceptance": {
+      "title": "1. Acceptance of Terms",
+      "welcome": "Welcome to VibeDev ID (\"we,\" \"our,\" or \"us\"). By accessing or using our platform at any domain associated with VibeDev ID (the \"Service\"), you (\"User\" or \"you\") agree to be bound by these Terms and Conditions (\"Terms\").",
+      "important": "Important: If you do not agree to these Terms, please do not use our Service."
+    },
+    "service": {
+      "title": "2. Description of Service",
+      "description": "VibeDev ID is a community platform for Indonesian developers, AI enthusiasts, and tech innovators. Our Service allows users to:",
+      "features": [
+        "Create developer profiles",
+        "Showcase projects and portfolios",
+        "Connect and collaborate",
+        "Participate in discussions",
+        "Share knowledge and resources",
+        "Discover community projects"
+      ]
+    },
+    "accounts": {
+      "title": "3. User Accounts and Registration",
+      "creation": {
+        "title": "Account Creation",
+        "items": [
+          "Provide accurate, current information",
+          "Maintain confidentiality of credentials",
+          "Must be at least 13 years old",
+          "One account per person"
+        ]
+      },
+      "security": {
+        "title": "Account Security",
+        "items": [
+          "Responsible for all account activities",
+          "Report unauthorized use immediately",
+          "We may suspend violating accounts",
+          "Keep login credentials secure"
+        ]
+      }
+    },
+    "content": {
+      "title": "4. User Content and Conduct",
+      "allowed": {
+        "title": "Allowed Content",
+        "items": ["Project descriptions", "Code snippets", "Profile information", "Community discussions"]
+      },
+      "prohibited": {
+        "title": "Prohibited Content",
+        "items": [
+          "Illegal or harmful content",
+          "Hate speech or harassment",
+          "Copyright infringement",
+          "Malicious code or viruses",
+          "Spam or fraudulent content",
+          "Adult or explicit material"
+        ]
+      }
+    },
+    "community": {
+      "title": "5. Community Guidelines",
+      "values": "VibeDev Community Values",
+      "respectful": {
+        "title": "Respectful Interaction",
+        "description": "Treat all members with respect and professionalism"
+      },
+      "constructive": {
+        "title": "Constructive Feedback",
+        "description": "Provide helpful and constructive criticism"
+      },
+      "inclusive": {
+        "title": "Inclusive Environment",
+        "description": "Respect diverse backgrounds and skill levels"
+      },
+      "knowledge": {
+        "title": "Knowledge Sharing",
+        "description": "Share knowledge and help others learn"
+      }
+    },
+    "privacy": {
+      "title": "6. Privacy and Data Protection",
+      "collection": {
+        "title": "Data Collection",
+        "items": [
+          "Secure authentication via Supabase",
+          "Profile data as per Privacy Policy",
+          "Public visibility based on settings"
+        ]
+      },
+      "security": {
+        "title": "Data Security",
+        "items": [
+          "Industry-standard security measures",
+          "User responsibility for account security",
+          "No absolute security guarantee"
+        ]
+      }
+    },
+    "prohibitedUses": {
+      "title": "7. Prohibited Uses",
+      "warning": "You may not use our Service to:",
+      "items": [
+        "Violate laws or regulations",
+        "Impersonate others",
+        "Gain unauthorized system access",
+        "Interfere with service functionality",
+        "Harvest user information",
+        "Use automated access systems",
+        "Reverse engineer our platform",
+        "Distribute malicious content"
+      ]
+    },
+    "termination": {
+      "title": "8. Termination",
+      "byYou": {
+        "title": "By You",
+        "description": "You may terminate your account at any time. Termination does not relieve you of obligations incurred before termination."
+      },
+      "byUs": {
+        "title": "By Us",
+        "description": "We may terminate accounts for Terms violations, prohibited conduct, security risks, or extended inactivity."
+      }
+    },
+    "legal": {
+      "title": "Legal Information & Contact",
+      "governingLaw": {
+        "title": "Governing Law",
+        "description": "These Terms are governed by the laws of the Republic of Indonesia. Disputes should be resolved through Indonesian courts."
+      },
+      "contact": {
+        "title": "Contact Us",
+        "email": "support@vibedev.id",
+        "link": "Contact Us"
+      }
+    },
+    "indonesianSummary": {
+      "title": "🇮🇩 Indonesian Summary",
+      "agreement": "By using the VibeDev ID platform, you agree to:",
+      "items": [
+        "Follow polite community guidelines",
+        "Do not post violating content",
+        "Respect intellectual property rights",
+        "Contribute positively to the community"
+      ]
+    },
+    "finalAgreement": "By using VibeDev ID, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.",
+    "lastUpdated": "Last updated: September 2025 • Effective: January 2025",
+    "backToTop": "Back to Top"
   }
 }

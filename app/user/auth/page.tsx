@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2, Mail, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import type React from 'react'
 import { Suspense, useEffect, useState, useTransition } from 'react'
 import { toast } from 'sonner'
@@ -58,6 +59,7 @@ function AuthPageContent() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
+  const t = useTranslations('auth')
 
   // Handle URL parameters on mount
   useEffect(() => {
@@ -102,7 +104,7 @@ function AuthPageContent() {
         }
       } else if (result?.success) {
         console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
-        toast.success('Berhasil masuk! 🎉 Selamat datang kembali!')
+        toast.success(t('success.signIn'))
         router.refresh()
         router.push(result.redirect || '/')
       } else {
@@ -125,9 +127,7 @@ function AuthPageContent() {
     // Guard: whitelist email domain
     if (!isEmailDomainAllowed(email)) {
       const domain = getEmailDomain(email)
-      const msg = domain
-        ? `Email domain ${domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook ya cuy.`
-        : "Format email nggak valid. Pastikan ada '@' dan domainnya ya cuy."
+      const msg = domain ? t('emailDomainError', { domain }) : t('emailFormatError')
       setEmailDomainError(msg)
       setIsLoading(false)
       return
@@ -260,7 +260,7 @@ function AuthPageContent() {
                       !isSignUp ? 'text-background' : 'text-muted-foreground'
                     }`}
                   >
-                    Sign in
+                    {t('signIn')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -270,7 +270,7 @@ function AuthPageContent() {
                       isSignUp ? 'text-background' : 'text-muted-foreground'
                     }`}
                   >
-                    Sign up
+                    {t('signUp')}
                   </Button>
                 </div>
               </div>
@@ -278,7 +278,7 @@ function AuthPageContent() {
               {/* Form Title */}
               <div className="mb-8 text-center">
                 <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">
-                  {isSignUp ? 'Create an account' : 'Welcome back'}
+                  {isSignUp ? t('createAccount') : t('welcomeBack')}
                 </h1>
               </div>
             </>
@@ -293,13 +293,11 @@ function AuthPageContent() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-foreground text-3xl font-bold tracking-tight">Reset password</h1>
+                <h1 className="text-foreground text-3xl font-bold tracking-tight">{t('resetPassword')}</h1>
               </div>
 
               <div className="mb-8 text-center">
-                <p className="text-muted-foreground">
-                  Enter your email address and we'll send you a link to reset your password.
-                </p>
+                <p className="text-muted-foreground">{t('resetPasswordDescription')}</p>
               </div>
             </>
           )}

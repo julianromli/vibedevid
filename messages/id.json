@@ -197,6 +197,291 @@
   },
   "footer": {
     "copyright": "© 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.",
-    "privacy": "Privacy Policy"
+    "privacy": "Kebijakan Privasi"
+  },
+  "projectList": {
+    "title": "Showcase Project Developer Indonesia",
+    "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
+    "filter": "Filter",
+    "submitButton": "Submit Project",
+    "noProjects": "Belum ada project dengan filter yang dipilih",
+    "beFirst": "Jadi yang Pertama Submit Project",
+    "showingProjects": "Menampilkan {count} project dari komunitas developer Indonesia"
+  },
+  "projectSubmit": {
+    "title": "Submit Project Anda",
+    "description": "Bagikan project keren Anda dengan komunitas VibeDev",
+    "form": {
+      "projectDetails": "Detail Project",
+      "importGithub": "Import dari GitHub",
+      "importGithubPlaceholder": "owner/repo atau https://github.com/owner/repo",
+      "importGithubHelper": "Kami akan mengambil nama, deskripsi, homepage, tags, dan preview.",
+      "importing": "Mengimport...",
+      "import": "Import",
+      "projectTitle": "Judul Project",
+      "projectTitlePlaceholder": "Masukkan judul project Anda",
+      "tagline": "Tagline",
+      "taglinePlaceholder": "Tagline singkat yang menjelaskan project Anda dalam satu kalimat",
+      "taglineHelper": "Tagline singkat yang menjelaskan project Anda dalam satu kalimat! ✨",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Jelaskan project Anda, fitur-fiturnya, dan apa yang membuatnya spesial",
+      "descriptionHelper": "Maksimal {max} karakter untuk konsistensi!",
+      "category": "Kategori",
+      "selectCategory": "Pilih kategori",
+      "loadingCategories": "Memuat kategori...",
+      "noCategories": "Tidak ada kategori tersedia",
+      "websiteUrl": "URL Website",
+      "websitePlaceholder": "https://your-project.com",
+      "faviconUrl": "URL Favicon",
+      "faviconPlaceholder": "https://example.com/favicon.ico atau https://example.com/favicon.svg",
+      "faviconHelper": "Masukkan URL favicon untuk project Anda! Icon kecil yang muncul di tab browser 🎯",
+      "faviconAuto": "Favicon akan otomatis diambil dari website ini! 🌐 Atau masukkan URL manual untuk override.",
+      "techStack": "Tech Stack / Tags",
+      "techStackPlaceholder": "Pilih teknologi yang digunakan di project Anda...",
+      "techStackEmpty": "Tidak ada teknologi ditemukan.",
+      "techStackHelper": "Pilih teknologi yang Anda gunakan di project ini. Bisa tambah sendiri kalau tidak ada! 🚀",
+      "screenshot": "Screenshot Project",
+      "uploading": "Mengupload...",
+      "uploadButton": "Pilih File",
+      "uploadReady": "Mempersiapkan...",
+      "uploadAllowed": "Gambar ({fileTypes})",
+      "uploadHelper": "Upload screenshot project Anda (maks 4MB)",
+      "uploadSuccess": "Gambar berhasil diupload!",
+      "cancel": "Batal",
+      "submit": "Submit Project",
+      "submitting": "Mengsubmit..."
+    },
+    "toast": {
+      "success": "Mantap! 🚀 Project Anda berhasil di-submit!",
+      "error": "Waduh, ada error nih! 😅 Coba lagi ya!"
+    }
+  },
+  "auth": {
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "welcomeBack": "Selamat datang kembali",
+    "createAccount": "Buat akun",
+    "username": "Username",
+    "usernamePlaceholder": "Username",
+    "email": "Email",
+    "emailPlaceholder": "Masukkan email Anda",
+    "password": "Password",
+    "passwordPlaceholder": "Masukkan password Anda",
+    "rememberMe": "Ingat saya",
+    "forgotPassword": "Lupa password?",
+    "resetPassword": "Reset password",
+    "resetPasswordDescription": "Masukkan alamat email Anda dan kami akan mengirimkan link untuk reset password.",
+    "sendingReset": "Mengirim link reset...",
+    "sendResetLink": "Kirim link reset",
+    "backToSignIn": "Kembali ke masuk",
+    "signingIn": "Sedang masuk...",
+    "creatingAccount": "Membuat akun...",
+    "orContinueWith": "ATAU LANJUTKAN DENGAN",
+    "orSignUpWith": "ATAU DAFTAR DENGAN",
+    "google": "Google",
+    "github": "GitHub",
+    "termsAgreement": "Dengan {action}, Anda setuju dengan",
+    "termsLink": "Syarat & Ketentuan",
+    "rememberPassword": "Ingat password Anda?",
+    "emailDomainError": "Domain email {domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook.",
+    "emailFormatError": "Format email tidak valid. Pastikan ada '@' dan domain.",
+    "success": {
+      "signIn": "Berhasil masuk! 🎉 Selamat datang kembali!"
+    }
+  },
+  "calendar": {
+    "title": "Kalender",
+    "description": "Kelola event, deadline, dan aktivitas komunitas Anda",
+    "searchPlaceholder": "Cari event...",
+    "filterByCategory": "Filter berdasarkan kategori",
+    "allCategories": "Semua Kategori",
+    "meetings": "Meeting",
+    "workshops": "Workshop",
+    "social": "Sosial",
+    "deadlines": "Deadline",
+    "other": "Lainnya",
+    "addEvent": "Tambah Event",
+    "calendarView": "Tampilan Kalender",
+    "selectDate": "Pilih tanggal untuk melihat event",
+    "dateRange": "Pilih Rentang Tanggal",
+    "selectRange": "Pilih rentang tanggal untuk perencanaan",
+    "eventsFor": "Event untuk {date}",
+    "selectDatePrompt": "Pilih Tanggal",
+    "noEvents": "Tidak ada event untuk tanggal ini",
+    "upcomingEvents": "Event Mendatang",
+    "nextEvents": "Event selanjutnya di kalender Anda",
+    "noUpcoming": "Tidak ada event mendatang",
+    "calendarStats": "Statistik Kalender",
+    "totalEvents": "Total Event",
+    "thisMonth": "Bulan Ini",
+    "upcoming": "Mendatang",
+    "newEvent": {
+      "title": "Tambah Event Baru",
+      "description": "Buat event baru untuk kalender Anda",
+      "eventTitle": "Judul",
+      "eventTitlePlaceholder": "Judul event",
+      "eventDescription": "Deskripsi",
+      "eventDescriptionPlaceholder": "Deskripsi event",
+      "date": "Tanggal",
+      "time": "Waktu",
+      "location": "Lokasi",
+      "locationPlaceholder": "Lokasi event",
+      "attendees": "Peserta",
+      "category": "Kategori",
+      "cancel": "Batal",
+      "add": "Tambah Event"
+    }
+  },
+  "terms": {
+    "title": "Syarat dan Ketentuan",
+    "subtitle": "Syarat dan Ketentuan penggunaan platform VibeDev ID",
+    "effective": "Berlaku: Januari 2025",
+    "updated": "Diperbarui: September 2025",
+    "quickNav": "Navigasi Cepat",
+    "acceptance": {
+      "title": "1. Penerimaan Syarat",
+      "welcome": "Selamat datang di VibeDev ID (\"kami,\" \"milik kami,\" atau \"kita\"). Dengan mengakses atau menggunakan platform kami di domain apa pun yang terkait dengan VibeDev ID (\"Layanan\"), Anda (\"Pengguna\" atau \"Anda\") setuju untuk terikat oleh Syarat dan Ketentuan ini (\"Syarat\").",
+      "important": "Penting: Jika Anda tidak setuju dengan Syarat ini, mohon tidak menggunakan Layanan kami."
+    },
+    "service": {
+      "title": "2. Deskripsi Layanan",
+      "description": "VibeDev ID adalah platform komunitas untuk developer Indonesia, AI enthusiasts, dan tech innovators. Layanan kami memungkinkan pengguna untuk:",
+      "features": [
+        "Membuat profil developer",
+        "Menampilkan project dan portfolio",
+        "Terhubung dan berkolaborasi",
+        "Berpartisipasi dalam diskusi",
+        "Berbagi pengetahuan dan resources",
+        "Menemukan project komunitas"
+      ]
+    },
+    "accounts": {
+      "title": "3. Akun Pengguna dan Registrasi",
+      "creation": {
+        "title": "Pembuatan Akun",
+        "items": [
+          "Berikan informasi yang akurat dan terkini",
+          "Jaga kerahasiaan kredensial",
+          "Minimal berusia 13 tahun",
+          "Satu akun per orang"
+        ]
+      },
+      "security": {
+        "title": "Keamanan Akun",
+        "items": [
+          "Bertanggung jawab atas semua aktivitas akun",
+          "Laporkan penggunaan tidak sah segera",
+          "Kami dapat menangguhkan akun yang melanggar",
+          "Jaga kredensial login tetap aman"
+        ]
+      }
+    },
+    "content": {
+      "title": "4. Konten dan Perilaku Pengguna",
+      "allowed": {
+        "title": "Konten yang Diizinkan",
+        "items": ["Deskripsi project", "Code snippets", "Informasi profil", "Diskusi komunitas"]
+      },
+      "prohibited": {
+        "title": "Konten yang Dilarang",
+        "items": [
+          "Konten ilegal atau berbahaya",
+          "Ucapan kebencian atau pelecehan",
+          "Pelanggaran hak cipta",
+          "Kode berbahaya atau virus",
+          "Spam atau konten penipuan",
+          "Konten dewasa atau eksplisit"
+        ]
+      }
+    },
+    "community": {
+      "title": "5. Panduan Komunitas",
+      "values": "Nilai-nilai Komunitas VibeDev",
+      "respectful": {
+        "title": "Interaksi yang Sopan",
+        "description": "Perlakukan semua member dengan hormat dan profesionalisme"
+      },
+      "constructive": {
+        "title": "Feedback yang Konstruktif",
+        "description": "Berikan kritik yang membantu dan konstruktif"
+      },
+      "inclusive": {
+        "title": "Lingkungan yang Inklusif",
+        "description": "Hargai latar belakang dan level skill yang beragam"
+      },
+      "knowledge": {
+        "title": "Berbagi Pengetahuan",
+        "description": "Bagikan pengetahuan dan bantu orang lain belajar"
+      }
+    },
+    "privacy": {
+      "title": "6. Privasi dan Perlindungan Data",
+      "collection": {
+        "title": "Pengumpulan Data",
+        "items": [
+          "Autentikasi aman via Supabase",
+          "Data profil sesuai Kebijakan Privasi",
+          "Visibilitas publik berdasarkan pengaturan"
+        ]
+      },
+      "security": {
+        "title": "Keamanan Data",
+        "items": [
+          "Langkah keamanan standar industri",
+          "Tanggung jawab pengguna untuk keamanan akun",
+          "Tidak ada jaminan keamanan absolut"
+        ]
+      }
+    },
+    "prohibitedUses": {
+      "title": "7. Penggunaan yang Dilarang",
+      "warning": "Anda tidak boleh menggunakan Layanan kami untuk:",
+      "items": [
+        "Melanggar hukum atau peraturan",
+        "Meniru orang lain",
+        "Mendapatkan akses sistem tanpa izin",
+        "Mengganggu fungsionalitas layanan",
+        "Mengumpulkan informasi pengguna",
+        "Menggunakan sistem akses otomatis",
+        "Melakukan reverse engineering pada platform kami",
+        "Menyebarluaskan konten berbahaya"
+      ]
+    },
+    "termination": {
+      "title": "8. Penghentian",
+      "byYou": {
+        "title": "Oleh Anda",
+        "description": "Anda dapat menghentikan akun Anda kapan saja. Penghentian tidak membebaskan Anda dari kewajiban yang timbul sebelum penghentian."
+      },
+      "byUs": {
+        "title": "Oleh Kami",
+        "description": "Kami dapat menghentikan akun karena pelanggaran Syarat, perilaku terlarang, risiko keamanan, atau ketidakaktifan yang berkepanjangan."
+      }
+    },
+    "legal": {
+      "title": "Informasi Legal & Kontak",
+      "governingLaw": {
+        "title": "Hukum yang Berlaku",
+        "description": "Syarat ini diatur oleh hukum Republik Indonesia. Sengketa harus diselesaikan melalui pengadilan Indonesia."
+      },
+      "contact": {
+        "title": "Hubungi Kami",
+        "email": "support@vibedev.id",
+        "link": "Hubungi Kami"
+      }
+    },
+    "indonesianSummary": {
+      "title": "🇮🇩 Ringkasan Bahasa Indonesia",
+      "agreement": "Dengan menggunakan platform VibeDev ID, Anda setuju untuk:",
+      "items": [
+        "Mengikuti pedoman komunitas yang sopan",
+        "Tidak memposting konten yang melanggar",
+        "Menghormati hak kekayaan intelektual",
+        "Berkontribusi positif pada komunitas"
+      ]
+    },
+    "finalAgreement": "Dengan menggunakan VibeDev ID, Anda mengakui bahwa Anda telah membaca, memahami, dan setuju untuk terikat oleh Syarat dan Ketentuan ini.",
+    "lastUpdated": "Terakhir diperbarui: September 2025 • Berlaku: Januari 2025",
+    "backToTop": "Kembali ke Atas"
   }
 }
