@@ -38,10 +38,11 @@ export function useAuth() {
 
         console.log('[useAuth] Session data:', session)
 
+        clearTimeout(authReadyTimeout)
+
         if (session?.user) {
           console.log('[useAuth] User found in session:', session.user)
           setIsLoggedIn(true)
-          clearTimeout(authReadyTimeout)
 
           // Get user profile from database
           const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
@@ -62,12 +63,15 @@ export function useAuth() {
             console.log('[useAuth] Setting user data:', userData)
             setUser(userData)
           }
-          setAuthReady(true)
         } else {
-          // Session is empty but we'll get INITIAL_SESSION event
-          // Don't mark auth ready yet, wait for the event
-          console.log('[useAuth] No session in getSession(), waiting for INITIAL_SESSION...')
+          // No session found - user is not logged in
+          console.log('[useAuth] No session found, user is not logged in')
+          setIsLoggedIn(false)
+          setUser(null)
         }
+
+        // Always mark auth as ready after checking session
+        setAuthReady(true)
       } catch (error) {
         if (!isMounted) return
         console.error('[useAuth] Error in checkAuth:', error)
