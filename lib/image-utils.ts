@@ -99,7 +99,7 @@ export function getOptimalImageProps(
     quality,
   })
 
-  return { mobile, tablet, desktop }
+  return { mobile: mobile.props, tablet: tablet.props, desktop: desktop.props }
 }
 
 /**

@@ -363,7 +363,7 @@ export default function CalendarPage() {
                 <Calendar
                   mode="range"
                   selected={selectedRange}
-                  onSelect={setSelectedRange}
+                  onSelect={(range) => setSelectedRange({ from: range?.from, to: range?.to })}
                   className="w-full rounded-md border"
                   numberOfMonths={2}
                 />

@@ -50,8 +50,8 @@ export interface UseProgressiveImageReturn {
   placeholderColorValue: string
 
   // Refs
-  imageRef: React.RefObject<HTMLImageElement>
-  containerRef: React.RefObject<HTMLDivElement>
+  imageRef: React.RefObject<HTMLImageElement | null>
+  containerRef: React.RefObject<HTMLDivElement | null>
 
   // Event handlers
   handleLoad: () => void

@@ -625,7 +625,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
   try {
     if (!projectIds || projectIds.length === 0) {
       console.log('[v0] getBatchLikeStatus: No project IDs provided')
-      return { likesData: {}, error: null }
+      return { likesData: {} as Record<string, { totalLikes: number; isLiked: boolean }>, error: null }
     }
 
     // Convert integers to strings properly
@@ -635,7 +635,10 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     if (cleanProjectIds.length === 0) {
       console.log('[v0] getBatchLikeStatus: No valid project IDs after cleaning')
-      return { likesData: {}, error: 'No valid project IDs provided' }
+      return {
+        likesData: {} as Record<string, { totalLikes: number; isLiked: boolean }>,
+        error: 'No valid project IDs provided',
+      }
     }
 
     console.log('[v0] getBatchLikeStatus: Fetching likes for projects:', cleanProjectIds)
@@ -999,7 +1002,7 @@ export async function fetchProjectsWithSorting(
         // Get display name for category
         const categoryDisplayName = await getCategoryDisplayName(project.category)
 
-        const projectLikesData = (likesData && likesData[project.id]) || {
+        const projectLikesData = (likesData && likesData[String(project.id)]) || {
           totalLikes: 0,
           isLiked: false,
         }

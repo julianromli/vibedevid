@@ -236,7 +236,9 @@ test.describe('Views Tracking Feature', () => {
 
   test('should not track bot/crawler visits', async ({ page }) => {
     // Step 1: Set bot user agent
-    await page.setUserAgent('Googlebot/2.1 (+http://www.google.com/bot.html)')
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Googlebot/2.1 (+http://www.google.com/bot.html)',
+    })
 
     // Step 2: Visit project as bot
     await page.goto(TEST_URL)

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import type { OurFileRouter } from '@/lib/uploadthing'
 
 interface CoverImageUploaderProps {
   value: string
@@ -123,7 +124,7 @@ export function CoverImageUploader({ value, onChange, onError, disabled = false 
                       <p className="text-muted-foreground text-sm">Please wait while your image is being uploaded</p>
                     </div>
                   ) : (
-                    <UploadButton
+                    <UploadButton<OurFileRouter, 'projectImageUploader'>
                       endpoint="projectImageUploader"
                       onUploadBegin={(name) => {
                         console.log('[CoverImageUploader] Upload started for file:', name)

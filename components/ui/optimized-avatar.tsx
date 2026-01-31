@@ -32,7 +32,7 @@ export function OptimizedAvatar({
   showSkeleton = true,
 }: OptimizedAvatarProps) {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading')
-  const [imageSrc, setImageSrc] = useState<string | null>(src)
+  const [imageSrc, setImageSrc] = useState<string | null>(src || null)
 
   // Handle image load success
   const handleLoad = useCallback(() => {

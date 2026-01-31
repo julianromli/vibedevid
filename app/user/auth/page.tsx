@@ -412,7 +412,7 @@ function AuthPageContent() {
                   <Checkbox
                     id="remember"
                     checked={rememberMe}
-                    onCheckedChange={setRememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
                     className="border-border data-[state=checked]:bg-foreground data-[state=checked]:border-foreground transition-all duration-200"
                   />
                   <label

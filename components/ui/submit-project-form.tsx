@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { submitProject } from '@/lib/actions'
 import { type Category, getCategories } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
+import type { OurFileRouter } from '@/lib/uploadthing'
 
 // Common tech stack options for the multiselect
 const techOptions: Option[] = [
@@ -512,7 +513,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                         <p className="text-muted-foreground text-sm">Please wait while your image is being uploaded</p>
                       </div>
                     ) : (
-                      <UploadButton
+                      <UploadButton<OurFileRouter, 'projectImageUploader'>
                         endpoint="projectImageUploader"
                         onUploadBegin={(name) => {
                           console.log('[v0] Upload started for file:', name)
@@ -553,8 +554,7 @@ export function SubmitProjectForm({ userId }: SubmitProjectFormProps) {
                             console.log('[v0] Upload result:', uploadResult)
 
                             // Try to get URL from different possible locations (prioritize new ufsUrl)
-                            const imageUrl =
-                              uploadResult.ufsUrl || uploadResult.url || uploadResult.fileUrl || uploadResult.key
+                            const imageUrl = uploadResult.ufsUrl || uploadResult.url || uploadResult.key
 
                             if (imageUrl) {
                               console.log('[v0] Setting image URL:', imageUrl)

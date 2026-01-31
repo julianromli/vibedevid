@@ -2,15 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // GET - Get single vibe video by ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return NextResponse.json({ error: 'Video ID diperlukan' }, { status: 400 })
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT - Update vibe video by ID
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { title, description, thumbnail, video_id, published_at, view_count, position } = body
 
@@ -136,7 +136,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE - Delete vibe video by ID
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return NextResponse.json({ error: 'Video ID diperlukan' }, { status: 400 })
