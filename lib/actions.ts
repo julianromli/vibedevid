@@ -395,15 +395,16 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
   }
 
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   try {
     // Prepare view record with session-based tracking
     const viewRecord = {
       project_id: projectId, // Use UUID directly, no parseInt
-      user_id: session?.user?.id || null,
+      user_id: user?.id || null,
       session_id: sessionId || null,
       ip_address: null, // We'll skip IP tracking for now
       view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
@@ -436,15 +437,16 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
   }
 
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   try {
     // Prepare view record with session-based tracking
     const viewRecord = {
       post_id: postId.trim(),
-      user_id: session?.user?.id || null,
+      user_id: user?.id || null,
       session_id: sessionId || null,
       ip_address: null,
       view_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
@@ -472,11 +474,12 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
 
 export async function toggleLike(projectId: string) {
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     return { error: 'You must be logged in to like projects' }
   }
 
@@ -490,7 +493,7 @@ export async function toggleLike(projectId: string) {
       .from('likes')
       .select('id')
       .eq('project_id', projectId.trim())
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -508,7 +511,7 @@ export async function toggleLike(projectId: string) {
     } else {
       const { error: insertError } = await supabase.from('likes').insert({
         project_id: projectId.trim(), // Use UUID directly
-        user_id: session.user.id,
+        user_id: user.id,
       })
 
       if (insertError) {
@@ -525,9 +528,10 @@ export async function toggleLike(projectId: string) {
 
 export async function getLikeStatus(projectId: string) {
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   try {
     if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
@@ -549,12 +553,12 @@ export async function getLikeStatus(projectId: string) {
     }
 
     let isLiked = false
-    if (session?.user) {
+    if (user) {
       const { data: userLike, error: userLikeError } = await supabase
         .from('likes')
         .select('id')
         .eq('project_id', cleanProjectId)
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single()
 
       if (userLikeError && userLikeError.code !== 'PGRST116') {
@@ -636,18 +640,18 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     console.log('[v0] getBatchLikeStatus: Fetching likes for projects:', cleanProjectIds)
 
-    // Get session safely
+    // Use getUser() for secure server-side auth validation
     const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-    if (sessionError) {
-      console.error('[v0] getBatchLikeStatus: Session error:', sessionError)
-      // Continue without session - we can still get total likes
+    if (userError) {
+      console.error('[v0] getBatchLikeStatus: User error:', userError)
+      // Continue without user - we can still get total likes
     }
 
-    console.log('[v0] getBatchLikeStatus: Session status:', session ? 'logged in' : 'anonymous')
+    console.log('[v0] getBatchLikeStatus: User status:', user ? 'logged in' : 'anonymous')
 
     // Get all likes for these projects in one query
     const { data: allLikes, error: likesError } = await supabase
@@ -675,7 +679,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       const projectIdNum = parseInt(projectId)
       const projectLikes = allLikes?.filter((like) => like.project_id === projectIdNum) || []
       const totalLikes = projectLikes.length
-      const isLiked = session?.user ? projectLikes.some((like) => like.user_id === session.user.id) : false
+      const isLiked = user ? projectLikes.some((like) => like.user_id === user.id) : false
 
       // Store using original string key for consistency
       likesData[projectId] = { totalLikes, isLiked }
@@ -832,11 +836,12 @@ export async function editProject(projectSlug: string, formData: FormData) {
   }
 
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     return { success: false, error: 'You must be logged in to edit projects' }
   }
 
@@ -852,7 +857,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
       return { success: false, error: 'Project not found' }
     }
 
-    if (project.author_id !== session.user.id) {
+    if (project.author_id !== user.id) {
       return { success: false, error: 'You can only edit your own projects' }
     }
 
@@ -1065,11 +1070,12 @@ export async function deleteProject(projectSlug: string) {
   }
 
   const supabase = await createClient()
+  // Use getUser() for secure server-side auth validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     return { success: false, error: 'You must be logged in to delete projects' }
   }
 
@@ -1085,7 +1091,7 @@ export async function deleteProject(projectSlug: string) {
       return { success: false, error: 'Project not found' }
     }
 
-    if (project.author_id !== session.user.id) {
+    if (project.author_id !== user.id) {
       return { success: false, error: 'You can only delete your own projects' }
     }
 
