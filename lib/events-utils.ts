@@ -1,4 +1,62 @@
 import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
+import { mockEvents } from '@/lib/data/mock-events'
+
+/**
+ * Get event by slug from mock data
+ */
+export function getEventBySlug(slug: string): AIEvent | undefined {
+  return mockEvents.find((event) => event.slug === slug)
+}
+
+/**
+ * Get related events by category, excluding current event
+ */
+export function getRelatedEvents(category: EventCategory, excludeId: string, limit: number = 3): AIEvent[] {
+  return mockEvents.filter((event) => event.category === category && event.id !== excludeId).slice(0, limit)
+}
+
+/**
+ * Format event date for display (e.g., "15 Feb 2025")
+ */
+export function formatEventDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/**
+ * Format event time for display (e.g., "09:00")
+ */
+export function formatEventTime(timeString: string): string {
+  return timeString
+}
+
+/**
+ * Format event date range for multi-day events
+ */
+export function formatEventDateRange(
+  startDate: string,
+  startTime: string,
+  endDate?: string,
+  endTime?: string
+): string {
+  const formattedStartDate = formatEventDate(startDate)
+  const formattedStartTime = formatEventTime(startTime)
+
+  if (!endDate) {
+    return `${formattedStartDate}, ${formattedStartTime}`
+  }
+
+  const formattedEndDate = formatEventDate(endDate)
+  const formattedEndTime = endTime ? formatEventTime(endTime) : ''
+
+  if (startDate === endDate) {
+    // Same day event with end time
+    return `${formattedStartDate}, ${formattedStartTime} - ${formattedEndTime}`
+  }
+
+  // Multi-day event
+  return `${formattedStartDate}, ${formattedStartTime} - ${formattedEndDate}, ${formattedEndTime}`
+}
 
 /**
  * Filter events by category
