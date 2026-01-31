@@ -2,6 +2,7 @@
 
 import { Calendar, Clock, ExternalLink, MapPin, Users } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -63,19 +64,15 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
         className={cn(
           'group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm',
           'transition-all duration-300 hover:border-border hover:bg-card hover:shadow-lg',
-          'dark:hover:shadow-primary/5'
+          'dark:hover:shadow-primary/5',
         )}
         data-testid="event-card"
       >
         <div className="flex items-stretch">
           {/* Date Column */}
           <div className="flex w-20 shrink-0 flex-col items-center justify-center border-r border-border/50 bg-muted/30 px-3 py-4">
-            <span className="font-bold text-2xl text-foreground leading-none tracking-tight">
-              {dateCompact.day}
-            </span>
-            <span className="mt-0.5 font-medium text-muted-foreground text-xs tracking-wider">
-              {dateCompact.month}
-            </span>
+            <span className="font-bold text-2xl text-foreground leading-none tracking-tight">{dateCompact.day}</span>
+            <span className="mt-0.5 font-medium text-muted-foreground text-xs tracking-wider">{dateCompact.month}</span>
           </div>
 
           {/* Thumbnail */}
@@ -114,11 +111,17 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
 
             {/* Meta Row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
-              <div className="flex items-center gap-1.5" data-testid="event-date">
+              <div
+                className="flex items-center gap-1.5"
+                data-testid="event-date"
+              >
                 <Clock className="size-3.5 opacity-60" />
                 <span>{formatTime(event.time)}</span>
               </div>
-              <div className="flex items-center gap-1.5" data-testid="event-location">
+              <div
+                className="flex items-center gap-1.5"
+                data-testid="event-location"
+              >
                 <MapPin className="size-3.5 opacity-60" />
                 <span className="line-clamp-1">{event.locationDetail}</span>
               </div>
@@ -133,25 +136,26 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
                 >
                   {categoryLabel}
                 </Badge>
-                <span className="text-muted-foreground text-xs" data-testid="event-organizer">
+                <span
+                  className="text-muted-foreground text-xs"
+                  data-testid="event-organizer"
+                >
                   by <span className="font-medium text-foreground/80">{event.organizer}</span>
                 </span>
               </div>
 
               {/* CTA */}
-              <a
-                href={event.registrationUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/event/${event.slug}`}
                 className={cn(
                   'hidden items-center gap-1 rounded-md px-3 py-1.5 font-medium text-xs sm:flex',
                   'bg-primary/10 text-primary transition-colors hover:bg-primary/20',
-                  'dark:bg-primary/20 dark:hover:bg-primary/30'
+                  'dark:bg-primary/20 dark:hover:bg-primary/30',
                 )}
               >
-                Register
+                Detail Event
                 <ExternalLink className="size-3" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -164,7 +168,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
       className={cn(
         'group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm',
         'transition-all duration-300 hover:border-border hover:bg-card hover:shadow-xl',
-        'dark:hover:shadow-primary/5'
+        'dark:hover:shadow-primary/5',
       )}
       data-testid="event-card"
     >
@@ -211,9 +215,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
         {/* Date overlay - Bottom Left */}
         <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-black/60 px-2.5 py-1.5 backdrop-blur-sm">
           <Calendar className="size-3.5 text-white/80" />
-          <span className="font-medium text-white text-xs">
-            {formatDate(event.date)}
-          </span>
+          <span className="font-medium text-white text-xs">{formatDate(event.date)}</span>
         </div>
       </div>
 
@@ -230,7 +232,10 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
         {/* Meta info */}
         <div className="flex flex-col gap-2 text-muted-foreground text-sm">
           {/* Time */}
-          <div className="flex items-center gap-2" data-testid="event-date">
+          <div
+            className="flex items-center gap-2"
+            data-testid="event-date"
+          >
             <Clock className="size-4 shrink-0 opacity-60" />
             <span>
               {formatTime(event.time)}
@@ -239,38 +244,45 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-2" data-testid="event-location">
+          <div
+            className="flex items-center gap-2"
+            data-testid="event-location"
+          >
             <MapPin className="size-4 shrink-0 opacity-60" />
             <span className="line-clamp-1">{event.locationDetail}</span>
           </div>
 
           {/* Organizer */}
-          <div className="flex items-center gap-2" data-testid="event-organizer">
+          <div
+            className="flex items-center gap-2"
+            data-testid="event-organizer"
+          >
             <Users className="size-4 shrink-0 opacity-60" />
             <span className="line-clamp-1">{event.organizer}</span>
           </div>
         </div>
 
         {/* Description */}
-        <p className="line-clamp-2 text-muted-foreground text-sm leading-relaxed" data-testid="event-description">
+        <p
+          className="line-clamp-2 text-muted-foreground text-sm leading-relaxed"
+          data-testid="event-description"
+        >
           {event.description}
         </p>
 
         {/* CTA */}
-        <a
-          href={event.registrationUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href={`/event/${event.slug}`}
           className={cn(
             'mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium text-sm',
             'bg-primary text-primary-foreground transition-all',
             'hover:bg-primary/90 hover:shadow-md',
-            'dark:hover:shadow-primary/20'
+            'dark:hover:shadow-primary/20',
           )}
         >
           Register Now
           <ExternalLink className="size-4" />
-        </a>
+        </Link>
       </div>
     </Card>
   )

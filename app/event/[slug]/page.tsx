@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from 'lucide-react'
+import { ArrowLeft, Calendar, ExternalLink, MapPin, Users, Clock } from 'lucide-react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { EventShareButton } from '@/components/event/event-share-button'
 import { EventCard } from '@/components/event/event-card'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Footer } from '@/components/ui/footer'
@@ -56,141 +57,160 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const formattedDate = formatEventDateRange(event.date, event.time, event.endDate, event.endTime)
 
   return (
-    <div className="bg-grid-pattern relative min-h-screen">
-      {/* Background Gradient Overlay */}
-      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
-
+    <div className="bg-background min-h-screen">
       <Navbar
         showNavigation={true}
         isLoggedIn={!!currentUser}
         user={currentUser || undefined}
       />
 
-      {/* Content Container */}
-      <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
+      <main className="container mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 lg:px-8">
         {/* Back Navigation */}
-        <div className="mb-6">
-          <Link href="/event/list">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Events
-            </Button>
+        <div className="mb-8">
+          <Link href="/event/list" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Events
           </Link>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="space-y-8 lg:col-span-2">
+        <div className="grid gap-8 lg:grid-cols-12">
+          {/* Main Content Area */}
+          <div className="space-y-8 lg:col-span-8">
+            
+            {/* Header Section */}
+            <div className="space-y-4">
+               <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="capitalize">
+                  {event.category}
+                </Badge>
+                <Badge 
+                  variant={event.status === 'upcoming' ? 'default' : event.status === 'ongoing' ? 'secondary' : 'outline'}
+                  className="capitalize"
+                >
+                  {event.status}
+                </Badge>
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">{event.name}</h1>
+            </div>
+
             {/* Cover Image */}
-            <div className="bg-muted relative overflow-hidden rounded-xl">
+            <div className="overflow-hidden rounded-xl border bg-muted shadow-sm">
               <AspectRatio ratio={16 / 9}>
                 <Image
                   src={event.coverImage}
                   alt={event.name}
                   fill
                   priority
-                  className="h-full w-full object-cover"
+                  className="object-cover transition-transform hover:scale-105 duration-700"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                 />
-                {/* Gradient Overlay */}
-                <div className="from-background/20 to-background/60 absolute inset-0 bg-gradient-to-t"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
               </AspectRatio>
             </div>
 
-            {/* Event Header */}
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium capitalize">
-                  {event.category}
-                </span>
-                <span
-                  className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${
-                    event.status === 'upcoming'
-                      ? 'bg-blue-500/10 text-blue-500'
-                      : event.status === 'ongoing'
-                        ? 'bg-green-500/10 text-green-500'
-                        : 'bg-gray-500/10 text-gray-500'
-                  }`}
-                >
-                  {event.status}
-                </span>
-              </div>
-
-              <h1 className="text-foreground text-3xl leading-tight font-bold lg:text-4xl">{event.name}</h1>
-
-              {/* Event Info */}
-              <div className="space-y-3">
-                <div className="text-muted-foreground flex items-start gap-3">
-                  <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                  <span>{formattedDate}</span>
-                </div>
-
-                <div className="text-muted-foreground flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium capitalize">{event.locationType}</span>
-                    <span className="mx-2">•</span>
-                    <span>{event.locationDetail}</span>
+            {/* Bento Info Grid */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Card className="bg-muted/30 border-none shadow-none hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4 flex flex-col gap-3">
+                  <div className="p-2 bg-primary/10 w-fit rounded-lg text-primary">
+                    <Calendar className="h-5 w-5" />
                   </div>
-                </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Date & Time</p>
+                    <p className="font-semibold mt-1 text-sm">{formattedDate}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="text-muted-foreground flex items-start gap-3">
-                  <Users className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                  <span>{event.organizer}</span>
-                </div>
-              </div>
+              <Card className="bg-muted/30 border-none shadow-none hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4 flex flex-col gap-3">
+                  <div className="p-2 bg-primary/10 w-fit rounded-lg text-primary">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Location</p>
+                    <p className="font-semibold mt-1 text-sm capitalize">{event.locationType}</p>
+                    <p className="text-xs text-muted-foreground">{event.locationDetail}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Description */}
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <p className="text-muted-foreground text-base leading-relaxed">{event.description}</p>
-              </div>
+               <Card className="bg-muted/30 border-none shadow-none hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4 flex flex-col gap-3">
+                  <div className="p-2 bg-primary/10 w-fit rounded-lg text-primary">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Organizer</p>
+                    <p className="font-semibold mt-1 text-sm">{event.organizer}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Description */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none">
+              <h3 className="text-xl font-bold mb-4">About this Event</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
             </div>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Registration CTA */}
-            {!isPastEvent && (
+          <div className="lg:col-span-4 relative">
+            <div className="sticky top-24 space-y-6">
+              {/* Registration Card */}
+              {!isPastEvent && (
+                <Card className="border-primary/20 shadow-lg overflow-hidden relative">
+                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-purple-600" />
+                  <CardContent className="p-6 space-y-4">
+                    <h3 className="font-bold text-xl">Ready to join?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Secure your spot for this event. Registration is open until seats are filled.
+                    </p>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full font-semibold shadow-md"
+                    >
+                      <a
+                        href={event.registrationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2"
+                      >
+                        Register Now
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Share Card */}
               <Card>
                 <CardContent className="p-6">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="w-full"
-                  >
-                    <a
-                      href={event.registrationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Register Now
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
+                  <h3 className="font-semibold mb-4">Share this event</h3>
+                  <EventShareButton
+                    eventTitle={event.name}
+                    eventSlug={event.slug}
+                  />
                 </CardContent>
               </Card>
-            )}
-
-            {/* Share Button */}
-            <Card>
-              <CardContent className="p-6">
-                <EventShareButton
-                  eventTitle={event.name}
-                  eventSlug={event.slug}
-                />
-              </CardContent>
-            </Card>
+            </div>
           </div>
         </div>
 
         {/* Related Events */}
         {relatedEvents.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-foreground mb-6 text-2xl font-bold">Related Events</h2>
+          <div className="mt-20 border-t pt-10">
+            <div className="flex items-center justify-between mb-8">
+               <h2 className="text-2xl font-bold tracking-tight">Related Events</h2>
+               <Link href="/event/list">
+                 <Button variant="ghost" className="gap-1">
+                   View all <ArrowLeft className="h-4 w-4 rotate-180" />
+                 </Button>
+               </Link>
+            </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedEvents.map((relatedEvent) => (
                 <EventCard
@@ -202,7 +222,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       <Footer />
     </div>
