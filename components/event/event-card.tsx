@@ -47,7 +47,9 @@ function formatDateCompact(dateString: string): { day: string; month: string } {
 }
 
 function formatTime(timeString: string): string {
-  return timeString
+  // Extract only time portion if it contains date (e.g., "09:00 - 1 Mar 2025" -> "09:00")
+  const timePart = timeString.split(' - ')[0]
+  return timePart.trim()
 }
 
 export function EventCard({ event, variant = 'grid' }: EventCardProps) {
@@ -232,7 +234,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
             <Clock className="size-4 shrink-0 opacity-60" />
             <span>
               {formatTime(event.time)}
-              {event.endDate && ` - ${formatDate(event.endDate)}`}
+              {event.endTime && ` - ${formatTime(event.endTime)}`}
             </span>
           </div>
 
