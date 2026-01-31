@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { EventCard } from '@/components/event/event-card'
 import { EventFilterControls } from '@/components/event/event-filter-controls'
+import { SubmitEventSection } from '@/components/event/submit-event-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
+import { useAuth } from '@/hooks/useAuth'
 import { mockEvents } from '@/lib/data/mock-events'
 import { applyFilters } from '@/lib/events-utils'
 import type { EventCategory, EventLocationType } from '@/types/events'
@@ -12,6 +14,9 @@ import type { EventCategory, EventLocationType } from '@/types/events'
 type ViewMode = 'grid' | 'list'
 
 export default function EventListPage() {
+  // Use centralized auth hook for consistent auth state
+  const { isLoggedIn, user, authReady } = useAuth()
+
   // Filter and sort state
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'All'>('All')
   const [selectedLocation, setSelectedLocation] = useState<EventLocationType | 'All'>('All')
@@ -45,7 +50,11 @@ export default function EventListPage() {
         {/* Background Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
-        <Navbar showNavigation={true} />
+        <Navbar
+          showNavigation={true}
+          isLoggedIn={isLoggedIn}
+          user={user ?? undefined}
+        />
 
         {/* Main Content */}
         <section className="relative bg-transparent py-12 pt-24">
@@ -117,6 +126,9 @@ export default function EventListPage() {
             )}
           </div>
         </section>
+
+        {/* Submit Event Section */}
+        <SubmitEventSection />
 
         {/* Footer */}
         <Footer />
