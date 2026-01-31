@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { validateEventForm } from '@/lib/event-form-utils'
 import { createClient } from '@/lib/supabase/server'
 import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
 
@@ -80,6 +81,13 @@ export async function getEventBySlug(slug: string) {
 
 export async function submitEvent(formData: EventFormData) {
   try {
+    // Validate form data server-side
+    const validation = validateEventForm(formData)
+    if (!validation.isValid) {
+      const errorMessages = Object.values(validation.errors).join(', ')
+      return { success: false, error: `Validation failed: ${errorMessages}` }
+    }
+
     const supabase = await createClient()
     const {
       data: { user },
@@ -115,7 +123,7 @@ export async function submitEvent(formData: EventFormData) {
       return { success: false, error: 'Failed to submit event' }
     }
 
-    revalidatePath('/events')
+    revalidatePath('/event/list')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error submitting event:', error)
