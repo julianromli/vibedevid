@@ -50,7 +50,6 @@ export function NavGroup({ title, items }: NavGroup) {
           return (
             <Collapsible
               key={item.title}
-              asChild
               defaultOpen={checkIsActive(pathname, item, true)}
               className="group/collapsible"
             >
