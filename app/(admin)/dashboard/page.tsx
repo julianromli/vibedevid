@@ -20,7 +20,25 @@ import ProjectsPage from './boards/projects/page'
 import UsersPage from './boards/users/page'
 import Dashboard1Actions from './components/dashboard-1-actions'
 
-export default async function Dashboard1Page() {
+interface SearchParams {
+  search?: string
+  role?: string
+  status?: string
+  page?: string
+  tab?: string
+  category?: string
+}
+
+export default async function Dashboard1Page({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  const params = await searchParams
+
+  // Determine active tab from URL or default to overview
+  const activeTab = params.tab || 'overview'
+
   return (
     <>
       <Header />
@@ -32,7 +50,7 @@ export default async function Dashboard1Page() {
         </div>
         <Tabs
           orientation="vertical"
-          defaultValue="overview"
+          defaultValue={activeTab}
           className="space-y-4"
         >
           <div className="w-full overflow-x-auto pb-2">
@@ -126,25 +144,25 @@ export default async function Dashboard1Page() {
             value="projects"
             className="space-y-4"
           >
-            <ProjectsPage searchParams={Promise.resolve({})} />
+            <ProjectsPage searchParams={searchParams} />
           </TabsContent>
           <TabsContent
             value="blog"
             className="space-y-4"
           >
-            <BlogPage searchParams={Promise.resolve({})} />
+            <BlogPage searchParams={searchParams} />
           </TabsContent>
           <TabsContent
             value="users"
             className="space-y-4"
           >
-            <UsersPage searchParams={Promise.resolve({})} />
+            <UsersPage searchParams={searchParams} />
           </TabsContent>
           <TabsContent
             value="comments"
             className="space-y-4"
           >
-            <CommentsPage searchParams={Promise.resolve({})} />
+            <CommentsPage searchParams={searchParams} />
           </TabsContent>
         </Tabs>
       </div>
