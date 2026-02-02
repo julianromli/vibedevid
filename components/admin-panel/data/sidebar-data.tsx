@@ -20,7 +20,7 @@ export const sidebarData: { navGroups: NavGroup[] } = {
           items: [
             {
               title: 'Overview',
-              url: '/admin/dashboard',
+              url: '/dashboard',
             },
           ],
         },
@@ -31,17 +31,17 @@ export const sidebarData: { navGroups: NavGroup[] } = {
       items: [
         {
           title: 'Projects',
-          url: '/admin/dashboard?tab=projects',
+          url: '/dashboard?tab=projects',
           icon: IconFolder,
         },
         {
           title: 'Blog Posts',
-          url: '/admin/dashboard?tab=blog',
+          url: '/dashboard?tab=blog',
           icon: IconNews,
         },
         {
           title: 'Events',
-          url: '/admin/dashboard?tab=events-approval',
+          url: '/dashboard?tab=events-approval',
           icon: IconCalendarEvent,
         },
       ],
@@ -51,12 +51,12 @@ export const sidebarData: { navGroups: NavGroup[] } = {
       items: [
         {
           title: 'Users',
-          url: '/admin/dashboard?tab=users',
+          url: '/dashboard?tab=users',
           icon: IconUsers,
         },
         {
           title: 'Comments',
-          url: '/admin/dashboard?tab=comments',
+          url: '/dashboard?tab=comments',
           icon: IconMessageCircle,
         },
       ],
