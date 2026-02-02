@@ -81,7 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'VibeDev ID',
       images: [
         {
-          url: 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0',
+          url: 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFN0mGLyldLnI7kJrhcyQTeHZ9RlBaDdjEwPp8F',
           width: 1200,
           height: 630,
           alt: t('ogImageAlt'),
@@ -94,7 +94,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: t('ogTitle'),
       description: t('twitterDescription'),
-      images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'],
+      images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFN0mGLyldLnI7kJrhcyQTeHZ9RlBaDdjEwPp8F'],
       creator: '@vibedevid',
     },
     robots: {
