@@ -2,7 +2,7 @@
 
 import { IconFilter, IconSearch } from '@tabler/icons-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,6 +14,13 @@ export function UserSearch() {
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [role, setRole] = useState(searchParams.get('role') || 'all')
   const [status, setStatus] = useState(searchParams.get('status') || 'all')
+
+  // Sync state with URL params when they change
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '')
+    setRole(searchParams.get('role') || 'all')
+    setStatus(searchParams.get('status') || 'all')
+  }, [searchParams])
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
