@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import { formatEventDateRange, getEventBySlug, getRelatedEvents } from '@/lib/events-utils'
+import { getEventBySlug, getRelatedEvents } from '@/lib/actions/events'
+import { formatEventDateRange } from '@/lib/events-utils'
 import { getCurrentUser } from '@/lib/server/auth'
 
 interface EventDetailPageProps {
@@ -20,7 +21,7 @@ interface EventDetailPageProps {
 
 export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const { event } = await getEventBySlug(slug)
 
   if (!event) {
     return {
@@ -44,13 +45,16 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const { event } = await getEventBySlug(slug)
 
   if (!event) {
     notFound()
   }
 
-  const relatedEvents = getRelatedEvents(event.category, event.id)
+  const { events: relatedEvents, error: relatedError } = await getRelatedEvents(event.category, event.id)
+  if (relatedError) {
+    console.error('Error fetching related events:', relatedError)
+  }
   const currentUser = await getCurrentUser()
 
   const isPastEvent = event.status === 'past'
@@ -97,7 +101,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   {event.status}
                 </Badge>
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">{event.name}</h1>
+              <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">{event.name}</h1>
             </div>
 
             {/* Cover Image */}

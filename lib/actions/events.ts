@@ -67,9 +67,19 @@ export async function getEvents(filters: GetEventsFilters = {}) {
 }
 
 export async function getEventBySlug(slug: string) {
+  // Validate slug parameter
+  if (!slug || typeof slug !== 'string') {
+    return { event: null, error: 'Invalid slug parameter' }
+  }
+
+  const sanitizedSlug = slug.trim().toLowerCase()
+  if (sanitizedSlug.length === 0 || sanitizedSlug.length > 200) {
+    return { event: null, error: 'Invalid slug format' }
+  }
+
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('events').select('*').eq('slug', slug).single()
+  const { data, error } = await supabase.from('events').select('*').eq('slug', sanitizedSlug).single()
 
   if (error) {
     console.error('Error fetching event by slug:', error)
@@ -77,6 +87,24 @@ export async function getEventBySlug(slug: string) {
   }
 
   return { event: mapEventFromDB(data) }
+}
+
+export async function getRelatedEvents(category: string, excludeId: string, limit: number = 3) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('category', category)
+    .neq('id', excludeId)
+    .eq('approved', true)
+    .limit(limit)
+
+  if (error) {
+    console.error('Error fetching related events:', error)
+    return { events: [], error: 'Failed to fetch related events' }
+  }
+
+  return { events: data?.map(mapEventFromDB) || [] }
 }
 
 export async function submitEvent(formData: EventFormData) {
