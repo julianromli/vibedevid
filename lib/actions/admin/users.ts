@@ -3,6 +3,16 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
+// IMPORTANT-5: Role constants for maintainability
+const ROLES = {
+  ADMIN: 0,
+  MODERATOR: 1,
+  USER: 2,
+} as const
+
+// IMPORTANT-7: Extract hardcoded page size to constant
+const DEFAULT_PAGE_SIZE = 20
+
 export interface AdminUser {
   id: string
   username: string
@@ -50,17 +60,23 @@ async function checkAdminAccess() {
 
   const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
 
-  if (!userData || userData.role !== 0) {
+  if (!userData || userData.role !== ROLES.ADMIN) {
     throw new Error('Admin access required')
   }
 
   return user
 }
 
+// CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
+function sanitizeSearchInput(search: string): string {
+  // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
+  return search.replace(/[%_]/g, '\\$&')
+}
+
 export async function getAllUsers(
   filters: UserFilters = {},
   page: number = 1,
-  pageSize: number = 20,
+  pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetAllUsersResult> {
   try {
     await checkAdminAccess()
@@ -72,9 +88,9 @@ export async function getAllUsers(
     // Apply filters
     if (filters.role && filters.role !== 'all') {
       const roleMap: Record<string, number> = {
-        admin: 0,
-        moderator: 1,
-        user: 2,
+        admin: ROLES.ADMIN,
+        moderator: ROLES.MODERATOR,
+        user: ROLES.USER,
       }
       query = query.eq('role', roleMap[filters.role])
     }
@@ -86,7 +102,9 @@ export async function getAllUsers(
     }
 
     if (filters.search) {
-      query = query.or(`username.ilike.%${filters.search}%,display_name.ilike.%${filters.search}%`)
+      // CRITICAL-2: Sanitize search to prevent SQL injection
+      const sanitized = sanitizeSearchInput(filters.search)
+      query = query.or(`username.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`)
     }
 
     // Pagination

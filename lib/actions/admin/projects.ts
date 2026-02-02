@@ -1,8 +1,17 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+
+// IMPORTANT-5: Role constants for maintainability
+const ROLES = {
+  ADMIN: 0,
+  MODERATOR: 1,
+  USER: 2,
+} as const
+
+// IMPORTANT-7: Extract hardcoded page size to constant
+const DEFAULT_PAGE_SIZE = 20
 
 export interface AdminProject {
   id: number
@@ -54,17 +63,23 @@ async function checkAdminAccess() {
 
   const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
 
-  if (!userData || userData.role !== 0) {
+  if (!userData || userData.role !== ROLES.ADMIN) {
     throw new Error('Admin access required')
   }
 
   return user
 }
 
+// CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
+function sanitizeSearchInput(search: string): string {
+  // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
+  return search.replace(/[%_]/g, '\\$&')
+}
+
 export async function getAllProjects(
   filters: ProjectFilters = {},
   page: number = 1,
-  pageSize: number = 20,
+  pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetAllProjectsResult> {
   try {
     await checkAdminAccess()
@@ -103,7 +118,9 @@ export async function getAllProjects(
     }
 
     if (filters.search) {
-      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+      // CRITICAL-2: Sanitize search to prevent SQL injection
+      const sanitized = sanitizeSearchInput(filters.search)
+      query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`)
     }
 
     // Pagination
@@ -288,6 +305,9 @@ export async function toggleProjectFeatured(
 
 export async function getProjectCategories(): Promise<{ categories: string[]; error?: string }> {
   try {
+    // CRITICAL-1: Add missing admin access check
+    await checkAdminAccess()
+
     const supabase = await createClient()
 
     const { data, error } = await supabase.from('categories').select('name').eq('is_active', true).order('sort_order')

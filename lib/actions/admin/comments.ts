@@ -3,6 +3,16 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
+// IMPORTANT-5: Role constants for maintainability
+const ROLES = {
+  ADMIN: 0,
+  MODERATOR: 1,
+  USER: 2,
+} as const
+
+// IMPORTANT-7: Extract hardcoded page size to constant
+const DEFAULT_PAGE_SIZE = 20
+
 export interface ReportedComment {
   id: string
   comment_id: string
@@ -57,7 +67,7 @@ async function checkAdminAccess() {
 
   const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
 
-  if (!userData || userData.role !== 0) {
+  if (!userData || userData.role !== ROLES.ADMIN) {
     throw new Error('Admin access required')
   }
 
@@ -67,7 +77,7 @@ async function checkAdminAccess() {
 export async function getReportedComments(
   filters: ReportFilters = {},
   page: number = 1,
-  pageSize: number = 20,
+  pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetReportedCommentsResult> {
   try {
     await checkAdminAccess()
@@ -123,84 +133,96 @@ export async function getReportedComments(
       return { reports: [], totalCount: 0, error: error.message }
     }
 
-    // Get entity info (post or project) for each comment
-    const formattedReports: ReportedComment[] = await Promise.all(
-      (reports || []).map(async (report) => {
-        let entity_type: 'post' | 'project' = 'post'
-        let entity_id = ''
-        let entity_title = ''
+    // IMPORTANT-2: Optimize N+1 query issue by batching lookups
+    // Get all comment IDs from reports to batch fetch entity info
+    const commentIds = (reports || []).map((r) => r.comment_id).filter(Boolean)
 
-        // Check if comment belongs to a post or project
-        const comment = report.comment
-        if (comment) {
-          // Check post_id first
-          const { data: postComment } = await supabase
-            .from('comments')
-            .select('post_id')
-            .eq('id', comment.id)
-            .not('post_id', 'is', null)
-            .single()
+    // Batch fetch all comments with their post_id and project_id in a single query
+    const { data: allComments } = await supabase.from('comments').select('id, post_id, project_id').in('id', commentIds)
 
-          if (postComment?.post_id) {
-            entity_type = 'post'
-            entity_id = postComment.post_id
-            const { data: post } = await supabase.from('posts').select('title').eq('id', postComment.post_id).single()
-            entity_title = post?.title || 'Unknown Post'
-          } else {
-            // Check project_id
-            const { data: projectComment } = await supabase
-              .from('comments')
-              .select('project_id')
-              .eq('id', comment.id)
-              .not('project_id', 'is', null)
-              .single()
+    // Separate comment IDs by entity type
+    const postCommentIds: string[] = []
+    const projectCommentIds: number[] = []
+    const commentEntityMap = new Map<string, { type: 'post' | 'project'; entityId: string }>()
 
-            if (projectComment?.project_id) {
-              entity_type = 'project'
-              entity_id = String(projectComment.project_id)
-              const { data: project } = await supabase
-                .from('projects')
-                .select('title')
-                .eq('id', projectComment.project_id)
-                .single()
-              entity_title = project?.title || 'Unknown Project'
-            }
-          }
-        }
+    allComments?.forEach((comment) => {
+      if (comment.post_id) {
+        postCommentIds.push(comment.id)
+        commentEntityMap.set(comment.id, { type: 'post', entityId: comment.post_id })
+      } else if (comment.project_id) {
+        projectCommentIds.push(comment.project_id)
+        commentEntityMap.set(comment.id, { type: 'project', entityId: String(comment.project_id) })
+      }
+    })
 
-        return {
-          id: report.id,
-          comment_id: report.comment_id,
-          reporter_id: report.reporter_id,
-          reason: report.reason,
-          status: report.status,
-          created_at: report.created_at,
-          comment: {
-            id: comment?.id || '',
-            content: comment?.content || '',
-            created_at: comment?.created_at || '',
-            user_id: comment?.user_id || null,
-            author_name: comment?.author_name || null,
-            author: comment?.users
-              ? {
-                  id: comment.users.id,
-                  display_name: comment.users.display_name,
-                  avatar_url: comment.users.avatar_url,
-                }
-              : null,
-            isGuest: false,
-          },
-          reporter: {
-            id: report.reporter?.id || '',
-            display_name: report.reporter?.display_name || 'Unknown',
-            username: report.reporter?.username || 'unknown',
-          },
-          entity_type,
-          entity_id,
-          entity_title,
-        }
-      }),
+    // Batch fetch all posts and projects in parallel
+    const [postsResult, projectsResult] = await Promise.all([
+      postCommentIds.length > 0
+        ? supabase.from('posts').select('id, title').in('id', postCommentIds)
+        : Promise.resolve({ data: [] }),
+      projectCommentIds.length > 0
+        ? supabase.from('projects').select('id, title').in('id', projectCommentIds)
+        : Promise.resolve({ data: [] }),
+    ])
+
+    // Create lookup maps for O(1) access
+    const postMap = new Map<string, string>(
+      (postsResult.data || []).map((p: { id: string; title: string }) => [p.id, p.title]),
     )
+    const projectMap = new Map<number, string>(
+      (projectsResult.data || []).map((p: { id: number; title: string }) => [p.id, p.title]),
+    )
+
+    // Format reports using the lookup maps (no additional queries)
+    const formattedReports: ReportedComment[] = (reports || []).map((report) => {
+      const entityInfo = commentEntityMap.get(report.comment_id)
+      let entity_type: 'post' | 'project' = 'post'
+      let entity_id = ''
+      let entity_title = 'Unknown'
+
+      if (entityInfo) {
+        entity_type = entityInfo.type
+        entity_id = entityInfo.entityId
+        entity_title =
+          entityInfo.type === 'post'
+            ? postMap.get(entityInfo.entityId) || 'Unknown Post'
+            : projectMap.get(Number(entityInfo.entityId)) || 'Unknown Project'
+      }
+
+      const comment = report.comment
+
+      return {
+        id: report.id,
+        comment_id: report.comment_id,
+        reporter_id: report.reporter_id,
+        reason: report.reason,
+        status: report.status,
+        created_at: report.created_at,
+        comment: {
+          id: comment?.id || '',
+          content: comment?.content || '',
+          created_at: comment?.created_at || '',
+          user_id: comment?.user_id || null,
+          author_name: comment?.author_name || null,
+          author: comment?.users
+            ? {
+                id: comment.users.id,
+                display_name: comment.users.display_name,
+                avatar_url: comment.users.avatar_url,
+              }
+            : null,
+          isGuest: false,
+        },
+        reporter: {
+          id: report.reporter?.id || '',
+          display_name: report.reporter?.display_name || 'Unknown',
+          username: report.reporter?.username || 'unknown',
+        },
+        entity_type,
+        entity_id,
+        entity_title,
+      }
+    })
 
     return {
       reports: formattedReports,
