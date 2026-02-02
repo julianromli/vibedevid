@@ -105,18 +105,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </div>
 
             {/* Cover Image */}
-            <div className="overflow-hidden rounded-xl border bg-muted shadow-sm">
-              <AspectRatio ratio={16 / 9}>
-                <Image
-                  src={event.coverImage}
-                  alt={event.name}
-                  fill
-                  priority
-                  className="object-cover transition-transform hover:scale-105 duration-700"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
-              </AspectRatio>
+            <div className="overflow-hidden rounded-xl border bg-muted shadow-sm relative">
+              <Image
+                src={event.coverImage}
+                alt={event.name}
+                width={1200}
+                height={675}
+                priority
+                className="w-full h-auto object-contain transition-transform hover:scale-105 duration-700"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+              />
+              <div className="absolute inset-0" />
             </div>
 
             {/* Bento Info Grid */}
@@ -161,7 +160,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
             {/* Description */}
             <div className="prose prose-neutral dark:prose-invert max-w-none">
-              <h3 className="text-xl font-bold mb-4">About this Event</h3>
+              <h2 className="font-bold mb-4">About this Event</h2>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
             </div>
           </div>
