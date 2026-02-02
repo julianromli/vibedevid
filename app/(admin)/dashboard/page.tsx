@@ -1,7 +1,8 @@
-import { IconAnalyze, IconFileReport, IconNotification, IconSettings2 } from '@tabler/icons-react'
+import { IconAnalyze, IconCalendarEvent, IconFileReport, IconNotification, IconSettings2 } from '@tabler/icons-react'
 import { Header } from '@/components/admin-panel/header'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Analytics from './boards/analytics'
+import EventsApproval from './boards/events-approval/page'
 import Overview from './boards/overview'
 import Dashboard1Actions from './components/dashboard-1-actions'
 
@@ -52,6 +53,13 @@ export default async function Dashboard1Page() {
                 <IconNotification size={16} />
                 Notifications
               </TabsTrigger>
+              <TabsTrigger
+                value="events-approval"
+                className="flex items-center gap-2"
+              >
+                <IconCalendarEvent size={16} />
+                Events
+              </TabsTrigger>
             </TabsList>
           </div>
           <TabsContent
@@ -65,6 +73,12 @@ export default async function Dashboard1Page() {
             className="space-y-4"
           >
             <Analytics />
+          </TabsContent>
+          <TabsContent
+            value="events-approval"
+            className="space-y-4"
+          >
+            <EventsApproval />
           </TabsContent>
         </Tabs>
       </div>

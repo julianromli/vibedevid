@@ -158,3 +158,107 @@ export async function submitEvent(formData: EventFormData) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
+
+// Helper to validate UUID format
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
+// Admin: Get pending events awaiting approval
+export async function getPendingEvents() {
+  try {
+    const supabase = await createClient()
+
+    // Check admin role
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData.user || authData.user.user_metadata.role !== 0) {
+      return { events: [], error: 'Unauthorized' }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('approved', false)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching pending events:', error)
+      return { events: [], error: 'Failed to fetch pending events' }
+    }
+
+    return { events: data?.map(mapEventFromDB) || [] }
+  } catch (error) {
+    console.error('Unexpected error fetching pending events:', error)
+    return { events: [], error: 'An unexpected error occurred' }
+  }
+}
+
+// Admin: Approve a pending event
+export async function approveEvent(eventId: string) {
+  try {
+    // Validate eventId format
+    if (!isValidUUID(eventId)) {
+      return { success: false, error: 'Invalid event ID format' }
+    }
+
+    const supabase = await createClient()
+
+    // Check admin role
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData.user || authData.user.user_metadata.role !== 0) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const { error } = await supabase
+      .from('events')
+      .update({ approved: true })
+      .eq('id', eventId)
+
+    if (error) {
+      console.error('Error approving event:', error)
+      return { success: false, error: 'Failed to approve event' }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/event/list')
+    return { success: true }
+  } catch (error) {
+    console.error('Unexpected error approving event:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+// Admin: Reject and delete an event
+export async function rejectEvent(eventId: string) {
+  try {
+    // Validate eventId format
+    if (!isValidUUID(eventId)) {
+      return { success: false, error: 'Invalid event ID format' }
+    }
+
+    const supabase = await createClient()
+
+    // Check admin role
+    const { data: authData } = await supabase.auth.getUser()
+    if (!authData.user || authData.user.user_metadata.role !== 0) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const { error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', eventId)
+
+    if (error) {
+      console.error('Error rejecting event:', error)
+      return { success: false, error: 'Failed to reject event' }
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Unexpected error rejecting event:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
