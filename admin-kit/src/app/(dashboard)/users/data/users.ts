@@ -1,5 +1,5 @@
-import { faker } from "@faker-js/faker"
-import { User } from "./schema"
+import { faker } from '@faker-js/faker'
+import { User } from './schema'
 
 const generateUsers = () => {
   return Array.from({ length: 30 }, () => {
@@ -12,19 +12,9 @@ const generateUsers = () => {
       firstName,
       lastName,
       email: faker.internet.email({ firstName }).toLocaleLowerCase(),
-      phoneNumber: faker.phone.number({ style: "international" }),
-      status: faker.helpers.arrayElement([
-        "active",
-        "inactive",
-        "invited",
-        "suspended",
-      ]),
-      role: faker.helpers.arrayElement([
-        "superadmin",
-        "admin",
-        "cashier",
-        "manager",
-      ]),
+      phoneNumber: faker.phone.number({ style: 'international' }),
+      status: faker.helpers.arrayElement(['active', 'inactive', 'invited', 'suspended']),
+      role: faker.helpers.arrayElement(['superadmin', 'admin', 'cashier', 'manager']),
       createdAt,
       lastLoginAt,
       updatedAt: faker.date.recent(),

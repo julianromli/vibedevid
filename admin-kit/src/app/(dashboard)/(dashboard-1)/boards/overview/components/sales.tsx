@@ -1,43 +1,26 @@
-"use client"
+'use client'
 
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  XAxis,
-} from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 },
 ]
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+    label: 'Desktop',
+    color: 'var(--chart-1)',
   },
   mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
+    label: 'Mobile',
+    color: 'var(--chart-2)',
   },
 } satisfies ChartConfig
 
@@ -46,12 +29,13 @@ export default function Sales() {
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Sale Activity - Monthly</CardTitle>
-        <CardDescription>
-          Showing total sales for the last 6 months
-        </CardDescription>
+        <CardDescription>Showing total sales for the last 6 months</CardDescription>
       </CardHeader>
       <CardContent className="h-[calc(100%_-_90px)]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+        >
           <ChartContainer config={chartConfig}>
             <AreaChart
               accessibilityLayer
@@ -69,9 +53,18 @@ export default function Sales() {
                 tickMargin={8}
                 tickFormatter={(value) => value.slice(0, 3)}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent />}
+              />
               <defs>
-                <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="fillDesktop"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop
                     offset="5%"
                     stopColor="var(--color-desktop)"
@@ -83,7 +76,13 @@ export default function Sales() {
                     stopOpacity={0.1}
                   />
                 </linearGradient>
-                <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="fillMobile"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop
                     offset="5%"
                     stopColor="var(--color-mobile)"

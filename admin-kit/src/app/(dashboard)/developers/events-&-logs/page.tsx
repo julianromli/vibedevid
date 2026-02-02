@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from 'next/link'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,11 +6,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import ImportDialog from "./components/import-dialog"
-import Logs from "./components/logs"
-import Referrers from "./components/referrers"
-import RouteView from "./components/route-view"
+} from '@/components/ui/breadcrumb'
+import ImportDialog from './components/import-dialog'
+import Logs from './components/logs'
+import Referrers from './components/referrers'
+import RouteView from './components/route-view'
 
 export default function EventsAndLogsPage() {
   return (

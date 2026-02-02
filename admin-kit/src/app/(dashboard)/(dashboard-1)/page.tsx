@@ -1,14 +1,9 @@
-import {
-  IconAnalyze,
-  IconFileReport,
-  IconNotification,
-  IconSettings2,
-} from "@tabler/icons-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Header } from "@/components/layout/header"
-import Analytics from "./boards/analytics"
-import Overview from "./boards/overview"
-import Dashboard1Actions from "./components/dashboard-1-actions"
+import { IconAnalyze, IconFileReport, IconNotification, IconSettings2 } from '@tabler/icons-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Header } from '@/components/layout/header'
+import Analytics from './boards/analytics'
+import Overview from './boards/overview'
+import Dashboard1Actions from './components/dashboard-1-actions'
 
 export default async function Dashboard1Page() {
   return (
@@ -27,7 +22,10 @@ export default async function Dashboard1Page() {
         >
           <div className="w-full overflow-x-auto pb-2">
             <TabsList>
-              <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TabsTrigger
+                value="overview"
+                className="flex items-center gap-2"
+              >
                 <IconSettings2 size={14} />
                 Overview
               </TabsTrigger>
@@ -56,10 +54,16 @@ export default async function Dashboard1Page() {
               </TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent
+            value="overview"
+            className="space-y-4"
+          >
             <Overview />
           </TabsContent>
-          <TabsContent value="analytics" className="space-y-4">
+          <TabsContent
+            value="analytics"
+            className="space-y-4"
+          >
             <Analytics />
           </TabsContent>
         </Tabs>

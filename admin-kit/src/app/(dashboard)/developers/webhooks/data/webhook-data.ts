@@ -1,12 +1,7 @@
-import { faker } from "@faker-js/faker"
-import { Webhook } from "./schema"
+import { faker } from '@faker-js/faker'
+import { Webhook } from './schema'
 
-export const webhookEvents = [
-  "user.created",
-  "order.placed",
-  "payment.failed",
-  "user.deleted",
-] as const
+export const webhookEvents = ['user.created', 'order.placed', 'payment.failed', 'user.deleted'] as const
 
 const generateWebhookData = (count: number): Webhook[] => {
   const createdAt = faker.date.past()
@@ -17,10 +12,10 @@ const generateWebhookData = (count: number): Webhook[] => {
     url: faker.internet.url(),
     name: faker.lorem.words({ min: 1, max: 2 }),
     description: faker.lorem.sentence(),
-    authType: faker.helpers.arrayElement(["none", "application", "platform"]),
-    status: faker.helpers.arrayElement(["enabled", "disabled"]),
-    events: Array.from({ length: faker.number.int({ min: 1, max: 5 }) }).map(
-      () => faker.helpers.arrayElement(webhookEvents)
+    authType: faker.helpers.arrayElement(['none', 'application', 'platform']),
+    status: faker.helpers.arrayElement(['enabled', 'disabled']),
+    events: Array.from({ length: faker.number.int({ min: 1, max: 5 }) }).map(() =>
+      faker.helpers.arrayElement(webhookEvents),
     ),
     createdAt,
     updatedAt,

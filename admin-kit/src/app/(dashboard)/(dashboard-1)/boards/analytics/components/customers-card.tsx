@@ -1,35 +1,23 @@
-"use client"
+'use client'
 
-import { IconDots } from "@tabler/icons-react"
-import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+import { IconDots } from '@tabler/icons-react'
+import { TrendingUp } from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const chartData = [
-  { month: "January", customers: 56 },
-  { month: "February", customers: 125 },
-  { month: "March", customers: 47 },
-  { month: "April", customers: 73 },
-  { month: "May", customers: 109 },
-  { month: "June", customers: 44 },
+  { month: 'January', customers: 56 },
+  { month: 'February', customers: 125 },
+  { month: 'March', customers: 47 },
+  { month: 'April', customers: 73 },
+  { month: 'May', customers: 109 },
+  { month: 'June', customers: 44 },
 ]
 const chartConfig = {
   customers: {
-    label: "Customers",
-    color: "var(--chart-1)",
+    label: 'Customers',
+    color: 'var(--chart-1)',
   },
 } satisfies ChartConfig
 
@@ -39,14 +27,18 @@ export default function CustomersCard() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Customers</CardTitle>
-          <IconDots className="cursor-pointer opacity-60" size={16} />
+          <IconDots
+            className="cursor-pointer opacity-60"
+            size={16}
+          />
         </div>
-        <CardDescription>
-          Customer performance and growth trends.
-        </CardDescription>
+        <CardDescription>Customer performance and growth trends.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer className="max-h-[200px] w-full" config={chartConfig}>
+        <ChartContainer
+          className="max-h-[200px] w-full"
+          config={chartConfig}
+        >
           <AreaChart
             accessibilityLayer
             data={chartData}
@@ -63,9 +55,18 @@ export default function CustomersCard() {
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent />}
+            />
             <defs>
-              <linearGradient id="fillCustomers" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient
+                id="fillCustomers"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
                 <stop
                   offset="5%"
                   stopColor="var(--color-customers)"

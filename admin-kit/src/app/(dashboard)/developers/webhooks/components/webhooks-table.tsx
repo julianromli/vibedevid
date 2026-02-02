@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState } from "react"
+import { useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -10,18 +10,11 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { cn } from "@/lib/utils"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Webhook } from "../data/schema"
-import { DataTableToolbar } from "./data-table-toolbar"
+} from '@tanstack/react-table'
+import { cn } from '@/lib/utils'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Webhook } from '../data/schema'
+import { DataTableToolbar } from './data-table-toolbar'
 
 interface Props {
   columns: ColumnDef<Webhook>[]
@@ -59,16 +52,11 @@ export function WebhooksTable({ columns, data }: Props) {
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        "text-foreground/85 text-sm font-semibold",
-                        header.column.columnDef.meta?.className ?? ""
+                        'text-foreground/85 text-sm font-semibold',
+                        header.column.columnDef.meta?.className ?? '',
                       )}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   )
                 })}
@@ -80,15 +68,10 @@ export function WebhooksTable({ columns, data }: Props) {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))

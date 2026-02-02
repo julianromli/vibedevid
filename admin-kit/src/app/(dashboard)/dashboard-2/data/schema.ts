@@ -1,11 +1,6 @@
-import { z } from "zod"
+import { z } from 'zod'
 
-const recentActivityStatusSchema = z.enum([
-  "New",
-  "Delete",
-  "Invited",
-  "Suspended",
-])
+const recentActivityStatusSchema = z.enum(['New', 'Delete', 'Invited', 'Suspended'])
 
 export type RecentActivityStatus = z.infer<typeof recentActivityStatusSchema>
 

@@ -1,57 +1,44 @@
-"use client"
+'use client'
 
-import { HTMLAttributes, useState } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { IconBrandFacebook, IconBrandGithub } from "@tabler/icons-react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { nofitySubmittedValues } from "@/lib/notify-submitted-values"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { PasswordInput } from "@/components/password-input"
+import { HTMLAttributes, useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { IconBrandFacebook, IconBrandGithub } from '@tabler/icons-react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { nofitySubmittedValues } from '@/lib/notify-submitted-values'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z
   .object({
-    email: z
-      .string()
-      .min(1, { message: "Please enter your email" })
-      .email({ message: "Invalid email address" }),
+    email: z.string().min(1, { message: 'Please enter your email' }).email({ message: 'Invalid email address' }),
     password: z
       .string()
       .min(1, {
-        message: "Please enter your password",
+        message: 'Please enter your password',
       })
       .min(7, {
-        message: "Password must be at least 7 characters long",
+        message: 'Password must be at least 7 characters long',
       }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
-    path: ["confirmPassword"],
+    path: ['confirmPassword'],
   })
 
-export function RegisterForm({
-  className,
-  ...props
-}: HTMLAttributes<HTMLDivElement>) {
+export function RegisterForm({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   })
 
@@ -65,7 +52,10 @@ export function RegisterForm({
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div
+      className={cn('grid gap-6', className)}
+      {...props}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
@@ -76,7 +66,10 @@ export function RegisterForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input
+                      placeholder="name@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -89,7 +82,10 @@ export function RegisterForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <PasswordInput placeholder="********" {...field} />
+                    <PasswordInput
+                      placeholder="********"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,13 +98,19 @@ export function RegisterForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <PasswordInput placeholder="********" {...field} />
+                    <PasswordInput
+                      placeholder="********"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="mt-2" disabled={isLoading}>
+            <Button
+              className="mt-2"
+              disabled={isLoading}
+            >
               Create Account
             </Button>
 
@@ -117,9 +119,7 @@ export function RegisterForm({
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background text-muted-foreground px-2">
-                  Or continue with
-                </span>
+                <span className="bg-background text-muted-foreground px-2">Or continue with</span>
               </div>
             </div>
 

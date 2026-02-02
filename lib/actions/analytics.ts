@@ -153,14 +153,16 @@ export async function getMostViewedProjects(limit: number = 10): Promise<{
     })
 
     // Format and sort by views
-    const formattedProjects: TrendingItem[] = (projects || []).map((project: { id: number; title: string; created_at: string; users: { display_name: string }[] | null }) => ({
-      id: project.id,
-      title: project.title,
-      views: viewsCount[project.id] || 0,
-      likes: likesCount[project.id] || 0,
-      author: project.users?.[0]?.display_name || 'Unknown',
-      created_at: project.created_at,
-    }))
+    const formattedProjects: TrendingItem[] = (projects || []).map(
+      (project: { id: number; title: string; created_at: string; users: { display_name: string }[] | null }) => ({
+        id: project.id,
+        title: project.title,
+        views: viewsCount[project.id] || 0,
+        likes: likesCount[project.id] || 0,
+        author: project.users?.[0]?.display_name || 'Unknown',
+        created_at: project.created_at,
+      }),
+    )
 
     // Sort by views and take top N
     formattedProjects.sort((a, b) => b.views - a.views)

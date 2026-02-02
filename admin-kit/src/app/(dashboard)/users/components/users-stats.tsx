@@ -1,18 +1,16 @@
-import { IconInfoCircle } from "@tabler/icons-react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { UserStatProps, userStats } from "../data/data"
+import { IconInfoCircle } from '@tabler/icons-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { UserStatProps, userStats } from '../data/data'
 
 export function UsersStats() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {userStats.map((stats) => (
-        <UserStat key={stats.title} {...stats} />
+        <UserStat
+          key={stats.title}
+          {...stats}
+        />
       ))}
     </div>
   )

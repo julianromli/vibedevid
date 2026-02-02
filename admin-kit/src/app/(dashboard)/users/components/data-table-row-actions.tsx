@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons"
-import { IconChecklist, IconEdit, IconTrash } from "@tabler/icons-react"
-import { Row } from "@tanstack/react-table"
-import Link from "next/link"
-import useDialogState from "@/hooks/use-dialog-state"
-import { Button } from "@/components/ui/button"
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { IconChecklist, IconEdit, IconTrash } from '@tabler/icons-react'
+import { Row } from '@tanstack/react-table'
+import Link from 'next/link'
+import useDialogState from '@/hooks/use-dialog-state'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,17 +13,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { User } from "../data/schema"
-import { UsersActionDialog } from "./users-action-dialog"
-import { UsersDeactivateDialog } from "./users-deactivate-dialog"
+} from '@/components/ui/dropdown-menu'
+import { User } from '../data/schema'
+import { UsersActionDialog } from './users-action-dialog'
+import { UsersDeactivateDialog } from './users-deactivate-dialog'
 
 interface Props {
   row: Row<User>
 }
 
 export function DataTableRowActions({ row }: Props) {
-  const [open, setOpen] = useDialogState<"edit" | "deactivate">(null)
+  const [open, setOpen] = useDialogState<'edit' | 'deactivate'>(null)
   return (
     <>
       <DropdownMenu modal={false}>
@@ -36,7 +36,10 @@ export function DataTableRowActions({ row }: Props) {
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent
+          align="end"
+          className="w-[160px]"
+        >
           <DropdownMenuItem asChild>
             <Link href={`/users/${row.original.id}`}>
               View Detail
@@ -45,7 +48,7 @@ export function DataTableRowActions({ row }: Props) {
               </DropdownMenuShortcut>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen("edit")}>
+          <DropdownMenuItem onClick={() => setOpen('edit')}>
             Edit
             <DropdownMenuShortcut>
               <IconEdit size={16} />
@@ -53,7 +56,7 @@ export function DataTableRowActions({ row }: Props) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => setOpen("deactivate")}
+            onClick={() => setOpen('deactivate')}
             className="text-red-500!"
           >
             Deactivate
@@ -66,15 +69,15 @@ export function DataTableRowActions({ row }: Props) {
 
       <UsersActionDialog
         key={`user-edit-${row.original.id}`}
-        open={open === "edit"}
-        onOpenChange={() => setOpen("edit")}
+        open={open === 'edit'}
+        onOpenChange={() => setOpen('edit')}
         currentRow={row.original}
       />
 
       <UsersDeactivateDialog
         key={`user-deactivate-${row.original.id}`}
-        open={open === "deactivate"}
-        onOpenChange={() => setOpen("deactivate")}
+        open={open === 'deactivate'}
+        onOpenChange={() => setOpen('deactivate')}
         currentRow={row.original}
       />
     </>

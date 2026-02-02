@@ -1,9 +1,9 @@
-import Payments from "./components/payments"
-import Sales from "./components/sales"
-import Stats from "./components/stats"
-import Subscription from "./components/subscriptions"
-import TeamMembers from "./components/team-members"
-import TotalRevenue from "./components/total-revenue"
+import Payments from './components/payments'
+import Sales from './components/sales'
+import Stats from './components/stats'
+import Subscription from './components/subscriptions'
+import TeamMembers from './components/team-members'
+import TotalRevenue from './components/total-revenue'
 
 export default function Overview() {
   return (

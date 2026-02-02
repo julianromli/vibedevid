@@ -1,25 +1,10 @@
-"use client"
+'use client'
 
-import { useCallback, useState } from "react"
-import {
-  AlertCircle,
-  CheckCircle,
-  Download,
-  File,
-  FileText,
-  HelpCircle,
-  Upload,
-  UploadIcon,
-  X,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+import { useCallback, useState } from 'react'
+import { AlertCircle, CheckCircle, Download, File, FileText, HelpCircle, Upload, UploadIcon, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -28,23 +13,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 
 interface FileWithPreview {
   name: string
   type: string
   size: string
   progress?: number
-  status?: "uploading" | "success" | "error"
+  status?: 'uploading' | 'success' | 'error'
 }
 
 export default function ImportDialog() {
@@ -66,10 +47,10 @@ export default function ImportDialog() {
     const updatedFiles = files.map((file) => {
       return {
         name: file.name,
-        size: (file.size / 1024).toFixed(2) + " KB",
+        size: (file.size / 1024).toFixed(2) + ' KB',
         type: file.type,
         progress: 0,
-        status: "uploading" as const,
+        status: 'uploading' as const,
       }
     })
 
@@ -84,25 +65,19 @@ export default function ImportDialog() {
       const droppedFiles = Array.from(e.dataTransfer.files)
       handleFiles(droppedFiles)
     },
-    [handleFiles]
+    [handleFiles],
   )
 
   const uploadFile = (file: FileWithPreview) => {
     let progress = 0
     const intervalId = setInterval(() => {
       progress += 10
-      setFiles((prevFiles) =>
-        prevFiles.map((f) => (f.name === file.name ? { ...f, progress } : f))
-      )
+      setFiles((prevFiles) => prevFiles.map((f) => (f.name === file.name ? { ...f, progress } : f)))
       if (progress >= 100) {
         clearInterval(intervalId)
 
         setTimeout(() => {
-          setFiles((prevFiles) =>
-            prevFiles.map((f) =>
-              f.name === file.name ? { ...f, status: "success" } : f
-            )
-          )
+          setFiles((prevFiles) => prevFiles.map((f) => (f.name === file.name ? { ...f, status: 'success' } : f)))
         }, 500)
       }
     }, 300)
@@ -111,11 +86,7 @@ export default function ImportDialog() {
     if (Math.random() < 0.1) {
       setTimeout(() => {
         clearInterval(intervalId)
-        setFiles((prevFiles) =>
-          prevFiles.map((f) =>
-            f === file ? { ...f, status: "error", progress: 100 } : f
-          )
-        )
+        setFiles((prevFiles) => prevFiles.map((f) => (f === file ? { ...f, status: 'error', progress: 100 } : f)))
       }, 2000)
     }
   }
@@ -128,7 +99,7 @@ export default function ImportDialog() {
         handleFiles(files)
       }
     },
-    [handleFiles]
+    [handleFiles],
   )
 
   const removeFile = useCallback((fileToRemove: FileWithPreview) => {
@@ -136,16 +107,17 @@ export default function ImportDialog() {
   }, [])
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">Import</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Import</DialogTitle>
-          <DialogDescription>
-            Import your data here. Click upload when ready.
-          </DialogDescription>
+          <DialogDescription>Import your data here. Click upload when ready.</DialogDescription>
         </DialogHeader>
 
         <div
@@ -153,10 +125,10 @@ export default function ImportDialog() {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "border-muted flex h-full min-h-[150px] w-full cursor-pointer items-center justify-center rounded-sm border border-dashed transition-colors",
+            'border-muted flex h-full min-h-[150px] w-full cursor-pointer items-center justify-center rounded-sm border border-dashed transition-colors',
             {
-              "border-muted-foreground": isDragging,
-            }
+              'border-muted-foreground': isDragging,
+            },
           )}
         >
           <input
@@ -170,10 +142,11 @@ export default function ImportDialog() {
             className="flex cursor-pointer flex-col items-center justify-center gap-2"
             htmlFor="file-upload"
           >
-            <UploadIcon strokeWidth={1.4} size={22} />
-            <p className="text-xs text-gray-500">
-              Drag and drop files here, or click to select files
-            </p>
+            <UploadIcon
+              strokeWidth={1.4}
+              size={22}
+            />
+            <p className="text-xs text-gray-500">Drag and drop files here, or click to select files</p>
           </label>
         </div>
 
@@ -188,12 +161,13 @@ export default function ImportDialog() {
                   <div className="flex flex-1 flex-col items-start gap-2">
                     <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <File className="opacity-50" size={22} />
+                        <File
+                          className="opacity-50"
+                          size={22}
+                        />
                         <div className="flex flex-col">
                           <span className="truncate text-xs">{file.name}</span>
-                          <span className="text-xs text-gray-500">
-                            {file.size}
-                          </span>
+                          <span className="text-xs text-gray-500">{file.size}</span>
                         </div>
                       </div>
                       <button
@@ -210,17 +184,9 @@ export default function ImportDialog() {
                         className="h-[2px] opacity-60 transition-all"
                       />
                       <div className="flex w-[30px] items-center justify-end">
-                        {file.status === "uploading" && (
-                          <span className="text-xs text-gray-500">
-                            {file.progress}%
-                          </span>
-                        )}
-                        {file.status === "success" && (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        )}
-                        {file.status === "error" && (
-                          <AlertCircle className="h-4 w-4 text-red-500" />
-                        )}
+                        {file.status === 'uploading' && <span className="text-xs text-gray-500">{file.progress}%</span>}
+                        {file.status === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                        {file.status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
                       </div>
                     </div>
                   </div>
@@ -237,21 +203,29 @@ export default function ImportDialog() {
         </div>
 
         <Label htmlFor="url-import">Import from URL</Label>
-        <Input id="url-import" placeholder="Add file URL" />
+        <Input
+          id="url-import"
+          placeholder="Add file URL"
+        />
 
         <DialogFooter>
           <Popover>
             <PopoverTrigger asChild>
-              <Button className="mr-auto p-0" variant="link">
+              <Button
+                className="mr-auto p-0"
+                variant="link"
+              >
                 <HelpCircle />
                 <span>Help Center</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
-              <h3 className="mb-2 text-base font-semibold">
-                Import/Export Help
-              </h3>
-              <Accordion type="single" collapsible className="w-full">
+              <h3 className="mb-2 text-base font-semibold">Import/Export Help</h3>
+              <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+              >
                 <AccordionItem value="import">
                   <AccordionTrigger>
                     <div className="flex items-center">
@@ -292,9 +266,7 @@ export default function ImportDialog() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <p className="mb-2">
-                      Ensure your files follow these guidelines:
-                    </p>
+                    <p className="mb-2">Ensure your files follow these guidelines:</p>
                     <ul className="list-disc space-y-1 pl-5">
                       <li>Use consistent data types per column</li>
                       <li>Avoid special characters in headers</li>
@@ -310,8 +282,7 @@ export default function ImportDialog() {
                   <span className="text-sm font-semibold">Important Note</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Always backup your data before performing any import or export
-                  operations.
+                  Always backup your data before performing any import or export operations.
                 </p>
               </div>
             </PopoverContent>

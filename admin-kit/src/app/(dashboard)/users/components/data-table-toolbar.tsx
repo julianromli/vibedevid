@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { Cross2Icon } from "@radix-ui/react-icons"
-import { Table } from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { userTypes } from "../data/data"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import { DataTableViewOptions } from "./data-table-view-options"
+import { Cross2Icon } from '@radix-ui/react-icons'
+import { Table } from '@tanstack/react-table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { userTypes } from '../data/data'
+import { DataTableFacetedFilter } from './data-table-faceted-filter'
+import { DataTableViewOptions } from './data-table-view-options'
 
 interface Props<TData> {
   table: Table<TData>
@@ -20,28 +20,26 @@ export function DataTableToolbar<TData>({ table }: Props<TData>) {
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
         <Input
           placeholder="Filter tasks..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+          onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         <div className="flex gap-x-2">
-          {table.getColumn("status") && (
+          {table.getColumn('status') && (
             <DataTableFacetedFilter
-              column={table.getColumn("status")}
+              column={table.getColumn('status')}
               title="Status"
               options={[
-                { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
-                { label: "Invited", value: "invited" },
-                { label: "Suspended", value: "suspended" },
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' },
+                { label: 'Invited', value: 'invited' },
+                { label: 'Suspended', value: 'suspended' },
               ]}
             />
           )}
-          {table.getColumn("role") && (
+          {table.getColumn('role') && (
             <DataTableFacetedFilter
-              column={table.getColumn("role")}
+              column={table.getColumn('role')}
               title="Role"
               options={userTypes.map((t) => ({ ...t }))}
             />

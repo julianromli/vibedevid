@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { IconFilter } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import * as React from 'react'
+import { IconFilter } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
 import {
   Drawer,
   DrawerClose,
@@ -12,14 +12,18 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import Filters from "./filters"
+} from '@/components/ui/drawer'
+import Filters from './filters'
 
 export default function MobileFilterSheet() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button className="block lg:hidden" size="icon" variant="outline">
+        <Button
+          className="block lg:hidden"
+          size="icon"
+          variant="outline"
+        >
           <IconFilter className="m-auto" />
         </Button>
       </DrawerTrigger>

@@ -1,21 +1,9 @@
-"use client"
+'use client'
 
-import { ArrowUpRight } from "lucide-react"
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  XAxis,
-} from "recharts"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { ArrowUpRight } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis } from 'recharts'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartConfig,
   ChartContainer,
@@ -23,32 +11,26 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/chart'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 },
 ]
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+    label: 'Desktop',
+    color: 'var(--chart-1)',
   },
   mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
+    label: 'Mobile',
+    color: 'var(--chart-2)',
   },
 } satisfies ChartConfig
 
@@ -71,9 +53,7 @@ export default function RevenueChart() {
         </div>
         <CardDescription>
           <div className="flex items-center gap-2">
-            <p className="text-2xl font-semibold text-black dark:text-white">
-              $14,324
-            </p>
+            <p className="text-2xl font-semibold text-black dark:text-white">$14,324</p>
             <Badge
               variant="secondary"
               className="bg-opacity-20 rounded-xl bg-emerald-500 px-[5px] py-[2px] text-[10px] leading-none"
@@ -87,9 +67,15 @@ export default function RevenueChart() {
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[calc(100%_-_106px)] px-4">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+        >
           <ChartContainer config={chartConfig}>
-            <BarChart accessibilityLayer data={chartData}>
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+            >
               <ChartLegend content={<ChartLegendContent />} />
               <CartesianGrid vertical={false} />
               <XAxis

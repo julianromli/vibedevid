@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -10,9 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { labels, priorities, statuses } from "../data/data"
-import { Task } from "../data/schema"
+} from '@/components/ui/dialog'
+import { labels, priorities, statuses } from '../data/data'
+import { Task } from '../data/schema'
 
 interface Props {
   open: boolean
@@ -22,17 +22,17 @@ interface Props {
 
 export function TasksDetailDialog({ open, onOpenChange, currentRow }: Props) {
   const status = statuses.find((status) => status.value === currentRow.status)
-  const priority = priorities.find(
-    (priority) => priority.value === currentRow.priority
-  )
+  const priority = priorities.find((priority) => priority.value === currentRow.priority)
   const label = labels.find((label) => label.value === currentRow.label)
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogContent className="sm:max-w-96">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-1.5">
-            {currentRow.id}{" "}
-            {label && <Badge variant="outline">{label.label}</Badge>}
+            {currentRow.id} {label && <Badge variant="outline">{label.label}</Badge>}
           </DialogTitle>
           <DialogDescription>{currentRow.title}</DialogDescription>
         </DialogHeader>

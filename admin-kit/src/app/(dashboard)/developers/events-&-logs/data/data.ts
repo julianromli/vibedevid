@@ -4,78 +4,78 @@ import {
   IconBrandGoogle,
   IconBrandLinkedin,
   IconBrandVercel,
-} from "@tabler/icons-react"
-import { BadgeProps } from "@/components/ui/badge"
+} from '@tabler/icons-react'
+import { BadgeProps } from '@/components/ui/badge'
 
 export const routeViews = [
   {
-    route: "/",
+    route: '/',
     viewCount: 48,
   },
   {
-    route: "/dashboard-2",
+    route: '/dashboard-2',
     viewCount: 60,
   },
   {
-    route: "/dashboard-3",
+    route: '/dashboard-3',
     viewCount: 56,
   },
   {
-    route: "/tasks",
+    route: '/tasks',
     viewCount: 98,
   },
   {
-    route: "/users",
+    route: '/users',
     viewCount: 52,
   },
 ]
 
 export const pageViews = [
   {
-    route: "/api-keys",
+    route: '/api-keys',
     viewCount: 112,
   },
   {
-    route: "/overview",
+    route: '/overview',
     viewCount: 45,
   },
   {
-    route: "/event-logs",
+    route: '/event-logs',
     viewCount: 24,
   },
   {
-    route: "/login",
+    route: '/login',
     viewCount: 134,
   },
   {
-    route: "/otp",
+    route: '/otp',
     viewCount: 120,
   },
 ]
 
 export const referrers = [
   {
-    name: "facebook.com",
+    name: 'facebook.com',
     icon: IconBrandFacebook,
     visitors: 8,
   },
   {
-    name: "github.com",
+    name: 'github.com',
     icon: IconBrandGithub,
     visitors: 6,
   },
   {
-    name: "google.com",
+    name: 'google.com',
     icon: IconBrandGoogle,
     visitors: 5,
   },
   {
-    name: "lnkd.in",
+    name: 'lnkd.in',
     icon: IconBrandLinkedin,
     visitors: 9,
   },
   {
-    name: "vercel.com",
+    name: 'vercel.com',
     icon: IconBrandVercel,
     visitors: 2,
   },
@@ -83,62 +83,62 @@ export const referrers = [
 
 export const timelines = [
   {
-    label: "Past 30 minutes",
-    value: "past_30_min",
+    label: 'Past 30 minutes',
+    value: 'past_30_min',
   },
   {
-    label: "Maximum (1hour)",
-    value: "max_1_hour",
+    label: 'Maximum (1hour)',
+    value: 'max_1_hour',
   },
   {
-    label: "Custom",
-    value: "custom",
+    label: 'Custom',
+    value: 'custom',
   },
 ] as const
 
-export type Timeline = (typeof timelines)[number]["value"]
+export type Timeline = (typeof timelines)[number]['value']
 
 export const containsLevelOptions = [
   {
-    label: "Warning",
+    label: 'Warning',
     value: 10,
   },
   {
-    label: "Error",
+    label: 'Error',
     value: 4,
   },
 ]
 
 export const environmentOptions = [
   {
-    label: "Development",
+    label: 'Development',
     value: 2,
   },
   {
-    label: "Production",
+    label: 'Production',
     value: 1,
   },
 ]
 
 export const eventTypeOptions = [
   {
-    label: "API Endpoint",
+    label: 'API Endpoint',
     value: 4,
   },
   {
-    label: "Server-side Rendering",
+    label: 'Server-side Rendering',
     value: 2,
   },
   {
-    label: "Partial Prerendering",
+    label: 'Partial Prerendering',
     value: 1,
   },
   {
-    label: "Server Components",
+    label: 'Server Components',
     value: 5,
   },
   {
-    label: "Cron Job",
+    label: 'Cron Job',
     value: 3,
   },
 ]
@@ -146,176 +146,176 @@ export const eventTypeOptions = [
 export const logEntries = [
   {
     id: 1,
-    timestamp: "2023-05-01 10:30:15",
-    level: "INFO",
-    message: "Application started successfully",
-    source: "app.js",
+    timestamp: '2023-05-01 10:30:15',
+    level: 'INFO',
+    message: 'Application started successfully',
+    source: 'app.js',
   },
   {
     id: 2,
-    timestamp: "2023-05-01 10:31:23",
-    level: "WARN",
-    message: "High memory usage detected",
-    source: "system.monitor.js",
+    timestamp: '2023-05-01 10:31:23',
+    level: 'WARN',
+    message: 'High memory usage detected',
+    source: 'system.monitor.js',
   },
   {
     id: 3,
-    timestamp: "2023-05-01 10:32:46",
-    level: "ERROR",
-    message: "Failed to connect to database",
-    source: "database.js",
+    timestamp: '2023-05-01 10:32:46',
+    level: 'ERROR',
+    message: 'Failed to connect to database',
+    source: 'database.js',
   },
   {
     id: 4,
-    timestamp: "2023-05-01 10:33:12",
-    level: "INFO",
-    message: "User authentication successful",
-    source: "auth.js",
+    timestamp: '2023-05-01 10:33:12',
+    level: 'INFO',
+    message: 'User authentication successful',
+    source: 'auth.js',
   },
   {
     id: 5,
-    timestamp: "2023-05-01 10:34:57",
-    level: "DEBUG",
-    message: "Cache miss for key: user_preferences",
-    source: "cache.js",
+    timestamp: '2023-05-01 10:34:57',
+    level: 'DEBUG',
+    message: 'Cache miss for key: user_preferences',
+    source: 'cache.js',
   },
   {
     id: 6,
-    timestamp: "2023-05-01 10:35:30",
-    level: "INFO",
-    message: "API request received: GET /api/users",
-    source: "api.js",
+    timestamp: '2023-05-01 10:35:30',
+    level: 'INFO',
+    message: 'API request received: GET /api/users',
+    source: 'api.js',
   },
   {
     id: 7,
-    timestamp: "2023-05-01 10:36:05",
-    level: "WARN",
-    message: "Deprecated function called: oldFunction()",
-    source: "legacy.js",
+    timestamp: '2023-05-01 10:36:05',
+    level: 'WARN',
+    message: 'Deprecated function called: oldFunction()',
+    source: 'legacy.js',
   },
 ] as const
 
-type LogEntry = (typeof logEntries)[number]["level"]
+type LogEntry = (typeof logEntries)[number]['level']
 
-export function getLevelVariant(level: LogEntry): BadgeProps["variant"] {
+export function getLevelVariant(level: LogEntry): BadgeProps['variant'] {
   switch (level) {
-    case "ERROR":
-      return "destructive"
-    case "WARN":
-      return "default"
-    case "INFO":
-      return "secondary"
-    case "DEBUG":
-      return "outline"
+    case 'ERROR':
+      return 'destructive'
+    case 'WARN':
+      return 'default'
+    case 'INFO':
+      return 'secondary'
+    case 'DEBUG':
+      return 'outline'
     default:
-      return "secondary"
+      return 'secondary'
   }
 }
 
 export const mockRoutes = [
   {
-    route: "/",
+    route: '/',
     viewCount: 1500,
     avgTimeOnPage: 120,
     bounceRate: 35,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/about",
+    route: '/about',
     viewCount: 750,
     avgTimeOnPage: 90,
     bounceRate: 40,
-    lastVisited: "2023-12-27",
+    lastVisited: '2023-12-27',
   },
   {
-    route: "/products",
+    route: '/products',
     viewCount: 1200,
     avgTimeOnPage: 180,
     bounceRate: 25,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/contact",
+    route: '/contact',
     viewCount: 500,
     avgTimeOnPage: 60,
     bounceRate: 50,
-    lastVisited: "2023-12-26",
+    lastVisited: '2023-12-26',
   },
   {
-    route: "/blog",
+    route: '/blog',
     viewCount: 900,
     avgTimeOnPage: 240,
     bounceRate: 30,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/services",
+    route: '/services',
     viewCount: 800,
     avgTimeOnPage: 150,
     bounceRate: 35,
-    lastVisited: "2023-12-27",
+    lastVisited: '2023-12-27',
   },
   {
-    route: "/faq",
+    route: '/faq',
     viewCount: 300,
     avgTimeOnPage: 180,
     bounceRate: 20,
-    lastVisited: "2023-12-25",
+    lastVisited: '2023-12-25',
   },
   {
-    route: "/terms",
+    route: '/terms',
     viewCount: 150,
     avgTimeOnPage: 45,
     bounceRate: 60,
-    lastVisited: "2023-12-24",
+    lastVisited: '2023-12-24',
   },
   {
-    route: "/privacy",
+    route: '/privacy',
     viewCount: 200,
     avgTimeOnPage: 60,
     bounceRate: 55,
-    lastVisited: "2023-12-26",
+    lastVisited: '2023-12-26',
   },
   {
-    route: "/careers",
+    route: '/careers',
     viewCount: 400,
     avgTimeOnPage: 210,
     bounceRate: 25,
-    lastVisited: "2023-12-27",
+    lastVisited: '2023-12-27',
   },
   {
-    route: "/support",
+    route: '/support',
     viewCount: 600,
     avgTimeOnPage: 300,
     bounceRate: 15,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/login",
+    route: '/login',
     viewCount: 1000,
     avgTimeOnPage: 30,
     bounceRate: 10,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/register",
+    route: '/register',
     viewCount: 850,
     avgTimeOnPage: 180,
     bounceRate: 20,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/dashboard",
+    route: '/dashboard',
     viewCount: 700,
     avgTimeOnPage: 600,
     bounceRate: 5,
-    lastVisited: "2023-12-28",
+    lastVisited: '2023-12-28',
   },
   {
-    route: "/settings",
+    route: '/settings',
     viewCount: 350,
     avgTimeOnPage: 120,
     bounceRate: 30,
-    lastVisited: "2023-12-27",
+    lastVisited: '2023-12-27',
   },
 ]

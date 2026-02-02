@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { IconAlertTriangle } from "@tabler/icons-react"
-import { toast } from "@/hooks/use-toast"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ConfirmDialog } from "@/components/confirm-dialog"
-import { User } from "../data/schema"
+import { useState } from 'react'
+import { IconAlertTriangle } from '@tabler/icons-react'
+import { toast } from '@/hooks/use-toast'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { User } from '../data/schema'
 
 interface Props {
   open: boolean
@@ -15,24 +15,18 @@ interface Props {
   currentRow: User
 }
 
-export function UsersDeactivateDialog({
-  open,
-  onOpenChange,
-  currentRow,
-}: Props) {
-  const [value, setValue] = useState("")
+export function UsersDeactivateDialog({ open, onOpenChange, currentRow }: Props) {
+  const [value, setValue] = useState('')
 
   const handleDeactivate = () => {
     if (value.trim() !== currentRow.email) return
 
     onOpenChange(false)
     toast({
-      title: "The following account has been deactivated:",
+      title: 'The following account has been deactivated:',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">
-            {JSON.stringify(currentRow, null, 2)}
-          </code>
+          <code className="text-white">{JSON.stringify(currentRow, null, 2)}</code>
         </pre>
       ),
     })
@@ -49,21 +43,19 @@ export function UsersDeactivateDialog({
           <IconAlertTriangle
             className="stroke-destructive mr-1 inline-block"
             size={18}
-          />{" "}
+          />{' '}
           Deactivate
         </span>
       }
       desc={
         <div className="space-y-4">
           <p className="mb-2">
-            Are you sure you want to deactivate the account with the email{" "}
+            Are you sure you want to deactivate the account with the email{' '}
             <span className="font-bold">{currentRow.email}</span>?
             <br />
-            This action will remove the user with the role of{" "}
-            <span className="font-bold">
-              {currentRow.role.toUpperCase()}
-            </span>{" "}
-            from the system. Please proceed with caution.
+            This action will remove the user with the role of{' '}
+            <span className="font-bold">{currentRow.role.toUpperCase()}</span> from the system. Please proceed with
+            caution.
           </p>
 
           <Label className="my-2">
@@ -77,9 +69,7 @@ export function UsersDeactivateDialog({
 
           <Alert variant="destructive">
             <AlertTitle>Warning!</AlertTitle>
-            <AlertDescription>
-              Please be carefull, this operation can not be rolled back.
-            </AlertDescription>
+            <AlertDescription>Please be carefull, this operation can not be rolled back.</AlertDescription>
           </Alert>
         </div>
       }

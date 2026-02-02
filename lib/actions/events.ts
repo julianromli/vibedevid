@@ -210,10 +210,7 @@ export async function approveEvent(eventId: string) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const { error } = await supabase
-      .from('events')
-      .update({ approved: true })
-      .eq('id', eventId)
+    const { error } = await supabase.from('events').update({ approved: true }).eq('id', eventId)
 
     if (error) {
       console.error('Error approving event:', error)
@@ -245,10 +242,7 @@ export async function rejectEvent(eventId: string) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const { error } = await supabase
-      .from('events')
-      .delete()
-      .eq('id', eventId)
+    const { error } = await supabase.from('events').delete().eq('id', eventId)
 
     if (error) {
       console.error('Error rejecting event:', error)

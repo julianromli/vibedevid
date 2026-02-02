@@ -1,9 +1,9 @@
-import { Header } from "@/components/layout/header"
-import Dashboard2Actions from "./components/dashboard-2-actions"
-import RecentActivity from "./components/recent-activity"
-import RevenueChart from "./components/revenue-chart"
-import Stats from "./components/stats"
-import Visitors from "./components/visitors"
+import { Header } from '@/components/layout/header'
+import Dashboard2Actions from './components/dashboard-2-actions'
+import RecentActivity from './components/recent-activity'
+import RevenueChart from './components/revenue-chart'
+import Stats from './components/stats'
+import Visitors from './components/visitors'
 
 export default function Dashboard2Page() {
   return (
@@ -14,9 +14,7 @@ export default function Dashboard2Page() {
         <div className="flex flex-col items-start justify-between gap-2 md:flex-row">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-            <p className="text-muted-foreground">
-              Here&apos;re the details of your analysis.
-            </p>
+            <p className="text-muted-foreground">Here&apos;re the details of your analysis.</p>
           </div>
           <Dashboard2Actions />
         </div>

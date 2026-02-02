@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import SearchProvider from "@/components/search-provider"
-import { ThemeProvider } from "@/components/theme-provider"
+import { useEffect, useState } from 'react'
+import SearchProvider from '@/components/search-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 
 interface Props {
   children: React.ReactNode
@@ -13,13 +13,13 @@ export function Providers({ children }: Props) {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((open) => !open)
       }
     }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
   }, [])
 
   return (

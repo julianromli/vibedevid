@@ -1,13 +1,16 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { referrers } from "../data/data"
-import ViewAllReferrersDialog from "./view-all-referrers"
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { referrers } from '../data/data'
+import ViewAllReferrersDialog from './view-all-referrers'
 
 export default function Referrers() {
   return (
     <Card>
-      <Tabs defaultValue="pages" className="space-y-0">
+      <Tabs
+        defaultValue="pages"
+        className="space-y-0"
+      >
         <CardHeader className="px-4 py-3">
           <div className="flex items-center justify-between">
             <TabsList className="gap-2 bg-transparent">
@@ -25,9 +28,7 @@ export default function Referrers() {
                 UTM Parameters
               </TabsTrigger>
             </TabsList>
-            <h1 className="text-muted-foreground text-xs font-medium">
-              VISITORS
-            </h1>
+            <h1 className="text-muted-foreground text-xs font-medium">VISITORS</h1>
           </div>
         </CardHeader>
         <Separator />
@@ -40,7 +41,10 @@ export default function Referrers() {
                   className="flex cursor-pointer items-center justify-between rounded-md px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <div className="flex items-center gap-2">
-                    <referrer.icon strokeWidth={1} size={18} />
+                    <referrer.icon
+                      strokeWidth={1}
+                      size={18}
+                    />
                     <p className="text-sm font-medium">{referrer.name}</p>
                   </div>
                   <p className="text-sm font-semibold">{referrer.visitors}</p>

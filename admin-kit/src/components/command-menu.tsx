@@ -1,14 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import {
-  IconArrowRightDashed,
-  IconDeviceLaptop,
-  IconMoon,
-  IconSun,
-} from "@tabler/icons-react"
-import { useTheme } from "next-themes"
-import { useRouter } from "next/navigation"
+import * as React from 'react'
+import { IconArrowRightDashed, IconDeviceLaptop, IconMoon, IconSun } from '@tabler/icons-react'
+import { useTheme } from 'next-themes'
+import { useRouter } from 'next/navigation'
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,10 +12,10 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command"
-import { sidebarData } from "./layout/data/sidebar-data"
-import { useSearch } from "./search-provider"
-import { ScrollArea } from "./ui/scroll-area"
+} from '@/components/ui/command'
+import { sidebarData } from './layout/data/sidebar-data'
+import { useSearch } from './search-provider'
+import { ScrollArea } from './ui/scroll-area'
 
 export function CommandMenu() {
   const router = useRouter()
@@ -32,17 +27,27 @@ export function CommandMenu() {
       setOpen(false)
       command()
     },
-    [setOpen]
+    [setOpen],
   )
 
   return (
-    <CommandDialog modal open={open} onOpenChange={setOpen}>
+    <CommandDialog
+      modal
+      open={open}
+      onOpenChange={setOpen}
+    >
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
-        <ScrollArea type="hover" className="h-72 pr-1">
+        <ScrollArea
+          type="hover"
+          className="h-72 pr-1"
+        >
           <CommandEmpty>No results found.</CommandEmpty>
           {sidebarData.navGroups.map((group) => (
-            <CommandGroup key={group.title} heading={group.title}>
+            <CommandGroup
+              key={group.title}
+              heading={group.title}
+            >
               {group.items.map((navItem, i) => {
                 if (navItem.url)
                   return (
@@ -79,14 +84,14 @@ export function CommandMenu() {
           ))}
           <CommandSeparator />
           <CommandGroup heading="Theme">
-            <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
+            <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
               <IconSun /> <span>Light</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
+            <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
               <IconMoon className="scale-90" />
               <span>Dark</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
+            <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
               <IconDeviceLaptop />
               <span>System</span>
             </CommandItem>

@@ -1,14 +1,10 @@
-"use client"
+'use client'
 
-import { ReactNode } from "react"
-import { ChevronRight } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { ReactNode } from 'react'
+import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -19,9 +15,9 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { Badge } from "../ui/badge"
-import { NavItem, type NavGroup } from "./types"
+} from '@/components/ui/sidebar'
+import { Badge } from '../ui/badge'
+import { NavItem, type NavGroup } from './types'
 
 export function NavGroup({ title, items }: NavGroup) {
   const { setOpenMobile } = useSidebar()
@@ -39,7 +35,10 @@ export function NavGroup({ title, items }: NavGroup) {
                   isActive={checkIsActive(pathname, item, true)}
                   tooltip={item.title}
                 >
-                  <Link href={item.url} onClick={() => setOpenMobile(false)}>
+                  <Link
+                    href={item.url}
+                    onClick={() => setOpenMobile(false)}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -78,9 +77,7 @@ export function NavGroup({ title, items }: NavGroup) {
                           >
                             {subItem.icon && <subItem.icon />}
                             <span>{subItem.title}</span>
-                            {subItem.badge && (
-                              <NavBadge>{subItem.badge}</NavBadge>
-                            )}
+                            {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -103,10 +100,8 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 function checkIsActive(href: string, item: NavItem, mainNav = false) {
   return (
     href === item.url || // /endpint?search=param
-    href.split("?")[0] === item.url || // endpoint
+    href.split('?')[0] === item.url || // endpoint
     !!item?.items?.filter((i) => i.url === href).length || // if child nav is active
-    (mainNav &&
-      href.split("/")[1] !== "" &&
-      href.split("/")[1] === item?.url?.split("/")[1])
+    (mainNav && href.split('/')[1] !== '' && href.split('/')[1] === item?.url?.split('/')[1])
   )
 }

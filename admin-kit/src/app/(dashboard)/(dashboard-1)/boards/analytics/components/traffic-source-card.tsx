@@ -1,41 +1,30 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from 'react'
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const chartData = [
-  { source: "Google", amount: 186 },
-  { source: "Social", amount: 305 },
-  { source: "Direct", amount: 237 },
+  { source: 'Google', amount: 186 },
+  { source: 'Social', amount: 305 },
+  { source: 'Direct', amount: 237 },
 ]
 const chartConfig = {
   amount: {
-    label: "Amount",
-    color: "var(--chart-2)",
+    label: 'Amount',
+    color: 'var(--chart-2)',
   },
   label: {
-    color: "var(--background)",
+    color: 'var(--background)',
   },
 } satisfies ChartConfig
 
-type Duration = "month" | "week"
+type Duration = 'month' | 'week'
 
 export default function TrafficSourceCard() {
-  const [duration, setDuration] = useState<Duration>("week")
+  const [duration, setDuration] = useState<Duration>('week')
   return (
     <Card className="h-full w-full">
       <CardHeader>
@@ -49,21 +38,28 @@ export default function TrafficSourceCard() {
             value={duration}
           >
             <TabsList className="grid h-auto w-full grid-cols-2 p-[3px]">
-              <TabsTrigger className="py-[3px]" value="month">
+              <TabsTrigger
+                className="py-[3px]"
+                value="month"
+              >
                 Month
               </TabsTrigger>
-              <TabsTrigger className="py-[3px]" value="week">
+              <TabsTrigger
+                className="py-[3px]"
+                value="week"
+              >
                 Week
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
-        <CardDescription>
-          Gain insights into where your visitors are coming from.
-        </CardDescription>
+        <CardDescription>Gain insights into where your visitors are coming from.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer className="max-h-[200px] w-full" config={chartConfig}>
+        <ChartContainer
+          className="max-h-[200px] w-full"
+          config={chartConfig}
+        >
           <BarChart
             accessibilityLayer
             data={chartData}
@@ -84,7 +80,7 @@ export default function TrafficSourceCard() {
               axisLine={false}
               tickLine={false}
               dataKey="amount"
-              tickFormatter={(value) => value + "k"}
+              tickFormatter={(value) => value + 'k'}
               type="number"
             />
             <ChartTooltip

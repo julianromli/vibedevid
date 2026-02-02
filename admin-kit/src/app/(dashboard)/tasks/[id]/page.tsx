@@ -1,15 +1,9 @@
-import { format } from "date-fns"
-import {
-  IconCalendar,
-  IconGitBranch,
-  IconClockHour4,
-  IconArrowRight,
-  IconArrowUp,
-} from "@tabler/icons-react"
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { format } from 'date-fns'
+import { IconCalendar, IconGitBranch, IconClockHour4, IconArrowRight, IconArrowUp } from '@tabler/icons-react'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,11 +11,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { priorities, statuses } from "../data/data"
-import { taskListSchema } from "../data/schema"
-import { tasks } from "../data/tasks"
+} from '@/components/ui/breadcrumb'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { priorities, statuses } from '../data/data'
+import { taskListSchema } from '../data/schema'
+import { tasks } from '../data/tasks'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -43,17 +37,17 @@ export default async function TaskDetailPage({ params }: Props) {
 
   // Mock data for task details
   const assignees = [
-    { name: "Michael Kane", image: "/avatars/avatar-1.png", role: "Tech Lead" },
+    { name: 'Michael Kane', image: '/avatars/avatar-1.png', role: 'Tech Lead' },
     {
-      name: "Olivier Giroud",
-      image: "/avatars/avatar-2.png",
-      role: "Developer",
+      name: 'Olivier Giroud',
+      image: '/avatars/avatar-2.png',
+      role: 'Developer',
     },
-    { name: "Isabella Chen", image: "/avatars/avatar-3.png", role: "Designer" },
+    { name: 'Isabella Chen', image: '/avatars/avatar-3.png', role: 'Designer' },
   ]
   const linkedItems = [
-    { type: "PR", id: "#1234", title: "Implement new workflow UI" },
-    { type: "Issue", id: "#5678", title: "Database schema updates" },
+    { type: 'PR', id: '#1234', title: 'Implement new workflow UI' },
+    { type: 'Issue', id: '#5678', title: 'Database schema updates' },
   ]
 
   return (
@@ -95,19 +89,15 @@ export default async function TaskDetailPage({ params }: Props) {
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-24">Priority</span>
               <div className="flex items-center gap-1">
-                {priority?.value === "medium" && (
-                  <IconArrowRight className="h-3.5 w-3.5 text-orange-700" />
-                )}
-                {priority?.value === "high" && (
-                  <IconArrowUp className="h-3.5 w-3.5 text-red-700" />
-                )}
+                {priority?.value === 'medium' && <IconArrowRight className="h-3.5 w-3.5 text-orange-700" />}
+                {priority?.value === 'high' && <IconArrowUp className="h-3.5 w-3.5 text-red-700" />}
                 <Badge
                   className={`text-xs ${
-                    priority?.value === "high"
-                      ? "bg-red-100 text-red-700 hover:bg-red-100 hover:text-red-700"
-                      : priority?.value === "medium"
-                        ? "bg-orange-100 text-orange-700 hover:bg-orange-100 hover:text-orange-700"
-                        : ""
+                    priority?.value === 'high'
+                      ? 'bg-red-100 text-red-700 hover:bg-red-100 hover:text-red-700'
+                      : priority?.value === 'medium'
+                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-100 hover:text-orange-700'
+                        : ''
                   }`}
                 >
                   {priority?.label}
@@ -125,12 +115,15 @@ export default async function TaskDetailPage({ params }: Props) {
                       key={index}
                       className="border-background h-5 w-5 border-2"
                     >
-                      <AvatarImage src={assignee.image} alt={assignee.name} />
+                      <AvatarImage
+                        src={assignee.image}
+                        alt={assignee.name}
+                      />
                       <AvatarFallback>
                         {assignee.name
-                          .split(" ")
+                          .split(' ')
                           .map((n) => n[0])
-                          .join("")}
+                          .join('')}
                       </AvatarFallback>
                     </Avatar>
                   ))}
@@ -143,7 +136,7 @@ export default async function TaskDetailPage({ params }: Props) {
               <span className="text-muted-foreground w-24">Due Date</span>
               <div className="flex items-center gap-1">
                 <IconCalendar className="text-muted-foreground h-3.5 w-3.5" />
-                <span>{format(task.dueDate, "MMM dd, yyyy")}</span>
+                <span>{format(task.dueDate, 'MMM dd, yyyy')}</span>
               </div>
             </div>
 
@@ -151,7 +144,7 @@ export default async function TaskDetailPage({ params }: Props) {
               <span className="text-muted-foreground w-24">Created</span>
               <div className="flex items-center gap-1">
                 <IconCalendar className="text-muted-foreground h-3.5 w-3.5" />
-                <span>{format(task.createdDate, "MMM dd, yyyy")}</span>
+                <span>{format(task.createdDate, 'MMM dd, yyyy')}</span>
               </div>
             </div>
 
@@ -168,11 +161,11 @@ export default async function TaskDetailPage({ params }: Props) {
               <Badge
                 variant="outline"
                 className={`text-xs capitalize ${
-                  status?.value === "done" || status?.value === "completed"
-                    ? "border-green-200 bg-green-100 text-green-700"
-                    : status?.value === "in progress"
-                      ? "border-blue-200 bg-blue-100 text-blue-700"
-                      : ""
+                  status?.value === 'done' || status?.value === 'completed'
+                    ? 'border-green-200 bg-green-100 text-green-700'
+                    : status?.value === 'in progress'
+                      ? 'border-blue-200 bg-blue-100 text-blue-700'
+                      : ''
                 }`}
               >
                 {status?.label}
@@ -196,7 +189,10 @@ export default async function TaskDetailPage({ params }: Props) {
               <span className="text-muted-foreground w-24">Linked Items</span>
               <div className="space-y-1">
                 {linkedItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-1">
+                  <div
+                    key={index}
+                    className="flex items-center gap-1"
+                  >
                     <IconGitBranch className="text-muted-foreground h-3.5 w-3.5" />
                     <span className="text-xs">
                       {item.type} {item.id}: {item.title}
@@ -209,41 +205,35 @@ export default async function TaskDetailPage({ params }: Props) {
         </div>
 
         {/* Task Details Tabs */}
-        <Tabs defaultValue="description" className="w-full">
+        <Tabs
+          defaultValue="description"
+          className="w-full"
+        >
           <TabsList className="text-sm">
             <TabsTrigger value="description">Description</TabsTrigger>
             <TabsTrigger value="comments">Comments</TabsTrigger>
           </TabsList>
-          <TabsContent value="description" className="mt-4">
+          <TabsContent
+            value="description"
+            className="mt-4"
+          >
             {/* Task Description Content */}
             <div className="prose prose-sm text-muted-foreground max-w-none">
               <p>
-                Currently, when a Member reports a physical card as lost,
-                stolen, or damaged, they are automatically issued with a new
-                card. This process needs to be redesigned to improve security
-                and user experience.
+                Currently, when a Member reports a physical card as lost, stolen, or damaged, they are automatically
+                issued with a new card. This process needs to be redesigned to improve security and user experience.
               </p>
 
-              <h3 className="text-foreground mt-4 mb-2 font-semibold">
-                Technical Requirements
-              </h3>
-              <p>
-                The new workflow should implement the following security
-                measures:
-              </p>
+              <h3 className="text-foreground mt-4 mb-2 font-semibold">Technical Requirements</h3>
+              <p>The new workflow should implement the following security measures:</p>
               <ul className="mb-4 list-disc pl-4">
                 <li>Two-factor authentication for card replacement requests</li>
                 <li>Automated fraud detection system integration</li>
-                <li>
-                  Real-time notification system for both users and
-                  administrators
-                </li>
+                <li>Real-time notification system for both users and administrators</li>
                 <li>Audit trail for all card replacement requests</li>
               </ul>
 
-              <h3 className="text-foreground mt-4 mb-2 font-semibold">
-                Database Changes
-              </h3>
+              <h3 className="text-foreground mt-4 mb-2 font-semibold">Database Changes</h3>
               <p>New tables and modifications required:</p>
               <ul className="mb-4 list-disc pl-4">
                 <li>card_replacement_requests</li>
@@ -251,9 +241,7 @@ export default async function TaskDetailPage({ params }: Props) {
                 <li>notification_preferences</li>
               </ul>
 
-              <h3 className="text-foreground mt-4 mb-2 font-semibold">
-                API Endpoints
-              </h3>
+              <h3 className="text-foreground mt-4 mb-2 font-semibold">API Endpoints</h3>
               <p>New REST endpoints to be implemented:</p>
               <ul className="mb-4 list-disc pl-4">
                 <li>POST /api/v1/cards/replacement-requests</li>
@@ -267,7 +255,10 @@ export default async function TaskDetailPage({ params }: Props) {
               {/* Comment Input */}
               <div className="flex items-start gap-3">
                 <Avatar className="h-7 w-7">
-                  <AvatarImage src="/avatars/avatar-1.png" alt="Current User" />
+                  <AvatarImage
+                    src="/avatars/avatar-1.png"
+                    alt="Current User"
+                  />
                   <AvatarFallback>CU</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 rounded-lg border p-1.5">
@@ -292,25 +283,16 @@ export default async function TaskDetailPage({ params }: Props) {
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">
-                        Olivier Giroud
-                      </span>
-                      <span className="text-muted-foreground text-[11px]">
-                        2 days ago
-                      </span>
+                      <span className="text-sm font-medium">Olivier Giroud</span>
+                      <span className="text-muted-foreground text-[11px]">2 days ago</span>
                     </div>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      I&apos;ve started working on the API endpoints. We might
-                      need to add rate limiting to prevent abuse of the
-                      replacement request endpoint.
+                      I&apos;ve started working on the API endpoints. We might need to add rate limiting to prevent
+                      abuse of the replacement request endpoint.
                     </p>
                     <div className="mt-2 flex gap-4">
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        Reply
-                      </button>
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        React
-                      </button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">Reply</button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">React</button>
                     </div>
                   </div>
                 </div>
@@ -327,22 +309,15 @@ export default async function TaskDetailPage({ params }: Props) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">Michael Kane</span>
-                      <span className="text-muted-foreground text-[11px]">
-                        1 day ago
-                      </span>
+                      <span className="text-muted-foreground text-[11px]">1 day ago</span>
                     </div>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      Good point about rate limiting. Let&apos;s also make sure
-                      we implement proper logging for all replacement requests.
-                      I&apos;ll update the technical requirements.
+                      Good point about rate limiting. Let&apos;s also make sure we implement proper logging for all
+                      replacement requests. I&apos;ll update the technical requirements.
                     </p>
                     <div className="mt-2 flex gap-4">
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        Reply
-                      </button>
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        React
-                      </button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">Reply</button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">React</button>
                     </div>
                   </div>
                 </div>
@@ -359,22 +334,15 @@ export default async function TaskDetailPage({ params }: Props) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">Isabella Chen</span>
-                      <span className="text-muted-foreground text-[11px]">
-                        5 hours ago
-                      </span>
+                      <span className="text-muted-foreground text-[11px]">5 hours ago</span>
                     </div>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      I&apos;ve prepared some mockups for the verification UI.
-                      Will share them in tomorrow&apos;s design review. The
-                      focus is on making the 2FA process as smooth as possible.
+                      I&apos;ve prepared some mockups for the verification UI. Will share them in tomorrow&apos;s design
+                      review. The focus is on making the 2FA process as smooth as possible.
                     </p>
                     <div className="mt-2 flex gap-4">
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        Reply
-                      </button>
-                      <button className="text-muted-foreground hover:text-foreground text-[11px]">
-                        React
-                      </button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">Reply</button>
+                      <button className="text-muted-foreground hover:text-foreground text-[11px]">React</button>
                     </div>
                   </div>
                 </div>

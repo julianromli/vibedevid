@@ -1,9 +1,9 @@
-import { format } from "date-fns"
-import { IconRefresh } from "@tabler/icons-react"
-import { Terminal } from "lucide-react"
-import Link from "next/link"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
+import { format } from 'date-fns'
+import { IconRefresh } from '@tabler/icons-react'
+import { Terminal } from 'lucide-react'
+import Link from 'next/link'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,9 +11,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -22,11 +22,11 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CopyButton } from "@/components/copy-button"
-import { CreateApiKeyDialog } from "./components/create-api-key-dialog"
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CopyButton } from '@/components/copy-button'
+import { CreateApiKeyDialog } from './components/create-api-key-dialog'
 
 export default function ApiKeysPage() {
   return (
@@ -53,9 +53,7 @@ export default function ApiKeysPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-2xl font-bold">API Keys</h2>
-            <p className="text-muted-foreground text-sm">
-              Secure, manage, and monitor your API keys with ease.
-            </p>
+            <p className="text-muted-foreground text-sm">Secure, manage, and monitor your API keys with ease.</p>
           </div>
           <Select>
             <SelectTrigger className="w-fit gap-2 text-sm">
@@ -72,7 +70,10 @@ export default function ApiKeysPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="api" className="my-8">
+      <Tabs
+        defaultValue="api"
+        className="my-8"
+      >
         <TabsList className="border-muted flex h-auto w-full items-center justify-start rounded-none border-b bg-transparent p-0!">
           <TabsTrigger
             value="api"
@@ -88,16 +89,17 @@ export default function ApiKeysPage() {
             Account
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="api" className="mt-5 w-full max-w-3xl">
+        <TabsContent
+          value="api"
+          className="mt-5 w-full max-w-3xl"
+        >
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-semibold">API Version</h2>
               <div className="flex items-center justify-between">
                 <h1 className="text-sm font-semibold">Global Version</h1>
                 <div className="flex items-center gap-4">
-                  <p className="text-sm font-medium">
-                    {format(new Date(), "dd-MMM-yyyy")}
-                  </p>
+                  <p className="text-sm font-medium">{format(new Date(), 'dd-MMM-yyyy')}</p>
                   <Badge variant="secondary">Latest Version</Badge>
                 </div>
               </div>
@@ -112,11 +114,13 @@ export default function ApiKeysPage() {
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Reminder!</AlertTitle>
                 <AlertDescription>
-                  Live API keys can only be used for the v1/api-end point.See
-                  the{" "}
-                  <Link className="underline" href="/">
+                  Live API keys can only be used for the v1/api-end point.See the{' '}
+                  <Link
+                    className="underline"
+                    href="/"
+                  >
                     documentation
-                  </Link>{" "}
+                  </Link>{' '}
                   for more details.
                 </AlertDescription>
               </Alert>
@@ -141,7 +145,10 @@ export default function ApiKeysPage() {
                     variant="link"
                     className="flex items-center gap-1 p-0 text-green-500 dark:text-green-300"
                   >
-                    <IconRefresh strokeWidth={1.5} size={16} />
+                    <IconRefresh
+                      strokeWidth={1.5}
+                      size={16}
+                    />
                     <p className="text-sm font-medium">Refresh</p>
                   </Button>
                 </div>
@@ -166,7 +173,10 @@ export default function ApiKeysPage() {
                     variant="link"
                     className="flex items-center gap-1 p-0 text-green-500 dark:text-green-300"
                   >
-                    <IconRefresh strokeWidth={1.5} size={16} />
+                    <IconRefresh
+                      strokeWidth={1.5}
+                      size={16}
+                    />
                     <p className="text-sm font-medium">Refresh</p>
                   </Button>
                 </div>
@@ -179,11 +189,13 @@ export default function ApiKeysPage() {
                 <AlertDescription className="flex flex-col items-start gap-3 md:flex-row md:items-center">
                   <Terminal className="h-4 w-4" />
                   <p>
-                    Live API keys can only be used for the v1/api-end point.See
-                    the{" "}
-                    <Link href="/" className="underline">
+                    Live API keys can only be used for the v1/api-end point.See the{' '}
+                    <Link
+                      href="/"
+                      className="underline"
+                    >
                       documentation
-                    </Link>{" "}
+                    </Link>{' '}
                     for more details.
                   </p>
                 </AlertDescription>
@@ -209,7 +221,10 @@ export default function ApiKeysPage() {
                     variant="link"
                     className="flex items-center gap-1 p-0 text-green-500 dark:text-green-300"
                   >
-                    <IconRefresh strokeWidth={1.5} size={16} />
+                    <IconRefresh
+                      strokeWidth={1.5}
+                      size={16}
+                    />
                     <p className="text-sm font-medium">Refresh</p>
                   </Button>
                 </div>
@@ -235,7 +250,10 @@ export default function ApiKeysPage() {
                     variant="link"
                     className="flex items-center gap-1 p-0 text-green-500 dark:text-green-300"
                   >
-                    <IconRefresh strokeWidth={1.5} size={16} />
+                    <IconRefresh
+                      strokeWidth={1.5}
+                      size={16}
+                    />
                     <p className="text-sm font-medium">Refresh</p>
                   </Button>
                 </div>

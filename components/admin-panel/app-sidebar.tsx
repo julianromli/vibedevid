@@ -30,13 +30,19 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
   return (
     <div className="relative">
-      <Sidebar collapsible="icon" {...props}>
+      <Sidebar
+        collapsible="icon"
+        {...props}
+      >
         <SidebarHeader>
           <TeamSwitcher teams={teams} />
         </SidebarHeader>
         <SidebarContent>
           {sidebarData.navGroups.map((props) => (
-            <NavGroup key={props.title} {...props} />
+            <NavGroup
+              key={props.title}
+              {...props}
+            />
           ))}
         </SidebarContent>
         <SidebarFooter>

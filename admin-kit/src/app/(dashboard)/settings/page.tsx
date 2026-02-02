@@ -1,5 +1,5 @@
-import ContentSection from "./components/content-section"
-import GeneralForm from "./components/general-form"
+import ContentSection from './components/content-section'
+import GeneralForm from './components/general-form'
 
 export default function SettingsGeneralPage() {
   return (

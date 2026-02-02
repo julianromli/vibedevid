@@ -1,18 +1,11 @@
-import { z } from "zod"
-import { webhookEvents } from "./webhook-data"
+import { z } from 'zod'
+import { webhookEvents } from './webhook-data'
 
-export const webhookAuthTypeSchema = z.union([
-  z.literal("none"),
-  z.literal("application"),
-  z.literal("platform"),
-])
+export const webhookAuthTypeSchema = z.union([z.literal('none'), z.literal('application'), z.literal('platform')])
 
 export const webhookEventSchema = z.enum(webhookEvents)
 
-const webhookAuthStatusSchema = z.union([
-  z.literal("enabled"),
-  z.literal("disabled"),
-])
+const webhookAuthStatusSchema = z.union([z.literal('enabled'), z.literal('disabled')])
 
 const webhookLogSchema = z.object({
   succeeded: z.boolean(),

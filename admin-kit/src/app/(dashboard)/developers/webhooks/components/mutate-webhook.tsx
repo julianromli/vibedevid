@@ -1,23 +1,16 @@
-"use client"
+'use client'
 
-import { Dispatch, SetStateAction } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { cn } from "@/lib/utils"
-import { toast } from "@/hooks/use-toast"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Dispatch, SetStateAction } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { cn } from '@/lib/utils'
+import { toast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Sheet,
   SheetClose,
@@ -26,14 +19,10 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Webhook,
-  webhookAuthTypeSchema,
-  webhookEventSchema,
-} from "../data/schema"
-import { webhookEvents } from "../data/webhook-data"
+} from '@/components/ui/sheet'
+import { Textarea } from '@/components/ui/textarea'
+import { Webhook, webhookAuthTypeSchema, webhookEventSchema } from '../data/schema'
+import { webhookEvents } from '../data/webhook-data'
 
 interface Props {
   open: boolean
@@ -42,17 +31,12 @@ interface Props {
 }
 
 const formSchema = z.object({
-  url: z
-    .string()
-    .min(1, "URL Endpoint is required.")
-    .url("Please enter valid URL"),
+  url: z.string().min(1, 'URL Endpoint is required.').url('Please enter valid URL'),
   description: z.string().optional(),
   authType: webhookAuthTypeSchema,
-  events: z
-    .array(webhookEventSchema)
-    .refine((value) => value.some((item) => item), {
-      message: "Please select at least one event",
-    }),
+  events: z.array(webhookEventSchema).refine((value) => value.some((item) => item), {
+    message: 'Please select at least one event',
+  }),
 })
 type MutateWebhookForm = z.infer<typeof formSchema>
 
@@ -62,9 +46,9 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
   const form = useForm<MutateWebhookForm>({
     resolver: zodResolver(formSchema),
     defaultValues: currentWebhook ?? {
-      url: "",
-      description: "",
-      authType: "none",
+      url: '',
+      description: '',
+      authType: 'none',
       events: [],
     },
   })
@@ -74,7 +58,7 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
     setOpen(false)
     form.reset()
     toast({
-      title: "You submitted the following values:",
+      title: 'You submitted the following values:',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
@@ -93,10 +77,9 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
     >
       <SheetContent className="flex w-full max-w-none flex-col sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{isEdit ? "Update" : "New"} Webhook</SheetTitle>
+          <SheetTitle>{isEdit ? 'Update' : 'New'} Webhook</SheetTitle>
           <SheetDescription>
-            {isEdit ? "Configure" : "Setup"} your webhook endpoint to receive
-            live events.
+            {isEdit ? 'Configure' : 'Setup'} your webhook endpoint to receive live events.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -112,7 +95,10 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
                 <FormItem className="space-y-1">
                   <FormLabel>URL Endpoint</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="https://" />
+                    <Input
+                      {...field}
+                      placeholder="https://"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,24 +134,22 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
                       defaultValue={field.value}
                       className="grid grid-cols-3"
                     >
-                      {["none", "application", "platform"].map((item) => (
+                      {['none', 'application', 'platform'].map((item) => (
                         <FormItem
                           key={item}
                           className="flex items-center space-y-0 space-x-3"
                         >
                           <FormLabel
                             className={cn(
-                              "border-border flex h-full w-full items-start gap-2 rounded-lg border px-2 py-4 font-normal capitalize sm:p-4",
-                              "[&:has([aria-checked=true])]:border-foreground [&_circle]:fill-foreground [&_circle]:stroke-transparent",
-                              "flex flex-col sm:flex-row [&_button]:size-4"
+                              'border-border flex h-full w-full items-start gap-2 rounded-lg border px-2 py-4 font-normal capitalize sm:p-4',
+                              '[&:has([aria-checked=true])]:border-foreground [&_circle]:fill-foreground [&_circle]:stroke-transparent',
+                              'flex flex-col sm:flex-row [&_button]:size-4',
                             )}
                           >
                             <FormControl>
                               <RadioGroupItem value={item} />
                             </FormControl>
-                            <div className="w-full overflow-hidden text-ellipsis">
-                              {item}
-                            </div>
+                            <div className="w-full overflow-hidden text-ellipsis">{item}</div>
                           </FormLabel>
                         </FormItem>
                       ))}
@@ -192,11 +176,11 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
                             <FormItem key={whEvent}>
                               <FormLabel
                                 className={cn(
-                                  "flex flex-row items-start space-y-0 space-x-2",
-                                  "border-border rounded-lg border p-4",
-                                  "[&:has([aria-checked=true])]:border-btse-500",
-                                  "[&_button[aria-checked=true]]:bg-btse-500 [&_button[aria-checked=true]]:border-btse-500",
-                                  "[&:has(button[aria-invalid=true])]:border-destructive [&_button[aria-invalid=true]]:border-destructive"
+                                  'flex flex-row items-start space-y-0 space-x-2',
+                                  'border-border rounded-lg border p-4',
+                                  '[&:has([aria-checked=true])]:border-btse-500',
+                                  '[&_button[aria-checked=true]]:bg-btse-500 [&_button[aria-checked=true]]:border-btse-500',
+                                  '[&:has(button[aria-invalid=true])]:border-destructive [&_button[aria-invalid=true]]:border-destructive',
                                 )}
                               >
                                 <FormControl>
@@ -204,21 +188,12 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
                                     checked={field.value?.includes(whEvent)}
                                     onCheckedChange={(checked) => {
                                       return checked
-                                        ? field.onChange([
-                                            ...field.value,
-                                            whEvent,
-                                          ])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== whEvent
-                                            )
-                                          )
+                                        ? field.onChange([...field.value, whEvent])
+                                        : field.onChange(field.value?.filter((value) => value !== whEvent))
                                     }}
                                   />
                                 </FormControl>
-                                <div className="font-medium capitalize">
-                                  {whEvent}
-                                </div>
+                                <div className="font-medium capitalize">{whEvent}</div>
                               </FormLabel>
                             </FormItem>
                           )
@@ -236,7 +211,10 @@ export function MutateWebhook({ open, setOpen, currentWebhook }: Props) {
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>
-          <Button form="webhook" type="submit">
+          <Button
+            form="webhook"
+            type="submit"
+          >
             Save changes
           </Button>
         </SheetFooter>

@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { createContext, useContext } from "react"
-import { CommandMenu } from "./command-menu"
+import { createContext, useContext } from 'react'
+import { CommandMenu } from './command-menu'
 
 interface SearchContextType {
   open: boolean
@@ -28,7 +28,7 @@ export const useSearch = () => {
   const searchContext = useContext(SearchContext)
 
   if (!searchContext) {
-    throw new Error("useSearch has to be used within <SearchContext.Provider>")
+    throw new Error('useSearch has to be used within <SearchContext.Provider>')
   }
 
   return searchContext

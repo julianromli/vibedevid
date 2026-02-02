@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { nofitySubmittedValues } from "@/lib/notify-submitted-values"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { nofitySubmittedValues } from '@/lib/notify-submitted-values'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -14,20 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 
 const formSchema = z.object({
   keyName: z.string().min(1, {
-    message: "API key name is required.",
+    message: 'API key name is required.',
   }),
 })
 
@@ -36,7 +29,7 @@ export function CreateApiKeyDialog() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { keyName: "" },
+    defaultValues: { keyName: '' },
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -54,7 +47,10 @@ export function CreateApiKeyDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="default" size="sm">
+        <Button
+          variant="default"
+          size="sm"
+        >
           Create API Key
         </Button>
       </DialogTrigger>
@@ -62,12 +58,14 @@ export function CreateApiKeyDialog() {
         <DialogHeader>
           <DialogTitle>Create New API Key</DialogTitle>
           <DialogDescription>
-            Generate a new API key to securely access and integrate with our
-            services.
+            Generate a new API key to securely access and integrate with our services.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form id="new-api-key-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            id="new-api-key-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <FormField
               control={form.control}
               name="keyName"
@@ -75,7 +73,10 @@ export function CreateApiKeyDialog() {
                 <FormItem className="space-y-2">
                   <FormLabel>API Key Name</FormLabel>
                   <FormControl>
-                    <Input type="text" {...field} />
+                    <Input
+                      type="text"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,7 +85,10 @@ export function CreateApiKeyDialog() {
           </form>
         </Form>
         <DialogFooter>
-          <Button form="new-api-key-form" type="submit">
+          <Button
+            form="new-api-key-form"
+            type="submit"
+          >
             Create
           </Button>
         </DialogFooter>

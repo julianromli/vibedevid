@@ -1,34 +1,21 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { z } from "zod"
-import { format } from "date-fns"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from 'react'
+import { z } from 'zod'
+import { format } from 'date-fns'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 // @ts-expect-error: the library doesn't support d.ts
-import countryRegionData from "country-region-data/dist/data-umd"
-import { CountryRegion, filterCountries } from "@/lib/filter-countries"
-import { nofitySubmittedValues } from "@/lib/notify-submitted-values"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import countryRegionData from 'country-region-data/dist/data-umd'
+import { CountryRegion, filterCountries } from '@/lib/filter-countries'
+import { nofitySubmittedValues } from '@/lib/notify-submitted-values'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
   SheetContent,
@@ -37,9 +24,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { paymentAcc, Plan } from "../data/data"
-import { AddNewCard } from "./add-new-card"
+} from '@/components/ui/sheet'
+import { paymentAcc, Plan } from '../data/data'
+import { AddNewCard } from './add-new-card'
 
 interface Props {
   plan: Plan
@@ -47,13 +34,13 @@ interface Props {
 
 const formSchema = z.object({
   country: z.string({
-    required_error: "Select Country",
+    required_error: 'Select Country',
   }),
   zip_code: z.string().min(1, {
-    message: "Fill Zip Code",
+    message: 'Fill Zip Code',
   }),
   payment_method: z.string({
-    required_error: "Select Payment Method",
+    required_error: 'Select Payment Method',
   }),
 })
 
@@ -67,7 +54,7 @@ export default function SubscribeDrawer({ plan }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      zip_code: "",
+      zip_code: '',
     },
   })
 
@@ -83,9 +70,7 @@ export default function SubscribeDrawer({ plan }: Props) {
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Summary</SheetTitle>
-          <SheetDescription>
-            Start on {format(new Date(), "yyyy-MMM-dd")}
-          </SheetDescription>
+          <SheetDescription>Start on {format(new Date(), 'yyyy-MMM-dd')}</SheetDescription>
         </SheetHeader>
         <Form {...form}>
           <form
@@ -96,9 +81,7 @@ export default function SubscribeDrawer({ plan }: Props) {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-sm">
                 <p>Monthly</p>
-                <p className="font-bold tracking-tight">
-                  ${plan.price.toLocaleString()}
-                </p>
+                <p className="font-bold tracking-tight">${plan.price.toLocaleString()}</p>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <p>Estimated Tax</p>
@@ -108,9 +91,7 @@ export default function SubscribeDrawer({ plan }: Props) {
             <Separator />
             <div className="flex items-center justify-between text-sm">
               <p>Total after trial</p>
-              <p className="font-bold tracking-tight">
-                ${plan.price.toLocaleString()}
-              </p>
+              <p className="font-bold tracking-tight">${plan.price.toLocaleString()}</p>
             </div>
             <Separator />
 
@@ -157,7 +138,10 @@ export default function SubscribeDrawer({ plan }: Props) {
                   <FormItem className="w-full">
                     <FormLabel>Zip Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="Zip Code" {...field} />
+                      <Input
+                        placeholder="Zip Code"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,8 +150,7 @@ export default function SubscribeDrawer({ plan }: Props) {
             </div>
 
             <p className="text-muted-foreground text-[13px] leading-none font-medium">
-              *Ensure the details match your billing address for smooth and
-              accurate processing.*
+              *Ensure the details match your billing address for smooth and accurate processing.*
             </p>
 
             <Separator />
@@ -205,16 +188,12 @@ export default function SubscribeDrawer({ plan }: Props) {
                               <div className="flex items-center gap-3">
                                 <div
                                   className={cn(
-                                    "h-3 w-3 rounded-full outline outline-offset-[2px]",
-                                    form.getValues().payment_method ===
-                                      payment.type &&
-                                      "bg-blue-600 outline-blue-500"
+                                    'h-3 w-3 rounded-full outline outline-offset-[2px]',
+                                    form.getValues().payment_method === payment.type && 'bg-blue-600 outline-blue-500',
                                   )}
                                 />
                                 <div className="flex flex-col items-start">
-                                  <p className="text-xs font-semibold">
-                                    {payment.name}
-                                  </p>
+                                  <p className="text-xs font-semibold">{payment.name}</p>
                                   <p className="text-muted-foreground text-xs">
                                     ****
                                     {payment.card.toLocaleString().slice(5)}

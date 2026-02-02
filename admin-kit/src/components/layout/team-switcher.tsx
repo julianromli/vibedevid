@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ChevronsUpDown, Plus } from "lucide-react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { ChevronsUpDown, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 // import Image from "next/image"
 import {
   DropdownMenu,
@@ -12,13 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/dropdown-menu'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 
 interface Props {
   teams: {
@@ -45,9 +40,7 @@ export function TeamSwitcher({ teams }: Props) {
                 <activeTeam.logo className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-xs leading-tight">
-                <span className="truncate font-semibold">
-                  {activeTeam.name}
-                </span>
+                <span className="truncate font-semibold">{activeTeam.name}</span>
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -56,12 +49,10 @@ export function TeamSwitcher({ teams }: Props) {
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             align="start"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Teams
-            </DropdownMenuLabel>
+            <DropdownMenuLabel className="text-muted-foreground text-xs">Teams</DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
@@ -69,12 +60,7 @@ export function TeamSwitcher({ teams }: Props) {
                 className="gap-2 p-2 text-balance"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo
-                    className={cn(
-                      "size-4 shrink-0",
-                      index === 0 && "invert-0 dark:invert"
-                    )}
-                  />
+                  <team.logo className={cn('size-4 shrink-0', index === 0 && 'invert-0 dark:invert')} />
                 </div>
                 {team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>

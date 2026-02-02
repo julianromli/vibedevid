@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { TasksImportDialog } from "./tasks-import-dialog"
-import { TasksMutateDrawer } from "./tasks-mutate-drawer"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { TasksImportDialog } from './tasks-import-dialog'
+import { TasksMutateDrawer } from './tasks-mutate-drawer'
 
 export function TasksPrimaryActions() {
   const [open, setOpen] = useState(false)
@@ -18,12 +18,19 @@ export function TasksPrimaryActions() {
         >
           Import
         </Button>
-        <Button className="font-semibold" onClick={() => setOpen(true)}>
+        <Button
+          className="font-semibold"
+          onClick={() => setOpen(true)}
+        >
           Create Task
         </Button>
       </div>
 
-      <TasksMutateDrawer key="task-create" open={open} onOpenChange={setOpen} />
+      <TasksMutateDrawer
+        key="task-create"
+        open={open}
+        onOpenChange={setOpen}
+      />
       <TasksImportDialog
         key="task-import"
         open={openImport}

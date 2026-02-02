@@ -1,35 +1,20 @@
-"use client"
+'use client'
 
-import { IconDots } from "@tabler/icons-react"
-import { TrendingUp } from "lucide-react"
-import {
-  Label,
-  PolarGrid,
-  PolarRadiusAxis,
-  RadialBar,
-  RadialBarChart,
-} from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+import { IconDots } from '@tabler/icons-react'
+import { TrendingUp } from 'lucide-react'
+import { Label, PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer } from '@/components/ui/chart'
 
-const chartData = [
-  { month: "January", buyers: 200, fill: "var(--color-buyers)" },
-]
+const chartData = [{ month: 'January', buyers: 200, fill: 'var(--color-buyers)' }]
 
 const chartConfig = {
   month: {
-    label: "Month",
+    label: 'Month',
   },
   buyers: {
-    label: "Buyers",
-    color: "var(--chart-2)",
+    label: 'Buyers',
+    color: 'var(--chart-2)',
   },
 } satisfies ChartConfig
 
@@ -39,11 +24,12 @@ export default function BuyersProfileCard() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Buyers Profile</CardTitle>
-          <IconDots className="cursor-pointer opacity-60" size={16} />
+          <IconDots
+            className="cursor-pointer opacity-60"
+            size={16}
+          />
         </div>
-        <CardDescription>
-          Discover key insights into the buyer’s preferences
-        </CardDescription>
+        <CardDescription>Discover key insights into the buyer’s preferences</CardDescription>
       </CardHeader>
       <CardContent className="pb-0">
         <ChartContainer
@@ -64,11 +50,19 @@ export default function BuyersProfileCard() {
               className="first:fill-muted last:fill-background"
               polarRadius={[86, 74]}
             />
-            <RadialBar dataKey="buyers" background cornerRadius={10} />
-            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+            <RadialBar
+              dataKey="buyers"
+              background
+              cornerRadius={10}
+            />
+            <PolarRadiusAxis
+              tick={false}
+              tickLine={false}
+              axisLine={false}
+            >
               <Label
                 content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                     return (
                       <text
                         x={viewBox.cx}

@@ -1,6 +1,6 @@
-import { IconDots } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { IconDots } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,16 +8,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { pageViews, routeViews } from "../data/data"
-import ViewAllRouteDialog from "./view-all-routes"
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { pageViews, routeViews } from '../data/data'
+import ViewAllRouteDialog from './view-all-routes'
 
 export default function RouteView() {
   return (
     <Card>
-      <Tabs defaultValue="pages" className="space-y-0">
+      <Tabs
+        defaultValue="pages"
+        className="space-y-0"
+      >
         <CardHeader className="px-4 py-3">
           <div className="flex items-center justify-between">
             <TabsList className="gap-2 bg-transparent">
@@ -41,9 +44,7 @@ export default function RouteView() {
                 Hostnames
               </TabsTrigger>
             </TabsList>
-            <h1 className="text-muted-foreground text-xs font-medium">
-              VISITORS
-            </h1>
+            <h1 className="text-muted-foreground text-xs font-medium">VISITORS</h1>
           </div>
         </CardHeader>
         <Separator />
@@ -98,9 +99,7 @@ export default function RouteView() {
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>Edit</DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-500">
-                    Delete
-                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

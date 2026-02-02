@@ -1,43 +1,32 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import StatsCard from "./stats-card"
+import { useState } from 'react'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import StatsCard from './stats-card'
 
-type Duration = "month" | "week"
+type Duration = 'month' | 'week'
 
 const chartConfig = {
   visitors: {
-    label: "Visitors",
-    color: "var(--chart-1)",
+    label: 'Visitors',
+    color: 'var(--chart-1)',
   },
 } satisfies ChartConfig
 
 const chartData = [
-  { month: "January", visitors: 186 },
-  { month: "February", visitors: 305 },
-  { month: "March", visitors: 237 },
-  { month: "April", visitors: 73 },
-  { month: "May", visitors: 209 },
-  { month: "June", visitors: 214 },
+  { month: 'January', visitors: 186 },
+  { month: 'February', visitors: 305 },
+  { month: 'March', visitors: 237 },
+  { month: 'April', visitors: 73 },
+  { month: 'May', visitors: 209 },
+  { month: 'June', visitors: 214 },
 ]
 
 export default function SalesCard() {
-  const [duration, setDuration] = useState<Duration>("week")
+  const [duration, setDuration] = useState<Duration>('week')
 
   return (
     <Card className="h-full w-full">
@@ -52,10 +41,16 @@ export default function SalesCard() {
             value={duration}
           >
             <TabsList className="grid h-auto w-full grid-cols-2 p-[3px]">
-              <TabsTrigger className="py-[3px]" value="month">
+              <TabsTrigger
+                className="py-[3px]"
+                value="month"
+              >
                 Month
               </TabsTrigger>
-              <TabsTrigger className="py-[3px]" value="week">
+              <TabsTrigger
+                className="py-[3px]"
+                value="week"
+              >
                 Week
               </TabsTrigger>
             </TabsList>
@@ -112,7 +107,7 @@ export default function SalesCard() {
                   orientation="right"
                   tickMargin={5}
                   axisLine={false}
-                  tickFormatter={(value) => value + "k"}
+                  tickFormatter={(value) => value + 'k'}
                 />
                 <ChartTooltip
                   cursor={false}

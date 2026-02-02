@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons"
-import { Row } from "@tanstack/react-table"
-import { Edit2 } from "lucide-react"
-import useDialogState from "@/hooks/use-dialog-state"
-import { Button } from "@/components/ui/button"
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { Row } from '@tanstack/react-table'
+import { Edit2 } from 'lucide-react'
+import useDialogState from '@/hooks/use-dialog-state'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +17,11 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { labels } from "../data/data"
-import { Task, taskSchema } from "../data/schema"
-import { TasksDetailDialog } from "./tasks-detail-dialog"
-import { TasksMutateDrawer } from "./tasks-mutate-drawer"
+} from '@/components/ui/dropdown-menu'
+import { labels } from '../data/data'
+import { Task, taskSchema } from '../data/schema'
+import { TasksDetailDialog } from './tasks-detail-dialog'
+import { TasksMutateDrawer } from './tasks-mutate-drawer'
 
 interface Props {
   row: Row<Task>
@@ -30,12 +30,16 @@ interface Props {
 export function DataTableRowActions({ row }: Props) {
   const task = taskSchema.parse(row.original)
 
-  const [open, setOpen] = useDialogState<"edit" | "detail">(null)
+  const [open, setOpen] = useDialogState<'edit' | 'detail'>(null)
 
   return (
     <>
       <div className="flex items-center gap-1">
-        <Button size="icon" variant="ghost" onClick={() => setOpen("edit")}>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => setOpen('edit')}
+        >
           <Edit2 />
         </Button>
 
@@ -49,14 +53,13 @@ export function DataTableRowActions({ row }: Props) {
               <span className="sr-only">Open menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[160px]">
-            <DropdownMenuItem onClick={() => setOpen("detail")}>
-              View Detail
-            </DropdownMenuItem>
+          <DropdownMenuContent
+            align="end"
+            className="w-[160px]"
+          >
+            <DropdownMenuItem onClick={() => setOpen('detail')}>View Detail</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setOpen("edit")}>
-              Edit
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setOpen('edit')}>Edit</DropdownMenuItem>
             <DropdownMenuItem>Make a copy</DropdownMenuItem>
             <DropdownMenuItem>Favorite</DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -86,15 +89,15 @@ export function DataTableRowActions({ row }: Props) {
 
       <TasksMutateDrawer
         key="task-update"
-        open={open === "edit"}
-        onOpenChange={() => setOpen("edit")}
+        open={open === 'edit'}
+        onOpenChange={() => setOpen('edit')}
         currentRow={task}
       />
 
       <TasksDetailDialog
         key="task-detail"
-        open={open === "detail"}
-        onOpenChange={() => setOpen("detail")}
+        open={open === 'detail'}
+        onOpenChange={() => setOpen('detail')}
         currentRow={task}
       />
     </>

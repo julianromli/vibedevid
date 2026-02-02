@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { IconEye } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
-import { Task } from "../data/schema"
-import { TasksDetailDialog } from "./tasks-detail-dialog"
+import { useState } from 'react'
+import { IconEye } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
+import { Task } from '../data/schema'
+import { TasksDetailDialog } from './tasks-detail-dialog'
 
 interface Props {
   currentRow: Task

@@ -30,11 +30,9 @@ export function UserSuspendDialog({ user, open, onOpenChange }: UserSuspendDialo
 
     try {
       const result = await suspendUser(user.id, !user.is_suspended, reason)
-      
+
       if (result.success) {
-        toast.success(
-          user.is_suspended ? 'User unsuspended successfully' : 'User suspended successfully'
-        )
+        toast.success(user.is_suspended ? 'User unsuspended successfully' : 'User suspended successfully')
         onOpenChange(false)
         window.location.reload()
       } else {
@@ -48,14 +46,15 @@ export function UserSuspendDialog({ user, open, onOpenChange }: UserSuspendDialo
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-          </DialogTitle>
+          <DialogTitle>{user.is_suspended ? 'Unsuspend User' : 'Suspend User'}</DialogTitle>
           <DialogDescription>
-            {user.is_suspended 
+            {user.is_suspended
               ? `Restore ${user.display_name}'s account access.`
               : `Suspend ${user.display_name}'s account and prevent them from accessing the platform.`}
           </DialogDescription>
@@ -82,14 +81,12 @@ export function UserSuspendDialog({ user, open, onOpenChange }: UserSuspendDialo
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isLoading}
             variant={user.is_suspended ? 'default' : 'destructive'}
           >
-            {isLoading 
-              ? 'Processing...' 
-              : user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+            {isLoading ? 'Processing...' : user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
           </Button>
         </DialogFooter>
       </DialogContent>

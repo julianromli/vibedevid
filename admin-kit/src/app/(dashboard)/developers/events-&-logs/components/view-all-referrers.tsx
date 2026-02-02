@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState, useMemo } from "react"
-import { IconMaximize, IconSearch } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import { useState, useMemo } from 'react'
+import { IconMaximize, IconSearch } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -10,25 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { referrers } from "../data/data"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { referrers } from '../data/data'
 
 export default function ViewAllReferrersDialog() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState('')
 
   const filteredAndSortedReferrers = useMemo(() => {
-    return referrers.filter((referrer) =>
-      referrer.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    return referrers.filter((referrer) => referrer.name.toLowerCase().includes(searchTerm.toLowerCase()))
   }, [searchTerm])
 
   return (
@@ -44,12 +35,8 @@ export default function ViewAllReferrersDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            All Referrers
-          </DialogTitle>
-          <DialogDescription>
-            displays insights about referrers, including sources driving traffic
-          </DialogDescription>
+          <DialogTitle className="text-xl font-semibold">All Referrers</DialogTitle>
+          <DialogDescription>displays insights about referrers, including sources driving traffic</DialogDescription>
         </DialogHeader>
         <div className="relative mb-4">
           <Input
@@ -90,13 +77,14 @@ export default function ViewAllReferrersDialog() {
                 <TableRow key={referrer.name}>
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-2">
-                      <referrer.icon size={16} className="text-neutral-500" />
+                      <referrer.icon
+                        size={16}
+                        className="text-neutral-500"
+                      />
                       <span>{referrer.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    {referrer.visitors.toLocaleString()}
-                  </TableCell>
+                  <TableCell className="text-right">{referrer.visitors.toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

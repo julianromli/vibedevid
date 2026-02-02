@@ -1,29 +1,27 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { IconAlertTriangle } from "@tabler/icons-react"
-import { toast } from "@/hooks/use-toast"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ConfirmDialog } from "@/components/confirm-dialog"
+import { useState } from 'react'
+import { IconAlertTriangle } from '@tabler/icons-react'
+import { toast } from '@/hooks/use-toast'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 export function DeleteActions() {
   const [opened, setOpened] = useState(false)
 
-  const [value, setValue] = useState("")
-  const [type, setType] = useState<"delete" | "deactivate">("delete")
+  const [value, setValue] = useState('')
+  const [type, setType] = useState<'delete' | 'deactivate'>('delete')
 
   const handleDeactivate = () => {
     setOpened(false)
     toast({
-      title: "The following account has been deactivated:",
+      title: 'The following account has been deactivated:',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">
-            User {type === "delete" ? "Deleted" : "Deactivated"} Successfully
-          </code>
+          <code className="text-white">User {type === 'delete' ? 'Deleted' : 'Deactivated'} Successfully</code>
         </pre>
       ),
     })
@@ -34,7 +32,7 @@ export function DeleteActions() {
       <Button
         onClick={() => {
           setOpened(true)
-          setType("deactivate")
+          setType('deactivate')
         }}
         variant="outline"
         type="button"
@@ -46,7 +44,7 @@ export function DeleteActions() {
       <Button
         onClick={() => {
           setOpened(true)
-          setType("delete")
+          setType('delete')
         }}
         type="button"
         variant="destructive"
@@ -63,7 +61,7 @@ export function DeleteActions() {
             <IconAlertTriangle
               className="stroke-destructive mr-1 inline-block"
               size={18}
-            />{" "}
+            />{' '}
             Deactivate
           </span>
         }
@@ -72,8 +70,8 @@ export function DeleteActions() {
             <p className="mb-2">
               Are you sure you want to {type} the account
               <br />
-              {type === "delete" &&
-                "This action will remove the user with the role from the system. Please proceed with caution."}
+              {type === 'delete' &&
+                'This action will remove the user with the role from the system. Please proceed with caution.'}
             </p>
 
             <Label className="my-2">
@@ -87,9 +85,7 @@ export function DeleteActions() {
 
             <Alert variant="destructive">
               <AlertTitle>Warning!</AlertTitle>
-              <AlertDescription>
-                Please be carefull, this operation can not be rolled back.
-              </AlertDescription>
+              <AlertDescription>Please be carefull, this operation can not be rolled back.</AlertDescription>
             </Alert>
           </div>
         }

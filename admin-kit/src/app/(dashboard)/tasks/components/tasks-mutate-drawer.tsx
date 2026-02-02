@@ -1,20 +1,13 @@
-"use client"
+'use client'
 
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "@/hooks/use-toast"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Sheet,
   SheetClose,
@@ -23,9 +16,9 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
-import SelectDropdown from "@/components/select-dropdown"
-import { Task } from "../data/schema"
+} from '@/components/ui/sheet'
+import SelectDropdown from '@/components/select-dropdown'
+import { Task } from '../data/schema'
 
 interface Props {
   open: boolean
@@ -34,12 +27,12 @@ interface Props {
 }
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required."),
-  status: z.string().min(1, "Please select a status."),
-  label: z.enum(["documentation", "bug", "feature"], {
-    required_error: "Please select a label.",
+  title: z.string().min(1, 'Title is required.'),
+  status: z.string().min(1, 'Please select a status.'),
+  label: z.enum(['documentation', 'bug', 'feature'], {
+    required_error: 'Please select a label.',
   }),
-  priority: z.string().min(1, "Please choose a priority."),
+  priority: z.string().min(1, 'Please choose a priority.'),
 })
 type TasksForm = z.infer<typeof formSchema>
 
@@ -49,10 +42,10 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
   const form = useForm<TasksForm>({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow ?? {
-      title: "",
-      status: "",
+      title: '',
+      status: '',
       label: undefined,
-      priority: "",
+      priority: '',
     },
   })
 
@@ -61,7 +54,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
     onOpenChange(false)
     form.reset()
     toast({
-      title: "You submitted the following values:",
+      title: 'You submitted the following values:',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
@@ -80,11 +73,9 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
     >
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle>{isUpdate ? "Update" : "Create"} Task</SheetTitle>
+          <SheetTitle>{isUpdate ? 'Update' : 'Create'} Task</SheetTitle>
           <SheetDescription>
-            {isUpdate
-              ? "Update the task by providing necessary info."
-              : "Add a new task by providing necessary info."}
+            {isUpdate ? 'Update the task by providing necessary info.' : 'Add a new task by providing necessary info.'}
             Click save when you&apos;re done.
           </SheetDescription>
         </SheetHeader>
@@ -101,7 +92,10 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                 <FormItem className="space-y-1">
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter a title" />
+                    <Input
+                      {...field}
+                      placeholder="Enter a title"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -118,11 +112,11 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                     onValueChange={field.onChange}
                     placeholder="Select dropdown"
                     items={[
-                      { label: "In Progress", value: "in progress" },
-                      { label: "Backlog", value: "backlog" },
-                      { label: "Todo", value: "todo" },
-                      { label: "Canceled", value: "canceled" },
-                      { label: "Done", value: "done" },
+                      { label: 'In Progress', value: 'in progress' },
+                      { label: 'Backlog', value: 'backlog' },
+                      { label: 'Todo', value: 'todo' },
+                      { label: 'Canceled', value: 'canceled' },
+                      { label: 'Done', value: 'done' },
                     ]}
                   />
                   <FormMessage />
@@ -145,9 +139,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                         <FormControl>
                           <RadioGroupItem value="documentation" />
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          Documentation
-                        </FormLabel>
+                        <FormLabel className="font-normal">Documentation</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-y-0 space-x-3">
                         <FormControl>
@@ -209,7 +201,10 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>
-          <Button form="tasks-form" type="submit">
+          <Button
+            form="tasks-form"
+            type="submit"
+          >
             Save changes
           </Button>
         </SheetFooter>

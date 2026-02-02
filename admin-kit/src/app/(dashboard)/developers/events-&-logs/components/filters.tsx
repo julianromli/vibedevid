@@ -1,40 +1,18 @@
-import { useState } from "react"
-import { ChevronRight } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import CalendarDatePicker from "@/components/calendar-date-picker"
-import {
-  containsLevelOptions,
-  environmentOptions,
-  eventTypeOptions,
-  Timeline,
-  timelines,
-} from "../data/data"
+import { useState } from 'react'
+import { ChevronRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import CalendarDatePicker from '@/components/calendar-date-picker'
+import { containsLevelOptions, environmentOptions, eventTypeOptions, Timeline, timelines } from '../data/data'
 
 export default function Filters() {
-  const [timeline, setTimeline] = useState<Timeline>("custom")
+  const [timeline, setTimeline] = useState<Timeline>('custom')
   const [containsLevels, setContainLevels] = useState<string[]>([])
   const [environments, setEnvironments] = useState<string[]>([])
   const [eventTypes, setEventTypes] = useState<string[]>([])
@@ -67,7 +45,10 @@ export default function Filters() {
         </TooltipProvider>
       </div>
       <ScrollArea className="flex flex-col">
-        <Collapsible defaultOpen className="group/log-filter px-2">
+        <Collapsible
+          defaultOpen
+          className="group/log-filter px-2"
+        >
           <CollapsibleTrigger asChild>
             <Button
               className="flex w-full items-center justify-start px-2"
@@ -90,14 +71,17 @@ export default function Filters() {
               <SelectContent>
                 <SelectGroup>
                   {timelines.map((timeline) => (
-                    <SelectItem key={timeline.value} value={timeline.value}>
+                    <SelectItem
+                      key={timeline.value}
+                      value={timeline.value}
+                    >
                       {timeline.label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {timeline === "custom" && (
+            {timeline === 'custom' && (
               <CalendarDatePicker
                 className="w-full"
                 variant="outline"
@@ -107,7 +91,10 @@ export default function Filters() {
             )}
           </CollapsibleContent>
         </Collapsible>
-        <Collapsible defaultOpen className="group/log-filter px-2">
+        <Collapsible
+          defaultOpen
+          className="group/log-filter px-2"
+        >
           <CollapsibleTrigger asChild>
             <Button
               className="flex w-full items-center justify-start px-2"
@@ -130,15 +117,8 @@ export default function Filters() {
                     checked={containsLevels.includes(contain_level.label)}
                     onCheckedChange={(checked) => {
                       return checked
-                        ? setContainLevels([
-                            ...containsLevels,
-                            contain_level.label,
-                          ])
-                        : setContainLevels(
-                            containsLevels.filter(
-                              (value) => value !== contain_level.label
-                            )
-                          )
+                        ? setContainLevels([...containsLevels, contain_level.label])
+                        : setContainLevels(containsLevels.filter((value) => value !== contain_level.label))
                     }}
                     id={contain_level.label}
                   />
@@ -151,9 +131,7 @@ export default function Filters() {
                       variant="secondary"
                       className="h-6 w-6 rounded-full p-0"
                     >
-                      <p className="m-auto text-[10px] opacity-70">
-                        {contain_level.value}
-                      </p>
+                      <p className="m-auto text-[10px] opacity-70">{contain_level.value}</p>
                     </Badge>
                   </Label>
                 </div>
@@ -185,9 +163,7 @@ export default function Filters() {
                     onCheckedChange={(checked) => {
                       return checked
                         ? setEnvironments([...environments, env.label])
-                        : setEnvironments(
-                            environments.filter((value) => value !== env.label)
-                          )
+                        : setEnvironments(environments.filter((value) => value !== env.label))
                     }}
                     id={env.label}
                   />
@@ -200,9 +176,7 @@ export default function Filters() {
                       variant="secondary"
                       className="h-6 w-6 rounded-full p-0"
                     >
-                      <p className="m-auto text-[10px] opacity-70">
-                        {env.value}
-                      </p>
+                      <p className="m-auto text-[10px] opacity-70">{env.value}</p>
                     </Badge>
                   </Label>
                 </div>
@@ -234,11 +208,7 @@ export default function Filters() {
                     onCheckedChange={(checked) => {
                       return checked
                         ? setEventTypes([...eventTypes, eventType.label])
-                        : setEventTypes(
-                            environments.filter(
-                              (value) => value !== eventType.label
-                            )
-                          )
+                        : setEventTypes(environments.filter((value) => value !== eventType.label))
                     }}
                     id={eventType.label}
                   />
@@ -251,9 +221,7 @@ export default function Filters() {
                       variant="secondary"
                       className="h-6 w-6 rounded-full p-0"
                     >
-                      <p className="m-auto text-[10px] opacity-70">
-                        {eventType.value}
-                      </p>
+                      <p className="m-auto text-[10px] opacity-70">{eventType.value}</p>
                     </Badge>
                   </Label>
                 </div>

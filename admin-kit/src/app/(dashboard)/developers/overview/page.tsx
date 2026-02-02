@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { nofitySubmittedValues } from "@/lib/notify-submitted-values"
+import Link from 'next/link'
+import { nofitySubmittedValues } from '@/lib/notify-submitted-values'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,7 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from '@/components/ui/breadcrumb'
 import {
   Select,
   SelectContent,
@@ -18,13 +18,13 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { DateRangePicker } from "@/components/date-range-picker"
-import { ApiRequestsChart } from "./components/api-requests-chart"
-import { ApiResponseTimeChart } from "./components/api-response-time-chart"
-import RecentActivity from "./components/recent-activity"
-import { TotalVisitorsChart } from "./components/total-visitors-chart"
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { DateRangePicker } from '@/components/date-range-picker'
+import { ApiRequestsChart } from './components/api-requests-chart'
+import { ApiResponseTimeChart } from './components/api-response-time-chart'
+import RecentActivity from './components/recent-activity'
+import { TotalVisitorsChart } from './components/total-visitors-chart'
 
 export default function OverviewPage() {
   return (
@@ -51,9 +51,7 @@ export default function OverviewPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-2xl font-bold">Web Overview</h2>
-            <p className="text-muted-foreground text-sm">
-              Build, manage, and optimize developer workflows seamlessly.
-            </p>
+            <p className="text-muted-foreground text-sm">Build, manage, and optimize developer workflows seamlessly.</p>
           </div>
           <div className="flex items-center gap-3">
             <Select>

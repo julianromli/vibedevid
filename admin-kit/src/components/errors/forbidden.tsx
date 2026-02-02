@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { BackButton } from "../back-button"
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { BackButton } from '../back-button'
 
 export default function ForbiddenError() {
   return (

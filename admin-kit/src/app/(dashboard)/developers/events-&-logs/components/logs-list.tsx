@@ -1,13 +1,13 @@
-import { useState } from "react"
-import LogsTable from "./logs-table"
-import LogsToolbar from "./logs-toolbar"
+import { useState } from 'react'
+import LogsTable from './logs-table'
+import LogsToolbar from './logs-toolbar'
 
 interface Props {
   toggleFilters: () => void
 }
 
 export default function LogsList({ toggleFilters }: Props) {
-  const [searchVal, setSearchVal] = useState("")
+  const [searchVal, setSearchVal] = useState('')
 
   return (
     <div>

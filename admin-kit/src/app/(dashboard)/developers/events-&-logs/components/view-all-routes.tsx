@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState, useMemo } from "react"
-import { IconMaximize } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import { useState, useMemo } from 'react'
+import { IconMaximize } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import {
   Pagination,
   PaginationContent,
@@ -19,27 +19,18 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { mockRoutes } from "../data/data"
+} from '@/components/ui/pagination'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { mockRoutes } from '../data/data'
 
 export default function ViewAllRouteDialog() {
   const [currentPage, setCurrentPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState('')
 
   const itemsPerPage = 5
 
   const filteredAndSortedRoutes = useMemo(() => {
-    return mockRoutes.filter((route) =>
-      route.route.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    return mockRoutes.filter((route) => route.route.toLowerCase().includes(searchTerm.toLowerCase()))
   }, [searchTerm])
 
   const paginatedRoutes = useMemo(() => {
@@ -62,12 +53,8 @@ export default function ViewAllRouteDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[890px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            All Route Views
-          </DialogTitle>
-          <DialogDescription>
-            Detail information about all route views, including their purpose.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">All Route Views</DialogTitle>
+          <DialogDescription>Detail information about all route views, including their purpose.</DialogDescription>
         </DialogHeader>
 
         <Input
@@ -81,36 +68,20 @@ export default function ViewAllRouteDialog() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[25%] cursor-pointer">Route</TableHead>
-                <TableHead className="cursor-pointer text-right">
-                  View Count
-                </TableHead>
-                <TableHead className="cursor-pointer text-right">
-                  Avg. Time (s)
-                </TableHead>
-                <TableHead className="cursor-pointer text-right">
-                  Bounce Rate
-                </TableHead>
-                <TableHead className="cursor-pointer text-right">
-                  Last Visited
-                </TableHead>
+                <TableHead className="cursor-pointer text-right">View Count</TableHead>
+                <TableHead className="cursor-pointer text-right">Avg. Time (s)</TableHead>
+                <TableHead className="cursor-pointer text-right">Bounce Rate</TableHead>
+                <TableHead className="cursor-pointer text-right">Last Visited</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRoutes.map((route) => (
                 <TableRow key={route.route}>
                   <TableCell className="font-medium">{route.route}</TableCell>
-                  <TableCell className="text-right">
-                    {route.viewCount.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {route.avgTimeOnPage}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {route.bounceRate}%
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {new Date(route.lastVisited).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell className="text-right">{route.viewCount.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{route.avgTimeOnPage}</TableCell>
+                  <TableCell className="text-right">{route.bounceRate}%</TableCell>
+                  <TableCell className="text-right">{new Date(route.lastVisited).toLocaleDateString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -121,9 +92,7 @@ export default function ViewAllRouteDialog() {
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className={
-                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
-                }
+                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
               />
             </PaginationItem>
             {[...Array(totalPages)].map((_, index) => (
@@ -138,14 +107,8 @@ export default function ViewAllRouteDialog() {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
               />
             </PaginationItem>
           </PaginationContent>

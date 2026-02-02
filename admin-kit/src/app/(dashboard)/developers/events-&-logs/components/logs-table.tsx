@@ -1,16 +1,8 @@
-import { useMemo } from "react"
-import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import LongText from "@/components/long-text"
-import { getLevelVariant, logEntries } from "../data/data"
+import { useMemo } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import LongText from '@/components/long-text'
+import { getLevelVariant, logEntries } from '../data/data'
 
 interface Props {
   searchVal: string
@@ -18,11 +10,8 @@ interface Props {
 
 export default function LogsTable({ searchVal }: Props) {
   const filteredLogs = useMemo(
-    () =>
-      logEntries.filter((log) =>
-        log.message.toLowerCase().includes(searchVal.toLowerCase())
-      ),
-    [searchVal]
+    () => logEntries.filter((log) => log.message.toLowerCase().includes(searchVal.toLowerCase())),
+    [searchVal],
   )
   return (
     <Table>
@@ -41,9 +30,7 @@ export default function LogsTable({ searchVal }: Props) {
               <LongText>{entry.timestamp}</LongText>
             </TableCell>
             <TableCell>
-              <Badge variant={getLevelVariant(entry.level)}>
-                {entry.level}
-              </Badge>
+              <Badge variant={getLevelVariant(entry.level)}>{entry.level}</Badge>
             </TableCell>
             <TableCell>
               <LongText>{entry.message}</LongText>
@@ -54,7 +41,10 @@ export default function LogsTable({ searchVal }: Props) {
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell className="pl-4" colSpan={3}>
+          <TableCell
+            className="pl-4"
+            colSpan={3}
+          >
             Total
           </TableCell>
           <TableCell className="text-start">$2,500.00</TableCell>

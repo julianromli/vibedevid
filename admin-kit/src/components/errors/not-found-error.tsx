@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { BackButton } from "../back-button"
-import { Button } from "../ui/button"
+import Link from 'next/link'
+import { BackButton } from '../back-button'
+import { Button } from '../ui/button'
 
 export default function NotFoundError() {
   return (

@@ -1,5 +1,5 @@
-import ContentSection from "../components/content-section"
-import PlanDetail from "./plan-detail"
+import ContentSection from '../components/content-section'
+import PlanDetail from './plan-detail'
 
 export default function SettingsPlansPage() {
   return (

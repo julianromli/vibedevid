@@ -139,7 +139,10 @@ export function PendingEventsTable({ events }: PendingEventsTableProps) {
       <CardContent>
         {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <IconCalendarEvent size={48} className="text-muted-foreground mb-4" />
+            <IconCalendarEvent
+              size={48}
+              className="text-muted-foreground mb-4"
+            />
             <div className="text-muted-foreground font-medium">No pending events</div>
             <div className="text-sm text-muted-foreground mt-1">All events have been reviewed</div>
           </div>

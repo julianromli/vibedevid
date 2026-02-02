@@ -1,51 +1,37 @@
-"use client"
+'use client'
 
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { IconApple, IconBrandPaypal } from "@tabler/icons-react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { nofitySubmittedValues } from "@/lib/notify-submitted-values"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { IconApple, IconBrandPaypal } from '@tabler/icons-react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { nofitySubmittedValues } from '@/lib/notify-submitted-values'
+import { Button } from '@/components/ui/button'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const formSchema = z.object({
   username: z.string().min(1, {
-    message: "Username is required.",
+    message: 'Username is required.',
   }),
   city: z.string().min(1, {
-    message: "City is required.",
+    message: 'City is required.',
   }),
-  payment_method: z.enum(["Card", "Paypal", "Apple"], {
-    required_error: "Payment method is required.",
+  payment_method: z.enum(['Card', 'Paypal', 'Apple'], {
+    required_error: 'Payment method is required.',
   }),
   card_number: z.string().min(1, {
-    message: "Card No is required.",
+    message: 'Card No is required.',
   }),
   expire: z.string({
-    required_error: "Expire date is required.",
+    required_error: 'Expire date is required.',
   }),
   year: z.string({
-    required_error: "Year is required.",
+    required_error: 'Year is required.',
   }),
   cv: z.string().min(1, {
-    message: "Cv is required.",
+    message: 'Cv is required.',
   }),
 })
 
@@ -53,11 +39,11 @@ export default function BillingForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
-      city: "",
-      card_number: "",
-      cv: "",
-      payment_method: "Card",
+      username: '',
+      city: '',
+      card_number: '',
+      cv: '',
+      payment_method: 'Card',
     },
   })
 
@@ -78,7 +64,10 @@ export default function BillingForm() {
             <FormItem className="col-span-6 md:col-span-3">
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="Enter username" {...field} />
+                <Input
+                  placeholder="Enter username"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>This is your username.</FormDescription>
               <FormMessage />
@@ -92,7 +81,10 @@ export default function BillingForm() {
             <FormItem className="col-span-6 md:col-span-3">
               <FormLabel>City</FormLabel>
               <FormControl>
-                <Input placeholder="Enter City" {...field} />
+                <Input
+                  placeholder="Enter City"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>This is your city name.</FormDescription>
               <FormMessage />
@@ -135,7 +127,13 @@ export default function BillingForm() {
                         strokeWidth="2"
                         className="mb-3 h-6 w-6"
                       >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <rect
+                          width="20"
+                          height="14"
+                          x="2"
+                          y="5"
+                          rx="2"
+                        />
                         <path d="M2 10h20" />
                       </svg>
                       Card
@@ -188,7 +186,10 @@ export default function BillingForm() {
             <FormItem className="col-span-6">
               <FormLabel>Card Number</FormLabel>
               <FormControl>
-                <Input placeholder="Enter Card No" {...field} />
+                <Input
+                  placeholder="Enter Card No"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>This is number of your card No.</FormDescription>
               <FormMessage />
@@ -207,7 +208,10 @@ export default function BillingForm() {
                   defaultValue={field.value}
                   value={field.value}
                 >
-                  <SelectTrigger id="month" aria-label="Month">
+                  <SelectTrigger
+                    id="month"
+                    aria-label="Month"
+                  >
                     <SelectValue placeholder="Month" />
                   </SelectTrigger>
                   <SelectContent>
@@ -243,7 +247,10 @@ export default function BillingForm() {
                   defaultValue={field.value}
                   value={field.value}
                 >
-                  <SelectTrigger id="year" aria-label="Year">
+                  <SelectTrigger
+                    id="year"
+                    aria-label="Year"
+                  >
                     <SelectValue placeholder="Year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -270,7 +277,11 @@ export default function BillingForm() {
             <FormItem className="col-span-6 md:col-span-2">
               <FormLabel>CV</FormLabel>
               <FormControl>
-                <Input {...field} id="cvc" placeholder="CVC" />
+                <Input
+                  {...field}
+                  id="cvc"
+                  placeholder="CVC"
+                />
               </FormControl>
               <FormDescription>This is your CV No.</FormDescription>
               <FormMessage />
@@ -278,7 +289,10 @@ export default function BillingForm() {
           )}
         />
 
-        <Button className="col-span-6" type="submit">
+        <Button
+          className="col-span-6"
+          type="submit"
+        >
           Continue
         </Button>
       </form>

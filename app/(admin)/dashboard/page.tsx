@@ -1,4 +1,14 @@
-import { IconAnalyze, IconCalendarEvent, IconFileReport, IconFolder, IconMessageCircle, IconNews, IconNotification, IconSettings2, IconUsers } from '@tabler/icons-react'
+import {
+  IconAnalyze,
+  IconCalendarEvent,
+  IconFileReport,
+  IconFolder,
+  IconMessageCircle,
+  IconNews,
+  IconNotification,
+  IconSettings2,
+  IconUsers,
+} from '@tabler/icons-react'
 import { Header } from '@/components/admin-panel/header'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Analytics from './boards/analytics'

@@ -1,46 +1,35 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import StatsCard from "./stats-card"
+import { useState } from 'react'
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import StatsCard from './stats-card'
 
-type Duration = "month" | "week"
+type Duration = 'month' | 'week'
 
 const chartData = [
-  { month: "January", visitors: 186, returning: 80 },
-  { month: "February", visitors: 305, returning: 200 },
-  { month: "March", visitors: 237, returning: 120 },
-  { month: "April", visitors: 73, returning: 190 },
-  { month: "May", visitors: 209, returning: 130 },
-  { month: "June", visitors: 214, returning: 140 },
+  { month: 'January', visitors: 186, returning: 80 },
+  { month: 'February', visitors: 305, returning: 200 },
+  { month: 'March', visitors: 237, returning: 120 },
+  { month: 'April', visitors: 73, returning: 190 },
+  { month: 'May', visitors: 209, returning: 130 },
+  { month: 'June', visitors: 214, returning: 140 },
 ]
 const chartConfig = {
   visitors: {
-    label: "Visitors",
-    color: "var(--chart-1)",
+    label: 'Visitors',
+    color: 'var(--chart-1)',
   },
   returning: {
-    label: "Returning",
-    color: "var(--chart-2)",
+    label: 'Returning',
+    color: 'var(--chart-2)',
   },
 } satisfies ChartConfig
 
 export default function VisitorsCard() {
-  const [duration, setDuration] = useState<Duration>("week")
+  const [duration, setDuration] = useState<Duration>('week')
 
   return (
     <Card className="h-full w-full">
@@ -55,10 +44,16 @@ export default function VisitorsCard() {
             value={duration}
           >
             <TabsList className="grid h-auto w-full grid-cols-2 p-[3px]">
-              <TabsTrigger className="py-[3px]" value="month">
+              <TabsTrigger
+                className="py-[3px]"
+                value="month"
+              >
                 Month
               </TabsTrigger>
-              <TabsTrigger className="py-[3px]" value="week">
+              <TabsTrigger
+                className="py-[3px]"
+                value="week"
+              >
                 Week
               </TabsTrigger>
             </TabsList>
@@ -117,7 +112,13 @@ export default function VisitorsCard() {
                   content={<ChartTooltipContent />}
                 />
                 <defs>
-                  <linearGradient id="fillVisitors" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="fillVisitors"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop
                       offset="5%"
                       stopColor="var(--color-visitors)"

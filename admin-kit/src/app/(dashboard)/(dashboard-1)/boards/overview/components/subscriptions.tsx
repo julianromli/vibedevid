@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { Bar, BarChart } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+import { Bar, BarChart } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer } from '@/components/ui/chart'
 
 const data = [
   {
@@ -41,12 +41,12 @@ const data = [
 
 const chartConfig = {
   revenue: {
-    label: "Revenue",
-    color: "var(--chart-2)",
+    label: 'Revenue',
+    color: 'var(--chart-2)',
   },
   subscription: {
-    label: "Subscriptions",
-    color: "var(--chart-1)",
+    label: 'Subscriptions',
+    color: 'var(--chart-1)',
   },
 } satisfies ChartConfig
 
@@ -69,7 +69,11 @@ export default function Subscription() {
               fill="var(--color-subscription)"
               radius={4}
             />
-            <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+            <Bar
+              dataKey="revenue"
+              fill="var(--color-revenue)"
+              radius={4}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

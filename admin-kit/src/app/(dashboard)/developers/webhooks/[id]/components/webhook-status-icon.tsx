@@ -1,4 +1,4 @@
-import { CircleCheck, CircleMinus } from "lucide-react"
+import { CircleCheck, CircleMinus } from 'lucide-react'
 
 interface Props {
   status: boolean
@@ -7,7 +7,10 @@ interface Props {
 export function WebhookStatusIcon({ status }: Props) {
   if (status) {
     return (
-      <CircleCheck size={18} className="stroke-background fill-green-500" />
+      <CircleCheck
+        size={18}
+        className="stroke-background fill-green-500"
+      />
     )
   }
 

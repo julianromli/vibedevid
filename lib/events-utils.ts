@@ -33,12 +33,7 @@ export function formatEventTime(timeString: string): string {
 /**
  * Format event date range for multi-day events
  */
-export function formatEventDateRange(
-  startDate: string,
-  startTime: string,
-  endDate?: string,
-  endTime?: string
-): string {
+export function formatEventDateRange(startDate: string, startTime: string, endDate?: string, endTime?: string): string {
   const formattedStartDate = formatEventDate(startDate)
   const formattedStartTime = formatEventTime(startTime)
 

@@ -1,5 +1,5 @@
-import ContentSection from "../components/content-section"
-import { NotificationsForm } from "./notifications-form"
+import ContentSection from '../components/content-section'
+import { NotificationsForm } from './notifications-form'
 
 export default function SettingsNotificationsPage() {
   return (

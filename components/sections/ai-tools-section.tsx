@@ -3,29 +3,29 @@
  * Displays grid of AI coding tools and integrations
  */
 
-import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { IntegrationCard } from "@/components/ui/integration-card";
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { IntegrationCard } from '@/components/ui/integration-card'
 
 export function AIToolsSection() {
-  const t = useTranslations("aiTools");
+  const t = useTranslations('aiTools')
 
   return (
-    <section id="integrations" className="py-20" data-animate>
+    <section
+      id="integrations"
+      className="py-20"
+      data-animate
+    >
       <div className="mx-auto max-w-5xl px-6">
         <div className="mb-12 text-center">
-          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
-            {t("title")}
-          </h2>
-          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">
-            {t("description")}
-          </p>
+          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
         </div>
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <IntegrationCard
             title="Claude Code"
-            description={t("tools.claudeCode.description")}
+            description={t('tools.claudeCode.description')}
             link="https://code.claude.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -41,7 +41,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="OpenCode"
-            description={t("tools.opencode.description")}
+            description={t('tools.opencode.description')}
             link="https://opencode.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -57,7 +57,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Droid"
-            description={t("tools.droid.description")}
+            description={t('tools.droid.description')}
             link="https://factory.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -73,7 +73,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Antigravity"
-            description={t("tools.antigravity.description")}
+            description={t('tools.antigravity.description')}
             link="https://antigravity.google/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -89,7 +89,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Cursor"
-            description={t("tools.cursor.description")}
+            description={t('tools.cursor.description')}
             link="https://cursor.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -105,7 +105,7 @@ export function AIToolsSection() {
 
           <IntegrationCard
             title="Kiro"
-            description={t("tools.kiro.description")}
+            description={t('tools.kiro.description')}
             link="https://kiro.dev/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -121,5 +121,5 @@ export function AIToolsSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

@@ -16,119 +16,117 @@ import {
   IconUser,
   IconUserOff,
   IconUsers,
-} from "@tabler/icons-react"
-import { AudioWaveform, GalleryVerticalEnd } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Logo } from "@/components/logo"
-import { type SidebarData } from "../types"
+} from '@tabler/icons-react'
+import { AudioWaveform, GalleryVerticalEnd } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Logo } from '@/components/logo'
+import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: "ausrobdev",
-    email: "rob@shadcnblocks.com",
-    avatar: "/avatars/ausrobdev-avatar.png",
+    name: 'ausrobdev',
+    email: 'rob@shadcnblocks.com',
+    avatar: '/avatars/ausrobdev-avatar.png',
   },
   teams: [
     {
-      name: "Shadcnblocks - Admin Kit",
-      logo: ({ className }: { className: string }) => (
-        <Logo className={cn("invert dark:invert-0", className)} />
-      ),
-      plan: "Nextjs + shadcn/ui",
+      name: 'Shadcnblocks - Admin Kit',
+      logo: ({ className }: { className: string }) => <Logo className={cn('invert dark:invert-0', className)} />,
+      plan: 'Nextjs + shadcn/ui',
     },
     {
-      name: "Acme Inc",
+      name: 'Acme Inc',
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: 'Enterprise',
     },
     {
-      name: "Acme Corp.",
+      name: 'Acme Corp.',
       logo: AudioWaveform,
-      plan: "Startup",
+      plan: 'Startup',
     },
   ],
   navGroups: [
     {
-      title: "General",
+      title: 'General',
       items: [
         {
-          title: "Dashboard",
+          title: 'Dashboard',
           icon: IconLayoutDashboard,
           items: [
             {
-              title: "Dashboard 1",
-              url: "/",
+              title: 'Dashboard 1',
+              url: '/',
             },
             {
-              title: "Dashboard 2",
-              url: "/dashboard-2",
+              title: 'Dashboard 2',
+              url: '/dashboard-2',
             },
             {
-              title: "Dashboard 3",
-              url: "/dashboard-3",
+              title: 'Dashboard 3',
+              url: '/dashboard-3',
             },
           ],
         },
         {
-          title: "Tasks",
-          url: "/tasks",
+          title: 'Tasks',
+          url: '/tasks',
           icon: IconChecklist,
         },
         {
-          title: "Users",
-          url: "/users",
+          title: 'Users',
+          url: '/users',
           icon: IconUsers,
         },
       ],
     },
     {
-      title: "Pages",
+      title: 'Pages',
       items: [
         {
-          title: "Auth",
+          title: 'Auth',
           icon: IconLockAccess,
           items: [
             {
-              title: "Login",
-              url: "/login",
+              title: 'Login',
+              url: '/login',
             },
             {
-              title: "Register",
-              url: "/register",
+              title: 'Register',
+              url: '/register',
             },
             {
-              title: "Forgot Password",
-              url: "/forgot-password",
+              title: 'Forgot Password',
+              url: '/forgot-password',
             },
           ],
         },
         {
-          title: "Errors",
+          title: 'Errors',
           icon: IconBug,
           items: [
             {
-              title: "Unauthorized",
-              url: "/401",
+              title: 'Unauthorized',
+              url: '/401',
               icon: IconLock,
             },
             {
-              title: "Forbidden",
-              url: "/403",
+              title: 'Forbidden',
+              url: '/403',
               icon: IconUserOff,
             },
             {
-              title: "Not Found",
-              url: "/404",
+              title: 'Not Found',
+              url: '/404',
               icon: IconError404,
             },
             {
-              title: "Internal Server Error",
-              url: "/error",
+              title: 'Internal Server Error',
+              url: '/error',
               icon: IconServerOff,
             },
             {
-              title: "Maintenance Error",
-              url: "/503",
+              title: 'Maintenance Error',
+              url: '/503',
               icon: IconBarrierBlock,
             },
           ],
@@ -136,63 +134,63 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
-      title: "Other",
+      title: 'Other',
       items: [
         {
-          title: "Settings",
+          title: 'Settings',
           icon: IconSettings,
           items: [
             {
-              title: "General",
+              title: 'General',
               icon: IconTool,
-              url: "/settings",
+              url: '/settings',
             },
             {
-              title: "Profile",
+              title: 'Profile',
               icon: IconUser,
-              url: "/settings/profile",
+              url: '/settings/profile',
             },
             {
-              title: "Billing",
+              title: 'Billing',
               icon: IconCoin,
-              url: "/settings/billing",
+              url: '/settings/billing',
             },
             {
-              title: "Plans",
+              title: 'Plans',
               icon: IconChecklist,
-              url: "/settings/plans",
+              url: '/settings/plans',
             },
             {
-              title: "Connected Apps",
+              title: 'Connected Apps',
               icon: IconApps,
-              url: "/settings/connected-apps",
+              url: '/settings/connected-apps',
             },
             {
-              title: "Notifications",
+              title: 'Notifications',
               icon: IconNotification,
-              url: "/settings/notifications",
+              url: '/settings/notifications',
             },
           ],
         },
         {
-          title: "Developers",
+          title: 'Developers',
           icon: IconCode,
           items: [
             {
-              title: "Overview",
-              url: "/developers/overview",
+              title: 'Overview',
+              url: '/developers/overview',
             },
             {
-              title: "API Keys",
-              url: "/developers/api-keys",
+              title: 'API Keys',
+              url: '/developers/api-keys',
             },
             {
-              title: "Webhooks",
-              url: "/developers/webhooks",
+              title: 'Webhooks',
+              url: '/developers/webhooks',
             },
             {
-              title: "Events/Logs",
-              url: "/developers/events-&-logs",
+              title: 'Events/Logs',
+              url: '/developers/events-&-logs',
             },
           ],
         },

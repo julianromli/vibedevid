@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { IconMailPlus, IconSend } from "@tabler/icons-react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "@/hooks/use-toast"
-import { Button } from "@/components/ui/button"
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { IconMailPlus, IconSend } from '@tabler/icons-react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -14,19 +14,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import SelectDropdown from "@/components/select-dropdown"
-import { userTypes } from "../data/data"
+} from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import SelectDropdown from '@/components/select-dropdown'
+import { userTypes } from '../data/data'
 
 interface Props {
   open: boolean
@@ -34,11 +27,8 @@ interface Props {
 }
 
 const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: "Email is required." })
-    .email({ message: "Email is invalid." }),
-  role: z.string().min(1, { message: "Role is required." }),
+  email: z.string().min(1, { message: 'Email is required.' }).email({ message: 'Email is invalid.' }),
+  role: z.string().min(1, { message: 'Role is required.' }),
   desc: z.string().optional(),
 })
 type UserInviteForm = z.infer<typeof formSchema>
@@ -46,13 +36,13 @@ type UserInviteForm = z.infer<typeof formSchema>
 export function UsersInviteDialog({ open, onOpenChange }: Props) {
   const form = useForm<UserInviteForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "", role: "", desc: "" },
+    defaultValues: { email: '', role: '', desc: '' },
   })
 
   const onSubmit = (values: UserInviteForm) => {
     form.reset()
     toast({
-      title: "You submitted the following values:",
+      title: 'You submitted the following values:',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(values, null, 2)}</code>
@@ -76,8 +66,8 @@ export function UsersInviteDialog({ open, onOpenChange }: Props) {
             <IconMailPlus /> Invite User
           </DialogTitle>
           <DialogDescription>
-            Invite new user to join your team by sending them an email
-            invitation. Assign a role to define their access level.
+            Invite new user to join your team by sending them an email invitation. Assign a role to define their access
+            level.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -145,7 +135,10 @@ export function UsersInviteDialog({ open, onOpenChange }: Props) {
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button type="submit" form="user-invite-form">
+          <Button
+            type="submit"
+            form="user-invite-form"
+          >
             Invite <IconSend />
           </Button>
         </DialogFooter>

@@ -1,5 +1,5 @@
-import ContentSection from "../components/content-section"
-import ConnectAppForm from "./components/connect-app-form"
+import ContentSection from '../components/content-section'
+import ConnectAppForm from './components/connect-app-form'
 
 export default function SettingsConnectedAppsPage() {
   return (
