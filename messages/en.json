@@ -264,5 +264,31 @@
     "success": {
       "signIn": "Successfully signed in! 🎉 Welcome back!"
     }
+  },
+  "faq": {
+    "title": "Vibe Coding Indonesia Community FAQ",
+    "subtitle": "Everything you need to know about joining the largest Indonesian vibe coder community",
+    "items": {
+      "0": {
+        "question": "What is VibeDev ID?",
+        "answer": "VibeDev ID is the #1 Indonesian vibe coding community for developers, AI enthusiasts, and tech innovators who share a vision to create cool digital products. We connect like-minded Indonesian vibe coders to collaborate, learn coding with AI, and grow together."
+      },
+      "1": {
+        "question": "How do I join this vibe coding community?",
+        "answer": "Joining the Indonesian vibe coding community is super easy! Click the 'Join Community' button and complete your profile. We welcome developers of all levels - from beginners just learning to code with AI to experienced professionals."
+      },
+      "2": {
+        "question": "Is there a cost to join the Indonesian vibe coding community?",
+        "answer": "Basic membership in our vibe coding community is 100% free! You get access to community forums, project showcases, networking opportunities, and learning to code with AI alongside other members. All core features are free for all Indonesian vibe coders."
+      },
+      "3": {
+        "question": "Can I collaborate on projects with other members?",
+        "answer": "Collaboration is the core of our vibe coding community! You can find teammates to code with AI, join existing open source projects, or start your own project. Many Indonesian vibe coders here have successfully built startups together."
+      },
+      "4": {
+        "question": "What technology and AI tools are supported?",
+        "answer": "Our Indonesian vibe coding community embraces all modern technologies! Active members work with React, Next.js, Python, AI/ML frameworks, and AI coding tools like GitHub Copilot, ChatGPT, and Claude. If it's cutting-edge tech, you'll surely find expert vibe coders here."
+      }
+    }
   }
 }

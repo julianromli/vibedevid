@@ -7,8 +7,8 @@
 
 import { Minus, Plus } from 'lucide-react'
 import Script from 'next/script'
+import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
-import { FAQ_DATA } from '@/lib/constants/faqs'
 
 interface FAQSectionProps {
   openFAQ: number | null
@@ -16,7 +16,18 @@ interface FAQSectionProps {
   isVisible: boolean
 }
 
+interface FAQItem {
+  question: string
+  answer: string
+}
+
 export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
+  const t = useTranslations('faq')
+
+  // Get FAQ items from translations
+  const faqItems = t.raw('items') as Record<string, FAQItem>
+  const faqArray = Object.values(faqItems)
+
   return (
     <>
       {/* FAQ Schema */}
@@ -27,7 +38,7 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: FAQ_DATA.map((faq) => ({
+            mainEntity: faqArray.map((faq) => ({
               '@type': 'Question',
               name: faq.question,
               acceptedAnswer: {
@@ -46,14 +57,12 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
       >
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">FAQ Komunitas Vibe Coding Indonesia</h2>
-            <p className="text-muted-foreground text-xl">
-              Semua yang perlu lo tau tentang gabung di komunitas vibe coder Indonesia terbesar
-            </p>
+            <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+            <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
           </div>
 
           <div className="space-y-4">
-            {FAQ_DATA.map((faq, index) => (
+            {faqArray.map((faq, index) => (
               <Card
                 key={index}
                 className={`cursor-pointer transition-all duration-700 hover:shadow-md ${
