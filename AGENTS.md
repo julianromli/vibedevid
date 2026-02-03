@@ -114,6 +114,9 @@ bunx playwright test --project=chromium
 **Key Documentation**:
 - [WARP.md](WARP.md) - Living knowledge base (READ THIS FIRST)
 - [docs/design-system.md](docs/design-system.md) - Colors, typography, components
+- [docs/security/RLS_POLICIES.md](docs/security/RLS_POLICIES.md) - Row Level Security policies and best practices
+- [docs/security/AUTH_DASHBOARD_SETTINGS.md](docs/security/AUTH_DASHBOARD_SETTINGS.md) - Supabase Auth configuration checklist
+- [docs/security/SECURITY_AUDIT_SUMMARY.md](docs/security/SECURITY_AUDIT_SUMMARY.md) - Security audit implementation (2026-02-03)
 - [docs/README.md](docs/README.md) - All documentation index
 
 ## i18n (Internationalization) Best Practices
