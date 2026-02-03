@@ -17,6 +17,10 @@
     "writePost": "Write a Post",
     "close": "Close"
   },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme"
+  },
   "navbar": {
     "home": "Home",
     "projects": "Project",

@@ -126,7 +126,9 @@ export function Navbar({
     }
   }
 
-  const navItems = [
+  const navItems: Array<
+    { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
+  > = [
     { label: t('navbar.home'), href: '/', type: 'link' },
     { label: t('navbar.projects'), href: '/project/list', type: 'link' },
     { label: t('navbar.blogs'), href: '/blog', type: 'link' },
@@ -153,7 +155,7 @@ export function Navbar({
           marginRight: 'auto',
         }}
       >
-        <nav className="grid h-16 grid-cols-3 items-center px-4 md:px-6">
+        <nav className="relative flex h-16 items-center justify-between px-4 md:px-6">
           {/* Left Side - Logo */}
           <motion.div
             className="flex items-center justify-start gap-3"
@@ -184,10 +186,10 @@ export function Navbar({
             )}
           </motion.div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Center */}
           {showNavigation && (
             <motion.div
-              className="hidden items-center justify-center gap-1 md:flex lg:gap-2"
+              className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-1 md:flex lg:gap-2"
               initial={false}
               animate={{
                 y: scrolled ? 0 : 0,
@@ -195,19 +197,22 @@ export function Navbar({
               }}
               transition={springTransition}
             >
-              {navItems.map((item, i) =>
-                item.type === 'link' ? (
-                  <Link
-                    key={i}
-                    href={item.href!}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
+              {navItems.map((item, i) => {
+                if (item.type === 'link') {
+                  return (
+                    <Link
+                      key={i}
+                      href={item.href}
+                      className={cn(
+                        buttonVariants({ variant: 'ghost', size: 'sm' }),
+                        'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                }
+                return (
                   <button
                     key={i}
                     onClick={item.action}
@@ -218,8 +223,8 @@ export function Navbar({
                   >
                     {item.label}
                   </button>
-                ),
-              )}
+                )
+              })}
             </motion.div>
           )}
 
@@ -308,15 +313,14 @@ export function Navbar({
             )}
           </motion.div>
 
-          {/* Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 md:hidden">
-            <LanguageSwitcher />
-            <ThemeToggle />
+          {/* Mobile Right Controls */}
+          <div className="flex items-center justify-end gap-3 md:hidden">
             {/* Mobile Sign In / User Menu - always visible regardless of showNavigation */}
             {!userIsLoggedIn ? (
               <Button
                 onClick={handleSignIn}
                 size="sm"
+                className="h-11 min-w-[44px]"
               >
                 {t('common.signIn')}
               </Button>
@@ -326,7 +330,7 @@ export function Navbar({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-full"
+                    className="h-11 w-11 rounded-full"
                   >
                     <UserAvatar
                       user={safeUser}
@@ -379,9 +383,10 @@ export function Navbar({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            {/* Menu Toggle - only show with navigation */}
             {showNavigation && (
               <Button
-                className="relative z-50"
+                className="relative z-50 h-11 w-11"
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="ghost"
@@ -401,32 +406,49 @@ export function Navbar({
       {showNavigation && (
         <MobileMenu open={open}>
           <div className="flex h-full flex-col justify-between p-6 pt-24 pb-10">
+            {/* Navigation Links */}
             <div className="flex flex-col gap-2">
-              {navItems.map((item, i) =>
-                item.type === 'link' ? (
-                  <Link
-                    key={i}
-                    href={item.href!}
-                    onClick={() => setOpen(false)}
-                    className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
+              {navItems.map((item, i) => {
+                if (item.type === 'link') {
+                  return (
+                    <Link
+                      key={i}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                }
+                return (
                   <button
                     key={i}
                     onClick={() => {
-                      item.action?.()
+                      item.action()
                       setOpen(false)
                     }}
                     className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
                   >
                     {item.label}
                   </button>
-                ),
-              )}
+                )
+              })}
             </div>
 
+            {/* Settings Section */}
+            <div className="flex flex-col gap-3 border-t pt-4">
+              <div className="flex items-center justify-between px-4">
+                <span className="text-sm font-medium text-muted-foreground">{t('settings.language')}</span>
+                <LanguageSwitcher />
+              </div>
+              <div className="flex items-center justify-between px-4">
+                <span className="text-sm font-medium text-muted-foreground">{t('settings.theme')}</span>
+                <ThemeToggle />
+              </div>
+            </div>
+
+            {/* Auth Section */}
             <div className="flex flex-col gap-4">
               {!userIsLoggedIn ? (
                 <Button

@@ -17,6 +17,10 @@
     "writePost": "Tulis Postingan",
     "close": "Tutup"
   },
+  "settings": {
+    "language": "Bahasa",
+    "theme": "Tema"
+  },
   "navbar": {
     "home": "Home",
     "projects": "Project",
