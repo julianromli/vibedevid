@@ -1,6 +1,5 @@
 'use client'
 
-import { Code2, Cpu, Terminal } from 'lucide-react'
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
 import { cn } from '@/lib/utils'
 
@@ -11,49 +10,64 @@ export type LogoItem = {
 }
 
 const logos: LogoItem[] = [
-  {
-    name: 'Lovable',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/lovable-color.svg',
-  },
-  {
-    name: 'Google AI Studio',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/aistudio.svg',
-  },
-  {
-    name: 'V0',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/v0.svg',
-  },
-  {
-    name: 'Droid CLI',
-    icon: Terminal, // Fallback
-  },
-  {
-    name: 'Warp',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/warp.svg',
-  },
+  // AI LLMs
   {
     name: 'Claude',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/claude-color.svg',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/claude-color.svg',
   },
   {
+    name: 'Gemini',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/gemini-color.svg',
+  },
+  {
+    name: 'ChatGPT',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg',
+  },
+  {
+    name: 'Anthropic',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/anthropic.svg',
+  },
+  {
+    name: 'ChatGLM',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/chatglm-color.svg',
+  },
+  {
+    name: 'Kimi',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/kimi-color.svg',
+  },
+  {
+    name: 'Minimax',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/minimax-color.svg',
+  },
+  {
+    name: 'Zhipu',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/zhipu-color.svg',
+  },
+
+  // Coding Tools
+  {
     name: 'Cursor',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/cursor.svg',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/cursor.svg',
   },
   {
     name: 'Windsurf',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/windsurf.svg',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/windsurf.svg',
   },
   {
-    name: 'Kilocode',
-    icon: Code2, // Fallback
+    name: 'GitHub Copilot',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/copilot-color.svg',
   },
   {
-    name: 'Kiro',
-    icon: Cpu, // Fallback
+    name: 'Replit',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/replit-color.svg',
   },
   {
     name: 'Trae',
-    url: 'https://registry.npmmirror.com/@lobehub/icons-static-svg/latest/files/trae-color.svg',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/trae-color.svg',
+  },
+  {
+    name: 'Grok',
+    url: 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/grok.svg',
   },
 ]
 
@@ -68,7 +82,7 @@ export function LogoMarquee() {
         {logos.map((logo, idx) => (
           <div
             key={idx}
-            className="flex items-center gap-2 px-4 opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+            className="flex items-center gap-2 px-4 transition-all duration-300"
           >
             {logo.url ? (
               <img
