@@ -26,5 +26,243 @@
     "projects": "Project",
     "blogs": "Blog",
     "events": "Event"
+  },
+  "hero": {
+    "announcement": "Fitur Baru: Blog VibeDev ID",
+    "readLatest": "Baca Artikel Terbaru →",
+    "titleLine1": ["Komunitas", "Vibe", "Coding"],
+    "titleLine2": ["No.", "1", "di", "Indonesia"],
+    "subtitle": "Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project open source, dan sharing session tiap minggunya.",
+    "joinCommunity": "Join Community",
+    "ourShowcase": "Our Showcase"
+  },
+  "toast": {
+    "signOutSuccess": "Berhasil keluar! 👋 Sampai jumpa lagi!",
+    "signOutError": "Gagal keluar. Coba lagi!",
+    "generalError": "Terjadi kesalahan saat keluar"
+  },
+  "projectShowcase": {
+    "title": "Showcase Project Developer Indonesia",
+    "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
+    "submitButton": "Submit Project",
+    "loadMoreButton": "Muat Project Lainnya",
+    "trendingOptions": {
+      "trending": "Trending",
+      "top": "Top",
+      "newest": "Terbaru"
+    }
+  },
+  "youtubeShowcase": {
+    "title": "Video Vibe Coding Terbaru",
+    "description": "Nonton video tutorial, live coding session, dan podcast tech terbaru dari komunitas Vibe Coding Indonesia.",
+    "viewAll": "Lihat Semua Video di Channel Kami",
+    "watch": "Tonton",
+    "videoLabel": "Video",
+    "error": "Gagal memuat video. Coba refresh halaman ya!",
+    "fallbackVideos": {
+      "0": {
+        "title": "Tutorial Next.js: Full Stack App Development",
+        "description": "Belajar membuat full stack web app dengan Next.js, Prisma, dan PostgreSQL dari nol sampai deployment."
+      },
+      "1": {
+        "title": "Live Coding: Bikin Dashboard Modern",
+        "description": "Session live coding bikin dashboard admin yang modern dengan React dan Tailwind CSS."
+      }
+    }
+  },
+  "features": {
+    "title": "Kenapa Gabung VibeDev ID?",
+    "subtitle": "Komunitas vibe coding Indonesia yang supportive, kolaboratif, dan siap bantu lo berkembang jadi developer yang lebih baik",
+    "stats": {
+      "title": "Vibe Coder Aktif",
+      "count": "500+"
+    },
+    "trusted": {
+      "title": "Komunitas Terpercaya",
+      "description": "Diskusi berkualitas, networking real, dan kolaborasi yang meaningful."
+    },
+    "levelUp": {
+      "title": "Level Up Bareng",
+      "description": "Tracking progress coding lo, share achievement, dan liat gimana skill lo berkembang."
+    },
+    "safeSpace": {
+      "title": "Safe Space untuk Belajar",
+      "description": "Environment supportive buat semua level. Mau pemula atau expert, semua saling bantu dan grow together."
+    },
+    "collaboration": {
+      "title": "Kolaborasi Tanpa Batas",
+      "description": "Bikin project bareng, share knowledge, dan build something amazing together."
+    }
+  },
+  "aiLeaderboard": {
+    "badge": "Live Rankings",
+    "title": "Benchmark AI Coding Model 2025",
+    "description": "Ranking model AI untuk coding berdasarkan <liveCodeBench>LiveCodeBench</liveCodeBench>, <sciCode>SciCode</sciCode>, dan <terminalBench>Terminal-Bench Hard</terminalBench>",
+    "attribution": {
+      "title": "Data from Artificial Analysis",
+      "subtitle": "Independent AI model benchmarking"
+    },
+    "viewFull": "Lihat Ranking Lengkap",
+    "score": "SCORE"
+  },
+  "aiTools": {
+    "title": "AI untuk Coding & Development Tools",
+    "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
+    "tools": {
+      "claudeCode": {
+        "description": "Asisten coding agentik yang otomatis menarik konteks ke prompt. Fitur dukungan CLAUDE.md, integrasi MCP, dan berfungsi langsung di terminal."
+      },
+      "opencode": {
+        "description": "Agen coding AI open source dengan 80K+ GitHub stars. Mendukung LSP, 75+ provider LLM, privacy-first tanpa penyimpanan kode."
+      },
+      "droid": {
+        "description": "Agen coding AI enterprise-grade yang bekerja di mana saja: IDE, web, CLI, Slack. Mengotomasi coding, testing, dan deployment."
+      },
+      "antigravity": {
+        "description": "IDE bertenaga AI dari Google dengan kemampuan agentik. Perencanaan otonom, akses sistem langsung, validasi mandiri, ditenagai Gemini 3 Pro."
+      },
+      "cursor": {
+        "description": "Editor kode AI dengan mode Agent, autocomplete Tab, dan pemahaman codebase mendalam. Mendukung banyak model AI."
+      },
+      "kiro": {
+        "description": "IDE agentik dari AWS dengan spec-driven development. Fitur advanced steering, custom agents, dukungan MCP, dan mode autopilot."
+      }
+    }
+  },
+  "reviews": {
+    "title": "Review Member Komunitas Vibe Coding",
+    "subtitle": "Testimoni asli dari developer Indonesia yang udah join komunitas kami",
+    "testimonials": {
+      "0": {
+        "text": "VibeDev ID ngubah cara gue belajar coding! Dari yang tadinya stuck sendirian, sekarang punya temen-temen yang solid buat diskusi dan kolaborasi project. Networking di sini top banget!",
+        "name": "Rizki Pratama",
+        "role": "Frontend Developer, Tokopedia"
+      },
+      "1": {
+        "text": "Komunitas yang benar-benar supportive! Gue berhasil launch startup fintech pertama gue berkat feedback dan mentorship dari senior developer di VibeDev ID. Game changer banget!",
+        "name": "Sari Indrawati",
+        "role": "Founder, PayKita"
+      },
+      "2": {
+        "text": "Sebagai fresh graduate, VibeDev ID kasih gue exposure ke real-world projects dan code review yang berkualitas. Sekarang gue udah confident kerja di tech company besar.",
+        "name": "Amanda Putri",
+        "role": "Backend Developer, Gojek"
+      },
+      "3": {
+        "text": "Project showcase di VibeDev ID jadi portfolio terbaik gue. Banyak recruiter yang approach gue setelah liat karya-karya yang gue share di platform ini.",
+        "name": "Budi Santoso",
+        "role": "Full Stack Developer, Bukalapak"
+      },
+      "4": {
+        "text": "Dari hobby project jadi bisnis yang profitable! Kolaborasi sama member VibeDev ID bikin gue nemuin co-founder yang tepat dan sekarang startup kami udah dapetin seed funding.",
+        "name": "Dimas Ardiansyah",
+        "role": "CTO, EduTech Solutions"
+      },
+      "5": {
+        "text": "Workshop dan tech talk di VibeDev ID selalu update dengan teknologi terbaru. Gue bisa ngikutin trend React, Next.js, sampai AI development berkat komunitas ini.",
+        "name": "Maya Sari",
+        "role": "Senior React Developer, Traveloka"
+      }
+    }
+  },
+  "cta": {
+    "titleLine1": "Siap Jadi Bagian",
+    "titleLine2": "Komunitas Vibe Coding Indonesia?",
+    "description": "Join sekarang dan nikmatin vibe coding terbaik bareng developer Indonesia lainnya. Gratis, supportive, dan penuh kolaborasi!",
+    "button": "Join Community"
+  },
+  "footer": {
+    "copyright": "© 2025 VibeDev ID - Komunitas vibe coding Indonesia terbesar untuk developer masa depan.",
+    "privacy": "Kebijakan Privasi"
+  },
+  "projectList": {
+    "title": "Showcase Project Developer Indonesia",
+    "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
+    "filter": "Filter",
+    "submitButton": "Submit Project",
+    "noProjects": "Belum ada project dengan filter yang dipilih",
+    "beFirst": "Jadi yang Pertama Submit Project",
+    "showingProjects": "Menampilkan {count} project dari komunitas developer Indonesia"
+  },
+  "projectSubmit": {
+    "title": "Submit Project Anda",
+    "description": "Bagikan project keren Anda dengan komunitas VibeDev",
+    "form": {
+      "projectDetails": "Detail Project",
+      "importGithub": "Import dari GitHub",
+      "importGithubPlaceholder": "owner/repo atau https://github.com/owner/repo",
+      "importGithubHelper": "Kami akan mengambil nama, deskripsi, homepage, tags, dan preview.",
+      "importing": "Mengimport...",
+      "import": "Import",
+      "projectTitle": "Judul Project",
+      "projectTitlePlaceholder": "Masukkan judul project Anda",
+      "tagline": "Tagline",
+      "taglinePlaceholder": "Tagline singkat yang menjelaskan project Anda dalam satu kalimat",
+      "taglineHelper": "Tagline singkat yang menjelaskan project Anda dalam satu kalimat! ✨",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Jelaskan project Anda, fitur-fiturnya, dan apa yang membuatnya spesial",
+      "descriptionHelper": "Maksimal {max} karakter untuk konsistensi!",
+      "category": "Kategori",
+      "selectCategory": "Pilih kategori",
+      "loadingCategories": "Memuat kategori...",
+      "noCategories": "Tidak ada kategori tersedia",
+      "websiteUrl": "URL Website",
+      "websitePlaceholder": "https://your-project.com",
+      "faviconUrl": "URL Favicon",
+      "faviconPlaceholder": "https://example.com/favicon.ico atau https://example.com/favicon.svg",
+      "faviconHelper": "Masukkan URL favicon untuk project Anda! Icon kecil yang muncul di tab browser 🎯",
+      "faviconAuto": "Favicon akan otomatis diambil dari website ini! 🌐 Atau masukkan URL manual untuk override.",
+      "techStack": "Tech Stack / Tags",
+      "techStackPlaceholder": "Pilih teknologi yang digunakan di project Anda...",
+      "techStackEmpty": "Tidak ada teknologi ditemukan.",
+      "techStackHelper": "Pilih teknologi yang Anda gunakan di project ini. Bisa tambah sendiri kalau tidak ada! 🚀",
+      "screenshot": "Screenshot Project",
+      "uploading": "Mengupload...",
+      "uploadButton": "Pilih File",
+      "uploadReady": "Mempersiapkan...",
+      "uploadAllowed": "Gambar ({fileTypes})",
+      "uploadHelper": "Upload screenshot project Anda (maks 4MB)",
+      "uploadSuccess": "Gambar berhasil diupload!",
+      "cancel": "Batal",
+      "submit": "Submit Project",
+      "submitting": "Mengsubmit..."
+    },
+    "toast": {
+      "success": "Mantap! 🚀 Project Anda berhasil di-submit!",
+      "error": "Waduh, ada error nih! 😅 Coba lagi ya!"
+    }
+  },
+  "auth": {
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "welcomeBack": "Selamat datang kembali",
+    "createAccount": "Buat akun",
+    "username": "Username",
+    "usernamePlaceholder": "Username",
+    "email": "Email",
+    "emailPlaceholder": "Masukkan email Anda",
+    "password": "Password",
+    "passwordPlaceholder": "Masukkan password Anda",
+    "rememberMe": "Ingat saya",
+    "forgotPassword": "Lupa password?",
+    "resetPassword": "Reset password",
+    "resetPasswordDescription": "Masukkan alamat email Anda dan kami akan mengirimkan link untuk reset password.",
+    "sendingReset": "Mengirim link reset...",
+    "sendResetLink": "Kirim link reset",
+    "backToSignIn": "Kembali ke masuk",
+    "signingIn": "Sedang masuk...",
+    "creatingAccount": "Membuat akun...",
+    "orContinueWith": "ATAU LANJUTKAN DENGAN",
+    "orSignUpWith": "ATAU DAFTAR DENGAN",
+    "google": "Google",
+    "github": "GitHub",
+    "termsAgreement": "Dengan {action}, Anda setuju dengan",
+    "termsLink": "Syarat & Ketentuan",
+    "rememberPassword": "Ingat password Anda?",
+    "emailDomainError": "Domain email {domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook.",
+    "emailFormatError": "Format email tidak valid. Pastikan ada '@' dan domain.",
+    "success": {
+      "signIn": "Berhasil masuk! 🎉 Selamat datang kembali!"
+    }
   }
 }
