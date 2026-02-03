@@ -46,7 +46,11 @@ Fixed navbar layout to be properly responsive and symmetrical across all viewpor
 
 ### Layout Behavior
 
+<<<<<<< HEAD
 **Mobile (<768px):**
+=======
+**Mobile (\<768px):**
+>>>>>>> 475a371 (fix: landing page)
 ```
 [Logo]                           [Masuk] [☰]
 ```
@@ -75,8 +79,11 @@ Fixed navbar layout to be properly responsive and symmetrical across all viewpor
 
 ### Files Changed
 - `components/ui/navbar.tsx` - Unified responsive layout
+<<<<<<< HEAD
 - `messages/en.json` - Added settings translations
 - `messages/id.json` - Added settings translations
+=======
+>>>>>>> 475a371 (fix: landing page)
 
 ### Verification
 - [x] Mobile (375px): Clean, no overlap
@@ -95,6 +102,192 @@ Fixed navbar layout to be properly responsive and symmetrical across all viewpor
 
 ---
 
+<<<<<<< HEAD
+=======
+## 2026-02-03 - Fix Navbar Layout for Mobile & Tablet
+
+### Summary
+Fixed navbar element positioning on mobile and tablet views. Elements were overlapping and stacking incorrectly due to grid layout issues.
+
+### Problem
+- Navbar used `grid grid-cols-3` which caused elements to overlap on smaller screens
+- "Masuk" button and hamburger menu were stacking/overlapping
+- Desktop navigation was positioned statically in grid, causing spacing issues on tablet
+
+### Solution
+- **Changed layout system:** Grid → Flexbox for mobile/tablet
+- **Responsive approach:** `flex justify-between` on mobile, `grid grid-cols-3` on desktop (md+)
+- **Desktop nav positioning:** Absolute positioning with centering for proper alignment
+- **Proper breakpoints:** Mobile-first with md: breakpoint for desktop grid
+
+### Changes Made
+
+**File Modified:** `components/ui/navbar.tsx`
+
+1. **Nav container (line 158):**
+   ```tsx
+   // Before
+   <nav className="grid h-16 grid-cols-3 items-center px-4 md:px-6">
+   
+   // After  
+   <nav className="flex h-16 items-center justify-between px-4 md:grid md:grid-cols-3 md:px-6">
+   ```
+
+2. **Desktop navigation (line 189):**
+   ```tsx
+   // Before
+   className="hidden items-center justify-center gap-1 md:flex lg:gap-2"
+   
+   // After
+   className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-1 md:flex lg:gap-2"
+   ```
+
+### Layout Behavior
+
+**Mobile (\u003c768px):**
+- Uses `flex justify-between` 
+- Logo on left, controls on right
+- Desktop navigation hidden
+- Mobile controls visible
+
+**Tablet/Desktop (≥768px):**
+- Uses `grid grid-cols-3`
+- Column 1: Logo
+- Column 2: Navigation (absolute centered)
+- Column 3: Auth controls
+- Mobile controls hidden
+
+### Files Changed
+- `components/ui/navbar.tsx` - Layout system fix
+
+### Verification
+- [x] Mobile view (375px): No overlapping elements
+- [x] Tablet view (768px): Proper grid layout
+- [x] Desktop view (1024px+): Navigation centered
+- [x] No TypeScript errors
+- [x] Responsive breakpoints working correctly
+
+### Testing Required
+1. **Mobile (375px):** Verify logo left, Masuk + menu right, no overlap
+2. **Tablet (768px):** Verify grid layout activates, navigation centered
+3. **Desktop (1024px+):** Verify full layout with all elements visible
+4. **Test both states:** Not logged in (Masuk button) and logged in (avatar)
+
+---
+
+## 2026-02-03 - Mobile Navbar Improvement
+
+### Summary
+Improved mobile navbar symmetry and cleanliness by simplifying controls and reorganizing layout according to Web Interface Guidelines.
+
+### Changes Made
+
+#### 1. Translation Keys Added
+- **Files Modified:**
+  - `messages/en.json`
+  - `messages/id.json`
+
+- **New Keys:**
+  ```json
+  "settings": {
+    "language": "Language",  // "Bahasa" in Indonesian
+    "theme": "Theme"         // "Tema" in Indonesian
+  }
+  ```
+
+#### 2. Mobile Navbar Simplification
+- **File Modified:** `components/ui/navbar.tsx`
+
+- **Before (Crowded):**
+  - Logo | LanguageSwitcher + ThemeToggle + Auth Button + Menu Toggle
+  - 4 controls on right side creating visual imbalance
+
+- **After (Clean & Symmetric):**
+  - Logo | Auth Button + Menu Toggle
+  - Only 2 controls on right side
+  - Language & Theme moved to mobile menu
+
+- **Touch Target Improvements:**
+  - Auth button: `h-11 min-w-[44px]` (44px minimum)
+  - User avatar button: `h-11 w-11` (44px × 44px)
+  - Menu toggle: `h-11 w-11` (44px × 44px)
+  - Consistent `gap-3` (12px) spacing between controls
+
+#### 3. Mobile Menu Enhancement
+- **File Modified:** `components/ui/navbar.tsx`
+
+- **New Settings Section Added:**
+  - Located between navigation links and auth section
+  - Contains Language switcher with label
+  - Contains Theme toggle with label
+  - Bordered top separator for visual grouping
+  - Uses muted text color for labels
+
+- **Layout Structure:**
+  1. Navigation Links (Home, Projects, Blogs, Events)
+  2. **Settings Section** (NEW)
+     - Language selector
+     - Theme toggle
+  3. Auth Section (Sign In or User Profile + Actions)
+
+#### 4. TypeScript Improvements
+- **File Modified:** `components/ui/navbar.tsx`
+
+- **Enhanced Type Safety:**
+  - Added discriminated union type for `navItems`
+  - Properly typed as `Array<{ label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }>`
+  - Updated rendering logic to use type guards
+  - Eliminated TypeScript errors for `action` property
+
+### Design Principles Applied
+
+1. **Visual Balance:**
+   - Symmetric layout (logo left ↔ 2 controls right)
+   - Consistent spacing and alignment
+
+2. **Touch Accessibility:**
+   - All mobile buttons ≥44px (WCAG guideline)
+   - Generous spacing prevents accidental taps
+
+3. **Information Hierarchy:**
+   - Primary actions (auth, navigation) prominent
+   - Settings (infrequent actions) tucked in menu
+   - Clear visual grouping with borders
+
+4. **User Experience:**
+   - Reduced visual noise
+   - One-tap access to settings in menu
+   - Maintained all functionality
+
+### Files Changed
+- `messages/en.json` - Added settings translations
+- `messages/id.json` - Added settings translations (Indonesian)
+- `components/ui/navbar.tsx` - Simplified mobile controls, enhanced mobile menu
+
+### Verification Checklist
+- [x] Translation keys added for both locales
+- [x] Mobile controls simplified (2 items only)
+- [x] Settings section added to mobile menu
+- [x] Touch targets ≥44px
+- [x] TypeScript errors resolved
+- [x] Code follows project conventions
+
+### Testing Required
+1. **Visual Test:** Open mobile view (375px), verify navbar symmetry
+2. **Touch Target Test:** Verify all buttons ≥44px in DevTools
+3. **Mobile Menu Test:** Open menu, verify Language & Theme controls present
+4. **Scroll Test:** Scroll page, verify animation smooth
+5. **Build Test:** Run `bun build` to ensure no errors
+6. **Type Check:** Run `bun tsc --noEmit` for strict checking
+
+### Next Steps
+- Test on actual mobile devices (if available)
+- Gather user feedback on new layout
+- Monitor analytics for menu usage patterns
+
+---
+
+>>>>>>> 475a371 (fix: landing page)
 ## 2026-02-03 - Logo Marquee: Replace with AI/LLM & Coding Tool Icons
 
 ### Summary
