@@ -63,6 +63,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   return (
     <div className="bg-background min-h-screen">
       <Navbar
+        showBackButton={true}
         showNavigation={true}
         isLoggedIn={!!currentUser}
         user={currentUser || undefined}

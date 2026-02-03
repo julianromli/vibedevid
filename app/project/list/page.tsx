@@ -231,7 +231,6 @@ export default function ProjectListPage() {
           showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={user ?? undefined}
-          scrollToSection={scrollToSection}
         />
 
         {/* Main Content */}

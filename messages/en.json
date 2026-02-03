@@ -18,12 +18,10 @@
     "close": "Close"
   },
   "navbar": {
-    "projects": "Projects",
-    "blog": "Blog",
-    "showcase": "Showcase",
-    "features": "Features",
-    "reviews": "Reviews",
-    "faq": "FAQ"
+    "home": "Home",
+    "projects": "Project",
+    "blogs": "Blog",
+    "events": "Event"
   },
   "hero": {
     "announcement": "New Feature: VibeDev ID Blog",

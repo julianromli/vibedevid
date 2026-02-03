@@ -60,7 +60,6 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
         showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={user ?? undefined}
-        scrollToSection={scrollToSection}
       />
 
       <main className="py-20 lg:py-32">

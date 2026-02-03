@@ -18,12 +18,10 @@
     "close": "Tutup"
   },
   "navbar": {
-    "projects": "Projects",
-    "blog": "Blog",
-    "showcase": "Showcase",
-    "features": "Fitur",
-    "reviews": "Ulasan",
-    "faq": "FAQ"
+    "home": "Home",
+    "projects": "Project",
+    "blogs": "Blog",
+    "events": "Event"
   },
   "hero": {
     "announcement": "Fitur Baru: Blog VibeDev ID",

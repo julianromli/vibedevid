@@ -127,24 +127,10 @@ export function Navbar({
   }
 
   const navItems = [
+    { label: t('navbar.home'), href: '/', type: 'link' },
     { label: t('navbar.projects'), href: '/project/list', type: 'link' },
-    { label: t('navbar.blog'), href: '/blog', type: 'link' },
-    {
-      label: t('navbar.showcase'),
-      action: () => scrollToSection?.('projects'),
-      type: 'button',
-    },
-    {
-      label: t('navbar.features'),
-      action: () => scrollToSection?.('features'),
-      type: 'button',
-    },
-    {
-      label: t('navbar.reviews'),
-      action: () => scrollToSection?.('reviews'),
-      type: 'button',
-    },
-    { label: t('navbar.faq'), action: () => scrollToSection?.('faq'), type: 'button' },
+    { label: t('navbar.blogs'), href: '/blog', type: 'link' },
+    { label: t('navbar.events'), href: '/event/list', type: 'link' },
   ]
 
   return (
@@ -167,10 +153,10 @@ export function Navbar({
           marginRight: 'auto',
         }}
       >
-        <nav className="flex h-16 items-center justify-between px-4 md:px-6">
+        <nav className="grid h-16 grid-cols-3 items-center px-4 md:px-6">
           {/* Left Side - Logo */}
           <motion.div
-            className="flex items-center gap-3"
+            className="flex items-center justify-start gap-3"
             initial={false}
             animate={{
               scale: scrolled ? 0.92 : 1,
@@ -201,7 +187,7 @@ export function Navbar({
           {/* Desktop Navigation */}
           {showNavigation && (
             <motion.div
-              className="hidden items-center gap-1 md:flex lg:gap-2"
+              className="hidden items-center justify-center gap-1 md:flex lg:gap-2"
               initial={false}
               animate={{
                 y: scrolled ? 0 : 0,
@@ -239,7 +225,7 @@ export function Navbar({
 
           {/* Right Side */}
           <motion.div
-            className="hidden items-center gap-2 md:flex"
+            className="hidden items-center justify-end gap-2 md:flex"
             initial={false}
             animate={{
               scale: scrolled ? 0.95 : 1,

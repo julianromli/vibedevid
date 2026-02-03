@@ -150,7 +150,6 @@ export default function HomePageClient({ initialIsLoggedIn, initialUser }: HomeP
         showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={user ?? undefined}
-        scrollToSection={scrollToSection}
       />
 
       <HeroSection

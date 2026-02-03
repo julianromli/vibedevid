@@ -215,7 +215,7 @@ export async function updateUserRole(userId: string, role: number): Promise<{ su
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/admin/dashboard/boards/users')
+    revalidatePath('/dashboard')
 
     return { success: true }
   } catch (error) {
@@ -252,7 +252,7 @@ export async function suspendUser(
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/admin/dashboard/boards/users')
+    revalidatePath('/dashboard')
 
     return { success: true }
   } catch (error) {

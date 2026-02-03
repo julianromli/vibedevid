@@ -2,7 +2,7 @@
 
 import { Globe } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { type Locale, routing } from '@/i18n/routing'
@@ -25,9 +25,29 @@ export function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Derive current locale from pathname instead of using useLocale hook
   const locale = getLocaleFromPathname(pathname)
+
+  // Prevent hydration mismatch - render placeholder during SSR
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9"
+        disabled
+      >
+        <Globe className="h-4 w-4" />
+        <span className="sr-only">Switch language</span>
+      </Button>
+    )
+  }
 
   const handleLocaleChange = (newLocale: Locale) => {
     if (newLocale === locale) return

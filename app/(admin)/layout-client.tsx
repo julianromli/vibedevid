@@ -16,7 +16,10 @@ export default function DashboardLayoutClient({ children, user }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="border-grid flex flex-1 flex-col" suppressHydrationWarning>
+    <div
+      className="border-grid flex flex-1 flex-col"
+      suppressHydrationWarning
+    >
       <SearchProvider value={{ open, setOpen }}>
         <SidebarProvider>
           <AppSidebar user={user} />

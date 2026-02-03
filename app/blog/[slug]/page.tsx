@@ -165,6 +165,8 @@ export default async function BlogPostPage({ params }: Props) {
     <article className="bg-background min-h-screen">
       <BlogViewTracker postId={post.id} />
       <Navbar
+        showBackButton={true}
+        showNavigation={true}
         isLoggedIn={!!user}
         user={userData ?? undefined}
       />
