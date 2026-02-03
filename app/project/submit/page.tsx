@@ -18,14 +18,14 @@ function SubmitProjectPageContent({ userId }: { userId: string }) {
   const t = useTranslations('projectSubmit')
 
   return (
-    <div className="bg-grid-pattern relative min-h-screen">
+    <div className="relative min-h-screen bg-grid-pattern">
       {/* Background Gradient Overlay */}
-      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
-      <div className="relative container mx-auto px-4 py-8">
+      <div className="container relative mx-auto px-4 py-8">
         <div className="mx-auto max-w-2xl">
           <div className="mb-8">
-            <h1 className="mb-2 text-3xl font-bold">{t('title')}</h1>
+            <h1 className="mb-2 font-bold text-3xl">{t('title')}</h1>
             <p className="text-muted-foreground">{t('description')}</p>
           </div>
 

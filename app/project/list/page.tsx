@@ -50,9 +50,7 @@ export default function ProjectListPage() {
         const categories = await getCategories()
         const categoryDisplayNames = categories.map((cat) => cat.display_name)
         setFilterOptions(['All', ...categoryDisplayNames])
-      } catch (error) {
-        console.error('Failed to fetch categories for filters:', error)
-      }
+      } catch (_error) {}
     }
 
     fetchFilterCategories()
@@ -110,9 +108,8 @@ export default function ProjectListPage() {
           setIsLoggedIn(false)
           setUser(null)
         }
-      } catch (error) {
+      } catch (_error) {
         if (!isMounted) return
-        console.error('[ProjectList] Error in checkAuth:', error)
         setIsLoggedIn(false)
         setUser(null)
       } finally {
@@ -168,7 +165,6 @@ export default function ProjectListPage() {
           case 'Top':
             sortBy = 'top'
             break
-          case 'Newest':
           default:
             sortBy = 'newest'
             break
@@ -182,14 +178,12 @@ export default function ProjectListPage() {
         )
 
         if (error) {
-          console.error('[ProjectList] Error fetching projects:', error)
           return
         }
 
         console.log('[ProjectList] Projects fetched:', fetchedProjects.length)
         setProjects(fetchedProjects || [])
-      } catch (error) {
-        console.error('[ProjectList] Error fetching projects:', error)
+      } catch (_error) {
       } finally {
         setLoading(false)
       }
@@ -201,18 +195,18 @@ export default function ProjectListPage() {
     }
   }, [authReady, selectedTrending, selectedFilter])
 
-  const handleSignOut = async () => {
+  const _handleSignOut = async () => {
     await signOut()
   }
 
-  const handleProfile = () => {
+  const _handleProfile = () => {
     if (user) {
       // Navigate to user profile using their username from database
       router.push(`/${user.username?.toLowerCase().replace(/\s+/g, '')}`)
     }
   }
 
-  const scrollToSection = (sectionId: string) => {
+  const _scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({
@@ -223,11 +217,11 @@ export default function ProjectListPage() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-background">
       {/* Navbar dengan background pattern sama seperti profile page */}
-      <div className="bg-grid-pattern relative min-h-screen">
+      <div className="relative min-h-screen bg-grid-pattern">
         {/* Background Gradient Overlay */}
-        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         <Navbar
           showNavigation={true}
@@ -240,8 +234,8 @@ export default function ProjectListPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-12 text-center">
-              <h1 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h1>
-              <p className="text-muted-foreground mx-auto max-w-2xl text-xl">{t('description')}</p>
+              <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">{t('title')}</h1>
+              <p className="mx-auto max-w-2xl text-muted-foreground text-xl">{t('description')}</p>
             </div>
 
             {/* Filter Controls - sama seperti homepage */}
@@ -259,7 +253,7 @@ export default function ProjectListPage() {
                   </Button>
 
                   {isFiltersOpen && (
-                    <div className="bg-background border-border absolute top-full left-0 z-10 mt-2 w-48 rounded-lg border shadow-lg">
+                    <div className="absolute top-full left-0 z-10 mt-2 w-48 rounded-lg border border-border bg-background shadow-lg">
                       <div className="p-2">
                         {filterOptions.map((option) => (
                           <button
@@ -268,7 +262,7 @@ export default function ProjectListPage() {
                               setSelectedFilter(option)
                               setIsFiltersOpen(false)
                             }}
-                            className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                            className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
                               selectedFilter === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                             }`}
                           >
@@ -305,7 +299,7 @@ export default function ProjectListPage() {
                 </Button>
 
                 {isTrendingOpen && (
-                  <div className="bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg">
+                  <div className="absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border border-border bg-background shadow-lg">
                     <div className="p-2">
                       {trendingOptions.map((option) => (
                         <button
@@ -314,7 +308,7 @@ export default function ProjectListPage() {
                             setSelectedTrending(option)
                             setIsTrendingOpen(false)
                           }}
-                          className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                          className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
                             selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                           }`}
                         >
@@ -335,17 +329,17 @@ export default function ProjectListPage() {
                       key={index}
                       className="group my-4 cursor-pointer py-0"
                     >
-                      <div className="bg-muted relative mb-4 animate-pulse overflow-hidden rounded-lg">
-                        <div className="bg-muted h-64 w-full"></div>
+                      <div className="relative mb-4 animate-pulse overflow-hidden rounded-lg bg-muted">
+                        <div className="h-64 w-full bg-muted"></div>
                       </div>
                       <div className="space-y-3">
-                        <div className="bg-muted h-6 animate-pulse rounded"></div>
+                        <div className="h-6 animate-pulse rounded bg-muted"></div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="bg-muted h-8 w-8 animate-pulse rounded-full"></div>
-                            <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+                            <div className="h-8 w-8 animate-pulse rounded-full bg-muted"></div>
+                            <div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
                           </div>
-                          <div className="bg-muted h-8 w-16 animate-pulse rounded"></div>
+                          <div className="h-8 w-16 animate-pulse rounded bg-muted"></div>
                         </div>
                       </div>
                     </div>
@@ -357,7 +351,7 @@ export default function ProjectListPage() {
                       className="group my-4 block cursor-pointer py-0"
                     >
                       {/* Thumbnail Preview Section */}
-                      <div className="bg-background relative mb-4 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl">
+                      <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-all duration-300 hover:shadow-xl">
                         <AspectRatio ratio={16 / 9}>
                           <Image
                             src={project.image || '/vibedev-guest-avatar.png'}
@@ -375,7 +369,7 @@ export default function ProjectListPage() {
 
                         {/* Category Badge */}
                         <div className="absolute top-3 left-3">
-                          <span className="rounded-full bg-black/70 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                          <span className="rounded-full bg-black/70 px-2 py-1 text-white text-xs backdrop-blur-sm">
                             {project.category}
                           </span>
                         </div>
@@ -383,7 +377,7 @@ export default function ProjectListPage() {
 
                       {/* Project Details Section */}
                       <div className="space-y-3">
-                        <h3 className="text-foreground group-hover:text-primary line-clamp-2 py-0 text-lg leading-tight font-semibold transition-colors duration-300">
+                        <h3 className="line-clamp-2 py-0 font-semibold text-foreground text-lg leading-tight transition-colors duration-300 group-hover:text-primary">
                           {project.title}
                         </h3>
 
@@ -402,13 +396,13 @@ export default function ProjectListPage() {
                                 src={project.author.avatar}
                                 alt={project.author.name}
                                 size="sm"
-                                className="ring-muted ring-2"
+                                className="ring-2 ring-muted"
                                 showSkeleton={false}
                               />
                               <UserDisplayName
                                 name={project.author.name}
                                 role={project.author.role}
-                                className="text-muted-foreground text-sm font-medium"
+                                className="font-medium text-muted-foreground text-sm"
                               />
                             </div>
                           </div>
@@ -427,7 +421,7 @@ export default function ProjectListPage() {
             {/* No projects message */}
             {!loading && projects.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4 text-xl">{t('noProjects')}</p>
+                <p className="mb-4 text-muted-foreground text-xl">{t('noProjects')}</p>
                 <Button asChild>
                   <Link href="/project/submit">
                     <Plus className="mr-2 h-4 w-4" />

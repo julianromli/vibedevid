@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { resetPassword, signIn, signUp } from '@/lib/actions'
+import { resetPassword, signIn } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/client'
 
 // Email domain whitelist helper
@@ -57,7 +57,7 @@ function AuthPageContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [emailDomainError, setEmailDomainError] = useState<string | null>(null)
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [_isPending, _startTransition] = useTransition()
   const searchParams = useSearchParams()
   const t = useTranslations('auth')
 
@@ -111,7 +111,6 @@ function AuthPageContent() {
         console.log('[Frontend] Unexpected result structure:', result)
       }
     } catch (error: unknown) {
-      console.error('[Frontend] Sign in error:', error)
       setError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setIsLoading(false)
@@ -215,13 +214,13 @@ function AuthPageContent() {
   }
 
   return (
-    <div className="bg-grid-pattern flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-grid-pattern p-4">
       {/* Background Gradient Overlay */}
-      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       {/* Auth Modal */}
       <div className="relative w-full max-w-md">
-        <div className="bg-background/80 border-border rounded-3xl border p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-3xl border border-border bg-background/80 p-8 shadow-2xl backdrop-blur-xl">
           <div className="absolute top-6 left-6">
             <ThemeToggle />
           </div>
@@ -234,7 +233,7 @@ function AuthPageContent() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground h-8 w-8 rounded-full p-0 transition-colors duration-200 hover:cursor-pointer"
+              className="h-8 w-8 rounded-full p-0 text-muted-foreground transition-colors duration-200 hover:cursor-pointer hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -244,10 +243,10 @@ function AuthPageContent() {
             <>
               {/* Toggle Buttons */}
               <div className="mb-8 flex items-center justify-center">
-                <div className="bg-muted/50 relative flex rounded-full p-1">
+                <div className="relative flex rounded-full bg-muted/50 p-1">
                   {/* Sliding Background */}
                   <div
-                    className={`bg-foreground absolute top-1 bottom-1 rounded-full shadow-lg transition-all duration-200 ease-in-out ${
+                    className={`absolute top-1 bottom-1 rounded-full bg-foreground shadow-lg transition-all duration-200 ease-in-out ${
                       isSignUp ? 'right-1 left-[calc(50%)]' : 'right-[calc(50%)] left-1'
                     }`}
                   />
@@ -277,7 +276,7 @@ function AuthPageContent() {
 
               {/* Form Title */}
               <div className="mb-8 text-center">
-                <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">
+                <h1 className="mb-2 font-bold text-3xl text-foreground tracking-tight">
                   {isSignUp ? t('createAccount') : t('welcomeBack')}
                 </h1>
               </div>
@@ -289,11 +288,11 @@ function AuthPageContent() {
                   variant="ghost"
                   size="sm"
                   onClick={handleBackToSignIn}
-                  className="bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground mr-4 h-10 w-10 rounded-full border-0"
+                  className="mr-4 h-10 w-10 rounded-full border-0 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-foreground text-3xl font-bold tracking-tight">{t('resetPassword')}</h1>
+                <h1 className="font-bold text-3xl text-foreground tracking-tight">{t('resetPassword')}</h1>
               </div>
 
               <div className="mb-8 text-center">
@@ -330,7 +329,7 @@ function AuthPageContent() {
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20 h-12 rounded-xl transition-all duration-200"
+                    className="h-12 rounded-xl border-border bg-muted/30 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                   />
                 </div>
               </div>
@@ -338,7 +337,7 @@ function AuthPageContent() {
               {/* Email Field */}
               <div className="space-y-2">
                 <div className="relative">
-                  <Mail className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform transition-all duration-200" />
+                  <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                   <Input
                     type="email"
                     placeholder="Enter your email"
@@ -364,14 +363,14 @@ function AuthPageContent() {
                       }
                     }}
                     required
-                    className={`bg-muted/30 border-border text-foreground placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20 h-12 rounded-xl pl-12 transition-all duration-200 ${
+                    className={`h-12 rounded-xl border-border bg-muted/30 pl-12 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20 ${
                       isSignUp && emailDomainError ? 'border-red-500/50' : ''
                     }`}
                   />
                 </div>
                 {isSignUp && emailDomainError && (
                   <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-                    <p className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+                    <p className="flex items-center gap-2 text-red-600 text-xs dark:text-red-400">
                       <span className="text-red-500">⚠️</span>
                       {emailDomainError}
                     </p>
@@ -387,14 +386,14 @@ function AuthPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20 h-12 rounded-xl pr-12 transition-all duration-200"
+                  className="h-12 rounded-xl border-border bg-muted/30 pr-12 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 h-6 w-6 -translate-y-1/2 transform p-0 transition-all duration-200"
+                  className="absolute top-1/2 right-3 h-6 w-6 -translate-y-1/2 transform p-0 text-muted-foreground transition-all duration-200 hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
@@ -411,7 +410,7 @@ function AuthPageContent() {
                     id="remember"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="border-border data-[state=checked]:bg-foreground data-[state=checked]:border-foreground transition-all duration-200"
+                    className="border-border transition-all duration-200 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground"
                   />
                   <label
                     htmlFor="remember"
@@ -423,7 +422,7 @@ function AuthPageContent() {
                 <button
                   type="button"
                   onClick={handleForgotPasswordClick}
-                  className="text-muted-foreground hover:text-foreground text-sm transition-all duration-200 hover:cursor-pointer hover:underline"
+                  className="text-muted-foreground text-sm transition-all duration-200 hover:cursor-pointer hover:text-foreground hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -433,25 +432,27 @@ function AuthPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 w-full rounded-xl text-base font-medium transition-all duration-300"
+                className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isSignUp ? 'Creating account...' : 'Signing in...'}
                   </>
+                ) : isSignUp ? (
+                  'Create an account'
                 ) : (
-                  <>{isSignUp ? 'Create an account' : 'Sign in'}</>
+                  'Sign in'
                 )}
               </Button>
 
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="border-border w-full border-t transition-all duration-200"></div>
+                  <div className="w-full border-border border-t transition-all duration-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-background text-muted-foreground px-4 transition-all duration-200">
+                  <span className="bg-background px-4 text-muted-foreground transition-all duration-200">
                     {isSignUp ? 'OR SIGN UP WITH' : 'OR CONTINUE WITH'}
                   </span>
                 </div>
@@ -464,7 +465,7 @@ function AuthPageContent() {
                   type="button"
                   variant="outline"
                   onClick={() => handleSocialAuth('google')}
-                  className="bg-muted/30 border-border text-foreground hover:bg-muted flex h-12 items-center justify-center rounded-xl"
+                  className="flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted"
                 >
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/google-color-q23vP6w1nV7ElZybaSRHqpvXY2DFW7.svg"
@@ -479,7 +480,7 @@ function AuthPageContent() {
                   type="button"
                   variant="outline"
                   onClick={() => handleSocialAuth('github')}
-                  className="bg-muted/30 border-border text-foreground hover:bg-muted flex h-12 items-center justify-center rounded-xl"
+                  className="flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted"
                 >
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/github-qFqLvPlTz3nsK0sR6uMXsGl6YFklgn.svg"
@@ -498,14 +499,14 @@ function AuthPageContent() {
               className="space-y-4"
             >
               <div className="relative">
-                <Mail className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform transition-all duration-200" />
+                <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                 <Input
                   type="email"
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20 h-12 rounded-xl pl-12 transition-all duration-200"
+                  className="h-12 rounded-xl border-border bg-muted/30 pl-12 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                 />
               </div>
 
@@ -513,7 +514,7 @@ function AuthPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 w-full rounded-xl text-base font-medium transition-all duration-300"
+                className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
                 {isLoading ? (
                   <>
@@ -535,7 +536,7 @@ function AuthPageContent() {
                   By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
                   <Link
                     href="/terms"
-                    className="text-foreground hover:text-primary underline"
+                    className="text-foreground underline hover:text-primary"
                   >
                     Terms & Service
                   </Link>
@@ -546,7 +547,7 @@ function AuthPageContent() {
                   <button
                     type="button"
                     onClick={handleBackToSignIn}
-                    className="text-foreground hover:text-primary underline"
+                    className="text-foreground underline hover:text-primary"
                   >
                     Back to sign in
                   </button>
@@ -563,31 +564,31 @@ function AuthPageContent() {
 // Loading component untuk fallback
 function AuthLoadingSkeleton() {
   return (
-    <div className="bg-grid-pattern flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-grid-pattern p-4">
       {/* Background Gradient Overlay */}
-      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       {/* Loading Modal */}
       <div className="relative w-full max-w-md">
-        <div className="bg-background/80 border-border rounded-3xl border p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-3xl border border-border bg-background/80 p-8 shadow-2xl backdrop-blur-xl">
           <div className="space-y-6 text-center">
             {/* Header skeleton */}
             <div className="space-y-3">
-              <div className="bg-muted/20 mx-auto h-8 w-2/3 animate-pulse rounded-lg"></div>
-              <div className="bg-muted/15 mx-auto h-4 w-1/2 animate-pulse rounded-lg"></div>
+              <div className="mx-auto h-8 w-2/3 animate-pulse rounded-lg bg-muted/20"></div>
+              <div className="mx-auto h-4 w-1/2 animate-pulse rounded-lg bg-muted/15"></div>
             </div>
 
             {/* Form skeleton */}
             <div className="space-y-4">
-              <div className="bg-muted/20 h-12 animate-pulse rounded-xl"></div>
-              <div className="bg-muted/20 h-12 animate-pulse rounded-xl"></div>
-              <div className="bg-muted/20 h-12 animate-pulse rounded-xl"></div>
+              <div className="h-12 animate-pulse rounded-xl bg-muted/20"></div>
+              <div className="h-12 animate-pulse rounded-xl bg-muted/20"></div>
+              <div className="h-12 animate-pulse rounded-xl bg-muted/20"></div>
             </div>
 
             {/* Buttons skeleton */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-muted/15 h-12 animate-pulse rounded-xl"></div>
-              <div className="bg-muted/15 h-12 animate-pulse rounded-xl"></div>
+              <div className="h-12 animate-pulse rounded-xl bg-muted/15"></div>
+              <div className="h-12 animate-pulse rounded-xl bg-muted/15"></div>
             </div>
           </div>
         </div>
