@@ -6,12 +6,11 @@ import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import Script from 'next/script'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations } from 'next-intl/server'
+import { AgentationProvider } from '@/components/agentation-provider'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
-import { AgentationProvider } from '@/components/agentation-provider'
+import { getSiteUrl } from '@/lib/seo/site-url'
 import './globals.css'
-
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com').replace(/\/$/, '')
 
 // Critical font - load with highest priority
 const geist = Geist({
@@ -47,6 +46,7 @@ const instrumentSerif = Instrument_Serif({
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const t = await getTranslations({ locale, namespace: 'metadata' })
+  const siteUrl = getSiteUrl()
 
   return {
     title: {
@@ -70,18 +70,18 @@ export async function generateMetadata(): Promise<Metadata> {
       'project showcase indonesia',
     ],
     category: 'technology',
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com'),
+    metadataBase: new URL(siteUrl),
     alternates: {
       canonical: '/',
     },
     openGraph: {
       title: t('ogTitle'),
       description: t('ogDescription'),
-      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://vibedevid.com',
+      url: siteUrl,
       siteName: 'VibeDev ID',
       images: [
         {
-          url: 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFN0mGLyldLnI7kJrhcyQTeHZ9RlBaDdjEwPp8F',
+          url: '/opengraph-image.png',
           width: 1200,
           height: 630,
           alt: t('ogImageAlt'),
@@ -94,7 +94,8 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: t('ogTitle'),
       description: t('twitterDescription'),
-      images: ['https://elyql1q8be.ufs.sh/f/SidHyTM6vHFN0mGLyldLnI7kJrhcyQTeHZ9RlBaDdjEwPp8F'],
+      images: ['/opengraph-image.png'],
+      site: '@vibedevid',
       creator: '@vibedevid',
     },
     robots: {
@@ -115,6 +116,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const locale = await getLocale()
+  const siteUrl = getSiteUrl()
 
   return (
     <html
@@ -185,36 +187,30 @@ export default async function RootLayout({
         />
 
         {/* JSON-LD: Organization */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: 'VibeDev ID',
-              url: SITE_URL,
-              logo: `${SITE_URL}/vibedevid_final_black.svg`,
-              sameAs: ['https://x.com/vibedevid'],
-            }),
-          }}
-        />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'VibeDev ID',
+            url: siteUrl,
+            logo: `${siteUrl}/vibedevid_final_black.svg`,
+            sameAs: ['https://x.com/vibedevid'],
+          })}
+        </script>
 
         {/* JSON-LD: WebSite */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: 'VibeDev ID',
-              url: SITE_URL,
-              inLanguage: 'id-ID',
-              potentialAction: [
-                // Add SearchAction here if/when site search is available
-              ],
-            }),
-          }}
-        />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'VibeDev ID',
+            url: siteUrl,
+            inLanguage: 'id-ID',
+            potentialAction: [
+              // Add SearchAction here if/when site search is available
+            ],
+          })}
+        </script>
       </head>
       <body suppressHydrationWarning={true}>
         <NextIntlClientProvider>
@@ -228,23 +224,24 @@ export default async function RootLayout({
         <SpeedInsights />
 
         {/* Service Worker Registration untuk Mobile Performance */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator && typeof window !== 'undefined') {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                      console.log('[SW] Registration successful:', registration.scope);
-                    })
-                    .catch(function(error) {
-                      console.log('[SW] Registration failed:', error);
-                    });
-                });
-              }
-            `,
-          }}
-        />
+        <Script
+          id="sw-register"
+          strategy="afterInteractive"
+        >
+          {`
+            if ('serviceWorker' in navigator && typeof window !== 'undefined') {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                  .then(function(registration) {
+                    console.log('[SW] Registration successful:', registration.scope);
+                  })
+                  .catch(function(error) {
+                    console.log('[SW] Registration failed:', error);
+                  });
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   )

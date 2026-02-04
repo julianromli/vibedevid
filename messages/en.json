@@ -6,7 +6,21 @@
     "ogTitle": "VibeDev ID - Vibe Coding Community #1 in Indonesia",
     "ogDescription": "Indonesia's vibe coding community: learn AI-powered coding, open source projects, weekly events.",
     "ogImageAlt": "Indonesia's Vibe Coding Community",
-    "twitterDescription": "Learn AI-powered coding with Indonesia's vibe coding community."
+    "twitterDescription": "Learn AI-powered coding with Indonesia's vibe coding community.",
+    "pages": {
+      "projects": {
+        "title": "Projects",
+        "description": "Browse and filter projects built by the Indonesian vibe coding community."
+      },
+      "blog": {
+        "title": "Blog",
+        "description": "Read articles, tutorials, and community updates from VibeDev ID."
+      },
+      "events": {
+        "title": "Events",
+        "description": "Discover upcoming AI and dev community events from VibeDev ID."
+      }
+    }
   },
   "common": {
     "signIn": "Sign In",

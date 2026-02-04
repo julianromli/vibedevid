@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-04 - Fix Canonical + Social Meta URLs
+
+### Summary
+Fixed canonical and social share metadata resolving to the Supabase project URL by centralizing site URL resolution and generating per-route metadata for list pages.
+
+### Changes Made
+- Added `lib/seo/site-url.ts` with `getSiteUrl()` + `absoluteUrl()` (ignores *.supabase.co for canonical base)
+- Updated `app/layout.tsx` to use the resolved site URL for `metadataBase`, `openGraph.url`, JSON-LD, and to unify OG/Twitter images to `/opengraph-image.png`
+- Added route metadata layouts for list pages:
+  - `app/blog/layout.tsx`
+  - `app/project/list/layout.tsx`
+  - `app/event/list/layout.tsx`
+- Updated dynamic pages to use resolved canonical URL:
+  - `app/blog/[slug]/page.tsx`
+  - `app/event/[slug]/page.tsx`
+- Added localized metadata strings in `messages/en.json` and `messages/id.json`
+
+---
+
 ## 2026-02-03 - Fix Navbar Responsive Layout (All Viewports)
 
 ### Summary
