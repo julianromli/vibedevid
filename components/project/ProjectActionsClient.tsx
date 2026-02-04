@@ -3,6 +3,7 @@
 import { Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +34,7 @@ export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActio
     if (result.success) {
       router.push('/')
     } else {
-      alert(result.error || 'Failed to delete project')
+      toast.error(result.error || 'Failed to delete project')
       setIsDeleting(false)
     }
   }

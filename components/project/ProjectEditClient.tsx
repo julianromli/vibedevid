@@ -3,6 +3,7 @@
 import { Edit, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -106,13 +107,14 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
       const result = await editProject(projectSlug, formData)
 
       if (result.success) {
+        toast.success('Project updated successfully')
         // Reload the page to show updated project data
         window.location.reload()
       } else {
-        alert(result.error || 'Failed to update project')
+        toast.error(result.error || 'Failed to update project')
       }
     } catch (error) {
-      alert('Failed to update project')
+      toast.error('Failed to update project')
     } finally {
       setIsSaving(false)
     }

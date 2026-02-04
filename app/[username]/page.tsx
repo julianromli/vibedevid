@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { BlogTab } from '@/components/profile/blog-tab'
 import { EmptyState } from '@/components/profile/empty-state'
 // New Components
@@ -17,37 +18,43 @@ import { Navbar } from '@/components/ui/navbar'
 import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { updateUserProfile } from '@/lib/actions/user'
 import { createClient } from '@/lib/supabase/client'
+import type { User as AuthUser } from '@/types/homepage'
 
-async function updateUserProfile(username: string, profileData: any) {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from('users')
-    .update({
-      username: profileData.username,
-      display_name: profileData.displayName,
-      bio: profileData.bio,
-      avatar_url: profileData.avatar_url,
-      location: profileData.location,
-      website: profileData.website,
-      github_url: profileData.github_url,
-      twitter_url: profileData.twitter_url,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('username', username)
-    .select()
-
-  if (error) {
-    console.error('Error updating profile:', error)
-    return { success: false, error: error.message }
-  }
-
-  console.log('[v0] Profile updated in database:', data)
-  return { success: true, data }
+interface ProfileUser {
+  id: string
+  username: string
+  display_name: string | null
+  bio: string | null
+  avatar_url: string | null
+  location: string | null
+  website: string | null
+  github_url: string | null
+  twitter_url: string | null
+  joined_at: string
+  role?: number | null
 }
 
-async function fetchUserProjects(username: string) {
+interface UserProject {
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  category: string | null
+  website_url: string | null
+  image_url: string | null
+  thumbnail_url: string | null
+  url: string | null
+  author_id: string
+  created_at: string
+  updated_at: string | null
+  likes: number
+  views_count: number
+  comments_count: number
+}
+
+async function fetchUserProjects(username: string): Promise<UserProject[]> {
   const supabase = createClient()
 
   // Single optimized query dengan JOIN dan aggregation
@@ -60,15 +67,26 @@ async function fetchUserProjects(username: string) {
     return await fetchUserProjectsFallback(username)
   }
 
-  return (projectsData || []).map((project: any) => ({
-    ...project,
-    likes: project.likes_count || project.likes || 0,
-    thumbnail_url: project.image_url,
-    url: project.website_url,
+  return (projectsData || []).map((project: Record<string, unknown>) => ({
+    id: project.id as string,
+    slug: project.slug as string,
+    title: project.title as string,
+    description: (project.description as string) || null,
+    category: (project.category as string) || null,
+    website_url: (project.website_url as string) || null,
+    image_url: (project.image_url as string) || null,
+    thumbnail_url: (project.image_url as string) || null,
+    url: (project.website_url as string) || null,
+    author_id: project.author_id as string,
+    created_at: project.created_at as string,
+    updated_at: (project.updated_at as string) || null,
+    likes: (project.likes_count as number) || (project.likes as number) || 0,
+    views_count: (project.views_count as number) || 0,
+    comments_count: (project.comments_count as number) || 0,
   }))
 }
 
-async function fetchUserProjectsFallback(username: string) {
+async function fetchUserProjectsFallback(username: string): Promise<UserProject[]> {
   const supabase = createClient()
 
   const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single()
@@ -265,9 +283,9 @@ export default function ProfilePage() {
   const router = useRouter()
   const username = params.username as string
 
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [user, setUser] = useState<any>(null)
-  const [userProjects, setUserProjects] = useState<any[]>([])
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+  const [user, setUser] = useState<ProfileUser | null>(null)
+  const [userProjects, setUserProjects] = useState<UserProject[]>([])
   const [userPosts, setUserPosts] = useState<UserBlogPost[]>([])
   const [userStats, setUserStats] = useState({
     projects: 0,
@@ -350,17 +368,24 @@ export default function ProfilePage() {
     setShowEditDialog(true)
   }
 
-  const handleSaveProfile = async (profileData: any) => {
+  const handleSaveProfile = async (profileData: {
+    displayName: string
+    username: string
+    bio: string
+    location: string
+    website: string
+    github_url: string
+    twitter_url: string
+    avatar_url: string
+  }) => {
     setSaving(true)
     try {
-      console.log('[v0] Saving profile with avatar:', profileData.avatar_url)
-
       const result = await updateUserProfile(username, profileData)
       if (result.success) {
         setShowEditDialog(false)
 
-        const updatedUser = {
-          ...user,
+        const updatedUser: ProfileUser = {
+          ...user!,
           username: profileData.username,
           display_name: profileData.displayName,
           bio: profileData.bio,
@@ -371,19 +396,18 @@ export default function ProfilePage() {
           avatar_url: profileData.avatar_url,
         }
 
-        console.log('[v0] Updated user state with new avatar:', updatedUser.avatar_url)
         setUser(updatedUser)
+        toast.success('Profile updated successfully')
 
-        if (profileData.username !== username) {
-          router.push(`/${profileData.username}`)
+        if (result.usernameChanged && result.newUsername) {
+          router.push(`/${result.newUsername}`)
         }
       } else {
-        console.error('Failed to update profile:', result.error)
-        alert('Failed to update profile: ' + result.error)
+        toast.error(result.error || 'Failed to update profile')
       }
     } catch (error) {
       console.error('Error saving profile:', error)
-      alert('Error saving profile')
+      toast.error('Error saving profile')
     } finally {
       setSaving(false)
     }
@@ -521,7 +545,7 @@ export default function ProfilePage() {
                     : "This user hasn't added any projects yet."
                 }
                 actionLabel="Add Project"
-                actionLink="/project/new"
+                actionLink="/project/submit"
                 isOwner={isOwner}
               />
             )}
