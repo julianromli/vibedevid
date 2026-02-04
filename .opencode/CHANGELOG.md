@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-04 - Fix Admin Dashboard Build Logs
+
+### Summary
+Stopped Vercel/Next.js build logs from printing "Dynamic server usage ... used `cookies`" errors for `/dashboard*` routes by forcing the admin route segment to be dynamic.
+
+### Changes Made
+- Marked `app/(admin)/layout.tsx` with `export const dynamic = 'force-dynamic'`
+
+---
+
 ## 2026-02-04 - Fix Canonical + Social Meta URLs
 
 ### Summary

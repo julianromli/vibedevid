@@ -3,6 +3,8 @@ import { AppSidebar } from '@/components/admin-panel/app-sidebar'
 import { getCurrentUser } from '@/lib/actions/user'
 import DashboardLayoutClient from './layout-client'
 
+export const dynamic = 'force-dynamic'
+
 interface Props {
   children: React.ReactNode
 }
