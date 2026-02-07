@@ -15,25 +15,27 @@ VibeDev ID uses Supabase Row Level Security to enforce data access control at th
 
 | Table | RLS Enabled | Force RLS | Policies |
 |-------|-------------|-----------|----------|
-| users | ✅ | ✅ | 3 (view all, insert own, update own) |
-| projects | ✅ | ✅ | 4 (view all, insert/update/delete own) |
-| comments | ✅ | ✅ | 4 (view all, insert guest+auth, update/delete own) |
-| likes | ✅ | ✅ | 3 (view all, insert/delete own) |
-| views | ✅ | ✅ | 4 (view all, insert secure, update/delete own) |
-| posts | ✅ | ✅ | 5 (view published, author full CRUD) |
-| blog_post_tags | ✅ | ✅ | 3 (view all, insert/delete own) |
-| blog_reports | ✅ | ✅ | 2 (insert own, view own) |
+| users | ✅ | ✅ | 3 (view all, insert own, update own - authenticated role) |
+| projects | ✅ | ✅ | 4 (view all, insert/update/delete own - authenticated role) |
+| comments | ✅ | ✅ | 5 (view all, authenticated INSERT own, anon INSERT with name+content, authenticated UPDATE/DELETE own) |
+| likes | ✅ | ✅ | 3 (view all, insert/delete own - authenticated role) |
+| views | ✅ | ✅ | 4 (owner+admin SELECT, authenticated INSERT via admin client, no UPDATE/DELETE) |
+| posts | ✅ | ✅ | 4 (published OR author SELECT, author INSERT/UPDATE/DELETE - authenticated role) |
+| blog_post_tags | ✅ | ✅ | 3 (view all, insert/delete own - authenticated role) |
+| blog_reports | ✅ | ✅ | 2 (insert own, view own - authenticated role) |
 | post_tags | ✅ | ✅ | 1 (view all) |
 | categories | ✅ | ✅ | 1 (view all) |
-| vibe_videos | ✅ | ✅ | 4 (view all, authenticated CRUD) |
-| events | ✅ | ✅ | 3 (view approved, submit own, view own pending) |
-| faqs | ✅ | ✅ | 4 (view all, admin CRUD) |
+| vibe_videos | ✅ | ✅ | 4 (view all, admin-only INSERT/UPDATE/DELETE) |
+| events | ✅ | ✅ | 3 (view approved, submit own, view own pending - authenticated role) |
+| faqs | ✅ | ✅ | 4 (view all, admin CRUD - authenticated role) |
 
 ## Migration Scripts
 
 - `scripts/01_create_tables.sql` - Initial RLS setup
 - `scripts/18_force_rls_security.sql` - FORCE RLS enablement (CRITICAL)
 - `scripts/19_fix_function_security.sql` - Function search_path fix
+- `Migration: fix_critical_security_and_rls_hardening (2026-02-07)` - Major RLS hardening
+- `Migration: drop_redundant_unused_indexes (2026-02-07)` - Cleanup redundant indexes
 
 ## Authentication Architecture
 
@@ -104,12 +106,14 @@ USING (true);
 -- Insert own profile only
 CREATE POLICY "Users can insert own profile" 
 ON public.users FOR INSERT 
-WITH CHECK (auth.uid() = id);
+TO authenticated
+WITH CHECK ((select auth.uid()) = id);
 
 -- Update own profile only
 CREATE POLICY "Users can update own profile" 
 ON public.users FOR UPDATE 
-USING (auth.uid() = id);
+TO authenticated
+USING ((select auth.uid()) = id);
 ```
 
 ### Projects Table
@@ -123,17 +127,20 @@ USING (true);
 -- Create own projects
 CREATE POLICY "Users can insert own projects" 
 ON public.projects FOR INSERT 
-WITH CHECK (auth.uid() = author_id);
+TO authenticated
+WITH CHECK ((select auth.uid()) = author_id);
 
 -- Update own projects
 CREATE POLICY "Users can update own projects" 
 ON public.projects FOR UPDATE 
-USING (auth.uid() = author_id);
+TO authenticated
+USING ((select auth.uid()) = author_id);
 
 -- Delete own projects
 CREATE POLICY "Users can delete own projects" 
 ON public.projects FOR DELETE 
-USING (auth.uid() = author_id);
+TO authenticated
+USING ((select auth.uid()) = author_id);
 ```
 
 ### Comments Table
@@ -147,54 +154,57 @@ USING (true);
 -- Authenticated users can comment
 CREATE POLICY "Authenticated users can insert comments" 
 ON public.comments FOR INSERT 
-WITH CHECK (auth.uid() = user_id);
+TO authenticated
+WITH CHECK ((select auth.uid()) = user_id);
 
 -- Guests can comment (with name)
 CREATE POLICY "Guests can insert comments with name" 
 ON public.comments FOR INSERT 
+TO anon
 WITH CHECK (
-  auth.uid() IS NULL AND 
-  author_name IS NOT NULL
+  (select auth.uid()) IS NULL AND 
+  author_name IS NOT NULL AND
+  content IS NOT NULL
 );
 
 -- Update own comments only
 CREATE POLICY "Users can update own comments" 
 ON public.comments FOR UPDATE 
-USING (auth.uid() = user_id);
+TO authenticated
+USING ((select auth.uid()) = user_id);
 
 -- Delete own comments only
 CREATE POLICY "Users can delete own comments" 
 ON public.comments FOR DELETE 
-USING (auth.uid() = user_id);
+TO authenticated
+USING ((select auth.uid()) = user_id);
 ```
 
 ### Blog Posts Table
 
 ```sql
--- View published posts (public)
-CREATE POLICY "Published posts are viewable by everyone" 
+-- View published OR author posts
+CREATE POLICY "Published or author posts are viewable" 
 ON public.posts FOR SELECT 
-USING (published_at IS NOT NULL);
-
--- Authors view own drafts
-CREATE POLICY "Authors can view own drafts" 
-ON public.posts FOR SELECT 
-USING (auth.uid() = author_id);
+USING (published_at IS NOT NULL OR (select auth.uid()) = author_id);
 
 -- Authors create posts
 CREATE POLICY "Authors can insert posts" 
 ON public.posts FOR INSERT 
-WITH CHECK (auth.uid() = author_id);
+TO authenticated
+WITH CHECK ((select auth.uid()) = author_id);
 
 -- Authors update own posts
 CREATE POLICY "Authors can update own posts" 
 ON public.posts FOR UPDATE 
-USING (auth.uid() = author_id);
+TO authenticated
+USING ((select auth.uid()) = author_id);
 
 -- Authors delete own posts
 CREATE POLICY "Authors can delete own posts" 
 ON public.posts FOR DELETE 
-USING (auth.uid() = author_id);
+TO authenticated
+USING ((select auth.uid()) = author_id);
 ```
 
 ## Verification
@@ -356,6 +366,24 @@ RESET request.jwt.claims.sub;
 
 **Fix**: Always validate with `supabase.auth.getUser()` in server actions.
 
+### 4. Overly Permissive Role Scoping
+
+**Vulnerability**: Write policies used `{public}` role instead of `{authenticated}`.
+
+**Fix**: All INSERT/UPDATE/DELETE policies now scoped to `authenticated` role.
+
+### 5. Unoptimized auth.uid() in RLS
+
+**Vulnerability**: Using `auth.uid()` directly causes per-row evaluation.
+
+**Fix**: Use `(SELECT auth.uid())` to evaluate once per query.
+
+### 6. View Tracking via Anon Key
+
+**Vulnerability**: Anonymous visitors couldn't track views with authenticated-only INSERT policy.
+
+**Fix**: Server actions use admin client (service role) for view inserts, bypassing RLS.
+
 ## Incident Response
 
 If RLS policy is bypassed:
@@ -375,4 +403,4 @@ If RLS policy is bypassed:
 
 ## Last Updated
 
-2026-02-03 - Migration 18 & 19 (Force RLS + Function Security)
+2026-02-07 - Security hardening migration (RLS policy fixes, role scoping, performance optimization)

@@ -7,6 +7,7 @@ import { getCategoryDisplayName } from './categories'
 import { getSupabaseConfig } from './env-config'
 import { fetchFavicon } from './favicon-utils'
 import { ensureUniqueSlug, getProjectIdBySlug, slugifyTitle } from './slug'
+import { createAdminClient } from './supabase/admin'
 
 async function createClient() {
   const cookieStore = await cookies()
@@ -400,6 +401,10 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Use admin client for view inserts to bypass RLS
+  // This allows tracking views for both anonymous and authenticated visitors
+  const adminClient = createAdminClient()
+
   try {
     // Prepare view record with session-based tracking
     const viewRecord = {
@@ -412,8 +417,7 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
 
     console.log('[Server] Incrementing view for project slug:', projectSlug, 'ID:', projectId, 'Session:', sessionId)
 
-    // Try to insert first
-    const { data, error } = await supabase.from('views').insert(viewRecord).select()
+    const { data, error } = await adminClient.from('views').insert(viewRecord).select()
 
     if (error) {
       // If it's a duplicate key error, that's expected (user already viewed in this session)
@@ -442,6 +446,10 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Use admin client for view inserts to bypass RLS
+  // This allows tracking views for both anonymous and authenticated visitors
+  const adminClient = createAdminClient()
+
   try {
     // Prepare view record with session-based tracking
     const viewRecord = {
@@ -454,8 +462,7 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
 
     console.log('[Server] Incrementing view for blog post:', postId, 'Session:', sessionId)
 
-    // Try to insert first
-    const { data, error } = await supabase.from('views').insert(viewRecord).select()
+    const { data, error } = await adminClient.from('views').insert(viewRecord).select()
 
     if (error) {
       // If it's a duplicate key error, that's expected (user already viewed in this session)
