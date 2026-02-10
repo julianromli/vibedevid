@@ -105,8 +105,7 @@ function AuthPageContent() {
       } else if (result?.success) {
         console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
         toast.success(t('success.signIn'))
-        router.refresh()
-        router.push(result.redirect || '/')
+        window.location.href = result.redirect || '/'
       } else {
         console.log('[Frontend] Unexpected result structure:', result)
       }
