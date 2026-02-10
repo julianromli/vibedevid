@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-02-10 - Fix Auth Redirect Flow from /user/auth
+
+### Summary
+Fixed a login redirect bug where authenticated users could remain on `/user/auth` after successful sign-in, and hardened auth navigation behavior so navbar/session state stays consistent.
+
+### Changes Made
+- Added server-side auth route guard in `middleware.ts` to redirect authenticated users away from `/user/auth` (except confirm-email/callback).
+- Added safe redirect sanitization in both auth page and middleware to avoid invalid/self-loop redirects.
+- Improved client auth page redirect flow in `app/user/auth/page.tsx`:
+  - session check on mount,
+  - auth state listener fallback,
+  - deterministic `router.replace()` flow after sign-in success.
+- Aligned admin unauthorized redirect path from `/user/auth/login` to active route `/user/auth` in `app/(admin)/layout.tsx`.
+- Added regression E2E tests in `tests/auth-redirect.spec.ts` covering:
+  - successful sign-in redirect to `/`,
+  - authenticated user visiting `/user/auth` is redirected to `/`.
+
+### Verification
+- `npx playwright test tests/auth-redirect.spec.ts --project=chromium` ✅ (2 passed)
+- `npx tsc --noEmit` ⚠️ blocked by pre-existing unrelated TypeScript errors in admin/ui areas.
+- `npx biome check app/user/auth/page.tsx middleware.ts app/(admin)/layout.tsx tests/auth-redirect.spec.ts` ⚠️ reports pre-existing complexity/style violations in existing files.
+
 ## 2026-02-04 - Fix Admin Dashboard Build Logs
 
 ### Summary
