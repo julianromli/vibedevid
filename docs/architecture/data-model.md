@@ -57,15 +57,14 @@ Current policies on `public.events`:
 1. `SELECT` public rows where `approved = true`
 2. `INSERT` for authenticated users with `auth.uid() = submitted_by`
 3. `SELECT` for authenticated users on own pending rows (`auth.uid() = submitted_by`)
-
-Observed gap:
-
-- No `UPDATE` policy on `events`
-- No `DELETE` policy on `events`
+4. `UPDATE` for authenticated admin/moderator users (`users.role IN (0, 1)`) to support approval flow
+5. `DELETE` for authenticated admin/moderator users (`users.role IN (0, 1)`) to support rejection flow
 
 Implication:
 
-- Approve/reject actions can return no SQL error but mutate zero rows under RLS, unless server action verifies affected row count.
+- Approve/reject actions are permitted for admin/moderator users under RLS.
+- Non-admin users remain blocked from moderation mutations by RLS.
+- Server actions should still validate affected row count to prevent false-positive success states.
 
 ## Indexes Relevant to Event Approval
 

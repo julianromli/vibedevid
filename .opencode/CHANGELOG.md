@@ -374,3 +374,15 @@ Fixed admin moderation flow where approve/reject on `/dashboard` showed success 
 - Confirmed events policies now include `UPDATE` and `DELETE` for authenticated admin/moderator paths
 - Prettier check passes on changed TS/Markdown files
 - ESLint unavailable due missing project config (`eslint.config.*` not present)
+
+---
+
+## 2026-02-13 - Update Events RLS Architecture Doc
+
+### Summary
+Corrected stale `events` RLS documentation in architecture docs to match current database policies.
+
+### Changes Made
+- Updated `docs/architecture/data-model.md` to list admin/moderator `UPDATE` and `DELETE` moderation policies.
+- Removed outdated note claiming missing `UPDATE`/`DELETE` policies.
+- Clarified current implications: admin/moderator moderation allowed, non-admin blocked, and server actions should still validate affected rows.
