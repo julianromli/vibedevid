@@ -350,3 +350,27 @@ Replaced logo marquee component with SVG icons for AI LLMs and coding tools usin
 - Skipped tools without confirmed SVG icons (Warp, Zed, Antigravity, Codex) per user preference
 - Used unpkg CDN for reliability (fallback: npmmirror CDN available)
 - Component maintains same TypeScript interface (no breaking changes)
+
+---
+
+## 2026-02-12 - Fix Events Approval Not Persisting
+
+### Summary
+Fixed admin moderation flow where approve/reject on `/dashboard` showed success toast but did not actually update/delete rows in `events`.
+
+### Changes Made
+- Added DB role-based admin check in `lib/actions/events.ts` (use `users.role`, consistent with other admin actions)
+- Added strict affected-row validation in `approveEvent` and `rejectEvent` to prevent false success
+- Added migration `scripts/20_add_events_admin_moderation_rls.sql` for `events` UPDATE/DELETE RLS policies
+- Applied Supabase migration `add_events_admin_moderation_rls_v2` successfully
+- Updated security docs in `docs/security/RLS_POLICIES.md`
+- Added architecture and bug docs:
+  - `docs/architecture/data-model.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/context.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/diagnostic-logs.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/resolution.md`
+
+### Verification
+- Confirmed events policies now include `UPDATE` and `DELETE` for authenticated admin/moderator paths
+- Prettier check passes on changed TS/Markdown files
+- ESLint unavailable due missing project config (`eslint.config.*` not present)
