@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createClient } from '@/lib/supabase/server'
 import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
@@ -32,10 +33,6 @@ interface GetEventsFilters {
   sort?: 'nearest' | 'latest'
 }
 
-const ROLES = {
-  ADMIN: 0,
-} as const
-
 async function checkAdminAccess() {
   const supabase = await createClient()
   const {
@@ -48,7 +45,7 @@ async function checkAdminAccess() {
 
   const { data: userData, error } = await supabase.from('users').select('role').eq('id', user.id).single()
 
-  if (error || !userData || userData.role !== ROLES.ADMIN) {
+  if (error || !userData || (userData.role !== ROLES.ADMIN && userData.role !== ROLES.MODERATOR)) {
     return { supabase, userId: user.id, error: 'Unauthorized' as const }
   }
 

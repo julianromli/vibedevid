@@ -386,3 +386,16 @@ Corrected stale `events` RLS documentation in architecture docs to match current
 - Updated `docs/architecture/data-model.md` to list admin/moderator `UPDATE` and `DELETE` moderation policies.
 - Removed outdated note claiming missing `UPDATE`/`DELETE` policies.
 - Clarified current implications: admin/moderator moderation allowed, non-admin blocked, and server actions should still validate affected rows.
+
+---
+
+## 2026-02-14 - Align Event Server Authorization with RLS
+
+### Summary
+Updated event moderation server action authorization so moderators are allowed for pending list and approve/reject actions, matching documented `events` RLS policies.
+
+### Changes Made
+- Updated `lib/actions/events.ts` to import canonical `ROLES` from `@/lib/actions/admin/schemas`
+- Removed local `ROLES` constant from `lib/actions/events.ts`
+- Expanded `checkAdminAccess()` role check to allow both `ROLES.ADMIN` and `ROLES.MODERATOR`
+- Kept strict admin-only dashboard UI gate in `app/(admin)/layout.tsx` unchanged per preference
