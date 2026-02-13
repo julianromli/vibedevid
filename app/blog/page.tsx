@@ -1,33 +1,13 @@
+import { getCachedPublishedPosts } from '@/lib/server/blog-public'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
 import BlogPageClient from './blog-page-client'
-
-interface BlogAuthor {
-  display_name: string
-  avatar_url: string | null
-}
-
-interface BlogPostTag {
-  post_tags: { name: string } | null
-}
-
-interface BlogPostListItem {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  cover_image: string | null
-  published_at: string | null
-  read_time_minutes: number | null
-  author: BlogAuthor | null
-  author_id?: string
-  tags?: BlogPostTag[]
-}
 
 export const revalidate = 60
 
 export default async function BlogPage() {
   const supabase = await createClient()
+  const postsDataPromise = getCachedPublishedPosts()
 
   const {
     data: { user },
@@ -53,26 +33,7 @@ export default async function BlogPage() {
     }
   }
 
-  const { data: postsData } = await supabase
-    .from('posts')
-    .select(
-      `
-      id,
-      title,
-      slug,
-      excerpt,
-      cover_image,
-      published_at,
-      read_time_minutes,
-      author_id,
-      author:users!posts_author_id_fkey(display_name, avatar_url),
-      tags:blog_post_tags(post_tags(name))
-    `,
-    )
-    .eq('status', 'published')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .returns<BlogPostListItem[]>()
+  const postsData = await postsDataPromise
 
   return (
     <BlogPageClient

@@ -117,6 +117,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale()
   const siteUrl = getSiteUrl()
+  const shouldLoadVercelInsights = process.env.VERCEL === '1'
 
   return (
     <html
@@ -151,25 +152,6 @@ export default async function RootLayout({
         <link
           rel="preconnect"
           href="https://vercel.live"
-        />
-
-        {/* Critical images preload */}
-        <link
-          rel="preload"
-          href="/vibedevid_final_black.svg"
-          as="image"
-          type="image/svg+xml"
-        />
-        <link
-          rel="preload"
-          href="/vibedevid_final_white.svg"
-          as="image"
-          type="image/svg+xml"
-        />
-        <link
-          rel="preload"
-          href="/vibedev-guest-avatar.png"
-          as="image"
         />
 
         {/* DNS prefetch untuk external resources */}
@@ -220,8 +202,12 @@ export default async function RootLayout({
           </ClientThemeProvider>
         </NextIntlClientProvider>
         <AgentationProvider />
-        <Analytics />
-        <SpeedInsights />
+        {shouldLoadVercelInsights && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
 
         {/* Service Worker Registration untuk Mobile Performance */}
         <Script

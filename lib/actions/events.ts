@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createClient } from '@/lib/supabase/server'
 import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
@@ -152,6 +152,7 @@ export async function submitEvent(formData: EventFormData) {
     }
 
     revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error submitting event:', error)
@@ -219,6 +220,7 @@ export async function approveEvent(eventId: string) {
 
     revalidatePath('/dashboard')
     revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error approving event:', error)
@@ -250,6 +252,8 @@ export async function rejectEvent(eventId: string) {
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error rejecting event:', error)

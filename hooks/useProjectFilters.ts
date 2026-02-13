@@ -8,16 +8,31 @@ import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
 import type { Project, SortBy } from '@/types/homepage'
 
-export function useProjectFilters(authReady: boolean) {
+interface UseProjectFiltersOptions {
+  authReady: boolean
+  initialProjects?: Project[]
+  initialFilterOptions?: string[]
+}
+
+export function useProjectFilters({
+  authReady,
+  initialProjects = [],
+  initialFilterOptions = ['All'],
+}: UseProjectFiltersOptions) {
   const [selectedFilter, setSelectedFilter] = useState('All')
   const [selectedTrending, setSelectedTrending] = useState('Trending')
   const [visibleProjects, setVisibleProjects] = useState(6)
-  const [filterOptions, setFilterOptions] = useState<string[]>(['All'])
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+  const [filterOptions, setFilterOptions] = useState<string[]>(initialFilterOptions)
+  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [loading, setLoading] = useState(initialProjects.length === 0)
+  const [skipInitialFetch, setSkipInitialFetch] = useState(initialProjects.length > 0)
 
   // Fetch categories for filter options
   useEffect(() => {
+    if (initialFilterOptions.length > 1) {
+      return
+    }
+
     const fetchFilterCategories = async () => {
       try {
         const categories = await getCategories()
@@ -29,18 +44,21 @@ export function useProjectFilters(authReady: boolean) {
     }
 
     fetchFilterCategories()
-  }, [])
+  }, [initialFilterOptions])
 
   // Fetch projects with sorting
   useEffect(() => {
+    if (!authReady) {
+      return
+    }
+
+    if (skipInitialFetch && selectedTrending === 'Trending' && selectedFilter === 'All') {
+      setSkipInitialFetch(false)
+      return
+    }
+
     const fetchProjects = async () => {
       try {
-        console.log('[useProjectFilters] Fetching projects with sorting:', {
-          selectedTrending,
-          selectedFilter,
-          authReady,
-        })
-
         setLoading(true)
 
         // Convert selectedTrending to sortBy parameter
@@ -66,23 +84,20 @@ export function useProjectFilters(authReady: boolean) {
         )
 
         if (error) {
-          console.error('[useProjectFilters] Error fetching projects:', error)
+          console.error('Error fetching projects:', error)
           return
         }
 
-        console.log('[useProjectFilters] Projects fetched with sorting:', fetchedProjects.length)
         setProjects(fetchedProjects || [])
       } catch (error) {
-        console.error('[useProjectFilters] Error fetching projects:', error)
+        console.error('Error fetching projects:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    if (authReady) {
-      fetchProjects()
-    }
-  }, [authReady, selectedTrending, selectedFilter])
+    fetchProjects()
+  }, [authReady, selectedTrending, selectedFilter, skipInitialFetch])
 
   const loadMore = () => {
     setVisibleProjects((prev) => prev + 6)

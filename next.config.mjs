@@ -71,6 +71,7 @@ const nextConfig = {
     minimumCacheTTL: 31536000, // 1 year cache for optimized images
 
     // Quality settings for different use cases
+    qualities: [75, 85],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
 
