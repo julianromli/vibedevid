@@ -1,0 +1,19 @@
+{
+  "id": "events-rls-moderation-missing-update-delete-2026-02",
+  "date": "2026-02-12",
+  "problem": "Admin moderation UI shows success but event approve/reject does not persist",
+  "symptoms": [
+    "Toast success appears after approve/reject",
+    "Pending row still present after refresh",
+    "Approved event not visible in public list",
+    "No action-level SQL error returned"
+  ],
+  "root_cause": "RLS policies for target table lacked UPDATE/DELETE rules, while server action only checked mutation error and not affected row count.",
+  "solution": "Add explicit admin UPDATE/DELETE RLS policies and enforce affected-row validation in server actions.",
+  "technologies": ["Supabase", "PostgreSQL RLS", "Next.js Server Actions"],
+  "prevention": [
+    "For every mutation path, verify matching RLS cmd policy exists",
+    "Treat zero affected rows as failure for critical mutations",
+    "Keep role source consistent (users.role preferred for admin checks)"
+  ]
+}

@@ -43,6 +43,17 @@ function isEmailDomainAllowed(value: string): boolean {
   return allowedDomains.has(domain)
 }
 
+function getSafeAuthRedirectPath(value: string | null): string {
+  if (!value) return '/'
+
+  const trimmed = value.trim()
+  if (!trimmed.startsWith('/')) return '/'
+  if (trimmed.startsWith('//')) return '/'
+  if (trimmed.startsWith('/user/auth')) return '/'
+
+  return trimmed
+}
+
 // Component yang menggunakan useSearchParams
 function AuthPageContent() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -60,6 +71,7 @@ function AuthPageContent() {
   const [_isPending, _startTransition] = useTransition()
   const searchParams = useSearchParams()
   const t = useTranslations('auth')
+  const safeRedirectTo = getSafeAuthRedirectPath(searchParams.get('redirectTo'))
 
   // Handle URL parameters on mount
   useEffect(() => {
@@ -74,6 +86,41 @@ function AuthPageContent() {
     }
   }, [searchParams])
 
+  useEffect(() => {
+    let isMounted = true
+    const supabase = createClient()
+
+    const redirectToTarget = () => {
+      router.replace(safeRedirectTo)
+      router.refresh()
+    }
+
+    const checkExistingSession = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!isMounted || !user) return
+      redirectToTarget()
+    }
+
+    checkExistingSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+        redirectToTarget()
+      }
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [router, safeRedirectTo])
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -83,8 +130,8 @@ function AuthPageContent() {
     formData.append('email', email)
     formData.append('password', password)
 
-    const redirectTo = searchParams.get('redirectTo')
-    if (redirectTo) {
+    const redirectTo = safeRedirectTo
+    if (redirectTo !== '/') {
       formData.append('redirectTo', redirectTo)
     }
 
@@ -105,8 +152,8 @@ function AuthPageContent() {
       } else if (result?.success) {
         console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
         toast.success(t('success.signIn'))
+        router.replace(getSafeAuthRedirectPath(result.redirect || redirectTo))
         router.refresh()
-        router.push(result.redirect || '/')
       } else {
         console.log('[Frontend] Unexpected result structure:', result)
       }

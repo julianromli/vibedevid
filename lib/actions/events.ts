@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createClient } from '@/lib/supabase/server'
 import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
@@ -30,6 +31,25 @@ interface GetEventsFilters {
   category?: string
   locationType?: string
   sort?: 'nearest' | 'latest'
+}
+
+async function checkAdminAccess() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { supabase, userId: null, error: 'Unauthorized' as const }
+  }
+
+  const { data: userData, error } = await supabase.from('users').select('role').eq('id', user.id).single()
+
+  if (error || !userData || (userData.role !== ROLES.ADMIN && userData.role !== ROLES.MODERATOR)) {
+    return { supabase, userId: user.id, error: 'Unauthorized' as const }
+  }
+
+  return { supabase, userId: user.id, error: null }
 }
 
 export async function getEvents(filters: GetEventsFilters = {}) {
@@ -169,11 +189,8 @@ function isValidUUID(str: string): boolean {
 // Admin: Get pending events awaiting approval
 export async function getPendingEvents() {
   try {
-    const supabase = await createClient()
-
-    // Check admin role
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData.user || authData.user.user_metadata.role !== 0) {
+    const { supabase, error: adminError } = await checkAdminAccess()
+    if (adminError) {
       return { events: [], error: 'Unauthorized' }
     }
 
@@ -203,19 +220,24 @@ export async function approveEvent(eventId: string) {
       return { success: false, error: 'Invalid event ID format' }
     }
 
-    const supabase = await createClient()
-
-    // Check admin role
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData.user || authData.user.user_metadata.role !== 0) {
+    const { supabase, error: adminError } = await checkAdminAccess()
+    if (adminError) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const { error } = await supabase.from('events').update({ approved: true }).eq('id', eventId)
+    const { data: updatedRows, error } = await supabase
+      .from('events')
+      .update({ approved: true })
+      .eq('id', eventId)
+      .select('id')
 
     if (error) {
       console.error('Error approving event:', error)
       return { success: false, error: 'Failed to approve event' }
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: 'Event could not be approved' }
     }
 
     revalidatePath('/dashboard')
@@ -236,19 +258,20 @@ export async function rejectEvent(eventId: string) {
       return { success: false, error: 'Invalid event ID format' }
     }
 
-    const supabase = await createClient()
-
-    // Check admin role
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData.user || authData.user.user_metadata.role !== 0) {
+    const { supabase, error: adminError } = await checkAdminAccess()
+    if (adminError) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const { error } = await supabase.from('events').delete().eq('id', eventId)
+    const { data: deletedRows, error } = await supabase.from('events').delete().eq('id', eventId).select('id')
 
     if (error) {
       console.error('Error rejecting event:', error)
       return { success: false, error: 'Failed to reject event' }
+    }
+
+    if (!deletedRows || deletedRows.length === 0) {
+      return { success: false, error: 'Event could not be rejected' }
     }
 
     revalidatePath('/dashboard')

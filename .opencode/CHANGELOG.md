@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-02-10 - Fix Auth Redirect Flow from /user/auth
+
+### Summary
+Fixed a login redirect bug where authenticated users could remain on `/user/auth` after successful sign-in, and hardened auth navigation behavior so navbar/session state stays consistent.
+
+### Changes Made
+- Added server-side auth route guard in `middleware.ts` to redirect authenticated users away from `/user/auth` (except confirm-email/callback).
+- Added safe redirect sanitization in both auth page and middleware to avoid invalid/self-loop redirects.
+- Improved client auth page redirect flow in `app/user/auth/page.tsx`:
+  - session check on mount,
+  - auth state listener fallback,
+  - deterministic `router.replace()` flow after sign-in success.
+- Aligned admin unauthorized redirect path from `/user/auth/login` to active route `/user/auth` in `app/(admin)/layout.tsx`.
+- Added regression E2E tests in `tests/auth-redirect.spec.ts` covering:
+  - successful sign-in redirect to `/`,
+  - authenticated user visiting `/user/auth` is redirected to `/`.
+
+### Verification
+- `npx playwright test tests/auth-redirect.spec.ts --project=chromium` ✅ (2 passed)
+- `npx tsc --noEmit` ⚠️ blocked by pre-existing unrelated TypeScript errors in admin/ui areas.
+- `npx biome check app/user/auth/page.tsx middleware.ts app/(admin)/layout.tsx tests/auth-redirect.spec.ts` ⚠️ reports pre-existing complexity/style violations in existing files.
+
 ## 2026-02-04 - Fix Admin Dashboard Build Logs
 
 ### Summary
@@ -502,3 +524,50 @@ Performed targeted analysis for homepage cold-start behavior and identified high
 - Provided prioritized optimization plan for server timing breakdown, above-the-fold reduction, and staged lazy hydration boundaries
 
 ---
+
+## 2026-02-12 - Fix Events Approval Not Persisting
+
+### Summary
+Fixed admin moderation flow where approve/reject on `/dashboard` showed success toast but did not actually update/delete rows in `events`.
+
+### Changes Made
+- Added DB role-based admin check in `lib/actions/events.ts` (use `users.role`, consistent with other admin actions)
+- Added strict affected-row validation in `approveEvent` and `rejectEvent` to prevent false success
+- Added migration `scripts/20_add_events_admin_moderation_rls.sql` for `events` UPDATE/DELETE RLS policies
+- Applied Supabase migration `add_events_admin_moderation_rls_v2` successfully
+- Updated security docs in `docs/security/RLS_POLICIES.md`
+- Added architecture and bug docs:
+  - `docs/architecture/data-model.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/context.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/diagnostic-logs.md`
+  - `docs/tasks/frontend/12-02-2026/event-approval-not-persisted/resolution.md`
+
+### Verification
+- Confirmed events policies now include `UPDATE` and `DELETE` for authenticated admin/moderator paths
+- Prettier check passes on changed TS/Markdown files
+- ESLint unavailable due missing project config (`eslint.config.*` not present)
+
+---
+
+## 2026-02-13 - Update Events RLS Architecture Doc
+
+### Summary
+Corrected stale `events` RLS documentation in architecture docs to match current database policies.
+
+### Changes Made
+- Updated `docs/architecture/data-model.md` to list admin/moderator `UPDATE` and `DELETE` moderation policies.
+- Removed outdated note claiming missing `UPDATE`/`DELETE` policies.
+- Clarified current implications: admin/moderator moderation allowed, non-admin blocked, and server actions should still validate affected rows.
+
+---
+
+## 2026-02-14 - Align Event Server Authorization with RLS
+
+### Summary
+Updated event moderation server action authorization so moderators are allowed for pending list and approve/reject actions, matching documented `events` RLS policies.
+
+### Changes Made
+- Updated `lib/actions/events.ts` to import canonical `ROLES` from `@/lib/actions/admin/schemas`
+- Removed local `ROLES` constant from `lib/actions/events.ts`
+- Expanded `checkAdminAccess()` role check to allow both `ROLES.ADMIN` and `ROLES.MODERATOR`
+- Kept strict admin-only dashboard UI gate in `app/(admin)/layout.tsx` unchanged per preference

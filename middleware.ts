@@ -32,6 +32,17 @@ function getLocale(request: NextRequest): string {
   return routing.defaultLocale
 }
 
+function getSafeRedirectPath(pathname: string | null): string {
+  if (!pathname) return '/'
+
+  const trimmed = pathname.trim()
+  if (!trimmed.startsWith('/')) return '/'
+  if (trimmed.startsWith('//')) return '/'
+  if (trimmed.startsWith('/user/auth')) return '/'
+
+  return trimmed
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -117,6 +128,11 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
     const isAuthPath = pathname.startsWith('/user/auth')
     const isConfirmEmailPath = pathname.includes('/confirm-email')
     const isCallbackPath = pathname.includes('/auth/callback')
+
+    if (user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
+      const redirectTo = getSafeRedirectPath(requestUrl.searchParams.get('redirectTo'))
+      return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+    }
 
     // If user is logged in but email is not confirmed
     if (user && !user.email_confirmed_at && !isAuthPath && !isCallbackPath) {

@@ -13,21 +13,21 @@ VibeDev ID uses Supabase Row Level Security to enforce data access control at th
 
 ## RLS Status
 
-| Table | RLS Enabled | Force RLS | Policies |
-|-------|-------------|-----------|----------|
-| users | ✅ | ✅ | 3 (view all, insert own, update own - authenticated role) |
-| projects | ✅ | ✅ | 4 (view all, insert/update/delete own - authenticated role) |
-| comments | ✅ | ✅ | 5 (view all, authenticated INSERT own, anon INSERT with name+content, authenticated UPDATE/DELETE own) |
-| likes | ✅ | ✅ | 3 (view all, insert/delete own - authenticated role) |
-| views | ✅ | ✅ | 4 (owner+admin SELECT, authenticated INSERT via admin client, no UPDATE/DELETE) |
-| posts | ✅ | ✅ | 4 (published OR author SELECT, author INSERT/UPDATE/DELETE - authenticated role) |
-| blog_post_tags | ✅ | ✅ | 3 (view all, insert/delete own - authenticated role) |
-| blog_reports | ✅ | ✅ | 2 (insert own, view own - authenticated role) |
-| post_tags | ✅ | ✅ | 1 (view all) |
-| categories | ✅ | ✅ | 1 (view all) |
-| vibe_videos | ✅ | ✅ | 4 (view all, admin-only INSERT/UPDATE/DELETE) |
-| events | ✅ | ✅ | 3 (view approved, submit own, view own pending - authenticated role) |
-| faqs | ✅ | ✅ | 4 (view all, admin CRUD - authenticated role) |
+| Table          | RLS Enabled | Force RLS | Policies                                                                                               |
+| -------------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| users          | ✅          | ✅        | 3 (view all, insert own, update own - authenticated role)                                              |
+| projects       | ✅          | ✅        | 4 (view all, insert/update/delete own - authenticated role)                                            |
+| comments       | ✅          | ✅        | 5 (view all, authenticated INSERT own, anon INSERT with name+content, authenticated UPDATE/DELETE own) |
+| likes          | ✅          | ✅        | 3 (view all, insert/delete own - authenticated role)                                                   |
+| views          | ✅          | ✅        | 4 (owner+admin SELECT, authenticated INSERT via admin client, no UPDATE/DELETE)                        |
+| posts          | ✅          | ✅        | 4 (published OR author SELECT, author INSERT/UPDATE/DELETE - authenticated role)                       |
+| blog_post_tags | ✅          | ✅        | 3 (view all, insert/delete own - authenticated role)                                                   |
+| blog_reports   | ✅          | ✅        | 2 (insert own, view own - authenticated role)                                                          |
+| post_tags      | ✅          | ✅        | 1 (view all)                                                                                           |
+| categories     | ✅          | ✅        | 1 (view all)                                                                                           |
+| vibe_videos    | ✅          | ✅        | 4 (view all, admin-only INSERT/UPDATE/DELETE)                                                          |
+| events         | ✅          | ✅        | 5 (view approved, submit own, view own pending, admin UPDATE/DELETE moderation - authenticated role)   |
+| faqs           | ✅          | ✅        | 4 (view all, admin CRUD - authenticated role)                                                          |
 
 ## Migration Scripts
 
@@ -43,19 +43,22 @@ VibeDev ID uses Supabase Row Level Security to enforce data access control at th
 
 ```typescript
 // lib/server/auth.ts
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server";
 
 export async function getServerSession() {
-  const supabase = await createClient()
-  
+  const supabase = await createClient();
+
   // ✅ SECURE: Validates token server-side
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  return user ? { user } : null
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user ? { user } : null;
 }
 ```
 
 **Why `getUser()` on server?**
+
 - Validates JWT token signature
 - Checks token expiration
 - Prevents cookie tampering attacks
@@ -65,29 +68,30 @@ export async function getServerSession() {
 
 ```typescript
 // hooks/useAuth.ts
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from "@/lib/supabase/client";
 
 export function useAuth() {
   useEffect(() => {
-    const supabase = createClient()
-    
+    const supabase = createClient();
+
     // ✅ SAFE: Fast client-side session check
     // Real-time sync via onAuthStateChange
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'INITIAL_SESSION') {
-          setAuthReady(true)
-          // Handle session...
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "INITIAL_SESSION") {
+        setAuthReady(true);
+        // Handle session...
       }
-    )
-    
-    return () => subscription.unsubscribe()
-  }, [])
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 }
 ```
 
 **Why `onAuthStateChange` on client?**
+
 - Fast initial load (no network roundtrip)
 - Real-time session updates
 - Middleware refreshes tokens (uses `getUser()`)
@@ -99,19 +103,19 @@ export function useAuth() {
 
 ```sql
 -- View all profiles (public)
-CREATE POLICY "Public profiles are viewable by everyone" 
-ON public.users FOR SELECT 
+CREATE POLICY "Public profiles are viewable by everyone"
+ON public.users FOR SELECT
 USING (true);
 
 -- Insert own profile only
-CREATE POLICY "Users can insert own profile" 
-ON public.users FOR INSERT 
+CREATE POLICY "Users can insert own profile"
+ON public.users FOR INSERT
 TO authenticated
 WITH CHECK ((select auth.uid()) = id);
 
 -- Update own profile only
-CREATE POLICY "Users can update own profile" 
-ON public.users FOR UPDATE 
+CREATE POLICY "Users can update own profile"
+ON public.users FOR UPDATE
 TO authenticated
 USING ((select auth.uid()) = id);
 ```
@@ -120,25 +124,25 @@ USING ((select auth.uid()) = id);
 
 ```sql
 -- View all projects (public)
-CREATE POLICY "Projects are viewable by everyone" 
-ON public.projects FOR SELECT 
+CREATE POLICY "Projects are viewable by everyone"
+ON public.projects FOR SELECT
 USING (true);
 
 -- Create own projects
-CREATE POLICY "Users can insert own projects" 
-ON public.projects FOR INSERT 
+CREATE POLICY "Users can insert own projects"
+ON public.projects FOR INSERT
 TO authenticated
 WITH CHECK ((select auth.uid()) = author_id);
 
 -- Update own projects
-CREATE POLICY "Users can update own projects" 
-ON public.projects FOR UPDATE 
+CREATE POLICY "Users can update own projects"
+ON public.projects FOR UPDATE
 TO authenticated
 USING ((select auth.uid()) = author_id);
 
 -- Delete own projects
-CREATE POLICY "Users can delete own projects" 
-ON public.projects FOR DELETE 
+CREATE POLICY "Users can delete own projects"
+ON public.projects FOR DELETE
 TO authenticated
 USING ((select auth.uid()) = author_id);
 ```
@@ -147,35 +151,35 @@ USING ((select auth.uid()) = author_id);
 
 ```sql
 -- View all comments (public)
-CREATE POLICY "Comments are viewable by everyone" 
-ON public.comments FOR SELECT 
+CREATE POLICY "Comments are viewable by everyone"
+ON public.comments FOR SELECT
 USING (true);
 
 -- Authenticated users can comment
-CREATE POLICY "Authenticated users can insert comments" 
-ON public.comments FOR INSERT 
+CREATE POLICY "Authenticated users can insert comments"
+ON public.comments FOR INSERT
 TO authenticated
 WITH CHECK ((select auth.uid()) = user_id);
 
 -- Guests can comment (with name)
-CREATE POLICY "Guests can insert comments with name" 
-ON public.comments FOR INSERT 
+CREATE POLICY "Guests can insert comments with name"
+ON public.comments FOR INSERT
 TO anon
 WITH CHECK (
-  (select auth.uid()) IS NULL AND 
+  (select auth.uid()) IS NULL AND
   author_name IS NOT NULL AND
   content IS NOT NULL
 );
 
 -- Update own comments only
-CREATE POLICY "Users can update own comments" 
-ON public.comments FOR UPDATE 
+CREATE POLICY "Users can update own comments"
+ON public.comments FOR UPDATE
 TO authenticated
 USING ((select auth.uid()) = user_id);
 
 -- Delete own comments only
-CREATE POLICY "Users can delete own comments" 
-ON public.comments FOR DELETE 
+CREATE POLICY "Users can delete own comments"
+ON public.comments FOR DELETE
 TO authenticated
 USING ((select auth.uid()) = user_id);
 ```
@@ -184,25 +188,25 @@ USING ((select auth.uid()) = user_id);
 
 ```sql
 -- View published OR author posts
-CREATE POLICY "Published or author posts are viewable" 
-ON public.posts FOR SELECT 
+CREATE POLICY "Published or author posts are viewable"
+ON public.posts FOR SELECT
 USING (published_at IS NOT NULL OR (select auth.uid()) = author_id);
 
 -- Authors create posts
-CREATE POLICY "Authors can insert posts" 
-ON public.posts FOR INSERT 
+CREATE POLICY "Authors can insert posts"
+ON public.posts FOR INSERT
 TO authenticated
 WITH CHECK ((select auth.uid()) = author_id);
 
 -- Authors update own posts
-CREATE POLICY "Authors can update own posts" 
-ON public.posts FOR UPDATE 
+CREATE POLICY "Authors can update own posts"
+ON public.posts FOR UPDATE
 TO authenticated
 USING ((select auth.uid()) = author_id);
 
 -- Authors delete own posts
-CREATE POLICY "Authors can delete own posts" 
-ON public.posts FOR DELETE 
+CREATE POLICY "Authors can delete own posts"
+ON public.posts FOR DELETE
 TO authenticated
 USING ((select auth.uid()) = author_id);
 ```
@@ -214,13 +218,13 @@ USING ((select auth.uid()) = author_id);
 Run this query to verify RLS status:
 
 ```sql
-SELECT 
+SELECT
   tablename,
-  (SELECT relrowsecurity 
-   FROM pg_class c 
+  (SELECT relrowsecurity
+   FROM pg_class c
    WHERE c.oid = ('public.' || tablename)::regclass) AS rls_enabled,
-  (SELECT relforcerowsecurity 
-   FROM pg_class c 
+  (SELECT relforcerowsecurity
+   FROM pg_class c
    WHERE c.oid = ('public.' || tablename)::regclass) AS force_rls
 FROM pg_tables
 WHERE schemaname = 'public'
@@ -234,7 +238,7 @@ ORDER BY tablename;
 Verify trigger functions have secure search_path:
 
 ```sql
-SELECT 
+SELECT
   proname AS function_name,
   prosecdef AS is_security_definer,
   proconfig AS function_settings
@@ -250,7 +254,7 @@ WHERE proname = 'update_updated_at_column'
 List all RLS policies:
 
 ```sql
-SELECT 
+SELECT
   schemaname,
   tablename,
   policyname,
@@ -270,15 +274,17 @@ ORDER BY tablename, policyname;
 
 ```typescript
 // ✅ GOOD: Server action validates auth
-'use server'
+"use server";
 export async function createProject(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
-  
+
   // Proceed with mutation...
 }
 ```
@@ -290,9 +296,9 @@ export async function createProject(formData: FormData) {
 'use client'
 export function DeleteButton({ projectId }: Props) {
   const { user } = useAuth() // Client-side session
-  
+
   if (!user) return null // INSECURE! Can be bypassed
-  
+
   return <button onClick={() => deleteProject(projectId)}>Delete</button>
 }
 
@@ -301,21 +307,21 @@ export function DeleteButton({ projectId }: Props) {
 export async function deleteProject(projectId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     return { success: false, error: 'Unauthorized' }
   }
-  
+
   // RLS policies enforce ownership check
   const { error } = await supabase
     .from('projects')
     .delete()
     .eq('id', projectId)
-  
+
   if (error) {
     return { success: false, error: 'Delete failed' }
   }
-  
+
   return { success: true }
 }
 ```
@@ -326,8 +332,8 @@ Even with server-side auth, RLS provides an additional security layer:
 
 ```sql
 -- If server code is compromised, RLS still prevents unauthorized access
-CREATE POLICY "Users can delete own projects" 
-ON public.projects FOR DELETE 
+CREATE POLICY "Users can delete own projects"
+ON public.projects FOR DELETE
 USING (auth.uid() = author_id);
 ```
 
@@ -403,4 +409,5 @@ If RLS policy is bypassed:
 
 ## Last Updated
 
+2026-02-12 - Added admin moderation policies for events UPDATE/DELETE
 2026-02-07 - Security hardening migration (RLS policy fixes, role scoping, performance optimization)
