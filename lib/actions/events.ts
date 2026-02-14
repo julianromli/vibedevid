@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createClient } from '@/lib/supabase/server'
@@ -172,6 +172,7 @@ export async function submitEvent(formData: EventFormData) {
     }
 
     revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error submitting event:', error)
@@ -193,7 +194,11 @@ export async function getPendingEvents() {
       return { events: [], error: 'Unauthorized' }
     }
 
-    const { data, error } = await supabase.from('events').select('*').eq('approved', false).order('created_at', { ascending: false })
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('approved', false)
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Error fetching pending events:', error)
@@ -220,7 +225,11 @@ export async function approveEvent(eventId: string) {
       return { success: false, error: 'Unauthorized' }
     }
 
-    const { data: updatedRows, error } = await supabase.from('events').update({ approved: true }).eq('id', eventId).select('id')
+    const { data: updatedRows, error } = await supabase
+      .from('events')
+      .update({ approved: true })
+      .eq('id', eventId)
+      .select('id')
 
     if (error) {
       console.error('Error approving event:', error)
@@ -233,6 +242,7 @@ export async function approveEvent(eventId: string) {
 
     revalidatePath('/dashboard')
     revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error approving event:', error)
@@ -265,6 +275,8 @@ export async function rejectEvent(eventId: string) {
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/event/list')
+    revalidateTag('event-list-events')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error rejecting event:', error)

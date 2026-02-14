@@ -16,20 +16,31 @@ import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
-import type { User } from '@/types/homepage'
+import type { Project, User } from '@/types/homepage'
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean
   initialUser: User | null
+  initialProjects: Project[]
+  initialFilterOptions: string[]
 }
 
-export default function HomePageClient({ initialIsLoggedIn, initialUser }: HomePageClientProps) {
+export default function HomePageClient({
+  initialIsLoggedIn,
+  initialUser,
+  initialProjects,
+  initialFilterOptions,
+}: HomePageClientProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [currentTime, setCurrentTime] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn)
   const [user, setUser] = useState<User | null>(initialUser)
 
-  const projectFilters = useProjectFilters(true)
+  const projectFilters = useProjectFilters({
+    authReady: true,
+    initialProjects,
+    initialFilterOptions,
+  })
   const isVisible = useIntersectionObserver()
 
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)

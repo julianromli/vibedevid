@@ -1,6 +1,6 @@
-import { setRequestLocale } from 'next-intl/server'
+import { fetchProjectsWithSorting } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/server'
-import type { User } from '@/types/homepage'
+import type { Project, User } from '@/types/homepage'
 import HomePageClient from './home-page-client'
 
 async function getUserData(userId: string, email: string): Promise<User | null> {
@@ -31,6 +31,13 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const [{ projects: initialProjects }, { data: categories }] = await Promise.all([
+    fetchProjectsWithSorting('trending', undefined, 20),
+    supabase.from('categories').select('display_name').eq('is_active', true).order('sort_order', { ascending: true }),
+  ])
+
+  const initialFilterOptions = ['All', ...((categories ?? []).map((category) => category.display_name) as string[])]
+
   let userData: User | null = null
   if (user) {
     userData = await getUserData(user.id, user.email || '')
@@ -40,6 +47,8 @@ export default async function HomePage() {
     <HomePageClient
       initialIsLoggedIn={!!user}
       initialUser={userData}
+      initialProjects={(initialProjects ?? []) as Project[]}
+      initialFilterOptions={initialFilterOptions}
     />
   )
 }

@@ -13,6 +13,7 @@ export function AdaptiveLogo({ className = 'w-auto h-6', alt = 'VibeDev ID Logo'
         src="/vibedevid_final_black.svg"
         alt={alt}
         className={`${className} block transition-opacity duration-300 dark:hidden`}
+        style={{ width: 'auto', height: 'auto' }}
         width={96}
         height={24}
         priority={true}
@@ -23,6 +24,7 @@ export function AdaptiveLogo({ className = 'w-auto h-6', alt = 'VibeDev ID Logo'
         src="/vibedevid_final_white.svg"
         alt={alt}
         className={`${className} hidden transition-opacity duration-300 dark:block`}
+        style={{ width: 'auto', height: 'auto' }}
         aria-hidden="true"
         width={96}
         height={24}

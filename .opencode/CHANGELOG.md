@@ -373,6 +373,156 @@ Replaced logo marquee component with SVG icons for AI LLMs and coding tools usin
 - Used unpkg CDN for reliability (fallback: npmmirror CDN available)
 - Component maintains same TypeScript interface (no breaking changes)
 
+## 2026-02-14 - Production Performance Benchmark (Next DevTools MCP)
+
+### Summary
+Ran a production-mode performance benchmark for key public routes using `bun run build`, `bun run start -- --port 4000`, and browser automation via Next DevTools MCP.
+
+### Changes Made
+- Installed missing dependency to unblock production build: `@radix-ui/react-switch`
+- Measured runtime metrics on:
+  - `/`
+  - `/project/list`
+  - `/blog`
+  - `/event/list`
+- Collected and reviewed production console warnings/errors:
+  - 404s for `/_vercel/insights/script.js` and `/_vercel/speed-insights/script.js` on local prod
+  - Unused preload warnings for `vibedevid_final_white.svg`, `vibedevid_final_black.svg`, and `vibedev-guest-avatar.png`
+
+---
+
+## 2026-02-14 - P1 Performance Fixes Applied
+
+### Summary
+Applied first-priority performance fixes from the production benchmark: removed ineffective global image preloads, aligned Next image quality config, and fixed logo image sizing to preserve aspect ratio.
+
+### Changes Made
+- Removed global preloads for logo/avatar assets from `app/layout.tsx` that were triggering unused preload warnings
+- Added `images.qualities: [75, 85]` to `next.config.mjs` to match existing `quality={85}` usage
+- Updated `components/ui/adaptive-logo.tsx` with explicit `style={{ width: 'auto', height: 'auto' }}` on logo images to prevent width/height mismatch warnings
+
+---
+
+## 2026-02-14 - Next Steps Implemented (Analytics Gating + Server-First Homepage Data)
+
+### Summary
+Implemented follow-up performance work by removing local analytics script failures and shifting homepage project data initialization to server-side to reduce first-render client fetch work.
+
+### Changes Made
+- Gated Vercel Analytics and Speed Insights to Vercel runtime only in `app/layout.tsx`
+- Added server-side initial homepage data loading in `app/page.tsx`:
+  - initial projects via `fetchProjectsWithSorting('trending')`
+  - initial category filter options from Supabase `categories`
+- Extended homepage client props in `app/home-page-client.tsx` to receive initial projects/filter options
+- Refactored `hooks/useProjectFilters.ts` to accept options object with initial data and skip duplicate initial client fetch
+- Reduced noisy debug logging in `hooks/useProjectFilters.ts`
+
+---
+
+## 2026-02-14 - Cold-ish Verification Benchmark After Next Steps
+
+### Summary
+Ran another production benchmark pass after analytics gating + server-first homepage data flow changes using fresh browser sessions per route and cache-busting query params.
+
+### Measurement Notes
+- Server: `bun run start -- --port 4000`
+- Browser automation: headless Chrome
+- Method: new browser session per route, unique query params, post-load timing snapshot
+- Captured: TTFB, FP, FCP, DOMContentLoaded, loadEvent, request count, transfer totals, console errors/warnings
+
+---
+
+## 2026-02-14 - Event List Slowdown Investigation + Mitigation
+
+### Summary
+Investigated `/event/list` TTFB regression and isolated the dominant latency to server-side event data retrieval path (`getEvents`) rather than local script/runtime overhead.
+
+### Changes Made
+- Updated `/event/list` server page flow to remove server-side user profile fetch and rely on client auth hook:
+  - `app/event/list/page.tsx` now loads only event data
+  - `app/event/list/event-list-client.tsx` now uses `useAuth()` for auth state
+- Attempted cache optimization with `unstable_cache` for event list data, then rolled back due dynamic `cookies()` constraint from Supabase server client in cached scope
+- Kept cache tag invalidation support in event mutation actions (`submitEvent`, `approveEvent`, `rejectEvent`) for future cache-safe event list strategy
+
+### Findings
+- Removing server-side auth fetch reduced part of overhead but did not eliminate high TTFB spikes
+- `/event/list` still shows elevated server wait, indicating DB/auth-backend query path is primary bottleneck
+
+---
+
+## 2026-02-14 - Cache-Safe Public Events Fetch for `/event/list`
+
+### Summary
+Implemented a cookie-free, cacheable server data path for public events list and wired `/event/list` to use it.
+
+### Changes Made
+- Added new public server utility `lib/server/events-public.ts`:
+  - Uses `@supabase/supabase-js` anon client (no `cookies()` dependency)
+  - Maps DB rows to `AIEvent`
+  - Exposes `getCachedApprovedEvents` via `unstable_cache` with `revalidate: 60` and `event-list-events` tag
+- Updated `app/event/list/page.tsx` to use `getCachedApprovedEvents()`
+- Kept tag-based invalidation in `lib/actions/events.ts` for submit/approve/reject mutations
+
+### Verification
+- `bun run build` passes
+- Production benchmark on `/event/list`:
+  - First request (cold): TTFB ~522ms, FCP ~696ms
+  - Second request (cached): TTFB ~100ms, FCP ~340ms
+
+---
+
+## 2026-02-14 - Cache-Safe Public Blog Fetch for `/blog`
+
+### Summary
+Applied the same cookie-free cached data pattern from `/event/list` to the public blog list route for consistent server performance behavior.
+
+### Changes Made
+- Added `lib/server/blog-public.ts`:
+  - Public anon Supabase client (no `cookies()`)
+  - Cached published posts query via `unstable_cache`
+  - Cache tag: `blog-list-posts`, revalidate every 60s
+- Updated `app/blog/page.tsx` to fetch post list via `getCachedPublishedPosts()`
+- Added tag invalidation in `lib/actions/blog.ts` for create/update/delete flows via `revalidateTag('blog-list-posts')`
+
+### Verification
+- `bun run build` passes
+- `/blog` benchmark:
+  - First request (cold): TTFB ~805ms, FCP ~924ms
+  - Second request (cached): TTFB ~60ms, FCP ~268ms
+
+---
+
+## 2026-02-14 - Consolidated Final Benchmark (Post-Optimization)
+
+### Summary
+Ran a final consolidated production benchmark for core routes after all implemented optimizations (image/preload cleanup, homepage server-first data, cache-safe public fetches for blog/events).
+
+### Routes Benchmarked
+- `/`
+- `/project/list`
+- `/blog`
+- `/event/list`
+
+### Notes
+- Measured first-hit and immediate second-hit timing snapshots in the same browser session
+- Console status remained clean (no runtime errors/warnings)
+
+---
+
+## 2026-02-14 - Homepage Cold-Start Focus Analysis (`/`)
+
+### Summary
+Performed targeted analysis for homepage cold-start behavior and identified high-impact bottlenecks in server critical path and above-the-fold client workload.
+
+### Key Findings
+- Server critical path still includes auth + project/category queries in `app/page.tsx`
+- Homepage ships a large client composition in `app/home-page-client.tsx` with many sections mounted eagerly
+- `currentTime` interval in homepage client triggers full-page re-render every second
+- Hero/logo/video sections introduce substantial above-the-fold work and external asset pressure
+
+### Output
+- Provided prioritized optimization plan for server timing breakdown, above-the-fold reduction, and staged lazy hydration boundaries
+
 ---
 
 ## 2026-02-12 - Fix Events Approval Not Persisting

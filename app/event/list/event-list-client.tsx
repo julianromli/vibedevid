@@ -6,22 +6,18 @@ import { EventFilterControls } from '@/components/event/event-filter-controls'
 import { SubmitEventSection } from '@/components/event/submit-event-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
+import { useAuth } from '@/hooks/useAuth'
 import { applyFilters } from '@/lib/events-utils'
 import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
-import type { User } from '@/types/homepage'
 
 type ViewMode = 'grid' | 'list'
 
 interface EventListClientProps {
-  initialIsLoggedIn: boolean
-  initialUser: User | null
   initialEvents: AIEvent[]
 }
 
-export default function EventListClient({ initialIsLoggedIn, initialUser, initialEvents }: EventListClientProps) {
-  // Use props for auth state instead of useAuth hook for consistency with HomePage
-  const [isLoggedIn] = useState(initialIsLoggedIn)
-  const [user] = useState<User | null>(initialUser)
+export default function EventListClient({ initialEvents }: EventListClientProps) {
+  const { isLoggedIn, user } = useAuth()
 
   // Filter and sort state
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'All'>('All')
