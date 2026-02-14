@@ -9,6 +9,55 @@ import { fetchFavicon } from './favicon-utils'
 import { ensureUniqueSlug, getProjectIdBySlug, slugifyTitle } from './slug'
 import { createAdminClient } from './supabase/admin'
 
+function toLoggableError(error: unknown): string | Record<string, string | number> {
+  if (typeof error === 'string') {
+    return error
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    }
+  }
+
+  if (error && typeof error === 'object') {
+    const source = error as Record<string, unknown>
+    const result: Record<string, string | number> = {}
+
+    const stringKeys = ['name', 'message', 'code', 'details', 'hint', 'statusText'] as const
+    stringKeys.forEach((key) => {
+      const value = source[key]
+      if (typeof value === 'string' && value.trim() !== '') {
+        result[key] = value
+      }
+    })
+
+    const status = source.status
+    if (typeof status === 'number') {
+      result.status = status
+    }
+
+    if (Object.keys(result).length > 0) {
+      return result
+    }
+  }
+
+  return 'Unknown error'
+}
+
+function isAuthSessionMissingError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  const source = error as Record<string, unknown>
+  const name = typeof source.name === 'string' ? source.name : ''
+  const message = typeof source.message === 'string' ? source.message : ''
+
+  return name === 'AuthSessionMissingError' || message.toLowerCase().includes('auth session missing')
+}
+
 async function createClient() {
   const cookieStore = await cookies()
   const { url, anonKey } = getSupabaseConfig()
@@ -656,8 +705,8 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       error: userError,
     } = await supabase.auth.getUser()
 
-    if (userError) {
-      console.error('[v0] getBatchLikeStatus: User error:', userError)
+    if (userError && !isAuthSessionMissingError(userError)) {
+      console.error('[v0] getBatchLikeStatus: User error:', toLoggableError(userError))
       // Continue without user - we can still get total likes
     }
 
@@ -670,7 +719,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       .in('project_id', cleanProjectIds)
 
     if (likesError) {
-      console.error('[v0] getBatchLikeStatus: Likes fetch error:', likesError)
+      console.error('[v0] getBatchLikeStatus: Likes fetch error:', toLoggableError(likesError))
       // Return empty data instead of error to not break UI
       const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
       cleanProjectIds.forEach((projectId) => {
@@ -698,7 +747,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
     console.log('[v0] getBatchLikeStatus: Processed likes data:', likesData)
     return { likesData, error: null }
   } catch (error) {
-    console.error('[v0] getBatchLikeStatus: Unexpected error:', error)
+    console.error('[v0] getBatchLikeStatus: Unexpected error:', toLoggableError(error))
     // Return safe fallback data to prevent UI breaks
     const fallbackLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
     if (projectIds && projectIds.length > 0) {
@@ -986,7 +1035,7 @@ export async function fetchProjectsWithSorting(
     const { data: projectsWithUsers, error } = await query
 
     if (error) {
-      console.error('[fetchProjectsWithSorting] Error fetching projects:', error)
+      console.error('[fetchProjectsWithSorting] Error fetching projects:', toLoggableError(error))
       return { projects: [], error: error.message }
     }
 
@@ -1063,7 +1112,7 @@ export async function fetchProjectsWithSorting(
 
     return { projects: sortedProjects, error: null }
   } catch (error) {
-    console.error('[fetchProjectsWithSorting] Unexpected error:', error)
+    console.error('[fetchProjectsWithSorting] Unexpected error:', toLoggableError(error))
     return { projects: [], error: 'Failed to fetch projects' }
   }
 }

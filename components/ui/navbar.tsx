@@ -181,7 +181,7 @@ export function Navbar({
                 href="/"
                 className="flex items-center gap-2"
               >
-                <AdaptiveLogo />
+                <AdaptiveLogo className="h-7 w-auto md:h-8" />
               </Link>
             )}
           </motion.div>

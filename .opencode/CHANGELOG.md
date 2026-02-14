@@ -571,3 +571,61 @@ Updated event moderation server action authorization so moderators are allowed f
 - Removed local `ROLES` constant from `lib/actions/events.ts`
 - Expanded `checkAdminAccess()` role check to allow both `ROLES.ADMIN` and `ROLES.MODERATOR`
 - Kept strict admin-only dashboard UI gate in `app/(admin)/layout.tsx` unchanged per preference
+
+## 2026-02-14 - Fix Navbar Logo Sizing
+
+### Summary
+Normalized navbar logo rendering so the brand mark no longer appears oversized and scales consistently across mobile and desktop.
+
+### Changes Made
+- Updated `components/ui/adaptive-logo.tsx` to use responsive utility sizing defaults (`h-7 w-auto md:h-8`).
+- Removed inline `width/height: auto` styles that could override intended Tailwind logo sizing.
+- Corrected intrinsic SVG dimensions for both theme variants to `704x120` so ratio metadata matches source assets.
+- Passed explicit sizing from `components/ui/navbar.tsx` via `<AdaptiveLogo className="h-7 w-auto md:h-8" />`.
+
+### Verification
+- `bunx biome check "components/ui/adaptive-logo.tsx" "components/ui/navbar.tsx"` ⚠️ reports pre-existing navbar lint findings unrelated to this sizing change (complexity/index keys/button type/class sorting).
+
+## 2026-02-14 - Mitigate Next Dev Invalid Source Map Console Error
+
+### Summary
+Reduced noisy Next.js dev overlay source-map parsing errors by normalizing server-side error logging to plain serializable fields in the homepage project fetch flow.
+
+### Changes Made
+- Added `toLoggableError(error: unknown)` in `lib/actions.ts` to serialize errors into safe primitive fields (`name`, `message`, `code`, `details`, `hint`, `status`, `statusText`).
+- Updated raw error logging in `getBatchLikeStatus()` to use serialized output:
+  - user auth error log
+  - likes query error log
+  - catch-all unexpected error log
+- Updated `fetchProjectsWithSorting()` logs to use serialized error output for both query errors and catch-all errors.
+
+### Verification
+- `bunx biome check "lib/actions.ts"` ⚠️ reports many pre-existing lint findings in this legacy file unrelated to this fix.
+
+## 2026-02-14 - Silence Expected AuthSessionMissingError on Homepage Flow
+
+### Summary
+Stopped expected anonymous-session auth errors from surfacing as console errors during homepage project/likes fetch in development.
+
+### Changes Made
+- Added `isAuthSessionMissingError(error: unknown)` helper in `lib/actions.ts`.
+- Updated `getBatchLikeStatus()` to skip `console.error` when `supabase.auth.getUser()` returns expected `AuthSessionMissingError` for anonymous visitors.
+- Kept error logging for all other unexpected auth errors using existing `toLoggableError()` serialization.
+- Reverted temporary homepage-level auth error logging in `app/page.tsx` to avoid extra noisy console output.
+
+### Verification
+- `bunx biome check "app/page.tsx"` ✅
+- `bunx biome check "lib/actions.ts"` ⚠️ still reports existing legacy lint issues unrelated to this targeted auth-noise fix.
+
+## 2026-02-14 - Guard Agentation localStorage Access
+
+### Summary
+Prevented runtime `SecurityError` crashes in restricted browser contexts by only loading Agentation when `localStorage` is actually accessible.
+
+### Changes Made
+- Updated `components/agentation-provider.tsx` with `canUseLocalStorage()` runtime guard using safe probe read/write in try/catch.
+- Switched provider component state typing from `any` to `ComponentType | null`.
+- Wrapped dynamic `import('agentation')` in guarded async flow with cancellation handling and safe failure fallback.
+
+### Verification
+- `bunx biome check "components/agentation-provider.tsx"` ✅
