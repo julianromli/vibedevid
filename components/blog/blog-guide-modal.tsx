@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -9,9 +11,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+
+const BLOG_GUIDE_STORAGE_KEY = 'hide_blog_editor_guide'
+
+function getStoredGuidePreference(): string | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    return window.localStorage.getItem(BLOG_GUIDE_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function setStoredGuidePreference(): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(BLOG_GUIDE_STORAGE_KEY, 'true')
+  } catch {}
+}
 
 const TypingAnimation = () => (
   <div className="flex justify-center items-center py-6">
@@ -165,7 +189,7 @@ export function BlogGuideModal() {
   const [dontShowAgain, setDontShowAgain] = useState(false)
 
   useEffect(() => {
-    const hasSeenGuide = localStorage.getItem('hide_blog_editor_guide')
+    const hasSeenGuide = getStoredGuidePreference()
     if (!hasSeenGuide) {
       // Small delay to ensure UI is ready
       const timer = setTimeout(() => setOpen(true), 500)
@@ -175,7 +199,7 @@ export function BlogGuideModal() {
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && dontShowAgain) {
-      localStorage.setItem('hide_blog_editor_guide', 'true')
+      setStoredGuidePreference()
     }
     setOpen(newOpen)
   }

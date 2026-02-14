@@ -629,3 +629,20 @@ Prevented runtime `SecurityError` crashes in restricted browser contexts by only
 
 ### Verification
 - `bunx biome check "components/agentation-provider.tsx"` ✅
+
+## 2026-02-14 - Harden localStorage Usage in UI Components
+
+### Summary
+Added defensive `localStorage` guards in client UI flows to avoid runtime `SecurityError` in storage-restricted browser contexts.
+
+### Changes Made
+- Updated `components/blog/blog-guide-modal.tsx`:
+  - Added safe helpers for reading/writing guide-dismiss preference.
+  - Replaced direct `localStorage.getItem`/`setItem` calls with guarded wrappers.
+- Updated `app/event/list/event-list-client.tsx`:
+  - Added safe helpers for persisted view mode.
+  - Replaced direct `localStorage` access in `useEffect` and change handler with guarded wrappers.
+
+### Verification
+- `bunx biome check "app/event/list/event-list-client.tsx"` ✅
+- `bunx biome check "components/blog/blog-guide-modal.tsx"` ⚠️ reports pre-existing lint issues (class sorting and missing SVG title) unrelated to this storage-hardening change.

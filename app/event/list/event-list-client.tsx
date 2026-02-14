@@ -11,6 +11,34 @@ import { applyFilters } from '@/lib/events-utils'
 import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 
 type ViewMode = 'grid' | 'list'
+const EVENT_VIEW_MODE_STORAGE_KEY = 'eventViewMode'
+
+function getStoredViewMode(): ViewMode | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const saved = window.localStorage.getItem(EVENT_VIEW_MODE_STORAGE_KEY)
+    if (saved === 'grid' || saved === 'list') {
+      return saved
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+function persistViewMode(mode: ViewMode): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(EVENT_VIEW_MODE_STORAGE_KEY, mode)
+  } catch {}
+}
 
 interface EventListClientProps {
   initialEvents: AIEvent[]
@@ -28,15 +56,15 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
   useEffect(() => {
-    const saved = localStorage.getItem('eventViewMode') as ViewMode | null
-    if (saved === 'grid' || saved === 'list') {
+    const saved = getStoredViewMode()
+    if (saved) {
       setViewMode(saved)
     }
   }, [])
 
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode)
-    localStorage.setItem('eventViewMode', mode)
+    persistViewMode(mode)
   }
 
   // Apply filters and sort to mock data
