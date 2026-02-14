@@ -17,6 +17,11 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 📊 **Views Tracking** - Session-based analytics untuk project insights
 - 🤖 **AI Leaderboard** - Ranking dan showcase AI tools favorit komunitas
 - 🗓️ **Community Calendar** - Event dan activity tracker
+- 🎉 **Events System** - Submit dan browse community events dengan approval workflow
+- 📈 **User Dashboard** - Personal dashboard untuk manage projects dan activity
+- 🛠️ **Admin Dashboard** - Full admin panel dengan moderation tools
+- ⌨️ **Command Palette** - Quick navigation dan search (cmdk)
+- 🎬 **Vibe Videos** - Video content section untuk tutorial dan highlights
 - 🌙 **Dark/Light Mode** - UI theme yang nyaman mata
 - 📱 **Responsive Design** - Perfect di semua device
 - 🏷️ **Project Categories** - Personal Web, SaaS, Landing Page, dan lainnya
@@ -25,10 +30,13 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 🖼️ **Progressive Image Loading** - Blur placeholders dengan lazy loading
 - 🌍 **Internationalization** - Full support English dan Indonesia (next-intl)
 - 🛡️ **Spam Protection** - Email domain whitelist dan bot protection
+- 📊 **Analytics Dashboard** - Charts dan data visualization (recharts)
+- ❓ **FAQ System** - Frequently asked questions management
+- 🚨 **Content Moderation** - Report dan moderation system
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.0.10 with App Router
+- **Framework**: Next.js 16.0.10 with App Router + Turbopack
 - **Language**: TypeScript 5.x
 - **Database**: Supabase (PostgreSQL) with RLS policies
 - **Authentication**: Supabase Auth (email/password + OAuth)
@@ -36,12 +44,19 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
 - **Animations**: Motion 12.23.12
 - **Rich Text**: Novel 1.0.2 + TipTap 3.14.0
-- **Icons**: Lucide React 0.562.0
+- **Icons**: Lucide React 0.562.0 + Tabler Icons + LobeHub Icons
 - **Fonts**: Geist Sans & Geist Mono
 - **Internationalization**: next-intl 4.7.0
 - **Forms**: React Hook Form + Zod
+- **AI Integration**: AI SDK + OpenRouter Provider
+- **File Uploads**: UploadThing + Better Upload
+- **Command Palette**: cmdk 1.1.1
+- **Charts**: Recharts 3.7.0
+- **Dates**: date-fns + date-fns-tz
 - **Testing**: Playwright 1.55.0 (E2E) + Vitest 4.0.18 (unit)
 - **Code Quality**: Biome 2.3.10 (linter + formatter)
+- **Analytics**: Vercel Analytics + Speed Insights
+- **Toast**: Sonner 2.0.7
 
 ## Getting Started
 
@@ -134,8 +149,23 @@ bun format
 # E2E tests (Playwright) - runs all tests in tests/ directory
 bunx playwright test
 
+# Run single test file
+bunx playwright test tests/views-tracking.spec.ts
+
+# Run single test by name
+bunx playwright test -g "should track views when visiting project page"
+
 # Run unit tests only
 bunx playwright test tests/unit/
+
+# Run tests in headed mode (see browser)
+bunx playwright test --headed
+
+# Run tests in debug mode (step through)
+bunx playwright test --debug
+
+# Run tests in specific browser
+bunx playwright test --project=chromium
 ```
 
 ## Environment Variables
@@ -152,19 +182,31 @@ bunx playwright test tests/unit/
 
 ### Core Tables
 
-**users** - Extended auth profiles with social links and bio
+**users** - Extended auth profiles with role system (0=admin, 1=moderator, 2=user), social links, bio, and location
 
-**projects** - Project showcase with slug-based URLs for SEO
+**projects** - Project showcase with slug-based URLs for SEO, tags, and category
 
 **comments** - Unified comments system for both Blog and Projects
 
-**likes** - User likes dengan unique constraint (one like per user per project)
+**likes** - User likes with unique constraint (one like per user per project/post)
 
-**views** - Session-based views tracking with 30-minute timeout
+**views** - Session-based views tracking with 30-minute timeout, IP + User Agent fingerprinting
 
-**posts** - Blog posts dengan rich text content
+**posts** - Blog posts with rich text content (JSON), featured flag, read time
 
 **post_tags** - Blog tag categorization
+
+**blog_post_tags** - Many-to-many relationship between posts and tags
+
+**events** - Community events with approval workflow, status (upcoming/past), location details
+
+**categories** - Project categories with icon and color
+
+**faqs** - FAQ content with sort order and active status
+
+**blog_reports** - Comment/report moderation system
+
+**vibe_videos** - Video content for tutorials and highlights
 
 ### Security
 
@@ -172,7 +214,8 @@ bunx playwright test tests/unit/
 - Public read access untuk semua data
 - Authenticated insert/update untuk data milik user sendiri
 - Guest comments diizinkan dengan author_name field
-- Admin role diperlukan untuk moderation
+- Admin/moderator role diperlukan untuk moderation
+- Email domain whitelist untuk registration
 
 ## Project Structure
 
@@ -187,8 +230,14 @@ bunx playwright test tests/unit/
 │   │   ├── page.tsx        # Blog listing
 │   │   ├── [id]/           # Blog post detail
 │   │   └── editor/         # Rich text blog editor
-│   ├── admin/              # Admin dashboard
+│   ├── event/
+│   │   ├── list/           # Event listing
+│   │   ├── [slug]/         # Event detail pages
+│   │   └── submit/         # Submit new event (auth required)
+│   ├── dashboard/          # User dashboard
+│   ├── admin/              # Admin dashboard with moderation
 │   ├── calendar/           # Community calendar
+│   ├── videos/             # Vibe videos section
 │   ├── terms/              # Terms page
 │   ├── user/auth/          # Authentication pages
 │   └── layout.tsx          # Root layout with providers
@@ -196,16 +245,21 @@ bunx playwright test tests/unit/
 │   ├── ui/                 # 50+ shadcn/ui components
 │   ├── sections/           # Page sections (hero, showcase, faq)
 │   ├── blog/               # Blog-specific components
-│   └── project/            # Project-specific components
-├── hooks/                  # Custom React hooks
+│   ├── project/            # Project-specific components
+│   ├── admin-panel/        # Admin dashboard components
+│   ├── event/              # Event-specific components
+│   └── profile/            # Profile-specific components
+├── hooks/                  # Custom React hooks (10+ hooks)
 ├── lib/
-│   ├── actions/            # Server actions (comments, blog, projects)
+│   ├── actions/            # Server actions (comments, blog, projects, events)
 │   ├── supabase/           # Supabase client configuration
-│   └── server/             # Server utilities
+│   ├── server/             # Server utilities
+│   └── ai/                 # AI integration (OpenRouter)
 ├── types/                  # TypeScript type definitions
-├── scripts/                # Database migrations (15+ SQL files)
-├── tests/                  # Playwright E2E tests
+├── scripts/                # Database migrations (20+ SQL files)
+├── tests/                  # Playwright E2E tests + unit tests
 ├── messages/               # i18n messages (en.json, id.json)
+├── docs/                   # Documentation (security, database, deployment)
 ├── biome.json              # Biome configuration
 ├── next.config.mjs         # Next.js configuration
 └── tsconfig.json           # TypeScript configuration
@@ -249,6 +303,39 @@ Registration dibatasi ke domain terpercaya:
 - gmail.com, yahoo.com, outlook.com
 - dan 20+ domain edukasi/tech lain
 
+### AI Integration
+
+Built-in AI features using OpenRouter:
+- AI-powered content suggestions
+- Leaderboard for AI tool rankings
+- Integration with Agentic workflow
+
+### Events System
+
+Full-featured events management:
+- Event submission with approval workflow
+- Status tracking (upcoming, past)
+- Location types (online, offline, hybrid)
+- Organizer profiles
+- Cover image support
+
+### Admin Dashboard
+
+Comprehensive admin tools:
+- User management (role: admin, moderator, user)
+- Content moderation (comments, reports)
+- Event approval workflow
+- Analytics dashboard
+
+### Skills System
+
+This project includes AI agent skills for enhanced development:
+
+- **frontend-design** - Create distinctive, production-grade frontend interfaces
+- **webapp-testing** - Toolkit for interacting with testing local web applications
+
+See `.claude/skills/` for workspace skills and `~/.kiro/skills/` for global skills.
+
 ## Contributing
 
 Kami welcome kontribusi dari semua developer! 🎉
@@ -276,6 +363,13 @@ Kami welcome kontribusi dari semua developer! 🎉
 - Biome enforces unified linting + formatting
 - `@/` prefix untuk absolute imports
 - Group imports: React → Third-party → Internal
+
+### Security
+
+For detailed security documentation, see:
+- [Security Audit Summary](docs/security/SECURITY_AUDIT_SUMMARY.md)
+- [RLS Policies](docs/security/RLS_POLICIES.md)
+- [Auth Dashboard Settings](docs/security/AUTH_DASHBOARD_SETTINGS.md)
 
 ## License
 
