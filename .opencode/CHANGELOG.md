@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-02-20 - Integrate Navbar and Footer on Legal Pages
+
+### Summary
+Updated `/privacy-policy` and `/terms-of-service` to use the shared app `Navbar` and `Footer` while preserving auth session behavior on navbar actions.
+
+### Changes Made
+- Added client wrappers:
+  - `app/privacy-policy/privacy-policy-client.tsx`
+  - `app/terms-of-service/terms-of-service-client.tsx`
+- Updated server pages to render client wrappers and keep static metadata exports:
+  - `app/privacy-policy/page.tsx`
+  - `app/terms-of-service/page.tsx`
+- Wired navbar auth props from `useAuth()` (`isLoggedIn`, `user`) to preserve sign-in/profile/sign-out behavior.
+
+### Verification
+- `lsp_diagnostics` on modified legal page files ✅
+- `bun run build` ✅
+- `bunx playwright test tests/auth-redirect.spec.ts --project=chromium` ✅ (2 passed)
+
 ## 2026-02-20 - Add Dedicated Privacy Policy and Terms of Service Pages
 
 ### Summary
