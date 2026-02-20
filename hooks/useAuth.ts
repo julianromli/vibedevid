@@ -13,7 +13,6 @@ export function useAuth() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [authReady, setAuthReady] = useState(false)
-  const [creatingProfile, setCreatingProfile] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -69,6 +68,7 @@ export function useAuth() {
     }
 
     const hydrateInitialAuth = async () => {
+      initialHydrated = true
       const {
         data: { user: authUser },
         error,
@@ -91,7 +91,6 @@ export function useAuth() {
 
       setIsLoggedIn(true)
       setUser(getFallbackUser(authUser.id, authUser.email || ''))
-      initialHydrated = true
       await fetchUserProfile(authUser.id, authUser.email || '')
       setReadyIfMounted()
     }
@@ -124,7 +123,6 @@ export function useAuth() {
 
       if (event === 'SIGNED_OUT') {
         setSignedOutState()
-        setCreatingProfile(false)
         setReadyIfMounted()
         return
       }
@@ -158,6 +156,5 @@ export function useAuth() {
     isLoggedIn,
     user,
     authReady,
-    creatingProfile,
   }
 }

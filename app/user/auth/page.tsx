@@ -583,7 +583,7 @@ function AuthPageContent() {
                 <>
                   By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
                   <Link
-                    href="/terms"
+                    href="/terms-of-service"
                     className="text-foreground underline hover:text-primary"
                   >
                     Terms & Service

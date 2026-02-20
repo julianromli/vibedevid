@@ -113,7 +113,18 @@ const SECTIONS = [
   {
     id: 'contact',
     title: '14. Kontak',
-    body: ['Untuk pertanyaan terkait Terms of Service, hubungi support@vibedev.id.'],
+    body: [
+      <>
+        Untuk pertanyaan terkait Terms of Service, hubungi{' '}
+        <a
+          href="mailto:support@vibedev.id"
+          className="text-primary hover:underline"
+        >
+          support@vibedev.id
+        </a>
+        .
+      </>,
+    ],
   },
 ]
 

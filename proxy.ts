@@ -51,7 +51,7 @@ function withSupabaseCookies(baseResponse: NextResponse, targetResponse: NextRes
   return targetResponse
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // 1. Handle /en route - Strict English
