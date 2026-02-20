@@ -43,6 +43,14 @@ function getSafeRedirectPath(pathname: string | null): string {
   return trimmed
 }
 
+function withSupabaseCookies(baseResponse: NextResponse, targetResponse: NextResponse): NextResponse {
+  for (const cookie of baseResponse.cookies.getAll()) {
+    targetResponse.cookies.set(cookie)
+  }
+
+  return targetResponse
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -109,9 +117,13 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value)
+          })
           // Copy cookies to response
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
         },
       },
     })
@@ -131,7 +143,8 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
 
     if (user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
       const redirectTo = getSafeRedirectPath(requestUrl.searchParams.get('redirectTo'))
-      return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+      const redirectResponse = NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+      return withSupabaseCookies(response, redirectResponse)
     }
 
     // If user is logged in but email is not confirmed
@@ -141,18 +154,20 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
       // Sign out unconfirmed user and redirect
       await supabase.auth.signOut()
 
-      return NextResponse.redirect(
+      const redirectResponse = NextResponse.redirect(
         new URL(
           `/user/auth/confirm-email?email=${encodeURIComponent(user.email || '')}&from=${encodeURIComponent(pathname)}`,
           requestUrl.origin,
         ),
       )
+      return withSupabaseCookies(response, redirectResponse)
     }
 
     // Prevent confirmed users from accessing confirm-email page unless they have a specific email param
     if (user && user.email_confirmed_at && isConfirmEmailPath && !requestUrl.searchParams.get('email')) {
       console.log('[Middleware] Redirecting confirmed user away from confirm-email page')
-      return NextResponse.redirect(new URL('/', requestUrl.origin))
+      const redirectResponse = NextResponse.redirect(new URL('/', requestUrl.origin))
+      return withSupabaseCookies(response, redirectResponse)
     }
   } catch (error) {
     console.error('Middleware error:', error)
