@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Centralized authentication hook
  * Handles auth state detection, user profile fetching, and auth state changes
@@ -15,6 +17,7 @@ export function useAuth() {
 
   useEffect(() => {
     let isMounted = true
+    let initialHydrated = false
 
     const supabase = createClient()
 
@@ -89,6 +92,7 @@ export function useAuth() {
       setIsLoggedIn(true)
       setUser(getFallbackUser(authUser.id, authUser.email || ''))
       await fetchUserProfile(authUser.id, authUser.email || '')
+      initialHydrated = true
       setReadyIfMounted()
     }
 
@@ -100,14 +104,14 @@ export function useAuth() {
         if (event === 'INITIAL_SESSION') {
           setSignedOutState()
         }
-        setAuthReady(true)
+        setReadyIfMounted()
         return
       }
 
       setIsLoggedIn(true)
       setUser(getFallbackUser(session.user.id, session.user.email || ''))
       await fetchUserProfile(session.user.id, session.user.email || '')
-      setAuthReady(true)
+      setReadyIfMounted()
     }
 
     const handleAuthStateChange = async (
@@ -116,17 +120,20 @@ export function useAuth() {
     ) => {
       if (!isMounted) return
 
-      console.log('[useAuth] Auth state change:', event, session)
+      console.log('[useAuth] Auth state change:', event, !!session)
 
       if (event === 'SIGNED_OUT') {
         setSignedOutState()
         setCreatingProfile(false)
-        setAuthReady(true)
+        setReadyIfMounted()
         return
       }
 
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-        await handleInitialOrSignedIn(event, session)
+        if (event === 'INITIAL_SESSION' && initialHydrated) {
+          return
+        }
+        await handleInitialOrSignedIn(event as 'INITIAL_SESSION' | 'SIGNED_IN', session)
       }
     }
 

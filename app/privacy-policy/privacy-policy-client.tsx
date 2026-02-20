@@ -127,15 +127,19 @@ const sections = [
 ]
 
 export function PrivacyPolicyClient() {
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, user, authReady } = useAuth()
 
   return (
     <div className="bg-background min-h-screen">
-      <Navbar
-        showNavigation={true}
-        isLoggedIn={isLoggedIn}
-        user={user || undefined}
-      />
+      {authReady ? (
+        <Navbar
+          showNavigation={true}
+          isLoggedIn={isLoggedIn}
+          user={user || undefined}
+        />
+      ) : (
+        <div className="h-16 border-b border-border/40" />
+      )}
       <main className="pb-16 pt-28">
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="border-border/70 mb-8 rounded-2xl border bg-gradient-to-b from-sky-500/10 via-cyan-500/5 to-transparent p-6 sm:p-8">

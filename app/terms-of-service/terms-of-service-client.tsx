@@ -5,10 +5,10 @@ import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { useAuth } from '@/hooks/useAuth'
 
-const updatedAt = '20 February 2026'
-const effectiveAt = '20 February 2026'
+const UPDATED_AT = '20 February 2026'
+const EFFECTIVE_AT = '20 February 2026'
 
-const sections = [
+const SECTIONS = [
   {
     id: 'acceptance',
     title: '1. Persetujuan atas Syarat',
@@ -137,8 +137,8 @@ export function TermsOfServiceClient() {
               produktif.
             </p>
             <div className="text-muted-foreground mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs sm:text-sm">
-              <span>Effective: {effectiveAt}</span>
-              <span>Last updated: {updatedAt}</span>
+              <span>Effective: {EFFECTIVE_AT}</span>
+              <span>Last updated: {UPDATED_AT}</span>
             </div>
           </div>
 
@@ -158,7 +158,7 @@ export function TermsOfServiceClient() {
           </div>
 
           <article className="space-y-5">
-            {sections.map((section) => (
+            {SECTIONS.map((section) => (
               <section
                 key={section.id}
                 id={section.id}
@@ -166,14 +166,14 @@ export function TermsOfServiceClient() {
               >
                 <h2 className="mb-3 font-semibold text-lg sm:text-xl">{section.title}</h2>
                 <div className="space-y-3 text-muted-foreground text-sm leading-6 sm:text-base">
-                  {section.body.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
+                  {section.body.map((paragraph, i) => (
+                    <p key={`p-${section.id}-${i}`}>{paragraph}</p>
                   ))}
                 </div>
                 {section.bullets ? (
                   <ul className="mt-4 list-disc space-y-2 pl-5 text-muted-foreground text-sm leading-6 sm:text-base">
-                    {section.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
+                    {section.bullets.map((bullet, i) => (
+                      <li key={`b-${section.id}-${i}`}>{bullet}</li>
                     ))}
                   </ul>
                 ) : null}
