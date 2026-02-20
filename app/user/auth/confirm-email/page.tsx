@@ -2,7 +2,6 @@
 
 import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import type React from 'react'
 import { Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -11,6 +10,29 @@ import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { createClient } from '@/lib/supabase/client'
 
+const CONFIRM_EMAIL_COOKIE = 'confirm_email_hint'
+
+function getCookieValue(cookieName: string): string {
+  if (typeof document === 'undefined') {
+    return ''
+  }
+
+  const prefix = `${cookieName}=`
+  const match = document.cookie
+    .split(';')
+    .map((value) => value.trim())
+    .find((cookie) => cookie.startsWith(prefix))
+  return match ? match.slice(prefix.length) : ''
+}
+
+function clearConfirmEmailCookie() {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.cookie = `${CONFIRM_EMAIL_COOKIE}=; Max-Age=0; Path=/user/auth/confirm-email; SameSite=Lax`
+}
+
 // Component yang menggunakan useSearchParams
 function ConfirmEmailContent() {
   const [email, setEmail] = useState('')
@@ -18,15 +40,15 @@ function ConfirmEmailContent() {
   const [isResending, setIsResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const searchParams = useSearchParams()
 
-  // Auto-fill email from URL parameter
+  // Auto-fill email from short-lived middleware cookie
   useEffect(() => {
-    const emailParam = searchParams.get('email')
-    if (emailParam) {
-      setEmail(decodeURIComponent(emailParam))
+    const emailFromCookie = getCookieValue(CONFIRM_EMAIL_COOKIE)
+    if (emailFromCookie) {
+      setEmail(decodeURIComponent(emailFromCookie))
+      clearConfirmEmailCookie()
     }
-  }, [searchParams])
+  }, [])
 
   const handleResendConfirmation = async (e: React.FormEvent) => {
     e.preventDefault()

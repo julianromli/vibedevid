@@ -684,3 +684,10 @@ Added defensive `localStorage` guards in client UI flows to avoid runtime `Secur
 ### Verification
 - `bunx biome check "app/event/list/event-list-client.tsx"` ✅
 - `bunx biome check "components/blog/blog-guide-modal.tsx"` ⚠️ reports pre-existing lint issues (class sorting and missing SVG title) unrelated to this storage-hardening change.
+
+## 2026-02-20
+- Hardened auth redirect flow in `proxy.ts` by removing `user.email` from logs and URL query params.
+- Added short-lived `confirm_email_hint` cookie set before `supabase.auth.signOut()` and used for `/user/auth/confirm-email` redirect flow.
+- Added explicit return types to `proxy` and `handleAuth` in `proxy.ts`.
+- Updated confirm-email page to read email from short-lived cookie instead of URL and clear cookie after hydration.
+- Updated `hooks/useAuth.ts` to refresh auth/profile state on `USER_UPDATED` via existing signed-in hydration flow and refreshed security note comments.

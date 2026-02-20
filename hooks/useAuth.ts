@@ -113,6 +113,18 @@ export function useAuth() {
       setReadyIfMounted()
     }
 
+    const resolveAuthHydrationEvent = (event: string): 'INITIAL_SESSION' | 'SIGNED_IN' | null => {
+      switch (event) {
+        case 'INITIAL_SESSION':
+          return 'INITIAL_SESSION'
+        case 'SIGNED_IN':
+        case 'USER_UPDATED':
+          return 'SIGNED_IN'
+        default:
+          return null
+      }
+    }
+
     const handleAuthStateChange = async (
       event: string,
       session: { user: { id: string; email?: string | null } } | null,
@@ -127,18 +139,18 @@ export function useAuth() {
         return
       }
 
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-        if (event === 'INITIAL_SESSION' && initialHydrated) {
-          return
-        }
-        await handleInitialOrSignedIn(event as 'INITIAL_SESSION' | 'SIGNED_IN', session)
+      const targetEvent = resolveAuthHydrationEvent(event)
+      if (!targetEvent || (targetEvent === 'INITIAL_SESSION' && initialHydrated)) {
+        return
       }
+      await handleInitialOrSignedIn(targetEvent, session)
     }
 
     hydrateInitialAuth()
 
-    // SECURITY NOTE: getSession() is client-safe because:
-    // 1. Middleware refreshes sessions (middleware.ts uses getUser())
+    // SECURITY NOTE: This hook hydrates auth state with getUser(), then keeps it fresh
+    // via onAuthStateChange (which provides the session directly for auth events).
+    // 1. Middleware refreshes sessions (lib/supabase/middleware.ts uses getUser())
     // 2. Real-time sync via onAuthStateChange catches updates
     // 3. Server-side validation uses getUser() (lib/server/auth.ts)
     // Reference: https://supabase.com/docs/guides/auth/server-side/creating-a-client
