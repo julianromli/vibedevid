@@ -91,8 +91,8 @@ export function useAuth() {
 
       setIsLoggedIn(true)
       setUser(getFallbackUser(authUser.id, authUser.email || ''))
-      await fetchUserProfile(authUser.id, authUser.email || '')
       initialHydrated = true
+      await fetchUserProfile(authUser.id, authUser.email || '')
       setReadyIfMounted()
     }
 
