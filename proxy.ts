@@ -1,10 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
+import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from './lib/constants/auth'
 import { getSupabaseConfig } from './lib/env-config'
-
-const CONFIRM_EMAIL_COOKIE = 'confirm_email_hint'
-const CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS = 5 * 60
 
 // Detect locale from request
 function getLocale(request: NextRequest): string {
@@ -156,9 +154,7 @@ async function handleAuth(request: NextRequest, response: NextResponse): Promise
       console.log('[Middleware] Redirecting unconfirmed user from:', pathname)
 
       const emailForConfirm = user.email || ''
-      const redirectResponse = NextResponse.redirect(
-        new URL(`/user/auth/confirm-email?from=${encodeURIComponent(pathname)}`, requestUrl.origin),
-      )
+      const redirectResponse = NextResponse.redirect(new URL('/user/auth/confirm-email', requestUrl.origin))
       redirectResponse.cookies.set(CONFIRM_EMAIL_COOKIE, encodeURIComponent(emailForConfirm), {
         path: '/user/auth/confirm-email',
         maxAge: CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS,
