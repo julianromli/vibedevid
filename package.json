@@ -5,7 +5,10 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "biome check .",
+    "lint": "node scripts/lint-changed.mjs",
+    "lint:fast": "node scripts/lint-changed.mjs",
+    "lint:all": "biome check .",
+    "lint:ci": "biome check . --error-on-warnings",
     "format": "biome format . --write",
     "start": "next start",
     "vercel-build": "next build",
