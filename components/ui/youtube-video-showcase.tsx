@@ -3,36 +3,9 @@
 import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import type React from 'react'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
-
-interface VideoData {
-  id?: string
-  title: string
-  description: string
-  thumbnail: string
-  videoId: string
-  publishedAt: string
-  viewCount?: string
-  position?: number
-  icon: React.ReactNode
-}
-
-interface VideoApiItem {
-  id?: string
-  title: string
-  description: string
-  thumbnail: string
-  videoId: string
-  publishedAt: string
-  viewCount?: string
-  position?: number
-}
-
-interface VibeVideosApiResponse {
-  videos: VideoApiItem[]
-}
+import type { VibeVideo, VideoIconKey } from '@/types/homepage'
 
 const applyThumbnailFallback = (target: HTMLImageElement) => {
   if (target.src.includes('vibedev-guest-avatar.png')) {
@@ -44,8 +17,23 @@ const applyThumbnailFallback = (target: HTMLImageElement) => {
   target.src = '/vibedev-guest-avatar.png'
 }
 
+function getVideoIcon(iconKey: VideoIconKey) {
+  const iconProps = { size: 24, className: 'text-white' }
+
+  switch (iconKey) {
+    case 'play':
+      return <Play {...iconProps} />
+    case 'users':
+      return <Users {...iconProps} />
+    case 'video':
+      return <Video {...iconProps} />
+    default:
+      return <Code {...iconProps} />
+  }
+}
+
 interface DesktopVideoOptionProps {
-  video: VideoData
+  video: VibeVideo
   index: number
   activeIndex: number
   animatedVideos: number[]
@@ -53,13 +41,17 @@ interface DesktopVideoOptionProps {
   onPlayVideo: (videoId: string) => void
   formatDate: (dateString: string) => string
   watchLabel: string
+  videoLabel: string
+  viewsLabel: string
 }
 
 interface DesktopVideoInfoOverlayProps {
-  video: VideoData
+  video: VibeVideo
   isActive: boolean
   formatDate: (dateString: string) => string
   watchLabel: string
+  videoLabel: string
+  viewsLabel: string
   onPlayVideo: (videoId: string) => void
 }
 
@@ -68,6 +60,8 @@ function DesktopVideoInfoOverlay({
   isActive,
   formatDate,
   watchLabel,
+  videoLabel,
+  viewsLabel,
   onPlayVideo,
 }: DesktopVideoInfoOverlayProps) {
   return (
@@ -75,7 +69,7 @@ function DesktopVideoInfoOverlay({
       <div className="mt-auto">
         <div className="mb-3 flex items-center gap-3">
           <div className="video-icon flex h-[40px] max-w-[40px] min-w-[40px] flex-shrink-0 items-center justify-center rounded-full border border-white/30 bg-black/90 shadow-lg backdrop-blur-sm">
-            {video.icon}
+            {getVideoIcon(video.iconKey)}
           </div>
 
           <div className="video-info relative flex-1 text-white">
@@ -111,7 +105,9 @@ function DesktopVideoInfoOverlay({
               {video.viewCount && (
                 <>
                   <span>•</span>
-                  <span>{video.viewCount} views</span>
+                  <span>
+                    {video.viewCount} {viewsLabel}
+                  </span>
                 </>
               )}
             </div>
@@ -132,7 +128,7 @@ function DesktopVideoInfoOverlay({
               className="pointer-events-auto relative z-30 flex min-h-[36px] touch-manipulation items-center gap-1 rounded-full bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors duration-200 hover:bg-red-700 sm:min-h-[40px] sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
               <Play className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="xs:inline hidden sm:inline">{watchLabel}</span> Video
+              <span className="xs:inline hidden sm:inline">{watchLabel}</span> {videoLabel}
             </button>
           </div>
         )}
@@ -150,24 +146,22 @@ function DesktopVideoOption({
   onPlayVideo,
   formatDate,
   watchLabel,
+  videoLabel,
+  viewsLabel,
 }: DesktopVideoOptionProps) {
   const isActive = activeIndex === index
 
   return (
     <article
-      className={`video-option relative cursor-pointer overflow-hidden transition-all duration-700 ease-in-out ${
+      className={`video-option relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
         isActive ? 'active border-primary border-2 shadow-2xl' : 'border-border border-2 shadow-lg'
       } `}
       style={{
         opacity: animatedVideos.includes(index) ? 1 : 0,
         transform: animatedVideos.includes(index) ? 'translateX(0)' : 'translateX(-60px)',
-        minWidth: '60px',
-        borderRadius: '12px',
-        backgroundColor: 'hsl(var(--muted))',
         boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.25)' : '0 10px 30px rgba(0,0,0,0.15)',
         flex: isActive ? '7 1 0%' : '1 1 0%',
         zIndex: isActive ? 10 : 1,
-        willChange: 'flex-grow, box-shadow, transform',
       }}
     >
       <button
@@ -216,126 +210,22 @@ function DesktopVideoOption({
         isActive={isActive}
         formatDate={formatDate}
         watchLabel={watchLabel}
+        videoLabel={videoLabel}
+        viewsLabel={viewsLabel}
         onPlayVideo={onPlayVideo}
       />
     </article>
   )
 }
 
-// Helper function untuk determine icon berdasarkan video content
-const getVideoIcon = (title: string, description: string): React.ReactNode => {
-  const content = `${title} ${description}`.toLowerCase()
-
-  if (content.includes('live') || content.includes('coding') || content.includes('session')) {
-    return (
-      <Play
-        size={24}
-        className="text-white"
-      />
-    )
-  } else if (content.includes('talk') || content.includes('diskusi') || content.includes('discussion')) {
-    return (
-      <Users
-        size={24}
-        className="text-white"
-      />
-    )
-  } else if (content.includes('workshop') || content.includes('tutorial') || content.includes('server')) {
-    return (
-      <Code
-        size={24}
-        className="text-white"
-      />
-    )
-  } else if (content.includes('challenge') || content.includes('algorithm')) {
-    return (
-      <Video
-        size={24}
-        className="text-white"
-      />
-    )
-  } else {
-    return (
-      <Code
-        size={24}
-        className="text-white"
-      />
-    ) // default
-  }
+interface YouTubeVideoShowcaseProps {
+  vibeVideos: VibeVideo[]
 }
 
-const YouTubeVideoShowcase = () => {
+export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) {
   const t = useTranslations('youtubeShowcase')
   const [activeIndex, setActiveIndex] = useState(0)
   const [animatedVideos, setAnimatedVideos] = useState<number[]>([])
-  const [vibeVideos, setVibeVideos] = useState<VideoData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Fetch videos dari database
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/vibe-videos')
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch videos')
-        }
-
-        const data = (await response.json()) as VibeVideosApiResponse
-
-        // Transform data dan add icons
-        const videosWithIcons = data.videos.map((video) => ({
-          ...video,
-          icon: getVideoIcon(video.title, video.description),
-        }))
-
-        setVibeVideos(videosWithIcons)
-        setError(null)
-      } catch (_error) {
-        setError(t('error'))
-
-        // Fallback ke hardcoded data jika API gagal
-        const fallbackVideos: VideoData[] = [
-          {
-            title: 'Next.js Tutorial: Full Stack App Development',
-            description:
-              'Belajar membuat full stack web app dengan Next.js, Prisma, dan PostgreSQL dari nol sampai deployment.',
-            thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-            videoId: 'dQw4w9WgXcQ',
-            publishedAt: '2024-12-20',
-            viewCount: '12.5K',
-            icon: (
-              <Code
-                size={24}
-                className="text-white"
-              />
-            ),
-          },
-          {
-            title: 'Live Coding: Building Modern Dashboard',
-            description: 'Session live coding bikin dashboard admin yang modern dengan React dan Tailwind CSS.',
-            thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
-            videoId: '9bZkp7q19f0',
-            publishedAt: '2024-12-15',
-            viewCount: '8.3K',
-            icon: (
-              <Play
-                size={24}
-                className="text-white"
-              />
-            ),
-          },
-        ]
-        setVibeVideos(fallbackVideos)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchVideos()
-  }, [t])
 
   const handleVideoClick = (index: number) => {
     if (index !== activeIndex) {
@@ -344,11 +234,9 @@ const YouTubeVideoShowcase = () => {
   }
 
   const handlePlayVideo = (videoId: string) => {
-    // Open YouTube video in new tab
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
   }
 
-  // Animation effect untuk video cards
   useEffect(() => {
     if (vibeVideos.length === 0) return
 
@@ -377,71 +265,12 @@ const YouTubeVideoShowcase = () => {
     })
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="text-foreground w-full font-sans">
-        {/* Header Section */}
-        <div className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
-          <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
-          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
-        </div>
-
-        {/* Mobile loading skeleton */}
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-2 md:hidden">
-          {['mobile-skeleton-1', 'mobile-skeleton-2', 'mobile-skeleton-3'].map((skeletonKey) => (
-            <div
-              key={skeletonKey}
-              className="bg-muted/20 overflow-hidden rounded-xl border border-border/60 p-3 animate-pulse"
-            >
-              <div className="bg-muted h-40 w-full rounded-lg"></div>
-              <div className="mt-3 space-y-2">
-                <div className="bg-muted h-5 w-4/5 rounded"></div>
-                <div className="bg-muted h-4 w-full rounded"></div>
-                <div className="bg-muted h-4 w-2/3 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop/Tablet loading skeleton */}
-        <div
-          className="mx-auto hidden w-full max-w-5xl min-w-[280px] overflow-hidden rounded-xl px-2 md:flex md:max-w-6xl md:min-w-[300px] md:px-0"
-          style={{ height: 'auto', aspectRatio: '5/2' }}
-        >
-          <div className="flex h-full w-full gap-1">
-            {[
-              'desktop-skeleton-1',
-              'desktop-skeleton-2',
-              'desktop-skeleton-3',
-              'desktop-skeleton-4',
-              'desktop-skeleton-5',
-            ].map((skeletonKey) => (
-              <div
-                key={skeletonKey}
-                className="bg-muted/20 flex-1 animate-pulse rounded-xl"
-                style={{ minWidth: '60px' }}
-              >
-                <div className="from-muted/10 to-muted/30 h-full w-full rounded-xl bg-gradient-to-r"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="text-foreground w-full font-sans">
       {/* Header Section */}
       <div className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
         <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
         <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
-        {error && (
-          <p className="mx-4 mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-600 sm:mx-0 dark:bg-amber-900/20">
-            {error}
-          </p>
-        )}
       </div>
 
       {/* Mobile: vertical list */}
@@ -461,13 +290,7 @@ const YouTubeVideoShowcase = () => {
                 priority={index === 0}
                 quality={80}
                 onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement
-                  if (target.src.includes('vibedev-guest-avatar.png')) {
-                    target.src =
-                      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmMzRjNWQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmNDY4MmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgZmlsbD0idXJsKCNhKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+VmlkZW8gVGh1bWJuYWlsPC90ZXh0Pjwvc3ZnPg=='
-                  } else {
-                    target.src = '/vibedev-guest-avatar.png'
-                  }
+                  applyThumbnailFallback(e.currentTarget as HTMLImageElement)
                 }}
               />
             </AspectRatio>
@@ -481,7 +304,9 @@ const YouTubeVideoShowcase = () => {
                 {video.viewCount && (
                   <>
                     <span>•</span>
-                    <span>{video.viewCount} views</span>
+                    <span>
+                      {video.viewCount} {t('views')}
+                    </span>
                   </>
                 )}
               </div>
@@ -491,7 +316,7 @@ const YouTubeVideoShowcase = () => {
                 className="mt-3 inline-flex min-h-[40px] touch-manipulation items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-red-700"
               >
                 <Play className="h-4 w-4" />
-                {t('watch')} Video
+                {t('watch')} {t('videoLabel')}
               </button>
             </div>
           </article>
@@ -514,6 +339,8 @@ const YouTubeVideoShowcase = () => {
             onPlayVideo={handlePlayVideo}
             formatDate={formatDate}
             watchLabel={t('watch')}
+            videoLabel={t('videoLabel')}
+            viewsLabel={t('views')}
           />
         ))}
       </div>
@@ -557,13 +384,6 @@ const YouTubeVideoShowcase = () => {
           }
         }
 
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
         @media (min-width: 768px) and (max-width: 1023px) {
           .videos-container {
             aspect-ratio: 2.8/1 !important;
@@ -592,7 +412,6 @@ const YouTubeVideoShowcase = () => {
           }
         }
 
-        /* Ensure cards fill height perfectly */
         .video-option {
           height: 100% !important;
           min-height: auto !important;
@@ -601,5 +420,3 @@ const YouTubeVideoShowcase = () => {
     </div>
   )
 }
-
-export default YouTubeVideoShowcase

@@ -31,6 +31,20 @@ export interface Project {
   createdAt: string
 }
 
+export type VideoIconKey = 'play' | 'users' | 'code' | 'video'
+
+export interface VibeVideo {
+  id?: string
+  title: string
+  description: string
+  thumbnail: string
+  videoId: string
+  publishedAt: string
+  viewCount?: string
+  position?: number
+  iconKey: VideoIconKey
+}
+
 export interface Testimonial {
   text: string
   image: string

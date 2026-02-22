@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * AI Tools Section Component
  * Displays grid of AI coding tools and integrations

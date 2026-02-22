@@ -52,11 +52,14 @@ interface NavbarProps {
 
 type NavItem = { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
 
-function renderDesktopNavItem(item: NavItem) {
+interface DesktopNavItemProps {
+  item: NavItem
+}
+
+function DesktopNavItem({ item }: DesktopNavItemProps) {
   if (item.type === 'link') {
     return (
       <Link
-        key={item.href}
         href={item.href}
         className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground hover:text-foreground')}
       >
@@ -67,7 +70,6 @@ function renderDesktopNavItem(item: NavItem) {
 
   return (
     <button
-      key={`desktop-${item.label}`}
       type="button"
       onClick={item.action}
       className={cn(
@@ -80,11 +82,15 @@ function renderDesktopNavItem(item: NavItem) {
   )
 }
 
-function renderMobileNavItem(item: NavItem, closeMenu: () => void) {
+interface MobileNavItemProps {
+  item: NavItem
+  closeMenu: () => void
+}
+
+function MobileNavItem({ item, closeMenu }: MobileNavItemProps) {
   if (item.type === 'link') {
     return (
       <Link
-        key={item.href}
         href={item.href}
         onClick={closeMenu}
         className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
@@ -96,7 +102,6 @@ function renderMobileNavItem(item: NavItem, closeMenu: () => void) {
 
   return (
     <button
-      key={`mobile-${item.label}`}
       type="button"
       onClick={() => {
         item.action()
@@ -252,7 +257,12 @@ export function Navbar({
               }}
               transition={springTransition}
             >
-              {navItems.map((item) => renderDesktopNavItem(item))}
+              {navItems.map((item) => (
+                <DesktopNavItem
+                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
+                  item={item}
+                />
+              ))}
             </motion.div>
           )}
 
@@ -436,7 +446,13 @@ export function Navbar({
           <div className="flex h-full flex-col justify-between p-6 pt-24 pb-10">
             {/* Navigation Links */}
             <div className="flex flex-col gap-2">
-              {navItems.map((item) => renderMobileNavItem(item, () => setOpen(false)))}
+              {navItems.map((item) => (
+                <MobileNavItem
+                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
+                  item={item}
+                  closeMenu={() => setOpen(false)}
+                />
+              ))}
             </div>
 
             {/* Settings Section */}
@@ -538,21 +554,19 @@ export function Navbar({
   )
 }
 
-type MobileMenuProps = React.ComponentProps<'div'> & {
+type MobileMenuProps = {
+  children: React.ReactNode
+  className?: string
   open: boolean
 }
 
-function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
+function MobileMenu({ open, children, className }: MobileMenuProps) {
   const menuTransition = {
     duration: 0.5,
     ease: [0.16, 1, 0.3, 1] as const,
   }
 
-  return createPortal(
+  const content = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -564,7 +578,6 @@ function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={menuTransition}
-          {...props}
         >
           <motion.div
             className="h-full"
@@ -577,7 +590,12 @@ function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   )
+
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  return createPortal(content, document.body)
 }

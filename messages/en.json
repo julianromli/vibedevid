@@ -72,6 +72,7 @@
     "viewAll": "View All Videos on Our Channel",
     "watch": "Watch",
     "videoLabel": "Video",
+    "views": "views",
     "error": "Failed to load videos. Please try refreshing the page!",
     "fallbackVideos": {
       "0": {

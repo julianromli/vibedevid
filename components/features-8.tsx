@@ -98,7 +98,7 @@ export default function FeaturesSection() {
                   </svg>
                 </div>
                 <div className="relative z-10 mt-6 space-y-2 text-center">
-                  <h2 className="text-foreground group-hover:text-primary text-lg font-medium transition">
+                  <h2 className="text-foreground hover:text-primary text-lg font-medium transition">
                     {t('trusted.title')}
                   </h2>
                   <p className="text-foreground">{t('trusted.description')}</p>
@@ -210,7 +210,7 @@ export default function FeaturesSection() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-foreground group-hover:text-primary text-lg font-medium transition">
+                    <h2 className="text-foreground hover:text-primary text-lg font-medium transition">
                       {t('safeSpace.title')}
                     </h2>
                     <p className="text-foreground">{t('safeSpace.description')}</p>

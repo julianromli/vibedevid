@@ -72,6 +72,7 @@
     "viewAll": "Lihat Semua Video di Channel Kami",
     "watch": "Tonton",
     "videoLabel": "Video",
+    "views": "ditonton",
     "error": "Gagal memuat video. Coba refresh halaman ya!",
     "fallbackVideos": {
       "0": {

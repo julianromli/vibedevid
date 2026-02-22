@@ -15,11 +15,8 @@ import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
 import { cn } from '@/lib/utils'
-import type { User } from '@/types/homepage'
 
 interface HeroSectionProps {
-  isLoggedIn: boolean
-  user?: User
   handleJoinWithUs: () => void
   handleViewShowcase: () => void
 }
@@ -189,13 +186,6 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
               </Suspense>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Trust Indicators */}
-      <div className="mt-0">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden">{/* Framework logos moved above Safari mockup */}</div>
         </div>
       </div>
     </section>
