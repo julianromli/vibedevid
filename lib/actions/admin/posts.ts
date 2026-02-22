@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 // IMPORTANT-5: Role constants for maintainability
@@ -170,7 +171,11 @@ export async function getAllPosts(
         created_at: post.created_at,
         updated_at: post.updated_at,
         author_id: post.author_id,
-        author: post.users || { username: 'unknown', display_name: 'Unknown', avatar_url: null },
+        author: post.users || {
+          username: 'unknown',
+          display_name: 'Unknown',
+          avatar_url: null,
+        },
         tags,
       }
     })
@@ -196,7 +201,7 @@ export async function adminUpdatePost(
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -219,11 +224,14 @@ export async function adminUpdatePost(
       }
     }
 
-    const { error } = await supabase.from('posts').update(updateData).eq('id', postId)
+    const { data: updatedRows, error } = await supabase.from('posts').update(updateData).eq('id', postId).select('id')
 
     if (error) {
       console.error('Admin update post error:', error)
       return { success: false, error: error.message }
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: 'Post not found or no changes applied' }
     }
 
     // Update tags if provided
@@ -246,7 +254,7 @@ export async function adminUpdatePost(
 }
 
 async function updatePostTags(postId: string, tagNames: string[]) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Remove existing tags
   await supabase.from('blog_post_tags').delete().eq('post_id', postId)
@@ -293,23 +301,38 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    // Delete related records first
-    await Promise.all([
+    // Delete the post first to avoid partial child-only deletion states.
+    const { data: deletedRows, error } = await supabase.from('posts').delete().eq('id', postId).select('id')
+
+    if (error) {
+      console.error('Admin delete post error:', error)
+      return { success: false, error: error.message }
+    }
+    if (!deletedRows || deletedRows.length === 0) {
+      return { success: false, error: 'Post could not be deleted' }
+    }
+
+    // Best-effort cleanup for tables that may store post_id without strict FK cascade.
+    const cleanupResults = await Promise.all([
       supabase.from('comments').delete().eq('post_id', postId),
       supabase.from('likes').delete().eq('post_id', postId),
       supabase.from('views').delete().eq('post_id', postId),
       supabase.from('blog_post_tags').delete().eq('post_id', postId),
     ])
 
-    // Delete the post
-    const { error } = await supabase.from('posts').delete().eq('id', postId)
-
-    if (error) {
-      console.error('Admin delete post error:', error)
-      return { success: false, error: error.message }
-    }
+    const cleanupTargets = ['comments', 'likes', 'views', 'blog_post_tags'] as const
+    cleanupResults.forEach((result, index) => {
+      if (result.error) {
+        console.error(`Admin delete post cleanup warning (${cleanupTargets[index]}):`, {
+          postId,
+          message: result.error.message,
+          code: result.error.code,
+          details: result.error.details,
+        })
+      }
+    })
 
     revalidatePath('/blog')
     revalidatePath('/admin/dashboard/boards/blog')
@@ -331,16 +354,20 @@ export async function togglePostFeatured(
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from('posts')
       .update({ featured, updated_at: new Date().toISOString() })
       .eq('id', postId)
+      .select('id')
 
     if (error) {
       console.error('Toggle post featured error:', error)
       return { success: false, error: error.message }
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: 'Post not found' }
     }
 
     revalidatePath('/blog')
@@ -381,7 +408,7 @@ export async function createTag(name: string): Promise<{ success: boolean; tag?:
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
@@ -407,16 +434,22 @@ export async function deleteTag(tagId: string): Promise<{ success: boolean; erro
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Delete tag relationships first
-    await supabase.from('blog_post_tags').delete().eq('tag_id', tagId)
+    const { error: relationDeleteError } = await supabase.from('blog_post_tags').delete().eq('tag_id', tagId)
+    if (relationDeleteError) {
+      return { success: false, error: relationDeleteError.message }
+    }
 
     // Delete the tag
-    const { error } = await supabase.from('post_tags').delete().eq('id', tagId)
+    const { data: deletedRows, error } = await supabase.from('post_tags').delete().eq('id', tagId).select('id')
 
     if (error) {
       return { success: false, error: error.message }
+    }
+    if (!deletedRows || deletedRows.length === 0) {
+      return { success: false, error: 'Tag not found' }
     }
 
     return { success: true }

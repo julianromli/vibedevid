@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
 
@@ -49,7 +50,7 @@ async function checkAdminAccess() {
     return { supabase, userId: user.id, error: 'Unauthorized' as const }
   }
 
-  return { supabase, userId: user.id, error: null }
+  return { userId: user.id, error: null }
 }
 
 export async function getEvents(filters: GetEventsFilters = {}) {
@@ -142,7 +143,10 @@ export async function submitEvent(formData: EventFormData) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, error: 'You must be logged in to submit an event' }
+      return {
+        success: false,
+        error: 'You must be logged in to submit an event',
+      }
     }
 
     // Map camelCase to snake_case for DB insertion
@@ -189,12 +193,13 @@ function isValidUUID(str: string): boolean {
 // Admin: Get pending events awaiting approval
 export async function getPendingEvents() {
   try {
-    const { supabase, error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess()
     if (adminError) {
       return { events: [], error: 'Unauthorized' }
     }
+    const adminSupabase = createAdminClient()
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('events')
       .select('*')
       .eq('approved', false)
@@ -220,12 +225,13 @@ export async function approveEvent(eventId: string) {
       return { success: false, error: 'Invalid event ID format' }
     }
 
-    const { supabase, error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess()
     if (adminError) {
       return { success: false, error: 'Unauthorized' }
     }
+    const adminSupabase = createAdminClient()
 
-    const { data: updatedRows, error } = await supabase
+    const { data: updatedRows, error } = await adminSupabase
       .from('events')
       .update({ approved: true })
       .eq('id', eventId)
@@ -258,12 +264,13 @@ export async function rejectEvent(eventId: string) {
       return { success: false, error: 'Invalid event ID format' }
     }
 
-    const { supabase, error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess()
     if (adminError) {
       return { success: false, error: 'Unauthorized' }
     }
+    const adminSupabase = createAdminClient()
 
-    const { data: deletedRows, error } = await supabase.from('events').delete().eq('id', eventId).select('id')
+    const { data: deletedRows, error } = await adminSupabase.from('events').delete().eq('id', eventId).select('id')
 
     if (error) {
       console.error('Error rejecting event:', error)

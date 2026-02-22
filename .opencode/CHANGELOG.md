@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-02-20 - Integrate Navbar and Footer on Legal Pages
+
+### Summary
+Updated `/privacy-policy` and `/terms-of-service` to use the shared app `Navbar` and `Footer` while preserving auth session behavior on navbar actions.
+
+### Changes Made
+- Added client wrappers:
+  - `app/privacy-policy/privacy-policy-client.tsx`
+  - `app/terms-of-service/terms-of-service-client.tsx`
+- Updated server pages to render client wrappers and keep static metadata exports:
+  - `app/privacy-policy/page.tsx`
+  - `app/terms-of-service/page.tsx`
+- Wired navbar auth props from `useAuth()` (`isLoggedIn`, `user`) to preserve sign-in/profile/sign-out behavior.
+
+### Verification
+- `lsp_diagnostics` on modified legal page files ✅
+- `bun run build` ✅
+- `bunx playwright test tests/auth-redirect.spec.ts --project=chromium` ✅ (2 passed)
+
+## 2026-02-20 - Add Dedicated Privacy Policy and Terms of Service Pages
+
+### Summary
+Added dedicated legal pages for `/privacy-policy` and `/terms-of-service`, replaced footer privacy drawer with direct legal links, and included new routes in sitemap.
+
+### Changes Made
+- Added `app/privacy-policy/page.tsx` with structured privacy policy sections aligned to community-platform best practices.
+- Added `app/terms-of-service/page.tsx` with structured terms sections covering acceptable use, user content, moderation, IP, liability, and termination.
+- Updated `components/ui/footer.tsx` to link directly to `/privacy-policy` and `/terms-of-service` (removed embedded privacy drawer).
+- Updated translations:
+  - `messages/en.json` (`footer.terms`)
+  - `messages/id.json` (`footer.terms`)
+- Updated `app/sitemap.ts` to include `/privacy-policy` and `/terms-of-service`.
+
+### Verification
+- `bun run build` ✅ (both new routes generated: `/privacy-policy`, `/terms-of-service`)
+- `bun tsc --noEmit` ⚠️ blocked by many pre-existing unrelated TypeScript errors in admin/ui and legacy files
+- `bun lint` ⚠️ checks fail primarily due generated/derived files (e.g. `.next/**`) and broad pre-existing lint volume
+
 ## 2026-02-10 - Fix Auth Redirect Flow from /user/auth
 
 ### Summary
@@ -646,3 +684,10 @@ Added defensive `localStorage` guards in client UI flows to avoid runtime `Secur
 ### Verification
 - `bunx biome check "app/event/list/event-list-client.tsx"` ✅
 - `bunx biome check "components/blog/blog-guide-modal.tsx"` ⚠️ reports pre-existing lint issues (class sorting and missing SVG title) unrelated to this storage-hardening change.
+
+## 2026-02-20
+- Hardened auth redirect flow in `proxy.ts` by removing `user.email` from logs and URL query params.
+- Added short-lived `confirm_email_hint` cookie set before `supabase.auth.signOut()` and used for `/user/auth/confirm-email` redirect flow.
+- Added explicit return types to `proxy` and `handleAuth` in `proxy.ts`.
+- Updated confirm-email page to read email from short-lived cookie instead of URL and clear cookie after hydration.
+- Updated `hooks/useAuth.ts` to refresh auth/profile state on `USER_UPDATED` via existing signed-in hydration flow and refreshed security note comments.

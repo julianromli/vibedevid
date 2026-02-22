@@ -479,6 +479,7 @@ function AuthPageContent() {
               <Button
                 type="submit"
                 disabled={isLoading}
+                data-testid="auth-submit"
                 className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
                 {isLoading ? (
@@ -582,7 +583,7 @@ function AuthPageContent() {
                 <>
                   By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
                   <Link
-                    href="/terms"
+                    href="/terms-of-service"
                     className="text-foreground underline hover:text-primary"
                   >
                     Terms & Service
