@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 // IMPORTANT-5: Role constants for maintainability
@@ -173,7 +174,11 @@ export async function getAllProjects(
       tags: project.tags || [],
       featured: project.featured || false,
       author_id: project.author_id,
-      author: project.users || { username: 'unknown', display_name: 'Unknown', avatar_url: null },
+      author: project.users || {
+        username: 'unknown',
+        display_name: 'Unknown',
+        avatar_url: null,
+      },
       created_at: project.created_at,
       updated_at: project.updated_at,
       likes_count: likesCount[project.id] || 0,
@@ -202,9 +207,9 @@ export async function adminUpdateProject(
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from('projects')
       .update({
         title: updates.title,
@@ -218,10 +223,17 @@ export async function adminUpdateProject(
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
+      .select('id')
 
     if (error) {
       console.error('Admin update project error:', error)
       return { success: false, error: error.message }
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      return {
+        success: false,
+        error: 'Project not found or no changes applied',
+      }
     }
 
     revalidatePath('/project/[slug]')
@@ -241,21 +253,28 @@ export async function adminDeleteProject(projectId: number): Promise<{ success: 
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Delete related records first
-    await Promise.all([
+    const [commentsDelete, likesDelete, viewsDelete] = await Promise.all([
       supabase.from('comments').delete().eq('project_id', projectId),
       supabase.from('likes').delete().eq('project_id', projectId),
       supabase.from('views').delete().eq('project_id', projectId),
     ])
+    if (commentsDelete.error || likesDelete.error || viewsDelete.error) {
+      const deleteError = commentsDelete.error || likesDelete.error || viewsDelete.error || new Error('Unknown error')
+      return { success: false, error: deleteError.message }
+    }
 
     // Delete the project
-    const { error } = await supabase.from('projects').delete().eq('id', projectId)
+    const { data: deletedRows, error } = await supabase.from('projects').delete().eq('id', projectId).select('id')
 
     if (error) {
       console.error('Admin delete project error:', error)
       return { success: false, error: error.message }
+    }
+    if (!deletedRows || deletedRows.length === 0) {
+      return { success: false, error: 'Project could not be deleted' }
     }
 
     revalidatePath('/project/list')
@@ -278,16 +297,20 @@ export async function toggleProjectFeatured(
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from('projects')
       .update({ featured, updated_at: new Date().toISOString() })
       .eq('id', projectId)
+      .select('id')
 
     if (error) {
       console.error('Toggle project featured error:', error)
       return { success: false, error: error.message }
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: 'Project not found' }
     }
 
     revalidatePath('/')
@@ -303,7 +326,10 @@ export async function toggleProjectFeatured(
   }
 }
 
-export async function getProjectCategories(): Promise<{ categories: string[]; error?: string }> {
+export async function getProjectCategories(): Promise<{
+  categories: string[]
+  error?: string
+}> {
   try {
     // CRITICAL-1: Add missing admin access check
     await checkAdminAccess()

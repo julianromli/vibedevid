@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { routing } from './i18n/routing'
+import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from './lib/constants/auth'
 import { getSupabaseConfig } from './lib/env-config'
 
 // Detect locale from request
@@ -43,7 +44,15 @@ function getSafeRedirectPath(pathname: string | null): string {
   return trimmed
 }
 
-export async function middleware(request: NextRequest) {
+function withSupabaseCookies(baseResponse: NextResponse, targetResponse: NextResponse): NextResponse {
+  for (const cookie of baseResponse.cookies.getAll()) {
+    targetResponse.cookies.set(cookie)
+  }
+
+  return targetResponse
+}
+
+export async function proxy(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl
 
   // 1. Handle /en route - Strict English
@@ -95,7 +104,7 @@ export async function middleware(request: NextRequest) {
 }
 
 // Extract auth logic to helper to avoid duplication
-async function handleAuth(request: NextRequest, response: NextResponse) {
+async function handleAuth(request: NextRequest, response: NextResponse): Promise<Response> {
   const { pathname } = request.nextUrl
 
   // Now handle Supabase auth
@@ -109,9 +118,13 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value)
+          })
           // Copy cookies to response
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
         },
       },
     })
@@ -128,31 +141,38 @@ async function handleAuth(request: NextRequest, response: NextResponse) {
     const isAuthPath = pathname.startsWith('/user/auth')
     const isConfirmEmailPath = pathname.includes('/confirm-email')
     const isCallbackPath = pathname.includes('/auth/callback')
+    const hasConfirmEmailCookie = !!request.cookies.get(CONFIRM_EMAIL_COOKIE)?.value
 
     if (user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
       const redirectTo = getSafeRedirectPath(requestUrl.searchParams.get('redirectTo'))
-      return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+      const redirectResponse = NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+      return withSupabaseCookies(response, redirectResponse)
     }
 
     // If user is logged in but email is not confirmed
     if (user && !user.email_confirmed_at && !isAuthPath && !isCallbackPath) {
-      console.log('[Middleware] Redirecting unconfirmed user:', user.email, 'from:', pathname)
+      console.log('[Middleware] Redirecting unconfirmed user from:', pathname)
 
-      // Sign out unconfirmed user and redirect
+      const emailForConfirm = user.email || ''
+      const redirectResponse = NextResponse.redirect(new URL('/user/auth/confirm-email', requestUrl.origin))
+      redirectResponse.cookies.set(CONFIRM_EMAIL_COOKIE, encodeURIComponent(emailForConfirm), {
+        path: '/user/auth/confirm-email',
+        maxAge: CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS,
+        sameSite: 'lax',
+        secure: requestUrl.protocol === 'https:',
+      })
+
+      // Sign out unconfirmed user after preparing short-lived email hint cookie
       await supabase.auth.signOut()
 
-      return NextResponse.redirect(
-        new URL(
-          `/user/auth/confirm-email?email=${encodeURIComponent(user.email || '')}&from=${encodeURIComponent(pathname)}`,
-          requestUrl.origin,
-        ),
-      )
+      return withSupabaseCookies(response, redirectResponse)
     }
 
-    // Prevent confirmed users from accessing confirm-email page unless they have a specific email param
-    if (user && user.email_confirmed_at && isConfirmEmailPath && !requestUrl.searchParams.get('email')) {
+    // Prevent confirmed users from accessing confirm-email page unless they have a short-lived email hint cookie
+    if (user && user.email_confirmed_at && isConfirmEmailPath && !hasConfirmEmailCookie) {
       console.log('[Middleware] Redirecting confirmed user away from confirm-email page')
-      return NextResponse.redirect(new URL('/', requestUrl.origin))
+      const redirectResponse = NextResponse.redirect(new URL('/', requestUrl.origin))
+      return withSupabaseCookies(response, redirectResponse)
     }
   } catch (error) {
     console.error('Middleware error:', error)

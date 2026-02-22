@@ -2,31 +2,51 @@
 
 import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import type React from 'react'
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { CONFIRM_EMAIL_COOKIE } from '@/lib/constants/auth'
 import { createClient } from '@/lib/supabase/client'
 
-// Component yang menggunakan useSearchParams
+function getCookieValue(cookieName: string): string {
+  if (typeof document === 'undefined') {
+    return ''
+  }
+
+  const prefix = `${cookieName}=`
+  const match = document.cookie
+    .split(';')
+    .map((value) => value.trim())
+    .find((cookie) => cookie.startsWith(prefix))
+  return match ? match.slice(prefix.length) : ''
+}
+
+function clearConfirmEmailCookie() {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.cookie = `${CONFIRM_EMAIL_COOKIE}=; Max-Age=0; Path=/user/auth/confirm-email; SameSite=Lax`
+}
+
+// Reads the prefilled email from a short-lived middleware cookie.
 function ConfirmEmailContent() {
   const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const searchParams = useSearchParams()
 
-  // Auto-fill email from URL parameter
+  // Auto-fill email from short-lived middleware cookie
   useEffect(() => {
-    const emailParam = searchParams.get('email')
-    if (emailParam) {
-      setEmail(decodeURIComponent(emailParam))
+    const emailFromCookie = getCookieValue(CONFIRM_EMAIL_COOKIE)
+    if (emailFromCookie) {
+      setEmail(decodeURIComponent(emailFromCookie))
+      clearConfirmEmailCookie()
     }
-  }, [searchParams])
+  }, [])
 
   const handleResendConfirmation = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -211,36 +231,6 @@ function ConfirmEmailContent() {
   )
 }
 
-// Loading component untuk fallback
-function LoadingSkeleton() {
-  return (
-    <div className="bg-grid-pattern flex min-h-screen items-center justify-center p-4">
-      {/* Background Gradient Overlay */}
-      <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
-
-      {/* Loading Modal */}
-      <div className="relative w-full max-w-md">
-        <div className="bg-background/80 border-border rounded-3xl border p-8 shadow-2xl backdrop-blur-xl">
-          <div className="space-y-4 text-center">
-            <div className="bg-muted/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-              <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-            </div>
-            <div className="space-y-2">
-              <div className="bg-muted/20 h-4 animate-pulse rounded-lg"></div>
-              <div className="bg-muted/15 mx-auto h-3 w-3/4 animate-pulse rounded-lg"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Main page component dengan Suspense boundary
 export default function ConfirmEmailPage() {
-  return (
-    <Suspense fallback={<LoadingSkeleton />}>
-      <ConfirmEmailContent />
-    </Suspense>
-  )
+  return <ConfirmEmailContent />
 }

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 // IMPORTANT-5: Role constants for maintainability
@@ -148,10 +149,16 @@ export async function getReportedComments(
     allComments?.forEach((comment) => {
       if (comment.post_id) {
         postCommentIds.push(comment.id)
-        commentEntityMap.set(comment.id, { type: 'post', entityId: comment.post_id })
+        commentEntityMap.set(comment.id, {
+          type: 'post',
+          entityId: comment.post_id,
+        })
       } else if (comment.project_id) {
         projectCommentIds.push(comment.project_id)
-        commentEntityMap.set(comment.id, { type: 'project', entityId: String(comment.project_id) })
+        commentEntityMap.set(comment.id, {
+          type: 'project',
+          entityId: String(comment.project_id),
+        })
       }
     })
 
@@ -242,20 +249,26 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Get comment info for revalidation
     const { data: comment } = await supabase.from('comments').select('post_id, project_id').eq('id', commentId).single()
 
     // Delete related reports first
-    await supabase.from('blog_reports').delete().eq('comment_id', commentId)
+    const { error: reportDeleteError } = await supabase.from('blog_reports').delete().eq('comment_id', commentId)
+    if (reportDeleteError) {
+      return { success: false, error: reportDeleteError.message }
+    }
 
     // Delete the comment
-    const { error } = await supabase.from('comments').delete().eq('id', commentId)
+    const { data: deletedRows, error } = await supabase.from('comments').delete().eq('id', commentId).select('id')
 
     if (error) {
       console.error('Admin delete comment error:', error)
       return { success: false, error: error.message }
+    }
+    if (!deletedRows || deletedRows.length === 0) {
+      return { success: false, error: 'Comment could not be deleted' }
     }
 
     // Revalidate paths
@@ -283,13 +296,20 @@ export async function dismissReport(reportId: string): Promise<{ success: boolea
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    const { error } = await supabase.from('blog_reports').update({ status: 'dismissed' }).eq('id', reportId)
+    const { data: updatedRows, error } = await supabase
+      .from('blog_reports')
+      .update({ status: 'dismissed' })
+      .eq('id', reportId)
+      .select('id')
 
     if (error) {
       console.error('Dismiss report error:', error)
       return { success: false, error: error.message }
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      return { success: false, error: 'Report not found' }
     }
 
     revalidatePath('/admin/dashboard/boards/comments')
@@ -311,7 +331,7 @@ export async function takeActionOnReport(
   try {
     await checkAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Get report details
     const { data: report } = await supabase.from('blog_reports').select('comment_id').eq('id', reportId).single()
@@ -328,15 +348,32 @@ export async function takeActionOnReport(
       }
 
       // Mark report as reviewed
-      await supabase.from('blog_reports').update({ status: 'reviewed' }).eq('id', reportId)
+      const { data: updatedRows, error: reviewError } = await supabase
+        .from('blog_reports')
+        .update({ status: 'reviewed' })
+        .eq('id', reportId)
+        .select('id')
+      if (reviewError) {
+        return { success: false, error: reviewError.message }
+      }
+      if (!updatedRows || updatedRows.length === 0) {
+        return { success: false, error: 'Report not found' }
+      }
     } else if (action === 'dismiss') {
       return await dismissReport(reportId)
     } else if (action === 'warn') {
       // Mark as reviewed but keep comment
-      const { error } = await supabase.from('blog_reports').update({ status: 'reviewed' }).eq('id', reportId)
+      const { data: updatedRows, error } = await supabase
+        .from('blog_reports')
+        .update({ status: 'reviewed' })
+        .eq('id', reportId)
+        .select('id')
 
       if (error) {
         return { success: false, error: error.message }
+      }
+      if (!updatedRows || updatedRows.length === 0) {
+        return { success: false, error: 'Report not found' }
       }
     }
 

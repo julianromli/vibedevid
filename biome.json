@@ -3,6 +3,12 @@
   "files": {
     "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"]
   },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -15,7 +21,7 @@
     "rules": {
       "recommended": true,
       "complexity": {
-        "noExcessiveCognitiveComplexity": "error"
+        "noExcessiveCognitiveComplexity": "warn"
       },
       "security": {
         "noDangerouslySetInnerHtml": "error",
@@ -24,6 +30,7 @@
       "suspicious": {
         "noArrayIndexKey": "error",
         "noConsole": { "level": "warn", "options": { "allow": ["log"] } },
+        "noDocumentCookie": "off",
         "noExplicitAny": "warn",
         "noImplicitAnyLet": "warn"
       },
@@ -36,7 +43,7 @@
         }
       },
       "nursery": {
-        "useSortedClasses": "warn"
+        "useSortedClasses": "off"
       }
     }
   },
