@@ -303,21 +303,7 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
 
     const supabase = createAdminClient()
 
-    // Delete related records first
-    const [commentsDelete, likesDelete, viewsDelete, tagsDelete] = await Promise.all([
-      supabase.from('comments').delete().eq('post_id', postId),
-      supabase.from('likes').delete().eq('post_id', postId),
-      supabase.from('views').delete().eq('post_id', postId),
-      supabase.from('blog_post_tags').delete().eq('post_id', postId),
-    ])
-
-    if (commentsDelete.error || likesDelete.error || viewsDelete.error || tagsDelete.error) {
-      const deleteError =
-        commentsDelete.error || likesDelete.error || viewsDelete.error || tagsDelete.error || new Error('Unknown error')
-      return { success: false, error: deleteError.message }
-    }
-
-    // Delete the post
+    // Delete the post first to avoid partial child-only deletion states.
     const { data: deletedRows, error } = await supabase.from('posts').delete().eq('id', postId).select('id')
 
     if (error) {
@@ -327,6 +313,26 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
     if (!deletedRows || deletedRows.length === 0) {
       return { success: false, error: 'Post could not be deleted' }
     }
+
+    // Best-effort cleanup for tables that may store post_id without strict FK cascade.
+    const cleanupResults = await Promise.all([
+      supabase.from('comments').delete().eq('post_id', postId),
+      supabase.from('likes').delete().eq('post_id', postId),
+      supabase.from('views').delete().eq('post_id', postId),
+      supabase.from('blog_post_tags').delete().eq('post_id', postId),
+    ])
+
+    const cleanupTargets = ['comments', 'likes', 'views', 'blog_post_tags'] as const
+    cleanupResults.forEach((result, index) => {
+      if (result.error) {
+        console.error(`Admin delete post cleanup warning (${cleanupTargets[index]}):`, {
+          postId,
+          message: result.error.message,
+          code: result.error.code,
+          details: result.error.details,
+        })
+      }
+    })
 
     revalidatePath('/blog')
     revalidatePath('/admin/dashboard/boards/blog')
