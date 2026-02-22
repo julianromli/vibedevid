@@ -7,6 +7,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface FilterControlsProps {
   filterOptions: string[]
@@ -14,6 +15,7 @@ interface FilterControlsProps {
   setSelectedFilter: (filter: string) => void
   isOpen: boolean
   setIsOpen: (open: boolean) => void
+  triggerClassName?: string
 }
 
 export function FilterControls({
@@ -22,13 +24,14 @@ export function FilterControls({
   setSelectedFilter,
   isOpen,
   setIsOpen,
+  triggerClassName,
 }: FilterControlsProps) {
   return (
     <div className="relative">
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2"
+        className={cn('flex items-center gap-2', triggerClassName)}
       >
         Filter
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -40,6 +43,7 @@ export function FilterControls({
             {filterOptions.map((option) => (
               <button
                 key={option}
+                type="button"
                 onClick={() => {
                   setSelectedFilter(option)
                   setIsOpen(false)

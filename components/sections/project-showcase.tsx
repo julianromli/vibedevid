@@ -65,62 +65,122 @@ export function ProjectShowcase({
         </div>
 
         {/* Filter Controls */}
-        <div className="mb-8 grid grid-cols-1 justify-items-center gap-4 md:grid-cols-3 md:items-center">
-          <div className="flex w-auto items-center gap-4 md:justify-self-start">
-            {/* Filters Dropdown */}
-            <FilterControls
-              filterOptions={filterOptions}
-              selectedFilter={selectedFilter}
-              setSelectedFilter={setSelectedFilter}
-              isOpen={isFiltersOpen}
-              setIsOpen={setIsFiltersOpen}
-            />
-          </div>
+        <div className="mb-8">
+          {/* Mobile Layout: stacked + balanced widths */}
+          <div className="space-y-4 md:hidden">
+            <div className="flex justify-center">
+              <Button
+                asChild
+                className="bg-primary hover:bg-primary/90 w-full max-w-sm"
+              >
+                <Link href="/project/submit">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('submitButton')}
+                </Link>
+              </Button>
+            </div>
 
-          <div className="flex w-auto justify-center md:justify-self-center">
-            <Button
-              asChild
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Link href="/project/submit">
-                <Plus className="mr-2 h-4 w-4" />
-                {t('submitButton')}
-              </Link>
-            </Button>
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FilterControls
+                filterOptions={filterOptions}
+                selectedFilter={selectedFilter}
+                setSelectedFilter={setSelectedFilter}
+                isOpen={isFiltersOpen}
+                setIsOpen={setIsFiltersOpen}
+                triggerClassName="w-full justify-between"
+              />
 
-          {/* Trending Dropdown */}
-          <div className="relative w-auto md:justify-self-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsTrendingOpen(!isTrendingOpen)}
-              className="flex items-center gap-2"
-            >
-              {selectedTrending}
-              <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
-            </Button>
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsTrendingOpen(!isTrendingOpen)}
+                  className="w-full justify-between"
+                >
+                  {selectedTrending}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
+                </Button>
 
-            {isTrendingOpen && (
-              <div className="bg-background border-border absolute top-full left-0 z-10 mt-2 w-32 rounded-lg border shadow-lg md:right-0 md:left-auto">
-                <div className="p-2">
-                  {trendingOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => {
-                        setSelectedTrending(option)
-                        setIsTrendingOpen(false)
-                      }}
-                      className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                        selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
+                {isTrendingOpen && (
+                  <div className="bg-background border-border absolute top-full right-0 z-10 mt-2 w-40 rounded-lg border shadow-lg">
+                    <div className="p-2">
+                      {trendingOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTrending(option)
+                            setIsTrendingOpen(false)
+                          }}
+                          className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                            selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Tablet/Desktop Layout: all controls aligned in one row */}
+          <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+            <div className="justify-self-start">
+              <FilterControls
+                filterOptions={filterOptions}
+                selectedFilter={selectedFilter}
+                setSelectedFilter={setSelectedFilter}
+                isOpen={isFiltersOpen}
+                setIsOpen={setIsFiltersOpen}
+              />
+            </div>
+
+            <div className="justify-self-center">
+              <Button
+                asChild
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Link href="/project/submit">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('submitButton')}
+                </Link>
+              </Button>
+            </div>
+
+            <div className="relative justify-self-end">
+              <Button
+                variant="outline"
+                onClick={() => setIsTrendingOpen(!isTrendingOpen)}
+                className="flex items-center gap-2"
+              >
+                {selectedTrending}
+                <ChevronDown className={`h-4 w-4 transition-transform ${isTrendingOpen ? 'rotate-180' : ''}`} />
+              </Button>
+
+              {isTrendingOpen && (
+                <div className="bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg">
+                  <div className="p-2">
+                    {trendingOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTrending(option)
+                          setIsTrendingOpen(false)
+                        }}
+                        className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                          selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
