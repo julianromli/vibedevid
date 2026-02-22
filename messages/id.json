@@ -122,6 +122,7 @@
   "aiTools": {
     "title": "AI untuk Coding & Development Tools",
     "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
+    "learnMore": "Pelajari Lebih Lanjut",
     "tools": {
       "claudeCode": {
         "description": "Asisten coding agentik yang otomatis menarik konteks ke prompt. Fitur dukungan CLAUDE.md, integrasi MCP, dan berfungsi langsung di terminal."

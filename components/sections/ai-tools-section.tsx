@@ -9,6 +9,7 @@ import { IntegrationCard } from '@/components/ui/integration-card'
 
 export function AIToolsSection() {
   const t = useTranslations('aiTools')
+  const buttonLabel = t('learnMore')
 
   return (
     <section
@@ -26,6 +27,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="Claude Code"
             description={t('tools.claudeCode.description')}
+            buttonLabel={buttonLabel}
             link="https://code.claude.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -42,6 +44,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="OpenCode"
             description={t('tools.opencode.description')}
+            buttonLabel={buttonLabel}
             link="https://opencode.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -58,6 +61,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="Droid"
             description={t('tools.droid.description')}
+            buttonLabel={buttonLabel}
             link="https://factory.ai/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -74,6 +78,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="Antigravity"
             description={t('tools.antigravity.description')}
+            buttonLabel={buttonLabel}
             link="https://antigravity.google/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -90,6 +95,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="Cursor"
             description={t('tools.cursor.description')}
+            buttonLabel={buttonLabel}
             link="https://cursor.com/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
@@ -106,6 +112,7 @@ export function AIToolsSection() {
           <IntegrationCard
             title="Kiro"
             description={t('tools.kiro.description')}
+            buttonLabel={buttonLabel}
             link="https://kiro.dev/"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">

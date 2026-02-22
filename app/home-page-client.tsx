@@ -1,7 +1,7 @@
 'use client'
 
 import Script from 'next/script'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
 import { CTASection } from '@/components/sections/cta-section'
@@ -31,10 +31,8 @@ export default function HomePageClient({
   initialProjects,
   initialFilterOptions,
 }: HomePageClientProps) {
-  const [isMounted, setIsMounted] = useState(false)
-  const [currentTime, setCurrentTime] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn)
-  const [user, setUser] = useState<User | null>(initialUser)
+  const isLoggedIn = initialIsLoggedIn
+  const user = initialUser
 
   const projectFilters = useProjectFilters({
     authReady: true,
@@ -47,18 +45,6 @@ export default function HomePageClient({
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
-
-  useEffect(() => {
-    setIsMounted(true)
-    const updateTime = () => {
-      if (typeof window !== 'undefined') {
-        setCurrentTime(new Date().toLocaleTimeString())
-      }
-    }
-    updateTime()
-    const timeInterval = setInterval(updateTime, 1000)
-    return () => clearInterval(timeInterval)
-  }, [])
 
   const handleJoinWithUs = () => {
     window.open('https://dub.sh/vibedevid-form', '_blank')
@@ -74,21 +60,12 @@ export default function HomePageClient({
     }
   }
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
-  }
-
   return (
     <div className="bg-background min-h-screen">
       <Script
         id="organization-schema"
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
@@ -141,6 +118,7 @@ export default function HomePageClient({
       <Script
         id="faq-schema"
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
@@ -202,11 +180,7 @@ export default function HomePageClient({
         isVisible={isVisible.faq}
       />
 
-      <CTASection
-        currentTime={currentTime}
-        isMounted={isMounted}
-        handleJoinWithUs={handleJoinWithUs}
-      />
+      <CTASection handleJoinWithUs={handleJoinWithUs} />
 
       <Footer />
     </div>

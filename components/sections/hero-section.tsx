@@ -3,136 +3,160 @@
  * Homepage hero with animated title, CTA buttons, Safari mockup, and framework tooltips
  */
 
-"use client";
+'use client'
 
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
-import { Button } from "@/components/ui/button";
-import { LogoMarquee } from "@/components/ui/logo-marquee";
-import { ProgressiveImage } from "@/components/ui/progressive-image";
-import { SafariMockup } from "@/components/ui/safari-mockup";
-import { cn } from "@/lib/utils";
-import type { User } from "@/types/homepage";
+import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { Button } from '@/components/ui/button'
+import { LogoMarquee } from '@/components/ui/logo-marquee'
+import { ProgressiveImage } from '@/components/ui/progressive-image'
+import { SafariMockup } from '@/components/ui/safari-mockup'
+import { cn } from '@/lib/utils'
+import type { User } from '@/types/homepage'
 
 interface HeroSectionProps {
-  isLoggedIn: boolean;
-  user?: User;
-  handleJoinWithUs: () => void;
-  handleViewShowcase: () => void;
+  isLoggedIn: boolean
+  user?: User
+  handleJoinWithUs: () => void
+  handleViewShowcase: () => void
 }
 
-export function HeroSection({
-  isLoggedIn,
-  user,
-  handleJoinWithUs,
-  handleViewShowcase,
-}: HeroSectionProps) {
-  const [animatedWords, setAnimatedWords] = useState<number[]>([]);
-  const [subtitleVisible, setSubtitleVisible] = useState(false);
-  const t = useTranslations("hero");
+interface AnimatedWordItem {
+  key: string
+  word: string
+  index: number
+}
 
-  // Get translated title words
-  const titleLine1 = t.raw("titleLine1") as string[];
-  const titleLine2 = t.raw("titleLine2") as string[];
+function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordItem[] {
+  const counts = new Map<string, number>()
 
-  // Animated title effect
+  return words.map((word, index) => {
+    const count = (counts.get(word) ?? 0) + 1
+    counts.set(word, count)
+
+    return {
+      key: `${prefix}-${word}-${count}`,
+      word,
+      index,
+    }
+  })
+}
+
+export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
+  const [animatedWords, setAnimatedWords] = useState<number[]>([])
+  const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const t = useTranslations('hero')
+
+  const titleLine1 = t.raw('titleLine1') as string[]
+  const titleLine2 = t.raw('titleLine2') as string[]
+  const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
+  const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
+
   useEffect(() => {
-    const words = [...titleLine1, ...titleLine2];
+    const words = [...titleLine1, ...titleLine2]
+    const timers: ReturnType<typeof setTimeout>[] = []
 
-    words.forEach((word, index) => {
-      setTimeout(() => {
-        setAnimatedWords((prev) => [...prev, index]);
-      }, index * 100);
-    });
+    words.forEach((_word, index) => {
+      const timer = setTimeout(() => {
+        setAnimatedWords((prev) => [...prev, index])
+      }, index * 100)
+      timers.push(timer)
+    })
 
-    setTimeout(
+    const subtitleTimer = setTimeout(
       () => {
-        setSubtitleVisible(true);
+        setSubtitleVisible(true)
       },
       words.length * 100 + 200,
-    );
-  }, [titleLine1, titleLine2]);
+    )
+    timers.push(subtitleTimer)
+
+    return () => {
+      timers.forEach((timer) => {
+        clearTimeout(timer)
+      })
+    }
+  }, [titleLine1, titleLine2])
 
   return (
-    <section className="bg-grid-pattern relative mt-0 py-20 lg:py-32">
+    <section className="bg-grid-pattern relative mt-0 py-16 sm:py-20 lg:py-28">
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="space-y-12">
-          <div className="space-y-8 text-center">
+        <div className="space-y-10 sm:space-y-12">
+          <div className="space-y-6 text-center sm:space-y-8">
             <Link
               href="/blog"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
             >
-              <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_#8fdfff4f]">
+              <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_hsl(var(--foreground)/0.15)]">
                 <span
                   className={cn(
-                    `animate-gradient inline bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
+                    'animate-gradient inline bg-gradient-to-r from-foreground via-foreground/70 to-foreground bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent dark:from-primary dark:via-primary/80 dark:to-primary',
                   )}
                 >
-                  {t("announcement")}
+                  {t('announcement')}
                 </span>
-                <span className="ml-2 font-semibold text-orange-500">
-                  {t("readLatest")}
-                </span>
+                <span className="text-primary ml-2 font-semibold">{t('readLatest')}</span>
               </AnimatedGradientText>
             </Link>
 
-            <h1 className="text-foreground text-6xl md:text-7xl lg:text-8xl leading-10 leading-tight font-bold tracking-tight">
-              {titleLine1.map((word, index) => (
+            <h1 className="text-foreground text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+              {titleLine1Items.map((item) => (
                 <span
-                  key={index}
-                  className={`mr-3 inline-block leading-3 transition-all duration-700 ease-out ${
-                    animatedWords.includes(index)
-                      ? "blur-0 translate-y-0 opacity-100"
-                      : "translate-y-8 opacity-0 blur-sm"
+                  key={item.key}
+                  className={`mr-2 inline-block transition-all duration-700 ease-out sm:mr-3 ${
+                    animatedWords.includes(item.index)
+                      ? 'blur-0 translate-y-0 opacity-100'
+                      : 'translate-y-8 opacity-0 blur-sm'
                   }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
+                  style={{ transitionDelay: `${item.index * 100}ms` }}
                 >
-                  {word}
+                  {item.word}
                 </span>
               ))}
               <br />
-              {titleLine2.map((word, index) => (
+              {titleLine2Items.map((item) => (
                 <span
-                  key={index + titleLine1.length}
-                  className={`mr-3 inline-block leading-3 transition-all duration-700 ease-out ${
-                    animatedWords.includes(index + titleLine1.length)
-                      ? "blur-0 translate-y-0 opacity-100"
-                      : "translate-y-8 opacity-0 blur-sm"
+                  key={item.key}
+                  className={`mr-2 inline-block transition-all duration-700 ease-out sm:mr-3 ${
+                    animatedWords.includes(item.index + titleLine1.length)
+                      ? 'blur-0 translate-y-0 opacity-100'
+                      : 'translate-y-8 opacity-0 blur-sm'
                   }`}
-                  style={{
-                    transitionDelay: `${(index + titleLine1.length) * 100}ms`,
-                  }}
+                  style={{ transitionDelay: `${(item.index + titleLine1.length) * 100}ms` }}
                 >
-                  {word}
+                  {item.word}
                 </span>
               ))}
             </h1>
 
             <p
-              className={`text-muted-foreground mx-auto max-w-lg text-center text-xl leading-relaxed transition-all duration-700 ease-out ${
-                subtitleVisible
-                  ? "blur-0 translate-y-0 opacity-100"
-                  : "translate-y-8 opacity-0 blur-sm"
+              className={`text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-700 ease-out md:text-xl ${
+                subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm'
               }`}
             >
-              {t("subtitle")}
+              {t('subtitle')}
             </p>
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
                 onClick={handleJoinWithUs}
               >
                 <ArrowRight className="h-4 w-4" />
-                {t("joinCommunity")}
+                {t('joinCommunity')}
               </Button>
-              <Button size="lg" variant="outline" onClick={handleViewShowcase}>
-                {t("ourShowcase")}
+              <Button
+                size="lg"
+                variant="outline"
+                className="active:scale-[0.98]"
+                onClick={handleViewShowcase}
+              >
+                {t('ourShowcase')}
               </Button>
             </div>
           </div>
@@ -149,9 +173,9 @@ export function HeroSection({
                 enableBlurPlaceholder={true}
                 quality={75}
                 responsiveSizes={{
-                  mobile: "100vw",
-                  tablet: "100vw",
-                  desktop: "1200px",
+                  mobile: '100vw',
+                  tablet: '100vw',
+                  desktop: '1200px',
                 }}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
               />
@@ -160,11 +184,7 @@ export function HeroSection({
 
           <div className="relative mt-12 mb-8">
             <div className="my-0 flex items-center justify-center opacity-90">
-              <Suspense
-                fallback={
-                  <div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />
-                }
-              >
+              <Suspense fallback={<div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />}>
                 <LogoMarquee />
               </Suspense>
             </div>
@@ -175,11 +195,9 @@ export function HeroSection({
       {/* Trust Indicators */}
       <div className="mt-0">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden">
-            {/* Framework logos moved above Safari mockup */}
-          </div>
+          <div className="relative overflow-hidden">{/* Framework logos moved above Safari mockup */}</div>
         </div>
       </div>
     </section>
-  );
+  )
 }

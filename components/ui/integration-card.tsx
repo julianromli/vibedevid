@@ -6,16 +6,17 @@
 import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 
 interface IntegrationCardProps {
   title: string
   description: string
+  buttonLabel: string
   children: React.ReactNode
   link?: string
 }
 
-export function IntegrationCard({ title, description, children, link = '#' }: IntegrationCardProps) {
+export function IntegrationCard({ title, description, buttonLabel, children, link = '#' }: IntegrationCardProps) {
   return (
     <Card className="p-6">
       <div className="relative">
@@ -38,7 +39,7 @@ export function IntegrationCard({ title, description, children, link = '#' }: In
               target="_blank"
               rel="noopener noreferrer"
             >
-              Learn More
+              {buttonLabel}
               <ExternalLink className="ml-0 !size-3.5 opacity-50" />
             </Link>
           </Button>

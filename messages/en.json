@@ -122,6 +122,7 @@
   "aiTools": {
     "title": "AI for Coding & Development Tools",
     "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
+    "learnMore": "Learn More",
     "tools": {
       "claudeCode": {
         "description": "Agentic coding assistant that automatically pulls context into prompts. Features CLAUDE.md support, MCP integration, and works directly in your terminal."
