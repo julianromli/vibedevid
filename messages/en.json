@@ -44,8 +44,8 @@
   "hero": {
     "announcement": "New Feature: VibeDev ID Blog",
     "readLatest": "Read Latest Articles →",
-    "titleLine1": ["Vibe", "Coding", "Community"],
-    "titleLine2": ["#1", "in", "Indonesia"],
+    "titleLine1": "Vibe Coding Community",
+    "titleLine2": "#1 in Indonesia",
     "subtitle": "Indonesia's vibe coding community for those who want to level up, learn AI-powered coding, collaborate on open source projects, and join weekly sharing sessions.",
     "joinCommunity": "Join Community",
     "ourShowcase": "Our Showcase"

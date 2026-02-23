@@ -47,8 +47,8 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const t = useTranslations('hero')
 
-  const titleLine1 = useMemo(() => t.raw('titleLine1') as string[], [t])
-  const titleLine2 = useMemo(() => t.raw('titleLine2') as string[], [t])
+  const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
+  const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
 
@@ -113,7 +113,6 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
                       ? 'blur-0 translate-y-0 opacity-100'
                       : 'translate-y-8 opacity-0 blur-sm',
                   )}
-                  style={{ transitionDelay: `${item.index * 100}ms` }}
                 >
                   {item.word}
                 </span>
@@ -128,7 +127,6 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
                       ? 'blur-0 translate-y-0 opacity-100'
                       : 'translate-y-8 opacity-0 blur-sm',
                   )}
-                  style={{ transitionDelay: `${(item.index + titleLine1.length) * 100}ms` }}
                 >
                   {item.word}
                 </span>
