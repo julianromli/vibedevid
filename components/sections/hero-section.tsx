@@ -53,6 +53,9 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
 
   useEffect(() => {
+    setAnimatedWords([])
+    setSubtitleVisible(false)
+
     const words = [...titleLine1, ...titleLine2]
     const timers: ReturnType<typeof setTimeout>[] = []
 
@@ -104,11 +107,12 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
               {titleLine1Items.map((item) => (
                 <span
                   key={item.key}
-                  className={`mr-2 inline-block transition-all duration-700 ease-out sm:mr-3 ${
+                  className={cn(
+                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
                     animatedWords.includes(item.index)
                       ? 'blur-0 translate-y-0 opacity-100'
-                      : 'translate-y-8 opacity-0 blur-sm'
-                  }`}
+                      : 'translate-y-8 opacity-0 blur-sm',
+                  )}
                   style={{ transitionDelay: `${item.index * 100}ms` }}
                 >
                   {item.word}
@@ -118,11 +122,12 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
               {titleLine2Items.map((item) => (
                 <span
                   key={item.key}
-                  className={`mr-2 inline-block transition-all duration-700 ease-out sm:mr-3 ${
+                  className={cn(
+                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
                     animatedWords.includes(item.index + titleLine1.length)
                       ? 'blur-0 translate-y-0 opacity-100'
-                      : 'translate-y-8 opacity-0 blur-sm'
-                  }`}
+                      : 'translate-y-8 opacity-0 blur-sm',
+                  )}
                   style={{ transitionDelay: `${(item.index + titleLine1.length) * 100}ms` }}
                 >
                   {item.word}
@@ -131,9 +136,10 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
             </h1>
 
             <p
-              className={`text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-700 ease-out md:text-xl ${
-                subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm'
-              }`}
+              className={cn(
+                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-700 ease-out md:text-xl',
+                subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm',
+              )}
             >
               {t('subtitle')}
             </p>
