@@ -47,8 +47,8 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const t = useTranslations('hero')
 
-  const titleLine1 = t.raw('titleLine1') as string[]
-  const titleLine2 = t.raw('titleLine2') as string[]
+  const titleLine1 = useMemo(() => t.raw('titleLine1') as string[], [t])
+  const titleLine2 = useMemo(() => t.raw('titleLine2') as string[], [t])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
 
