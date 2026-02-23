@@ -1,7 +1,7 @@
 'use client'
 
 import Script from 'next/script'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
 import { CTASection } from '@/components/sections/cta-section'
@@ -12,17 +12,18 @@ import { ReviewsSection } from '@/components/sections/reviews-section'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import YouTubeVideoShowcase from '@/components/ui/youtube-video-showcase'
+import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
-import type { Project, User } from '@/types/homepage'
+import type { Project, User, VibeVideo } from '@/types/homepage'
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean
   initialUser: User | null
   initialProjects: Project[]
   initialFilterOptions: string[]
+  initialVibeVideos: VibeVideo[]
 }
 
 export default function HomePageClient({
@@ -30,12 +31,8 @@ export default function HomePageClient({
   initialUser,
   initialProjects,
   initialFilterOptions,
+  initialVibeVideos,
 }: HomePageClientProps) {
-  const [isMounted, setIsMounted] = useState(false)
-  const [currentTime, setCurrentTime] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn)
-  const [user, setUser] = useState<User | null>(initialUser)
-
   const projectFilters = useProjectFilters({
     authReady: true,
     initialProjects,
@@ -47,18 +44,6 @@ export default function HomePageClient({
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
-
-  useEffect(() => {
-    setIsMounted(true)
-    const updateTime = () => {
-      if (typeof window !== 'undefined') {
-        setCurrentTime(new Date().toLocaleTimeString())
-      }
-    }
-    updateTime()
-    const timeInterval = setInterval(updateTime, 1000)
-    return () => clearInterval(timeInterval)
-  }, [])
 
   const handleJoinWithUs = () => {
     window.open('https://dub.sh/vibedevid-form', '_blank')
@@ -74,21 +59,12 @@ export default function HomePageClient({
     }
   }
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
-  }
-
   return (
     <div className="bg-background min-h-screen">
       <Script
         id="organization-schema"
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
@@ -141,6 +117,7 @@ export default function HomePageClient({
       <Script
         id="faq-schema"
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
@@ -159,13 +136,11 @@ export default function HomePageClient({
 
       <Navbar
         showNavigation={true}
-        isLoggedIn={isLoggedIn}
-        user={user ?? undefined}
+        isLoggedIn={initialIsLoggedIn}
+        user={initialUser ?? undefined}
       />
 
       <HeroSection
-        isLoggedIn={isLoggedIn}
-        user={user ?? undefined}
         handleJoinWithUs={handleJoinWithUs}
         handleViewShowcase={handleViewShowcase}
       />
@@ -185,7 +160,7 @@ export default function HomePageClient({
       <ErrorBoundary sectionName="Video Showcase">
         <section className="py-12 sm:py-16 lg:py-20">
           <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
-            <YouTubeVideoShowcase />
+            <YouTubeVideoShowcase vibeVideos={initialVibeVideos} />
           </div>
         </section>
       </ErrorBoundary>
@@ -202,11 +177,7 @@ export default function HomePageClient({
         isVisible={isVisible.faq}
       />
 
-      <CTASection
-        currentTime={currentTime}
-        isMounted={isMounted}
-        handleJoinWithUs={handleJoinWithUs}
-      />
+      <CTASection handleJoinWithUs={handleJoinWithUs} />
 
       <Footer />
     </div>

@@ -44,8 +44,8 @@
   "hero": {
     "announcement": "New Feature: VibeDev ID Blog",
     "readLatest": "Read Latest Articles →",
-    "titleLine1": ["Vibe", "Coding", "Community"],
-    "titleLine2": ["#1", "in", "Indonesia"],
+    "titleLine1": "Vibe Coding Community",
+    "titleLine2": "#1 in Indonesia",
     "subtitle": "Indonesia's vibe coding community for those who want to level up, learn AI-powered coding, collaborate on open source projects, and join weekly sharing sessions.",
     "joinCommunity": "Join Community",
     "ourShowcase": "Our Showcase"
@@ -72,6 +72,7 @@
     "viewAll": "View All Videos on Our Channel",
     "watch": "Watch",
     "videoLabel": "Video",
+    "views": "views",
     "error": "Failed to load videos. Please try refreshing the page!",
     "fallbackVideos": {
       "0": {
@@ -122,6 +123,7 @@
   "aiTools": {
     "title": "AI for Coding & Development Tools",
     "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
+    "learnMore": "Learn More",
     "tools": {
       "claudeCode": {
         "description": "Agentic coding assistant that automatically pulls context into prompts. Features CLAUDE.md support, MCP integration, and works directly in your terminal."

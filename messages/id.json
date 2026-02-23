@@ -44,8 +44,8 @@
   "hero": {
     "announcement": "Fitur Baru: Blog VibeDev ID",
     "readLatest": "Baca Artikel Terbaru →",
-    "titleLine1": ["Komunitas", "Vibe", "Coding"],
-    "titleLine2": ["No.", "1", "di", "Indonesia"],
+    "titleLine1": "Komunitas Vibe Coding",
+    "titleLine2": "No. 1 di Indonesia",
     "subtitle": "Komunitas vibe coding Indonesia buat lo yang pengen naik level, belajar coding pake AI, kolaborasi project open source, dan sharing session tiap minggunya.",
     "joinCommunity": "Join Community",
     "ourShowcase": "Our Showcase"
@@ -72,6 +72,7 @@
     "viewAll": "Lihat Semua Video di Channel Kami",
     "watch": "Tonton",
     "videoLabel": "Video",
+    "views": "ditonton",
     "error": "Gagal memuat video. Coba refresh halaman ya!",
     "fallbackVideos": {
       "0": {
@@ -122,6 +123,7 @@
   "aiTools": {
     "title": "AI untuk Coding & Development Tools",
     "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
+    "learnMore": "Pelajari Lebih Lanjut",
     "tools": {
       "claudeCode": {
         "description": "Asisten coding agentik yang otomatis menarik konteks ke prompt. Fitur dukungan CLAUDE.md, integrasi MCP, dan berfungsi langsung di terminal."

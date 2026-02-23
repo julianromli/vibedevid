@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowLeft, FileText, LogOut, PenSquare, User } from 'lucide-react'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -48,7 +48,70 @@ interface NavbarProps {
   onSignIn?: () => void
   onSignOut?: () => void
   onProfile?: () => void
-  scrollToSection?: (section: string) => void
+}
+
+type NavItem = { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
+
+interface DesktopNavItemProps {
+  item: NavItem
+}
+
+function DesktopNavItem({ item }: DesktopNavItemProps) {
+  if (item.type === 'link') {
+    return (
+      <Link
+        href={item.href}
+        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground hover:text-foreground')}
+      >
+        {item.label}
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={item.action}
+      className={cn(
+        buttonVariants({ variant: 'ghost', size: 'sm' }),
+        'cursor-pointer text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {item.label}
+    </button>
+  )
+}
+
+interface MobileNavItemProps {
+  item: NavItem
+  closeMenu: () => void
+}
+
+function MobileNavItem({ item, closeMenu }: MobileNavItemProps) {
+  if (item.type === 'link') {
+    return (
+      <Link
+        href={item.href}
+        onClick={closeMenu}
+        className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
+      >
+        {item.label}
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        item.action()
+        closeMenu()
+      }}
+      className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
+    >
+      {item.label}
+    </button>
+  )
 }
 
 export function Navbar({
@@ -59,7 +122,6 @@ export function Navbar({
   onSignIn,
   onSignOut,
   onProfile,
-  scrollToSection,
 }: NavbarProps) {
   const [open, setOpen] = useState(false)
   const scrolled = useScroll(10)
@@ -126,9 +188,7 @@ export function Navbar({
     }
   }
 
-  const navItems: Array<
-    { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
-  > = [
+  const navItems: NavItem[] = [
     { label: t('navbar.home'), href: '/', type: 'link' },
     { label: t('navbar.projects'), href: '/project/list', type: 'link' },
     { label: t('navbar.blogs'), href: '/blog', type: 'link' },
@@ -197,34 +257,12 @@ export function Navbar({
               }}
               transition={springTransition}
             >
-              {navItems.map((item, i) => {
-                if (item.type === 'link') {
-                  return (
-                    <Link
-                      key={i}
-                      href={item.href}
-                      className={cn(
-                        buttonVariants({ variant: 'ghost', size: 'sm' }),
-                        'text-muted-foreground hover:text-foreground',
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                }
-                return (
-                  <button
-                    key={i}
-                    onClick={item.action}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'cursor-pointer text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {item.label}
-                  </button>
-                )
-              })}
+              {navItems.map((item) => (
+                <DesktopNavItem
+                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
+                  item={item}
+                />
+              ))}
             </motion.div>
           )}
 
@@ -408,32 +446,13 @@ export function Navbar({
           <div className="flex h-full flex-col justify-between p-6 pt-24 pb-10">
             {/* Navigation Links */}
             <div className="flex flex-col gap-2">
-              {navItems.map((item, i) => {
-                if (item.type === 'link') {
-                  return (
-                    <Link
-                      key={i}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                }
-                return (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      item.action()
-                      setOpen(false)
-                    }}
-                    className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
-                  >
-                    {item.label}
-                  </button>
-                )
-              })}
+              {navItems.map((item) => (
+                <MobileNavItem
+                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
+                  item={item}
+                  closeMenu={() => setOpen(false)}
+                />
+              ))}
             </div>
 
             {/* Settings Section */}
@@ -535,25 +554,48 @@ export function Navbar({
   )
 }
 
-type MobileMenuProps = React.ComponentProps<'div'> & {
+type MobileMenuProps = {
+  children: React.ReactNode
+  className?: string
   open: boolean
 }
 
-function MobileMenu({ open, children, className, ...props }: MobileMenuProps) {
-  if (!open || typeof window === 'undefined') {
+function MobileMenu({ open, children, className }: MobileMenuProps) {
+  const menuTransition = {
+    duration: 0.5,
+    ease: [0.16, 1, 0.3, 1] as const,
+  }
+
+  const content = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={cn(
+            'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
+            className,
+          )}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={menuTransition}
+        >
+          <motion.div
+            className="h-full"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -16, opacity: 0 }}
+            transition={menuTransition}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
+  if (typeof document === 'undefined') {
     return null
   }
 
-  return createPortal(
-    <div
-      className={cn(
-        'fade-in fixed inset-0 z-40 animate-in bg-background/95 backdrop-blur-xl duration-300 supports-[backdrop-filter]:bg-background/80',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>,
-    document.body,
-  )
+  return createPortal(content, document.body)
 }
