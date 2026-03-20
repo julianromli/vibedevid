@@ -1,8 +1,6 @@
 'use client'
 
-import { Upload01Icon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowLeft, FileText, LogOut, User } from 'lucide-react'
+import { ArrowLeft, FileText, LogOut, Upload, User } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -296,10 +294,7 @@ export function Navbar({
                     variant="outline"
                     className="gap-1.5"
                   >
-                    <HugeiconsIcon
-                      icon={Upload01Icon}
-                      size={16}
-                    />
+                    <Upload className="h-4 w-4" />
                     {t('common.submitProject')}
                   </Button>
                 </Link>
@@ -401,11 +396,7 @@ export function Navbar({
                       href="/project/submit"
                       className="flex items-center"
                     >
-                      <HugeiconsIcon
-                        icon={Upload01Icon}
-                        size={16}
-                        className="mr-2"
-                      />
+                      <Upload className="mr-2 h-4 w-4" />
                       <span>{t('common.submitProject')}</span>
                     </Link>
                   </DropdownMenuItem>
@@ -500,10 +491,7 @@ export function Navbar({
                       className="w-full gap-2"
                       size="lg"
                     >
-                      <HugeiconsIcon
-                        icon={Upload01Icon}
-                        size={16}
-                      />
+                      <Upload className="h-4 w-4" />
                       {t('common.submitProject')}
                     </Button>
                   </Link>
