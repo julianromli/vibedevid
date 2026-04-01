@@ -57,6 +57,14 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
     setSubtitleVisible(false)
 
     const words = [...titleLine1, ...titleLine2]
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (prefersReducedMotion) {
+      setAnimatedWords(words.map((_, i) => i))
+      setSubtitleVisible(true)
+      return
+    }
+
     const timers: ReturnType<typeof setTimeout>[] = []
 
     words.forEach((_word, index) => {
@@ -91,7 +99,7 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
               href="/blog"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
             >
-              <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_hsl(var(--foreground)/0.15)]">
+              <AnimatedGradientText className="transition duration-300 hover:shadow-[inset_0_-5px_10px_hsl(var(--foreground)/0.15)] motion-reduce:transition-none">
                 <span
                   className={cn(
                     'animate-gradient inline bg-gradient-to-r from-foreground via-foreground/70 to-foreground bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent dark:from-primary dark:via-primary/80 dark:to-primary',
@@ -108,7 +116,7 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
                 <span
                   key={item.key}
                   className={cn(
-                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                    'mr-2 inline-block transition duration-700 ease-out sm:mr-3 motion-reduce:transition-none',
                     animatedWords.includes(item.index)
                       ? 'blur-0 translate-y-0 opacity-100'
                       : 'translate-y-8 opacity-0 blur-sm',
@@ -122,7 +130,7 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
                 <span
                   key={item.key}
                   className={cn(
-                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                    'mr-2 inline-block transition duration-700 ease-out sm:mr-3 motion-reduce:transition-none',
                     animatedWords.includes(item.index + titleLine1.length)
                       ? 'blur-0 translate-y-0 opacity-100'
                       : 'translate-y-8 opacity-0 blur-sm',
@@ -135,7 +143,7 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
 
             <p
               className={cn(
-                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-700 ease-out md:text-xl',
+                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition duration-700 ease-out md:text-xl motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:blur-0',
                 subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm',
               )}
             >

@@ -14,7 +14,13 @@ export const TestimonialsColumns = (props: {
     if (!element) return
 
     const duration = props.duration || 10
-    element.style.animation = `scroll-up ${duration}s linear infinite`
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (prefersReducedMotion) {
+      element.style.animation = 'none'
+    } else {
+      element.style.animation = `scroll-up ${duration}s linear infinite`
+    }
   }, [props.duration])
 
   return (
@@ -28,11 +34,12 @@ export const TestimonialsColumns = (props: {
       >
         {[
           ...new Array(2).fill(0).map((_, index) => (
-            <React.Fragment key={index}>
-              {props.testimonials.map(({ text, image, name, role }, i) => (
+            <React.Fragment key={index === 0 ? 'original' : 'duplicate'}>
+              {props.testimonials.map(({ text, image, name, role }) => (
                 <div
                   className="shadow-primary/5 bg-background w-full max-w-xs rounded-2xl border p-8 shadow-lg"
-                  key={i}
+                  key={name + role}
+                  aria-hidden={index === 1 ? 'true' : undefined}
                 >
                   <div className="text-muted-foreground mb-4 text-sm leading-relaxed">{text}</div>
                   <div className="flex items-center gap-3">

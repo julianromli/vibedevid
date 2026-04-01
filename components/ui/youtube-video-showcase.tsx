@@ -74,7 +74,7 @@ function DesktopVideoInfoOverlay({
 
           <div className="video-info relative flex-1 text-white">
             <div
-              className="video-title line-clamp-2 text-sm font-bold transition-all duration-700 ease-in-out md:text-base"
+              className="video-title line-clamp-2 text-sm font-bold transition duration-700 ease-in-out md:text-base motion-reduce:transition-none motion-reduce:transform-none"
               style={{
                 opacity: isActive ? 1 : 0,
                 transform: isActive ? 'translateX(0)' : 'translateX(25px)',
@@ -84,7 +84,7 @@ function DesktopVideoInfoOverlay({
               {video.title}
             </div>
             <div
-              className="video-desc line-clamp-2 text-xs text-gray-200 transition-all duration-700 ease-in-out md:text-sm"
+              className="video-desc line-clamp-2 text-xs text-gray-200 transition duration-700 ease-in-out md:text-sm motion-reduce:transition-none motion-reduce:transform-none"
               style={{
                 opacity: isActive ? 1 : 0,
                 transform: isActive ? 'translateX(0)' : 'translateX(25px)',
@@ -94,7 +94,7 @@ function DesktopVideoInfoOverlay({
               {video.description}
             </div>
             <div
-              className="video-meta mt-1 flex items-center gap-2 text-xs text-gray-300 transition-all duration-700 ease-in-out"
+              className="video-meta mt-1 flex items-center gap-2 text-xs text-gray-300 transition duration-700 ease-in-out motion-reduce:transition-none motion-reduce:transform-none"
               style={{
                 opacity: isActive ? 1 : 0,
                 transform: isActive ? 'translateX(0)' : 'translateX(25px)',
@@ -116,7 +116,7 @@ function DesktopVideoInfoOverlay({
 
         {isActive && (
           <div
-            className="transition-all duration-700 ease-in-out"
+            className="transition duration-700 ease-in-out motion-reduce:transition-none motion-reduce:transform-none"
             style={{
               opacity: isActive ? 1 : 0,
               transform: isActive ? 'translateY(0)' : 'translateY(15px)',
@@ -153,7 +153,7 @@ function DesktopVideoOption({
 
   return (
     <article
-      className={`video-option relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
+      className={`video-option relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] motion-reduce:transition-none motion-reduce:transform-none ${
         isActive ? 'active border-primary border-2 shadow-2xl' : 'border-border border-2 shadow-lg'
       } `}
       style={{
@@ -176,7 +176,7 @@ function DesktopVideoOption({
           src={video.thumbnail}
           alt={video.title}
           fill
-          className={`rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? 'scale-100' : 'scale-105'}`}
+          className={`rounded-xl object-cover transition-transform duration-700 ease-in-out motion-reduce:transition-none motion-reduce:transform-none ${isActive ? 'scale-100' : 'scale-105'}`}
           sizes="(max-width: 1200px) 50vw, 33vw"
           priority={index === 0}
           quality={85}
@@ -187,7 +187,7 @@ function DesktopVideoOption({
       </div>
 
       <div
-        className="video-shadow pointer-events-none absolute right-0 left-0 transition-all duration-700 ease-in-out"
+        className="video-shadow pointer-events-none absolute right-0 left-0 transition-all duration-700 ease-in-out motion-reduce:transition-none"
         style={{
           bottom: isActive ? '0' : '-60px',
           height: '160px',
@@ -239,6 +239,13 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
 
   useEffect(() => {
     if (vibeVideos.length === 0) return
+
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (isReducedMotion) {
+      setAnimatedVideos(vibeVideos.map((_, i) => i))
+      return
+    }
 
     const timers: NodeJS.Timeout[] = []
 

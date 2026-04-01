@@ -43,7 +43,7 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
           {faqArray.map((faq, index) => (
             <Card
               key={faq.question}
-              className={`transition-all duration-700 hover:shadow-md ${
+              className={`transition duration-700 hover:shadow-md motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
                 isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
@@ -58,7 +58,7 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
                   id={`faq-question-${index}`}
                 >
                   <h3 className="text-left font-semibold">{faq.question}</h3>
-                  <div className="ml-4 flex-shrink-0 transition-transform duration-300">
+                  <div className="ml-4 flex-shrink-0 transition-transform duration-300 motion-reduce:transition-none">
                     {openFAQ === index ? (
                       <Minus className="text-muted-foreground h-5 w-5" />
                     ) : (
@@ -71,7 +71,7 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
                   id={`faq-answer-${index}`}
                   aria-labelledby={`faq-question-${index}`}
                   aria-hidden={openFAQ !== index}
-                  className={`overflow-hidden px-6 transition-all duration-500 ease-in-out ${
+                  className={`overflow-hidden px-6 transition-all duration-500 ease-in-out motion-reduce:transition-none ${
                     openFAQ === index ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
