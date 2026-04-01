@@ -6,6 +6,7 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
+import { useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -26,24 +27,35 @@ export function FilterControls({
   setIsOpen,
   triggerClassName,
 }: FilterControlsProps) {
+  const listboxId = useId()
+
   return (
     <div className="relative">
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
         className={cn('flex items-center gap-2', triggerClassName)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
       >
         Filter
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
       {isOpen && (
-        <div className="bg-background border-border absolute top-full left-0 z-10 mt-2 w-48 rounded-lg border shadow-lg">
+        <div
+          id={listboxId}
+          role="listbox"
+          className="bg-background border-border absolute top-full left-0 z-10 mt-2 w-48 rounded-lg border shadow-lg"
+        >
           <div className="p-2">
             {filterOptions.map((option) => (
               <button
                 key={option}
                 type="button"
+                role="option"
+                aria-selected={selectedFilter === option}
                 onClick={() => {
                   setSelectedFilter(option)
                   setIsOpen(false)

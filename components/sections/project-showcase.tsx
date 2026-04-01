@@ -10,7 +10,7 @@ import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -50,24 +50,35 @@ function TrendingDropdown({
   buttonClassName,
   menuClassName,
 }: TrendingDropdownProps) {
+  const listboxId = useId()
+
   return (
     <>
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
         className={buttonClassName}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
       >
         {selectedTrending}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
       {isOpen && (
-        <div className={menuClassName}>
+        <div
+          id={listboxId}
+          role="listbox"
+          className={menuClassName}
+        >
           <div className="p-2">
             {options.map((option) => (
               <button
                 key={option}
                 type="button"
+                role="option"
+                aria-selected={selectedTrending === option}
                 onClick={() => {
                   onChange(option)
                   setIsOpen(false)
