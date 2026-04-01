@@ -7,13 +7,13 @@ import { notFound, redirect } from 'next/navigation'
 import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
 import { ProjectEditClient } from '@/components/project/ProjectEditClient'
 import { ShareButton } from '@/components/project/ShareButton'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
+import { ProjectImageCarousel } from '@/components/ui/project-image-carousel'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { getProjectBySlug } from '@/lib/actions'
@@ -46,13 +46,13 @@ function formatDescription(text: string): string {
     .map((paragraph) => {
       // Check if paragraph contains bullet points
       const lines = paragraph.split('\n')
-      const hasBullets = lines.some((line) => /^[\s]*[•\-\*]\s/.test(line))
+      const hasBullets = lines.some((line) => /^[\s]*[•\-*]\s/.test(line))
 
       if (hasBullets) {
         // Format as list
         const listItems = lines
           .map((line) => {
-            const bulletMatch = line.match(/^[\s]*[•\-\*]\s*(.*)$/)
+            const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
             if (bulletMatch) {
               return `<li>${bulletMatch[1]}</li>`
             }
@@ -64,14 +64,14 @@ function formatDescription(text: string): string {
 
         // Check if there's a header before the list (like "🚀 Fitur Utama:")
         const firstLine = lines[0]
-        const isHeader = firstLine && !/^[\s]*[•\-\*]\s/.test(firstLine)
+        const isHeader = firstLine && !/^[\s]*[•\-*]\s/.test(firstLine)
 
         if (isHeader) {
           const headerLine = `<p class="font-semibold mt-4 mb-2">${firstLine}</p>`
           const remainingItems = lines
             .slice(1)
             .map((line) => {
-              const bulletMatch = line.match(/^[\s]*[•\-\*]\s*(.*)$/)
+              const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
               return bulletMatch ? `<li>${bulletMatch[1]}</li>` : ''
             })
             .filter(Boolean)
@@ -137,19 +137,12 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-8 lg:col-span-2">
-            {/* Project Image */}
-            <div className="bg-muted relative overflow-hidden rounded-xl">
-              <AspectRatio ratio={16 / 9}>
-                <Image
-                  src={project.image || '/placeholder.svg'}
-                  alt={project.title}
-                  fill
-                  priority
-                  className="h-full w-full object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                />
-              </AspectRatio>
-            </div>
+            {/* Project Image Carousel */}
+            <ProjectImageCarousel
+              images={project.imageUrls || (project.image ? [project.image] : [])}
+              alt={project.title}
+              className="w-full"
+            />
 
             {/* Project Info */}
             <div className="space-y-6">

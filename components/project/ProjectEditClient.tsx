@@ -1,6 +1,7 @@
 'use client'
 
-import { Edit, Loader2 } from 'lucide-react'
+import { UploadButton } from '@uploadthing/react'
+import { Edit, Loader2, X } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -16,6 +17,7 @@ import { editProject } from '@/lib/actions'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from '@/lib/project-url'
+import type { OurFileRouter } from '@/lib/uploadthing'
 
 const MAX_DESCRIPTION_LENGTH = 1600
 
@@ -47,17 +49,28 @@ interface ProjectEditClientProps {
   isOwner: boolean
 }
 
+interface UploadResult {
+  serverData?: {
+    key?: string
+    url?: string
+  }
+  url?: string
+  key?: string
+}
+
 export function ProjectEditClient({ project, categories, projectSlug, isOwner }: ProjectEditClientProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [, setIsUploading] = useState(false)
   const [editFormData, setEditFormData] = useState({
     title: '',
     description: '',
     tagline: '',
     category: '',
     website_url: '',
-    image_url: '',
   })
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([])
+  const [editImageKeys, setEditImageKeys] = useState<string[]>([])
   const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([])
   const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>('')
   const [editFaviconUrl, setEditFaviconUrl] = useState<string>('')
@@ -65,21 +78,23 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
   if (!isOwner) return null
 
   const handleEditProject = () => {
-    // Initialize form data with existing project data
+    const projectImageUrls = project?.imageUrls || (project?.image ? [project.image] : [])
+    const projectImageKeys = project?.imageKeys || []
+
     setEditFormData({
       title: project?.title || '',
       description: project?.description || '',
       tagline: project?.tagline || '',
       category: project?.categoryRaw || '',
       website_url: project?.url || '',
-      image_url: project?.image || '',
     })
 
-    // Initialize tech stack tags
+    setEditImageUrls(projectImageUrls)
+    setEditImageKeys(projectImageKeys)
+
     const existingTags = project?.tags ? project.tags.map((tag: string) => ({ value: tag, label: tag })) : []
     setSelectedEditTags(existingTags)
 
-    // Initialize website URL and favicon
     setEditWebsiteUrl(project?.url || '')
     setEditFaviconUrl(project?.faviconUrl || '')
 
@@ -98,10 +113,10 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
       formData.append('tagline', editFormData.tagline)
       formData.append('category', editFormData.category)
       formData.append('website_url', editWebsiteUrl)
-      formData.append('image_url', editFormData.image_url)
       formData.append('favicon_url', editFaviconUrl)
+      formData.append('image_urls', JSON.stringify(editImageUrls))
+      formData.append('image_keys', JSON.stringify(editImageKeys))
 
-      // Add selected tags as JSON string
       const tagsValues = selectedEditTags.map((tag) => tag.value)
       formData.append('tags', JSON.stringify(tagsValues))
 
@@ -109,12 +124,11 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
 
       if (result.success) {
         toast.success('Project updated successfully')
-        // Reload the page to show updated project data
         window.location.reload()
       } else {
         toast.error(result.error || 'Failed to update project')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update project')
     } finally {
       setIsSaving(false)
@@ -129,8 +143,51 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
       tagline: '',
       category: '',
       website_url: '',
-      image_url: '',
     })
+    setEditImageUrls([])
+    setEditImageKeys([])
+  }
+
+  const handleUploadComplete = (res: UploadResult[] | undefined) => {
+    setIsUploading(false)
+
+    if (!res || res.length === 0) {
+      toast.error('Upload completed but no files were received.')
+      return
+    }
+
+    const newUrls: string[] = []
+    const newKeys: string[] = []
+
+    for (const uploadResult of res) {
+      const url = uploadResult?.serverData?.url || uploadResult?.url
+      const key = uploadResult?.serverData?.key || uploadResult?.key
+
+      if (url && key) {
+        newUrls.push(url)
+        newKeys.push(key)
+      }
+    }
+
+    if (newUrls.length > 0) {
+      setEditImageUrls((prev) => [...prev, ...newUrls])
+      setEditImageKeys((prev) => [...prev, ...newKeys])
+      toast.success(`Added ${newUrls.length} image${newUrls.length !== 1 ? 's' : ''}`)
+    }
+  }
+
+  const handleUploadBegin = () => {
+    setIsUploading(true)
+  }
+
+  const handleUploadError = (error: Error) => {
+    setIsUploading(false)
+    toast.error(`Upload failed: ${error.message}`)
+  }
+
+  const removeImage = (index: number) => {
+    setEditImageUrls((prev) => prev.filter((_, i) => i !== index))
+    setEditImageKeys((prev) => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -153,7 +210,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
           <CardContent className="p-6">
             <h3 className="mb-6 text-xl font-semibold">Edit Project</h3>
             <div className="space-y-6">
-              {/* Title */}
               <div className="space-y-2">
                 <Label
                   htmlFor="edit-title"
@@ -176,7 +232,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 />
               </div>
 
-              {/* Tagline */}
               <div className="space-y-2">
                 <Label
                   htmlFor="edit-tagline"
@@ -199,7 +254,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 />
               </div>
 
-              {/* Description */}
               <div className="space-y-2">
                 <Label
                   htmlFor="edit-description"
@@ -238,7 +292,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 </div>
               </div>
 
-              {/* Category */}
               <div className="space-y-2">
                 <Label htmlFor="edit-category">Category *</Label>
                 <Select
@@ -271,7 +324,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 </Select>
               </div>
 
-              {/* Website URL */}
               <div className="space-y-2">
                 <Label htmlFor="edit-website">Website URL</Label>
                 <Input
@@ -295,7 +347,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 />
                 <p className="form-helper-text mt-1 text-xs text-muted-foreground">
                   {!editWebsiteUrl.trim() ? (
-                    'Optional. You can paste a full URL or just type google.com and we’ll save it as https://google.com.'
+                    "Optional. You can paste a full URL or just type google.com and we'll save it as https://google.com."
                   ) : normalizeProjectWebsiteUrl(editWebsiteUrl) &&
                     normalizeProjectWebsiteUrl(editWebsiteUrl) !== editWebsiteUrl.trim() ? (
                     `Will be saved as ${normalizeProjectWebsiteUrl(editWebsiteUrl)}`
@@ -307,7 +359,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 </p>
               </div>
 
-              {/* Favicon URL */}
               <div className="space-y-2">
                 <Label htmlFor="edit-favicon">Favicon URL</Label>
                 <div className="flex items-center gap-2">
@@ -332,7 +383,6 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 </div>
               </div>
 
-              {/* Tech Stack / Tags */}
               <div className="space-y-2">
                 <Label>Tech Stack / Tags</Label>
                 <MultipleSelector
@@ -350,38 +400,82 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                 />
               </div>
 
-              {/* Image URL (simplified - no upload for now) */}
               <div className="space-y-2">
-                <Label htmlFor="edit-image-url">Image URL</Label>
-                <Input
-                  id="edit-image-url"
-                  type="url"
-                  value={editFormData.image_url}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      image_url: e.target.value,
-                    })
-                  }
-                  placeholder="https://example.com/image.png"
-                  disabled={isSaving}
-                />
-                {editFormData.image_url && (
-                  <div className="relative mt-2">
-                    <AspectRatio ratio={16 / 9}>
-                      <Image
-                        src={editFormData.image_url}
-                        alt="Project preview"
-                        fill
-                        className="rounded-lg object-cover"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                    </AspectRatio>
+                <Label>Project Screenshots (up to 10)</Label>
+                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                  {editImageUrls.length > 0 && (
+                    <div className="mb-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {editImageUrls.map((url, index) => (
+                          <div
+                            key={url}
+                            className="relative"
+                          >
+                            <AspectRatio ratio={16 / 9}>
+                              <Image
+                                src={url}
+                                alt={`Screenshot ${index + 1}`}
+                                fill
+                                className="rounded-lg object-cover"
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                              />
+                            </AspectRatio>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                              onClick={() => removeImage(index)}
+                              disabled={isSaving}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                              {index + 1}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                    <span>
+                      {editImageUrls.length} image{editImageUrls.length !== 1 ? 's' : ''}
+                    </span>
+                    {editImageUrls.length < 10 && <span>{10 - editImageUrls.length} more can be added</span>}
                   </div>
-                )}
+
+                  {editImageUrls.length < 10 && (
+                    <UploadButton<OurFileRouter, 'projectImageUploader'>
+                      endpoint="projectImageUploader"
+                      onUploadBegin={handleUploadBegin}
+                      onClientUploadComplete={handleUploadComplete}
+                      onUploadError={handleUploadError}
+                      onUploadProgress={() => {}}
+                      config={{
+                        mode: 'auto',
+                      }}
+                      content={{
+                        button({ ready }) {
+                          if (ready) return <div>Add Images</div>
+                          return 'Getting ready...'
+                        },
+                        allowedContent({ ready, fileTypes, isUploading }) {
+                          if (!ready) return 'Checking what you allow'
+                          if (isUploading) return 'Uploading...'
+                          return `${fileTypes.join(', ')} (max 10 total)`
+                        },
+                      }}
+                      appearance={{
+                        button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
+                        allowedContent: 'text-sm text-muted-foreground mt-2',
+                      }}
+                    />
+                  )}
+                </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleSaveEdit}
@@ -389,6 +483,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                     !editFormData.title.trim() ||
                     !editFormData.description.trim() ||
                     editFormData.description.length > MAX_DESCRIPTION_LENGTH ||
+                    editImageUrls.length === 0 ||
                     isSaving
                   }
                 >

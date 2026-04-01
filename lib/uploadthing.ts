@@ -51,7 +51,7 @@ export async function deleteUploadthingFiles(fileKeys: string | string[]): Promi
 }
 
 export const ourFileRouter = {
-  projectImageUploader: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
+  projectImageUploader: f({ image: { maxFileSize: '4MB', maxFileCount: 10 } })
     .middleware(async () => {
       const userId = await requireAuthenticatedUserId()
       return { userId }

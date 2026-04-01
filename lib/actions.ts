@@ -385,6 +385,8 @@ export async function getProjectBySlug(slug: string) {
       description: project.description,
       fullDescription: project.description, // Use same description for now
       image: project.image_url,
+      imageUrls: project.image_urls || (project.image_url ? [project.image_url] : []),
+      imageKeys: project.image_keys || [],
       author: {
         name: project.users.display_name,
         username: project.users.username,
@@ -806,11 +808,25 @@ export async function editProject(projectSlug: string, formData: FormData) {
     const description = formData.get('description') as string
     const category = formData.get('category') as string
     const websiteUrl = formData.get('website_url') as string
-    const imageUrl = formData.get('image_url') as string
+    const imageUrlsString = formData.get('image_urls') as string
+    const imageKeysString = formData.get('image_keys') as string
     const tagline = formData.get('tagline') as string
     const tagsString = formData.get('tags') as string
     const trimmedWebsiteUrl = websiteUrl?.trim() || ''
     const normalizedWebsiteUrl = trimmedWebsiteUrl ? normalizeProjectWebsiteUrl(trimmedWebsiteUrl) : null
+
+    let imageUrls: string[] = []
+    let imageKeys: string[] = []
+    try {
+      if (imageUrlsString) {
+        imageUrls = JSON.parse(imageUrlsString)
+      }
+      if (imageKeysString) {
+        imageKeys = JSON.parse(imageKeysString)
+      }
+    } catch (e) {
+      console.warn('Failed to parse image arrays', e)
+    }
 
     if (trimmedWebsiteUrl && !normalizedWebsiteUrl) {
       return { success: false, error: 'Enter a valid website URL' }
@@ -851,7 +867,8 @@ export async function editProject(projectSlug: string, formData: FormData) {
         description: description.trim(),
         category,
         website_url: normalizedWebsiteUrl,
-        image_url: imageUrl?.trim() || null,
+        image_urls: imageUrls,
+        image_keys: imageKeys,
         tagline: tagline?.trim() || null,
         ...(faviconUrl && { favicon_url: faviconUrl }),
         tags: tags,

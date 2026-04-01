@@ -8,7 +8,7 @@ import { ensureUniqueSlug, slugifyTitle } from '../slug'
 import { createClient } from '../supabase/server'
 import { deleteUploadthingFiles } from '../uploadthing'
 
-type SubmitProjectFieldName = 'title' | 'tagline' | 'description' | 'category' | 'website_url' | 'image_url' | 'tags'
+type SubmitProjectFieldName = 'title' | 'tagline' | 'description' | 'category' | 'website_url' | 'image_urls' | 'tags'
 
 type SubmitProjectFieldErrors = Partial<Record<SubmitProjectFieldName, string[]>>
 
@@ -24,8 +24,8 @@ interface SubmitProjectInput {
   description: string
   category: string
   websiteUrl: string | null
-  imageUrl: string
-  imageKey: string | null
+  imageUrls: string[]
+  imageKeys: string[]
   tagline: string
   tags: string[]
 }
@@ -54,7 +54,7 @@ const FIELD_NAME_MAP: Record<string, SubmitProjectFieldName> = {
   description: 'description',
   category: 'category',
   websiteUrl: 'website_url',
-  imageUrl: 'image_url',
+  imageUrls: 'image_urls',
   tags: 'tags',
 }
 
@@ -63,8 +63,8 @@ interface SubmitProjectRawInput {
   description: string
   category: string
   websiteUrl: string
-  imageUrl: string
-  imageKey: string
+  imageUrls: string
+  imageKeys: string
   tagline: string
   tags: string
 }
@@ -230,6 +230,69 @@ const normalizeWebsiteUrl = (value: string, ctx: z.RefinementCtx): string | null
   return normalizedWebsiteUrl
 }
 
+const MAX_IMAGE_COUNT = 10
+
+const parseImageArray = (value: string, ctx: z.RefinementCtx): string[] | typeof z.NEVER => {
+  if (!value) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'At least one project screenshot is required',
+    })
+    return z.NEVER
+  }
+
+  try {
+    const parsed = JSON.parse(value)
+    if (!Array.isArray(parsed)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Image URLs must be a valid list',
+      })
+      return z.NEVER
+    }
+
+    if (parsed.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one project screenshot is required',
+      })
+      return z.NEVER
+    }
+
+    if (parsed.length > MAX_IMAGE_COUNT) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Maximum ${MAX_IMAGE_COUNT} images allowed`,
+      })
+      return z.NEVER
+    }
+
+    return parsed.filter((url): url is string => typeof url === 'string' && url.trim().length > 0)
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid image URLs format',
+    })
+    return z.NEVER
+  }
+}
+
+const parseImageKeysArray = (value: string, _ctx: z.RefinementCtx): string[] => {
+  if (!value) {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(value)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.filter((key): key is string => typeof key === 'string' && key.trim().length > 0)
+  } catch {
+    return []
+  }
+}
+
 const buildSubmitProjectSchema = (activeCategoryNames: readonly string[]) => {
   const activeCategorySet = new Set(activeCategoryNames)
 
@@ -258,11 +321,8 @@ const buildSubmitProjectSchema = (activeCategoryNames: readonly string[]) => {
         .refine(hasMeaningfulDescription, 'Description must clearly explain what your project does'),
       category: z.string().trim().min(1, 'Category is required'),
       websiteUrl: z.string().trim().transform(normalizeWebsiteUrl),
-      imageUrl: z.string().trim().min(1, 'Project screenshot is required').url('Enter a valid image URL'),
-      imageKey: z
-        .string()
-        .trim()
-        .transform((value) => (value.length === 0 ? null : value)),
+      imageUrls: z.string().transform(parseImageArray),
+      imageKeys: z.string().transform(parseImageKeysArray),
       tags: z.string().transform(normalizeTags),
     })
     .superRefine((input, ctx) => {
@@ -281,8 +341,8 @@ const readSubmitProjectInput = (formData: FormData): SubmitProjectRawInput => ({
   description: getFormValue(formData, 'description'),
   category: getFormValue(formData, 'category'),
   websiteUrl: getFormValue(formData, 'website_url'),
-  imageUrl: getFormValue(formData, 'image_url'),
-  imageKey: getFormValue(formData, 'image_key'),
+  imageUrls: getFormValue(formData, 'image_urls'),
+  imageKeys: getFormValue(formData, 'image_keys'),
   tagline: getFormValue(formData, 'tagline'),
   tags: getFormValue(formData, 'tags'),
 })
@@ -342,6 +402,35 @@ const cleanupProvisionalUploadByKey = async (
   }
 }
 
+const cleanupProvisionalUploadByKeys = async (
+  imageKeys: string[] | null | undefined,
+): Promise<ProvisionalUploadCleanupResult> => {
+  if (!imageKeys || imageKeys.length === 0) {
+    return {
+      success: true,
+      deletedCount: 0,
+    }
+  }
+
+  const normalizedKeys = imageKeys.map((key) => key?.trim()).filter(Boolean) as string[]
+
+  if (normalizedKeys.length === 0) {
+    return {
+      success: true,
+      deletedCount: 0,
+    }
+  }
+
+  try {
+    return await deleteUploadthingFiles(normalizedKeys)
+  } catch {
+    return {
+      success: false,
+      deletedCount: 0,
+    }
+  }
+}
+
 const revalidateProjectCreationPaths = (slug: string) => {
   revalidatePath(PROJECT_LIST_PATH)
   revalidatePath(`/project/${slug}`)
@@ -390,7 +479,8 @@ const insertProject = async (
       description: input.description,
       category: input.category,
       website_url: input.websiteUrl,
-      image_url: input.imageUrl,
+      image_urls: input.imageUrls,
+      image_keys: input.imageKeys,
       tagline: input.tagline || null,
       favicon_url: faviconUrl,
       author_id: authorId,
@@ -481,7 +571,7 @@ export async function cleanupReplacedProjectProvisionalUpload(
 }
 
 export async function submitProject(formData: FormData, userId: string): Promise<SubmitProjectResult> {
-  let provisionalImageKey: string | null = null
+  let provisionalImageKeys: string[] = []
 
   try {
     const supabase = await createClient()
@@ -494,8 +584,6 @@ export async function submitProject(formData: FormData, userId: string): Promise
       return { success: false, error: 'You must be logged in to submit projects' }
     }
 
-    provisionalImageKey = getFormValue(formData, 'image_key') || null
-
     const activeCategories = await getActiveCategoryNames(supabase)
     if (activeCategories.error) {
       return { success: false, error: activeCategories.error }
@@ -507,7 +595,7 @@ export async function submitProject(formData: FormData, userId: string): Promise
     }
 
     const input = validationResult.data
-    provisionalImageKey = input.imageKey
+    provisionalImageKeys = input.imageKeys
 
     const [faviconUrl, authorId] = await Promise.all([
       getFaviconOrDefault(input.websiteUrl ?? ''),
@@ -516,14 +604,14 @@ export async function submitProject(formData: FormData, userId: string): Promise
 
     const result = await createProjectWithRetry(supabase, input, authorId, faviconUrl)
     if (!result.success || !result.slug) {
-      await cleanupProvisionalUploadByKey(input.imageKey)
+      await cleanupProvisionalUploadByKeys(input.imageKeys)
       return result
     }
 
     revalidateProjectCreationPaths(result.slug)
     return result
   } catch {
-    await cleanupProvisionalUploadByKey(provisionalImageKey)
+    await cleanupProvisionalUploadByKeys(provisionalImageKeys)
     return { success: false, error: UNEXPECTED_ERROR_MESSAGE }
   }
 }

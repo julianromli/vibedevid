@@ -1,7 +1,7 @@
 'use client'
 
 import { UploadButton } from '@uploadthing/react'
-import { CheckCircle, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react'
+import { CheckCircle, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
@@ -14,11 +14,7 @@ import { Label } from '@/components/ui/label'
 import MultipleSelector, { type Option } from '@/components/ui/multiselect'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  cleanupProjectProvisionalUpload,
-  cleanupReplacedProjectProvisionalUpload,
-  submitProject,
-} from '@/lib/actions/projects'
+import { cleanupProjectProvisionalUpload, submitProject } from '@/lib/actions/projects'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from '@/lib/project-url'
@@ -118,9 +114,9 @@ interface SubmitFormState {
   title: string
   tagline: string
   description: string
-  uploadedImageUrl: string
+  uploadedImageUrls: string[]
   importedImageUrl: string
-  uploadedImageKey: string
+  uploadedImageKeys: string[]
   selectedTags: Option[]
   websiteUrl: string
   faviconUrl: string
@@ -219,14 +215,17 @@ function buildSubmitFormData(state: SubmitFormState): FormData {
   if (state.tagline) formData.set('tagline', state.tagline)
   if (state.description) formData.set('description', state.description)
 
-  if (state.uploadedImageUrl) {
-    formData.set('image_url', state.uploadedImageUrl)
-  } else if (state.importedImageUrl) {
-    formData.set('image_url', state.importedImageUrl)
+  const allImageUrls = [...state.uploadedImageUrls]
+  if (state.importedImageUrl && !allImageUrls.includes(state.importedImageUrl)) {
+    allImageUrls.push(state.importedImageUrl)
   }
 
-  if (state.uploadedImageKey) {
-    formData.set('image_key', state.uploadedImageKey)
+  if (allImageUrls.length > 0) {
+    formData.set('image_urls', JSON.stringify(allImageUrls))
+  }
+
+  if (state.uploadedImageKeys.length > 0) {
+    formData.set('image_keys', JSON.stringify(state.uploadedImageKeys))
   }
 
   formData.set('tags', JSON.stringify(state.selectedTags.map((tag) => tag.value)))
@@ -302,9 +301,9 @@ function hasMeaningfulDraft(state: SubmitFormState): boolean {
       state.title.trim() ||
       state.tagline.trim() ||
       state.description.trim() ||
-      state.uploadedImageUrl.trim() ||
+      state.uploadedImageUrls.length > 0 ||
       state.importedImageUrl.trim() ||
-      state.uploadedImageKey.trim() ||
+      state.uploadedImageKeys.length > 0 ||
       state.selectedTags.length > 0 ||
       state.websiteUrl.trim() ||
       state.faviconUrl.trim() ||
@@ -329,9 +328,9 @@ function parseStoredDraft(rawValue: string | null): StoredSubmitProjectDraft | n
       title: typeof state.title === 'string' ? state.title : '',
       tagline: typeof state.tagline === 'string' ? state.tagline : '',
       description: typeof state.description === 'string' ? state.description : '',
-      uploadedImageUrl: typeof state.uploadedImageUrl === 'string' ? state.uploadedImageUrl : '',
+      uploadedImageUrls: Array.isArray(state.uploadedImageUrls) ? state.uploadedImageUrls : [],
       importedImageUrl: typeof state.importedImageUrl === 'string' ? state.importedImageUrl : '',
-      uploadedImageKey: typeof state.uploadedImageKey === 'string' ? state.uploadedImageKey : '',
+      uploadedImageKeys: Array.isArray(state.uploadedImageKeys) ? state.uploadedImageKeys : [],
       selectedTags: normalizeDraftTags(state.selectedTags),
       websiteUrl: typeof state.websiteUrl === 'string' ? state.websiteUrl : '',
       faviconUrl: typeof state.faviconUrl === 'string' ? state.faviconUrl : '',
@@ -377,9 +376,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([])
   const [importedImageUrl, setImportedImageUrl] = useState<string>('')
-  const [uploadedImageKey, setUploadedImageKey] = useState<string>('')
+  const [uploadedImageKeys, setUploadedImageKeys] = useState<string[]>([])
   const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
   const [selectedTags, setSelectedTags] = useState<Option[]>([])
   const [title, setTitle] = useState<string>('')
@@ -395,7 +394,7 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   const router = useRouter()
 
   const draftStorageKey = getDraftStorageKey(redirectTo)
-  const activeImageUrl = uploadedImageUrl || importedImageUrl
+  const activeImageUrls = uploadedImageUrls.length > 0 ? uploadedImageUrls : importedImageUrl ? [importedImageUrl] : []
   const normalizedWebsiteUrl = normalizeProjectWebsiteUrl(websiteUrl)
   const trimmedWebsiteUrl = websiteUrl.trim()
   const normalizedWebsitePreview =
@@ -406,9 +405,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       title,
       tagline,
       description,
-      uploadedImageUrl,
+      uploadedImageUrls,
       importedImageUrl,
-      uploadedImageKey,
+      uploadedImageKeys,
       selectedTags,
       websiteUrl,
       faviconUrl,
@@ -426,8 +425,8 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       selectedTags,
       tagline,
       title,
-      uploadedImageKey,
-      uploadedImageUrl,
+      uploadedImageKeys,
+      uploadedImageUrls,
       websiteUrl,
     ],
   )
@@ -502,9 +501,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     setTitle(restoredState.title)
     setTagline(restoredState.tagline)
     setDescription(restoredState.description)
-    setUploadedImageUrl(restoredState.uploadedImageUrl)
+    setUploadedImageUrls(restoredState.uploadedImageUrls || [])
     setImportedImageUrl(restoredState.importedImageUrl)
-    setUploadedImageKey(restoredState.uploadedImageKey)
+    setUploadedImageKeys(restoredState.uploadedImageKeys || [])
     setSelectedTags(restoredState.selectedTags)
     setWebsiteUrl(restoredState.websiteUrl)
     setFaviconUrl(restoredState.faviconUrl)
@@ -576,8 +575,8 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       issues.push('Enter a valid website URL or leave it empty')
     }
 
-    if (!activeImageUrl) {
-      issues.push('Add a project screenshot before submitting')
+    if (activeImageUrls.length === 0) {
+      issues.push('Add at least one project screenshot before submitting')
     }
 
     return issues
@@ -601,7 +600,8 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     {
       id: 'links-media',
       title: 'Links & Media',
-      description: activeImageUrl ? 'Link, tags, and screenshot ready for review' : 'Link, tags, and screenshot',
+      description:
+        activeImageUrls.length > 0 ? 'Link, tags, and screenshots ready for review' : 'Link, tags, and screenshots',
       stepIndex: 2,
       issues: getLinksAndMediaIssues(),
     },
@@ -716,9 +716,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
         title,
         tagline,
         description,
-        uploadedImageUrl,
+        uploadedImageUrls,
         importedImageUrl,
-        uploadedImageKey,
+        uploadedImageKeys,
         selectedTags,
         websiteUrl,
         category,
@@ -731,7 +731,8 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       if (result.success) {
         clearSavedDraft()
         toast.success('Mantap! 🚀 Project lo berhasil di-submit!')
-        setUploadedImageKey('')
+        setUploadedImageUrls([])
+        setUploadedImageKeys([])
         router.push(`/project/${result.slug}`)
       } else {
         handleSubmitResultError(result)
@@ -797,17 +798,27 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     setIsUploading(false)
     setError(null)
 
-    const uploadResult = Array.isArray(res) ? res[0] : undefined
-    const imageUrl = getUploadImageUrl(uploadResult)
-    const imageKey = getUploadImageKey(uploadResult)
+    if (!res || res.length === 0) {
+      setError('Upload completed but no files were received. Please try again.')
+      return
+    }
 
-    if (imageUrl && imageKey) {
-      if (uploadedImageKey && uploadedImageKey !== imageKey) {
-        void cleanupReplacedProjectProvisionalUpload(uploadedImageKey, imageKey)
+    const newImageUrls: string[] = []
+    const newImageKeys: string[] = []
+
+    for (const uploadResult of res) {
+      const imageUrl = getUploadImageUrl(uploadResult)
+      const imageKey = getUploadImageKey(uploadResult)
+
+      if (imageUrl && imageKey) {
+        newImageUrls.push(imageUrl)
+        newImageKeys.push(imageKey)
       }
+    }
 
-      setUploadedImageUrl(imageUrl)
-      setUploadedImageKey(imageKey)
+    if (newImageUrls.length > 0) {
+      setUploadedImageUrls((prev) => [...prev, ...newImageUrls])
+      setUploadedImageKeys((prev) => [...prev, ...newImageKeys])
       return
     }
 
@@ -815,15 +826,15 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   }
 
   const cleanupActiveUpload = async () => {
-    const currentImageKey = uploadedImageKey.trim()
-    if (!currentImageKey) {
+    if (uploadedImageKeys.length === 0) {
       return true
     }
 
     try {
-      const result = await cleanupProjectProvisionalUpload(currentImageKey)
+      const result = await cleanupProjectProvisionalUpload(uploadedImageKeys[uploadedImageKeys.length - 1])
       if (result.success) {
-        setUploadedImageKey('')
+        setUploadedImageUrls([])
+        setUploadedImageKeys([])
         return true
       }
     } catch {
@@ -1286,62 +1297,72 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
               </div>
 
               <div className="space-y-2">
-                <Label className="form-label-enhanced">Project Screenshot</Label>
+                <Label className="form-label-enhanced">Project Screenshots (up to 10)</Label>
                 <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 dark:border-gray-600">
-                  {uploadedImageUrl ? (
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <AspectRatio ratio={16 / 9}>
-                          <Image
-                            src={uploadedImageUrl}
-                            alt="Project screenshot preview"
-                            className="h-full w-full rounded-lg object-cover shadow-md"
-                            width={1200}
-                            height={675}
-                          />
-                        </AspectRatio>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                          data-testid="remove-uploaded-image"
-                          onClick={async () => {
-                            await cleanupActiveUpload()
-
-                            // Explicitly clear both URL and Key state
-                            // Even if backend cleanup fails, we should clear the UI state
-                            // so the user isn't blocked from uploading a different one.
-                            setUploadedImageUrl('')
-                            setUploadedImageKey('')
-                            setError(null)
-                          }}
-                          disabled={isLoading}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                  {uploadedImageUrls.length > 0 && (
+                    <div className="space-y-4 mb-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {uploadedImageUrls.map((url, index) => (
+                          <div
+                            key={url}
+                            className="relative"
+                          >
+                            <AspectRatio ratio={16 / 9}>
+                              <Image
+                                src={url}
+                                alt={`Uploaded screenshot ${index + 1}`}
+                                className="h-full w-full rounded-lg object-cover shadow-md"
+                                width={300}
+                                height={169}
+                              />
+                            </AspectRatio>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                              data-testid={`remove-uploaded-image-${index}`}
+                              onClick={() => {
+                                setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index))
+                                setUploadedImageKeys((prev) => prev.filter((_, i) => i !== index))
+                              }}
+                              disabled={isLoading}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                              {index + 1}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                         <CheckCircle className="h-4 w-4" />
-                        <span>Uploaded screenshot active</span>
+                        <span>
+                          {uploadedImageUrls.length} uploaded screenshot{uploadedImageUrls.length !== 1 ? 's' : ''}{' '}
+                          active
+                        </span>
                       </div>
                     </div>
-                  ) : importedImageUrl ? (
-                    <div className="space-y-4">
+                  )}
+
+                  {importedImageUrl && !uploadedImageUrls.includes(importedImageUrl) && (
+                    <div className="space-y-4 mb-4">
                       <div className="relative opacity-80 border border-muted-foreground/30 rounded-lg overflow-hidden">
                         <AspectRatio ratio={16 / 9}>
                           <Image
                             src={importedImageUrl}
                             alt="Imported preview"
                             className="h-full w-full object-cover"
-                            width={1200}
-                            height={675}
+                            width={300}
+                            height={169}
                           />
                         </AspectRatio>
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
                           <Button
                             type="button"
                             variant="destructive"
+                            size="sm"
                             onClick={() => setImportedImageUrl('')}
                           >
                             Remove Imported Preview
@@ -1353,76 +1374,25 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
                           <CheckCircle className="h-4 w-4" />
                           <span>Using imported preview</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">Upload a local image to replace this</span>
-                      </div>
-                      <div className="border-t pt-4 border-gray-200 dark:border-gray-700">
-                        <div className="text-center">
-                          {isUploading ? (
-                            <Loader2 className="text-primary mx-auto h-12 w-12 animate-spin" />
-                          ) : (
-                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                          )}
-                          <div className="mt-4">
-                            {isUploading ? (
-                              <div className="space-y-2">
-                                <div className="bg-primary text-primary-foreground rounded-md px-4 py-2">
-                                  <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
-                                  Uploading...
-                                </div>
-                                <p className="text-muted-foreground text-sm">
-                                  Please wait while your image is being uploaded
-                                </p>
-                              </div>
-                            ) : (
-                              <UploadButton<OurFileRouter, 'projectImageUploader'>
-                                endpoint="projectImageUploader"
-                                onUploadBegin={handleUploadBegin}
-                                onClientUploadComplete={handleUploadComplete}
-                                onUploadError={handleUploadError}
-                                onUploadProgress={() => {}}
-                                config={{
-                                  mode: 'auto',
-                                }}
-                                content={{
-                                  button({ ready }) {
-                                    if (ready) return <div>Replace Image</div>
-                                    return 'Getting ready...'
-                                  },
-                                  allowedContent({ ready, fileTypes, isUploading }) {
-                                    if (!ready) return 'Checking what you allow'
-                                    if (isUploading) return 'Uploading...'
-                                    return `Image (${fileTypes.join(', ')})`
-                                  },
-                                }}
-                                appearance={{
-                                  button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                                  allowedContent: 'text-sm text-muted-foreground mt-2',
-                                }}
-                              />
-                            )}
-                          </div>
-                        </div>
                       </div>
                     </div>
-                  ) : (
+                  )}
+
+                  <div className="border-t pt-4 border-gray-200 dark:border-gray-700">
                     <div className="text-center">
                       {isUploading ? (
-                        <Loader2 className="text-primary mx-auto h-12 w-12 animate-spin" />
-                      ) : (
-                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      )}
-                      <div className="mt-4">
-                        {isUploading ? (
-                          <div className="space-y-2">
-                            <div className="bg-primary text-primary-foreground rounded-md px-4 py-2">
-                              <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
-                              Uploading...
-                            </div>
-                            <p className="text-muted-foreground text-sm">
-                              Please wait while your image is being uploaded
-                            </p>
+                        <div className="space-y-2">
+                          <Loader2 className="text-primary mx-auto h-12 w-12 animate-spin" />
+                          <div className="bg-primary text-primary-foreground rounded-md px-4 py-2 inline-block">
+                            <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                            Uploading...
                           </div>
-                        ) : (
+                          <p className="text-muted-foreground text-sm">
+                            Please wait while your images are being uploaded
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
                           <UploadButton<OurFileRouter, 'projectImageUploader'>
                             endpoint="projectImageUploader"
                             onUploadBegin={handleUploadBegin}
@@ -1434,13 +1404,16 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
                             }}
                             content={{
                               button({ ready }) {
-                                if (ready) return <div>Choose File</div>
+                                if (ready) {
+                                  const remaining = 10 - uploadedImageUrls.length
+                                  return <div>Add More Images ({remaining} left)</div>
+                                }
                                 return 'Getting ready...'
                               },
                               allowedContent({ ready, fileTypes, isUploading }) {
                                 if (!ready) return 'Checking what you allow'
                                 if (isUploading) return 'Uploading...'
-                                return `Image (${fileTypes.join(', ')})`
+                                return `${fileTypes.join(', ')} (max 10 images)`
                               },
                             }}
                             appearance={{
@@ -1448,13 +1421,13 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
                               allowedContent: 'text-sm text-muted-foreground mt-2',
                             }}
                           />
-                        )}
-                      </div>
-                      <p className="mt-2 text-sm text-gray-500">
-                        {isUploading ? 'Uploading your screenshot...' : 'Upload a screenshot of your project (max 4MB)'}
-                      </p>
+                          <p className="text-xs text-muted-foreground">
+                            Upload screenshots of your project. You can add up to 10 images.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1588,28 +1561,32 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
                   </div>
 
                   <div className="col-span-1 md:col-span-2 mt-2">
-                    <span className="text-muted-foreground block text-xs mb-2">Screenshot</span>
-                    {uploadedImageUrl || importedImageUrl ? (
-                      <div className="w-full max-w-sm overflow-hidden rounded border relative">
-                        <AspectRatio ratio={16 / 9}>
-                          <Image
-                            src={uploadedImageUrl || importedImageUrl}
-                            alt="Preview"
-                            className="object-cover"
-                            fill
-                          />
-                        </AspectRatio>
-                        <div
-                          className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded"
-                          data-testid="review-image-badge"
-                        >
-                          {uploadedImageUrl ? 'Uploaded' : 'Imported'}
-                        </div>
+                    <span className="text-muted-foreground block text-xs mb-2">Screenshots</span>
+                    {activeImageUrls.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {activeImageUrls.map((url, index) => (
+                          <div
+                            key={url}
+                            className="relative overflow-hidden rounded border"
+                          >
+                            <AspectRatio ratio={16 / 9}>
+                              <Image
+                                src={url}
+                                alt={`Preview ${index + 1}`}
+                                className="object-cover"
+                                fill
+                              />
+                            </AspectRatio>
+                            <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                              {index + 1}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="text-red-600 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-red-500" />
-                        No screenshot provided. Required for final submit.
+                        No screenshots provided. At least one is required for final submit.
                       </div>
                     )}
                   </div>
