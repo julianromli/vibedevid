@@ -47,7 +47,7 @@ export interface VibeVideo {
 
 export interface Testimonial {
   text: string
-  image: string
+  image?: string
   name: string
   role: string
 }
@@ -73,7 +73,7 @@ export interface AuthState {
 
 export interface ProjectFilters {
   selectedFilter: string
-  selectedTrending: string
+  selectedTrending: SortBy
   visibleProjects: number
   filterOptions: string[]
 }

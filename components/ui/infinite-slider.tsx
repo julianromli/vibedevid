@@ -27,7 +27,7 @@ export function InfiniteSlider({
   const [ref, { width, height }] = useMeasure()
   const translation = useMotionValue(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [key, setKey] = useState(0)
+  const [, setKey] = useState(0)
   const reducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function InfiniteSlider({
       return
     }
 
-    let controls
+    let controls: ReturnType<typeof animate>
     const size = direction === 'horizontal' ? width : height
     const contentSize = size + gap
     const from = reverse ? -contentSize / 2 : 0

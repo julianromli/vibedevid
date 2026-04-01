@@ -1,4 +1,5 @@
 import { fetchProjectsWithSorting } from '@/lib/actions'
+import { ALL_PROJECT_FILTER_VALUE } from '@/lib/constants/project-filters'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { getVideoIconKey } from '@/lib/video-icon-key'
@@ -97,7 +98,10 @@ export default async function HomePage() {
     getVibeVideos(),
   ])
 
-  const initialFilterOptions = ['All', ...((categories ?? []).map((category) => category.display_name) as string[])]
+  const initialFilterOptions = [
+    ALL_PROJECT_FILTER_VALUE,
+    ...((categories ?? []).map((category) => category.display_name) as string[]),
+  ]
 
   let userData: User | null = null
   if (user) {

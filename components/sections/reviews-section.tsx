@@ -20,19 +20,9 @@ export function ReviewsSection() {
   const t = useTranslations('reviews')
   const testimonialsRaw = t.raw('testimonials') as Record<string, { text: string; name: string; role: string }>
 
-  // Convert translations to Testimonial array with images
-  const images = [
-    'https://github.com/shadcn.png',
-    '/professional-woman-dark-hair.png',
-    '/blonde-woman-glasses.png',
-    '/asian-man-short-hair.png',
-    'https://github.com/shadcn.png',
-    'https://github.com/shadcn.png',
-  ]
-
-  const testimonials: Testimonial[] = Object.values(testimonialsRaw).map((item, index) => ({
+  // Convert translations to Testimonial array
+  const testimonials: Testimonial[] = Object.values(testimonialsRaw).map((item) => ({
     text: item.text,
-    image: images[index],
     name: item.name,
     role: item.role,
   }))
@@ -54,9 +44,9 @@ export function ReviewsSection() {
             fallback={
               <div className="flex justify-center gap-6">
                 <div className="flex flex-col space-y-4">
-                  {Array.from({ length: 3 }).map((_, idx) => (
+                  {['s1', 's2', 's3'].map((id) => (
                     <div
-                      key={idx}
+                      key={id}
                       className="bg-muted/20 w-80 animate-pulse rounded-lg p-4"
                     >
                       <div className="bg-muted/30 mb-3 h-20 rounded"></div>
@@ -81,11 +71,6 @@ export function ReviewsSection() {
               testimonials={testimonials.slice(3, 6)}
               className="hidden md:block"
               duration={19}
-            />
-            <TestimonialsColumns
-              testimonials={testimonials.slice(6, 9)}
-              className="hidden lg:block"
-              duration={17}
             />
           </Suspense>
         </div>

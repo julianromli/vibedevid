@@ -1,6 +1,7 @@
 'use client'
 
 import Script from 'next/script'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
@@ -15,8 +16,7 @@ import { Navbar } from '@/components/ui/navbar'
 import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
-import { FAQ_DATA } from '@/lib/constants/faqs'
-import type { Project, User, VibeVideo } from '@/types/homepage'
+import type { FAQ, Project, User, VibeVideo } from '@/types/homepage'
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean
@@ -33,6 +33,11 @@ export default function HomePageClient({
   initialFilterOptions,
   initialVibeVideos,
 }: HomePageClientProps) {
+  const commonT = useTranslations('common')
+  const metadataT = useTranslations('metadata')
+  const faqT = useTranslations('faq')
+  const faqItems = Object.values(faqT.raw('items') as Record<string, FAQ>)
+  const organizationKeywords = metadataT.raw('organization.keywords') as string[]
   const projectFilters = useProjectFilters({
     authReady: true,
     initialProjects,
@@ -65,7 +70,7 @@ export default function HomePageClient({
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-background focus:text-foreground focus:rounded-br-md focus:shadow-md focus:font-medium"
       >
-        Skip to main content
+        {commonT('skipToMainContent')}
       </a>
 
       <Script
@@ -80,8 +85,7 @@ export default function HomePageClient({
             alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
             url: 'https://vibedevid.com',
             logo: 'https://vibedevid.com/vibedev-logo.png',
-            description:
-              'Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.',
+            description: metadataT('description'),
             foundingDate: '2024',
             address: {
               '@type': 'PostalAddress',
@@ -90,7 +94,7 @@ export default function HomePageClient({
             },
             contactPoint: {
               '@type': 'ContactPoint',
-              contactType: 'Community Support',
+              contactType: metadataT('organization.contactType'),
               email: 'hello@vibedevid.com',
             },
             sameAs: [
@@ -102,19 +106,10 @@ export default function HomePageClient({
               '@type': 'Organization',
               name: 'Indonesian Developer Community',
             },
-            keywords: [
-              'vibe coding',
-              'komunitas vibe coding',
-              'komunitas vibe coding indonesia',
-              'vibe coder indonesia',
-              'coding pake AI',
-              'AI untuk coding',
-              'developer indonesia',
-              'open source indonesia',
-            ],
+            keywords: [...organizationKeywords],
             audience: {
               '@type': 'Audience',
-              audienceType: 'Developers, AI Enthusiasts, Tech Innovators',
+              audienceType: metadataT('organization.audienceType'),
               geographicArea: 'Indonesia',
             },
           }),
@@ -129,7 +124,7 @@ export default function HomePageClient({
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: FAQ_DATA.map((faq) => ({
+            mainEntity: faqItems.map((faq) => ({
               '@type': 'Question',
               name: faq.question,
               acceptedAnswer: {

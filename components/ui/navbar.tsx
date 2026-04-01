@@ -433,7 +433,7 @@ export function Navbar({
                 variant="ghost"
                 aria-expanded={open}
                 aria-controls="mobile-menu"
-                aria-label="Toggle menu"
+                aria-label={t('common.toggleMenu')}
               >
                 <MenuToggleIcon
                   className="size-6"

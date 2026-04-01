@@ -2,7 +2,7 @@
 
 import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import type { VibeVideo, VideoIconKey } from '@/types/homepage'
@@ -224,6 +224,7 @@ interface YouTubeVideoShowcaseProps {
 
 export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) {
   const t = useTranslations('youtubeShowcase')
+  const locale = useLocale()
   const [activeIndex, setActiveIndex] = useState(0)
   const [animatedVideos, setAnimatedVideos] = useState<number[]>([])
 
@@ -264,8 +265,17 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
   }, [vibeVideos])
 
   const formatDate = (dateString: string) => {
+    if (!dateString) {
+      return t('dateUnavailable')
+    }
+
     const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
+
+    if (Number.isNaN(date.getTime())) {
+      return t('dateUnavailable')
+    }
+
+    return date.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

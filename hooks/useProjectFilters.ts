@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
+import { ALL_PROJECT_FILTER_VALUE } from '@/lib/constants/project-filters'
 import type { Project, SortBy } from '@/types/homepage'
 
 interface UseProjectFiltersOptions {
@@ -17,10 +18,10 @@ interface UseProjectFiltersOptions {
 export function useProjectFilters({
   authReady,
   initialProjects = [],
-  initialFilterOptions = ['All'],
+  initialFilterOptions = [ALL_PROJECT_FILTER_VALUE],
 }: UseProjectFiltersOptions) {
-  const [selectedFilter, setSelectedFilter] = useState('All')
-  const [selectedTrending, setSelectedTrending] = useState('Trending')
+  const [selectedFilter, setSelectedFilter] = useState(ALL_PROJECT_FILTER_VALUE)
+  const [selectedTrending, setSelectedTrending] = useState<SortBy>('trending')
   const [visibleProjects, setVisibleProjects] = useState(6)
   const [filterOptions, setFilterOptions] = useState<string[]>(initialFilterOptions)
   const [projects, setProjects] = useState<Project[]>(initialProjects)
@@ -37,9 +38,9 @@ export function useProjectFilters({
       try {
         const categories = await getCategories()
         const categoryDisplayNames = categories.map((cat) => cat.display_name)
-        setFilterOptions(['All', ...categoryDisplayNames])
-      } catch (error) {
-        console.error('Failed to fetch categories for filters:', error)
+        setFilterOptions([ALL_PROJECT_FILTER_VALUE, ...categoryDisplayNames])
+      } catch {
+        setFilterOptions(initialFilterOptions)
       }
     }
 
@@ -52,7 +53,7 @@ export function useProjectFilters({
       return
     }
 
-    if (skipInitialFetch && selectedTrending === 'Trending' && selectedFilter === 'All') {
+    if (skipInitialFetch && selectedTrending === 'trending' && selectedFilter === ALL_PROJECT_FILTER_VALUE) {
       setSkipInitialFetch(false)
       return
     }
@@ -61,43 +62,27 @@ export function useProjectFilters({
       try {
         setLoading(true)
 
-        // Convert selectedTrending to sortBy parameter
-        let sortBy: SortBy = 'newest'
-        switch (selectedTrending) {
-          case 'Trending':
-            sortBy = 'trending'
-            break
-          case 'Top':
-            sortBy = 'top'
-            break
-          case 'Newest':
-          default:
-            sortBy = 'newest'
-            break
-        }
-
-        // Fetch projects with new sorting function
         const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
-          sortBy,
-          selectedFilter === 'All' ? undefined : selectedFilter,
+          selectedTrending,
+          selectedFilter === ALL_PROJECT_FILTER_VALUE ? undefined : selectedFilter,
           20, // limit
         )
 
         if (error) {
-          console.error('Error fetching projects:', error)
+          setProjects(initialProjects)
           return
         }
 
         setProjects(fetchedProjects || [])
-      } catch (error) {
-        console.error('Error fetching projects:', error)
+      } catch {
+        setProjects(initialProjects)
       } finally {
         setLoading(false)
       }
     }
 
     fetchProjects()
-  }, [authReady, selectedTrending, selectedFilter, skipInitialFetch])
+  }, [authReady, initialProjects, selectedTrending, selectedFilter, skipInitialFetch])
 
   const loadMore = () => {
     setVisibleProjects((prev) => prev + 6)

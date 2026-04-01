@@ -6,8 +6,10 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useId } from 'react'
 import { Button } from '@/components/ui/button'
+import { ALL_PROJECT_FILTER_VALUE } from '@/lib/constants/project-filters'
 import { cn } from '@/lib/utils'
 
 interface FilterControlsProps {
@@ -28,6 +30,8 @@ export function FilterControls({
   triggerClassName,
 }: FilterControlsProps) {
   const listboxId = useId()
+  const t = useTranslations('projectList')
+  const getOptionLabel = (option: string) => (option === ALL_PROJECT_FILTER_VALUE ? t('all') : option)
 
   return (
     <div className="relative">
@@ -39,7 +43,7 @@ export function FilterControls({
         aria-expanded={isOpen}
         aria-controls={listboxId}
       >
-        Filter
+        {t('filter')}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
@@ -64,7 +68,7 @@ export function FilterControls({
                   selectedFilter === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
                 }`}
               >
-                {option}
+                {getOptionLabel(option)}
               </button>
             ))}
           </div>
