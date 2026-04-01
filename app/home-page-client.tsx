@@ -61,6 +61,13 @@ export default function HomePageClient({
 
   return (
     <div className="bg-background min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-background focus:text-foreground focus:rounded-br-md focus:shadow-md focus:font-medium"
+      >
+        Skip to main content
+      </a>
+
       <Script
         id="organization-schema"
         type="application/ld+json"
@@ -140,44 +147,46 @@ export default function HomePageClient({
         user={initialUser ?? undefined}
       />
 
-      <HeroSection
-        handleJoinWithUs={handleJoinWithUs}
-        handleViewShowcase={handleViewShowcase}
-      />
-
-      <ErrorBoundary sectionName="Project Showcase">
-        <ProjectShowcase
-          projects={projectFilters.projects}
-          loading={projectFilters.loading}
-          selectedFilter={projectFilters.selectedFilter}
-          setSelectedFilter={projectFilters.setSelectedFilter}
-          selectedTrending={projectFilters.selectedTrending}
-          setSelectedTrending={projectFilters.setSelectedTrending}
-          filterOptions={projectFilters.filterOptions}
+      <main id="main-content">
+        <HeroSection
+          handleJoinWithUs={handleJoinWithUs}
+          handleViewShowcase={handleViewShowcase}
         />
-      </ErrorBoundary>
 
-      <ErrorBoundary sectionName="Video Showcase">
-        <section className="py-12 sm:py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
-            <YouTubeVideoShowcase vibeVideos={initialVibeVideos} />
-          </div>
-        </section>
-      </ErrorBoundary>
+        <ErrorBoundary sectionName="Project Showcase">
+          <ProjectShowcase
+            projects={projectFilters.projects}
+            loading={projectFilters.loading}
+            selectedFilter={projectFilters.selectedFilter}
+            setSelectedFilter={projectFilters.setSelectedFilter}
+            selectedTrending={projectFilters.selectedTrending}
+            setSelectedTrending={projectFilters.setSelectedTrending}
+            filterOptions={projectFilters.filterOptions}
+          />
+        </ErrorBoundary>
 
-      <CommunityFeaturesSection />
+        <ErrorBoundary sectionName="Video Showcase">
+          <section className="py-12 sm:py-16 lg:py-20">
+            <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
+              <YouTubeVideoShowcase vibeVideos={initialVibeVideos} />
+            </div>
+          </section>
+        </ErrorBoundary>
 
-      <AIToolsSection />
+        <CommunityFeaturesSection />
 
-      <ReviewsSection />
+        <AIToolsSection />
 
-      <FAQSection
-        openFAQ={openFAQ}
-        toggleFAQ={toggleFAQ}
-        isVisible={isVisible.faq}
-      />
+        <ReviewsSection />
 
-      <CTASection handleJoinWithUs={handleJoinWithUs} />
+        <FAQSection
+          openFAQ={openFAQ}
+          toggleFAQ={toggleFAQ}
+          isVisible={isVisible.faq}
+        />
+
+        <CTASection handleJoinWithUs={handleJoinWithUs} />
+      </main>
 
       <Footer />
     </div>

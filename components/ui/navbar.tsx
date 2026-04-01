@@ -428,6 +428,9 @@ export function Navbar({
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="ghost"
+                aria-expanded={open}
+                aria-controls="mobile-menu"
+                aria-label="Toggle menu"
               >
                 <MenuToggleIcon
                   className="size-6"
@@ -570,6 +573,7 @@ function MobileMenu({ open, children, className }: MobileMenuProps) {
     <AnimatePresence>
       {open && (
         <motion.div
+          id="mobile-menu"
           className={cn(
             'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
             className,
