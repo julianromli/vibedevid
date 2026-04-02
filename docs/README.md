@@ -38,6 +38,12 @@ Dokumentasi migrasi database dan breaking changes.
 - [Slug Migration](./migrations/slug-migration.md) - UUID to slug migration guide
 - [Verification Report](./migrations/verification-report.md) - Migration verification report
 
+### Plans
+
+Dated implementation and design plans.
+
+- [Landing Page UI Guidelines Fix Plan](./plans/2026-04-02-landing-page-ui-guidelines-fixes.md) - Homepage accessibility, motion, and URL-state fix plan
+
 ### Testing
 
 Testing guides dan checklists.

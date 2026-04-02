@@ -17,26 +17,26 @@ import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import type { Project } from '@/types/homepage'
+import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
 interface ProjectShowcaseProps {
   projects: Project[]
   loading: boolean
   selectedFilter: string
   setSelectedFilter: (filter: string) => void
-  selectedTrending: string
-  setSelectedTrending: (trending: string) => void
-  filterOptions: string[]
+  selectedTrending: SortBy
+  setSelectedTrending: (trending: SortBy) => void
+  filterOptions: ProjectFilterOption[]
 }
 
 const skeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6']
 
 interface TrendingDropdownProps {
-  selectedTrending: string
-  options: string[]
+  selectedTrending: SortBy
+  options: Array<{ value: SortBy; label: string }>
   isOpen: boolean
   setIsOpen: (open: boolean) => void
-  onChange: (value: string) => void
+  onChange: (value: SortBy) => void
   buttonClassName?: string
   menuClassName?: string
 }
@@ -50,14 +50,18 @@ function TrendingDropdown({
   buttonClassName,
   menuClassName,
 }: TrendingDropdownProps) {
+  const selectedOption = options.find((option) => option.value === selectedTrending)
+
   return (
     <>
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
         className={buttonClassName}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
-        {selectedTrending}
+        {selectedOption?.label ?? options[0]?.label}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
@@ -66,17 +70,17 @@ function TrendingDropdown({
           <div className="p-2">
             {options.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 onClick={() => {
-                  onChange(option)
+                  onChange(option.value)
                   setIsOpen(false)
                 }}
                 className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selectedTrending === option ? 'bg-muted text-foreground' : 'text-muted-foreground'
+                  selectedTrending === option.value ? 'bg-muted text-foreground' : 'text-muted-foreground'
                 }`}
               >
-                {option}
+                {option.label}
               </button>
             ))}
           </div>
@@ -97,8 +101,12 @@ export function ProjectShowcase({
 }: ProjectShowcaseProps) {
   const t = useTranslations('projectShowcase')
 
-  // Translated trending options
-  const trendingOptions = [t('trendingOptions.trending'), t('trendingOptions.top'), t('trendingOptions.newest')]
+  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: 'All' }, ...filterOptions]
+  const trendingOptions: Array<{ value: SortBy; label: string }> = [
+    { value: 'trending', label: t('trendingOptions.trending') },
+    { value: 'top', label: t('trendingOptions.top') },
+    { value: 'newest', label: t('trendingOptions.newest') },
+  ]
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)
@@ -159,7 +167,7 @@ export function ProjectShowcase({
 
             <div className="grid grid-cols-2 gap-3">
               <FilterControls
-                filterOptions={filterOptions}
+                filterOptions={resolvedFilterOptions}
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
                 isOpen={isFiltersOpen}
@@ -188,7 +196,7 @@ export function ProjectShowcase({
           <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
             <div className="justify-self-start">
               <FilterControls
-                filterOptions={filterOptions}
+                filterOptions={resolvedFilterOptions}
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
                 isOpen={isFiltersOpen}

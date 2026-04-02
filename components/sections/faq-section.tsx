@@ -8,6 +8,7 @@
 import { Minus, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent } from '@/components/ui/card'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 interface FAQSectionProps {
   openFAQ: number | null
@@ -22,6 +23,7 @@ interface FAQItem {
 
 export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
   const t = useTranslations('faq')
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   // Get FAQ items from translations
   const faqItems = t.raw('items') as Record<string, FAQItem>
@@ -43,26 +45,40 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
           {faqArray.map((faq, index) => (
             <Card
               key={faq.question}
-              className={`cursor-pointer transition-all duration-700 hover:shadow-md ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+              className={`hover:shadow-md ${prefersReducedMotion ? '' : 'transition-all duration-700'} ${
+                isVisible || prefersReducedMotion ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
               }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-              onClick={() => toggleFAQ(index)}
+              style={prefersReducedMotion ? undefined : { transitionDelay: `${index * 100}ms` }}
             >
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-left font-semibold">{faq.question}</h3>
-                  <div className="ml-4 flex-shrink-0 transition-transform duration-300">
-                    {openFAQ === index ? (
-                      <Minus className="text-muted-foreground h-5 w-5" />
-                    ) : (
-                      <Plus className="text-muted-foreground h-5 w-5" />
-                    )}
-                  </div>
-                </div>
+                <h3>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between text-left"
+                    onClick={() => toggleFAQ(index)}
+                    aria-expanded={openFAQ === index}
+                    aria-controls={`faq-panel-${index}`}
+                    id={`faq-trigger-${index}`}
+                  >
+                    <span className="font-semibold">{faq.question}</span>
+                    <div
+                      className={`ml-4 flex-shrink-0 ${prefersReducedMotion ? '' : 'transition-transform duration-300'}`}
+                    >
+                      {openFAQ === index ? (
+                        <Minus className="text-muted-foreground h-5 w-5" />
+                      ) : (
+                        <Plus className="text-muted-foreground h-5 w-5" />
+                      )}
+                    </div>
+                  </button>
+                </h3>
 
                 <div
-                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                  id={`faq-panel-${index}`}
+                  role="region"
+                  aria-labelledby={`faq-trigger-${index}`}
+                  aria-hidden={openFAQ !== index}
+                  className={`overflow-hidden ${prefersReducedMotion ? '' : 'transition-all duration-500 ease-in-out'} ${
                     openFAQ === index ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >

@@ -907,11 +907,9 @@ export async function fetchProjectsWithSorting(
         )
       `)
 
-    // Apply category filter if specified
-    if (category && category !== 'All') {
-      // For now, we'll filter client-side since we need to handle display name conversion
-      // The category parameter here should be the display name from the filter
-      // We'll filter after fetching to handle the display name conversion properly
+    // Apply category filter if specified using the stable category key.
+    if (category && category !== 'all') {
+      query = query.eq('category', category)
     }
 
     // Apply sorting based on sortBy parameter
@@ -989,14 +987,8 @@ export async function fetchProjectsWithSorting(
       }),
     )
 
-    // Apply category filter after formatting (client-side filtering)
-    let filteredProjects = formattedProjects
-    if (category && category !== 'All') {
-      filteredProjects = formattedProjects.filter((project) => project.category === category)
-    }
-
     // Apply post-processing sorting based on likes for trending and top
-    const sortedProjects = [...filteredProjects]
+    const sortedProjects = [...formattedProjects]
 
     if (sortBy === 'trending' || sortBy === 'top') {
       // Sort by likes descending, then by creation date for tie-breaking
@@ -1012,7 +1004,7 @@ export async function fetchProjectsWithSorting(
     }
 
     console.log(
-      `[fetchProjectsWithSorting] Fetched ${sortedProjects.length} projects with sorting: ${sortBy}, category: ${category || 'All'}`,
+      `[fetchProjectsWithSorting] Fetched ${sortedProjects.length} projects with sorting: ${sortBy}, category: ${category || 'all'}`,
     )
 
     return { projects: sortedProjects, error: null }
@@ -1062,18 +1054,9 @@ export async function deleteProject(projectSlug: string) {
     // Delete related records first (comments, likes, views) - CASCADE should handle this automatically
     // But we'll do it explicitly for safety
     await Promise.all([
-      supabase
-        .from('comments')
-        .delete()
-        .eq('project_id', projectId), // Use UUID directly
-      supabase
-        .from('likes')
-        .delete()
-        .eq('project_id', projectId), // Use UUID directly
-      supabase
-        .from('views')
-        .delete()
-        .eq('project_id', projectId), // Use UUID directly
+      supabase.from('comments').delete().eq('project_id', projectId), // Use UUID directly
+      supabase.from('likes').delete().eq('project_id', projectId), // Use UUID directly
+      supabase.from('views').delete().eq('project_id', projectId), // Use UUID directly
     ])
 
     // Then delete the project

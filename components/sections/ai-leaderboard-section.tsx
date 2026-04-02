@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView } from 'motion/react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
@@ -40,32 +40,34 @@ function LeaderboardBar({
   maxScore,
   index,
   isInView,
+  prefersReducedMotion,
 }: {
   model: AIModel
   maxScore: number
   index: number
   isInView: boolean
+  prefersReducedMotion: boolean
 }) {
   const barWidth = (model.score / maxScore) * 100
   const color = PROVIDER_COLORS[model.providerSlug] || '#6B7280'
-  const animatedScore = useCountAnimation(model.score, 800, isInView)
+  const animatedScore = useCountAnimation(model.score, 800, prefersReducedMotion ? true : isInView)
   const isLeader = model.rank === 1
   const t = useTranslations('aiLeaderboard')
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -50 }}
-      animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, x: -50 }}
+      animate={prefersReducedMotion ? { opacity: 1, x: 0 } : isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
       transition={{
-        duration: 0.5,
+        duration: prefersReducedMotion ? 0 : 0.5,
         delay: index * 0.08,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
       className="group relative"
     >
       <motion.div
-        whileHover={{ scale: 1.015, x: 4 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        whileHover={prefersReducedMotion ? undefined : { scale: 1.015, x: 4 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 25 }}
         className={cn(
           'relative flex items-center gap-3 rounded-xl border p-3 transition-all duration-300 md:gap-4 md:p-4',
           'bg-card/50 hover:bg-card border-border/50 hover:border-border',
@@ -118,10 +120,12 @@ function LeaderboardBar({
           {/* Progress Bar */}
           <div className="bg-muted/50 relative h-6 w-full overflow-hidden rounded-full md:h-7">
             <motion.div
-              initial={{ width: 0 }}
-              animate={isInView ? { width: `${barWidth}%` } : { width: 0 }}
+              initial={prefersReducedMotion ? false : { width: 0 }}
+              animate={
+                prefersReducedMotion ? { width: `${barWidth}%` } : isInView ? { width: `${barWidth}%` } : { width: 0 }
+              }
               transition={{
-                duration: 0.8,
+                duration: prefersReducedMotion ? 0 : 0.8,
                 delay: index * 0.08 + 0.2,
                 ease: [0.25, 0.46, 0.45, 0.94],
               }}
@@ -131,16 +135,18 @@ function LeaderboardBar({
               }}
             />
             {/* Shine effect */}
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={isInView ? { x: '200%' } : { x: '-100%' }}
-              transition={{
-                duration: 1.2,
-                delay: index * 0.08 + 0.5,
-                ease: 'easeInOut',
-              }}
-              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            />
+            {!prefersReducedMotion && (
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={isInView ? { x: '200%' } : { x: '-100%' }}
+                transition={{
+                  duration: 1.2,
+                  delay: index * 0.08 + 0.5,
+                  ease: 'easeInOut',
+                }}
+                className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              />
+            )}
           </div>
         </div>
 
@@ -172,6 +178,7 @@ export function AILeaderboardSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
   const t = useTranslations('aiLeaderboard')
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -212,14 +219,18 @@ export function AILeaderboardSection() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={
+            prefersReducedMotion ? { opacity: 1, y: 0 } : isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+          }
+          transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
           className="mb-10 text-center md:mb-14"
         >
           <div className="border-primary/20 bg-primary/5 text-primary mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
             <span className="relative flex size-2">
-              <span className="bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75" />
+              {!prefersReducedMotion && (
+                <span className="bg-primary absolute inline-flex size-full animate-ping rounded-full opacity-75" />
+              )}
               <span className="bg-primary relative inline-flex size-2 rounded-full" />
             </span>
             {t('badge')}
@@ -253,15 +264,16 @@ export function AILeaderboardSection() {
                   maxScore={maxScore}
                   index={index}
                   isInView={isInView}
+                  prefersReducedMotion={Boolean(prefersReducedMotion)}
                 />
               ))}
         </div>
 
         {/* Attribution Footer */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={prefersReducedMotion ? { opacity: 1 } : isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 1, duration: prefersReducedMotion ? 0 : 0.5 }}
           className="border-border/50 bg-card/30 mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border p-4 sm:flex-row md:mt-10"
         >
           <div className="flex items-center gap-3">
