@@ -1,6 +1,8 @@
 'use client'
 import Image from 'next/image'
 import React, { useEffect, useRef } from 'react'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 export const TestimonialsColumns = (props: {
   className?: string
@@ -8,23 +10,29 @@ export const TestimonialsColumns = (props: {
   duration?: number
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   useEffect(() => {
     const element = scrollRef.current
-    if (!element) return
+    if (!element || prefersReducedMotion) return
 
     const duration = props.duration || 10
     element.style.animation = `scroll-up ${duration}s linear infinite`
-  }, [props.duration])
+    return () => {
+      element.style.animation = ''
+    }
+  }, [prefersReducedMotion, props.duration])
 
   return (
     <div className={props.className}>
       <div
         ref={scrollRef}
-        className="animate-scroll-up flex flex-col gap-6 bg-transparent pb-6"
-        style={{
-          animationDuration: `${props.duration || 10}s`,
-        }}
+        className={cn(
+          'flex flex-col gap-6 bg-transparent pb-6',
+          !prefersReducedMotion &&
+            'animate-scroll-up hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]',
+        )}
+        style={prefersReducedMotion ? undefined : { animationDuration: `${props.duration || 10}s` }}
       >
         {[
           ...new Array(2).fill(0).map((_, index) => (

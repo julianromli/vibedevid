@@ -2,8 +2,21 @@ import { fetchProjectsWithSorting } from '@/lib/actions'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { getVideoIconKey } from '@/lib/video-icon-key'
-import type { Project, User, VibeVideo } from '@/types/homepage'
+import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 import HomePageClient from './home-page-client'
+
+interface HomePageSearchParams {
+  filter?: string | string[]
+  sort?: string | string[]
+}
+
+function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function normalizeSortParam(value: string | undefined): SortBy {
+  return value === 'top' || value === 'newest' || value === 'trending' ? value : 'trending'
+}
 
 async function getUserData(userId: string, email: string): Promise<User | null> {
   const supabase = await createClient()
@@ -85,19 +98,36 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
   }
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<HomePageSearchParams> }) {
+  const params = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ projects: initialProjects }, { data: categories }, initialVibeVideos] = await Promise.all([
-    fetchProjectsWithSorting('trending', undefined, 20),
-    supabase.from('categories').select('display_name').eq('is_active', true).order('sort_order', { ascending: true }),
+  const [{ data: categories }, initialVibeVideos] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('name, display_name')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true }),
     getVibeVideos(),
   ])
 
-  const initialFilterOptions = ['All', ...((categories ?? []).map((category) => category.display_name) as string[])]
+  const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
+    value: category.name,
+    label: category.display_name,
+  }))
+
+  const requestedFilter = getSingleSearchParam(params.filter)
+  const initialFilter = categoryOptions.some((category) => category.value === requestedFilter)
+    ? (requestedFilter ?? 'all')
+    : 'all'
+  const initialSort = normalizeSortParam(getSingleSearchParam(params.sort))
+
+  const [{ projects: initialProjects }] = await Promise.all([
+    fetchProjectsWithSorting(initialSort, initialFilter === 'all' ? undefined : initialFilter, 20),
+  ])
 
   let userData: User | null = null
   if (user) {
@@ -109,7 +139,9 @@ export default async function HomePage() {
       initialIsLoggedIn={!!user}
       initialUser={userData}
       initialProjects={(initialProjects ?? []) as Project[]}
-      initialFilterOptions={initialFilterOptions}
+      initialCategories={categoryOptions}
+      initialFilter={initialFilter}
+      initialSort={initialSort}
       initialVibeVideos={initialVibeVideos}
     />
   )

@@ -14,10 +14,11 @@ import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 interface HeroSectionProps {
-  handleJoinWithUs: () => void
+  joinHref: string
   handleViewShowcase: () => void
 }
 
@@ -42,21 +43,32 @@ function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordIt
   })
 }
 
-export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
+export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const lastAnimatedTitleKey = useRef<string | null>(null)
+  const lastAnimationKey = useRef<string | null>(null)
   const t = useTranslations('hero')
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
   const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
   const titleKey = useMemo(() => `${titleLine1.join(' ')}\n${titleLine2.join(' ')}`, [titleLine1, titleLine2])
+  const animationKey = useMemo(
+    () => `${prefersReducedMotion ? 'reduce' : 'animate'}\n${titleKey}`,
+    [prefersReducedMotion, titleKey],
+  )
 
   useEffect(() => {
-    if (lastAnimatedTitleKey.current === titleKey) return
-    lastAnimatedTitleKey.current = titleKey
+    if (lastAnimationKey.current === animationKey) return
+    lastAnimationKey.current = animationKey
+
+    if (prefersReducedMotion) {
+      setAnimatedWords([...titleLine1, ...titleLine2].map((_, index) => index))
+      setSubtitleVisible(true)
+      return
+    }
 
     setAnimatedWords([])
     setSubtitleVisible(false)
@@ -84,7 +96,7 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
         clearTimeout(timer)
       })
     }
-  }, [titleKey, titleLine1, titleLine2])
+  }, [animationKey, prefersReducedMotion, titleLine1, titleLine2])
 
   return (
     <section className="bg-grid-pattern relative mt-0 py-16 sm:py-20 lg:py-28">
@@ -149,12 +161,18 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
 
             <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
               <Button
+                asChild
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
-                onClick={handleJoinWithUs}
               >
-                <ArrowRight className="h-4 w-4" />
-                {t('joinCommunity')}
+                <Link
+                  href={joinHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  {t('joinCommunity')}
+                </Link>
               </Button>
               <Button
                 size="lg"

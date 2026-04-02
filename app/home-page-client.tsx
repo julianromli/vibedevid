@@ -16,13 +16,15 @@ import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
-import type { Project, User, VibeVideo } from '@/types/homepage'
+import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean
   initialUser: User | null
   initialProjects: Project[]
-  initialFilterOptions: string[]
+  initialCategories: ProjectFilterOption[]
+  initialFilter: string
+  initialSort: SortBy
   initialVibeVideos: VibeVideo[]
 }
 
@@ -30,23 +32,23 @@ export default function HomePageClient({
   initialIsLoggedIn,
   initialUser,
   initialProjects,
-  initialFilterOptions,
+  initialCategories,
+  initialFilter,
+  initialSort,
   initialVibeVideos,
 }: HomePageClientProps) {
   const projectFilters = useProjectFilters({
     authReady: true,
     initialProjects,
-    initialFilterOptions,
+    initialCategories,
+    initialFilter,
+    initialSort,
   })
   const isVisible = useIntersectionObserver()
 
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
-  }
-
-  const handleJoinWithUs = () => {
-    window.open('https://dub.sh/vibedevid-form', '_blank')
   }
 
   const handleViewShowcase = () => {
@@ -60,7 +62,10 @@ export default function HomePageClient({
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <main
+      id="main-content"
+      className="bg-background min-h-screen"
+    >
       <Script
         id="organization-schema"
         type="application/ld+json"
@@ -141,7 +146,7 @@ export default function HomePageClient({
       />
 
       <HeroSection
-        handleJoinWithUs={handleJoinWithUs}
+        joinHref="https://dub.sh/vibedevid-form"
         handleViewShowcase={handleViewShowcase}
       />
 
@@ -177,9 +182,9 @@ export default function HomePageClient({
         isVisible={isVisible.faq}
       />
 
-      <CTASection handleJoinWithUs={handleJoinWithUs} />
+      <CTASection joinHref="https://dub.sh/vibedevid-form" />
 
       <Footer />
-    </div>
+    </main>
   )
 }

@@ -79,7 +79,7 @@ describe('HeroSection', () => {
 
   it('restarts the title animation when the translated title changes', () => {
     const props = {
-      handleJoinWithUs: vi.fn(),
+      joinHref: 'https://example.com/join',
       handleViewShowcase: vi.fn(),
     }
 

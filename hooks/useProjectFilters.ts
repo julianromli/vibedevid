@@ -3,48 +3,98 @@
  * Handles filter state, sorting, and data fetching
  */
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
-import type { Project, SortBy } from '@/types/homepage'
+import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
 interface UseProjectFiltersOptions {
   authReady: boolean
   initialProjects?: Project[]
-  initialFilterOptions?: string[]
+  initialCategories?: ProjectFilterOption[]
+  initialFilter?: string
+  initialSort?: SortBy
+}
+
+const ALL_FILTER_VALUE = 'all'
+const DEFAULT_SORT: SortBy = 'trending'
+
+function normalizeSortParam(value: string | null | undefined): SortBy {
+  return value === 'top' || value === 'newest' || value === 'trending' ? value : DEFAULT_SORT
+}
+
+function normalizeFilterParam(value: string | null | undefined, categories: ProjectFilterOption[]): string {
+  if (!value || value === ALL_FILTER_VALUE) {
+    return ALL_FILTER_VALUE
+  }
+
+  return categories.some((category) => category.value === value) ? value : ALL_FILTER_VALUE
 }
 
 export function useProjectFilters({
   authReady,
   initialProjects = [],
-  initialFilterOptions = ['All'],
+  initialCategories = [],
+  initialFilter = ALL_FILTER_VALUE,
+  initialSort = DEFAULT_SORT,
 }: UseProjectFiltersOptions) {
-  const [selectedFilter, setSelectedFilter] = useState('All')
-  const [selectedTrending, setSelectedTrending] = useState('Trending')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const [selectedFilter, setSelectedFilter] = useState(initialFilter)
+  const [selectedTrending, setSelectedTrending] = useState<SortBy>(initialSort)
   const [visibleProjects, setVisibleProjects] = useState(6)
-  const [filterOptions, setFilterOptions] = useState<string[]>(initialFilterOptions)
+  const [filterOptions, setFilterOptions] = useState<ProjectFilterOption[]>(initialCategories)
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [loading, setLoading] = useState(initialProjects.length === 0)
   const [skipInitialFetch, setSkipInitialFetch] = useState(initialProjects.length > 0)
 
   // Fetch categories for filter options
   useEffect(() => {
-    if (initialFilterOptions.length > 1) {
+    if (initialCategories.length > 0) {
       return
     }
 
     const fetchFilterCategories = async () => {
       try {
         const categories = await getCategories()
-        const categoryDisplayNames = categories.map((cat) => cat.display_name)
-        setFilterOptions(['All', ...categoryDisplayNames])
+        setFilterOptions(
+          categories.map((category) => ({
+            value: category.name,
+            label: category.display_name,
+          })),
+        )
       } catch (error) {
         console.error('Failed to fetch categories for filters:', error)
       }
     }
 
     fetchFilterCategories()
-  }, [initialFilterOptions])
+  }, [initialCategories])
+
+  useEffect(() => {
+    const nextSort = normalizeSortParam(searchParams.get('sort'))
+    const nextFilter = normalizeFilterParam(searchParams.get('filter'), filterOptions)
+
+    setSelectedTrending((current) => (current === nextSort ? current : nextSort))
+    setSelectedFilter((current) => (current === nextFilter ? current : nextFilter))
+  }, [filterOptions, searchParams])
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    params.set('sort', selectedTrending)
+    params.set('filter', selectedFilter)
+
+    const nextQuery = params.toString()
+    const currentQuery = searchParams.toString()
+
+    if (nextQuery !== currentQuery) {
+      router.replace(`${pathname}?${nextQuery}`, { scroll: false })
+    }
+  }, [pathname, router, searchParams, selectedFilter, selectedTrending])
 
   // Fetch projects with sorting
   useEffect(() => {
@@ -52,7 +102,7 @@ export function useProjectFilters({
       return
     }
 
-    if (skipInitialFetch && selectedTrending === 'Trending' && selectedFilter === 'All') {
+    if (skipInitialFetch && selectedTrending === initialSort && selectedFilter === initialFilter) {
       setSkipInitialFetch(false)
       return
     }
@@ -61,25 +111,10 @@ export function useProjectFilters({
       try {
         setLoading(true)
 
-        // Convert selectedTrending to sortBy parameter
-        let sortBy: SortBy = 'newest'
-        switch (selectedTrending) {
-          case 'Trending':
-            sortBy = 'trending'
-            break
-          case 'Top':
-            sortBy = 'top'
-            break
-          case 'Newest':
-          default:
-            sortBy = 'newest'
-            break
-        }
-
         // Fetch projects with new sorting function
         const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
-          sortBy,
-          selectedFilter === 'All' ? undefined : selectedFilter,
+          selectedTrending,
+          selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
           20, // limit
         )
 
@@ -97,7 +132,7 @@ export function useProjectFilters({
     }
 
     fetchProjects()
-  }, [authReady, selectedTrending, selectedFilter, skipInitialFetch])
+  }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter, skipInitialFetch])
 
   const loadMore = () => {
     setVisibleProjects((prev) => prev + 6)

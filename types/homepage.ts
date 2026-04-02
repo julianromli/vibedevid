@@ -78,4 +78,9 @@ export interface ProjectFilters {
   filterOptions: string[]
 }
 
+export interface ProjectFilterOption {
+  value: string
+  label: string
+}
+
 export type SortBy = 'trending' | 'top' | 'newest'

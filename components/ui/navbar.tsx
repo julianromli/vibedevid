@@ -305,6 +305,7 @@ export function Navbar({
                       variant="ghost"
                       size="icon"
                       className="h-9 w-9 rounded-full"
+                      aria-label={t('common.profile')}
                     >
                       <UserAvatar
                         user={safeUser}
@@ -369,6 +370,7 @@ export function Navbar({
                     variant="ghost"
                     size="icon"
                     className="h-11 w-11 rounded-full"
+                    aria-label={t('common.profile')}
                   >
                     <UserAvatar
                       user={safeUser}
@@ -428,6 +430,7 @@ export function Navbar({
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="ghost"
+                aria-label={open ? 'Close menu' : 'Open menu'}
               >
                 <MenuToggleIcon
                   className="size-6"

@@ -5,15 +5,19 @@
 
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 interface CTASectionProps {
-  handleJoinWithUs: () => void
+  joinHref: string
 }
 
-export function CTASection({ handleJoinWithUs }: CTASectionProps) {
+export function CTASection({ joinHref }: CTASectionProps) {
   const t = useTranslations('cta')
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   return (
     <section
@@ -38,21 +42,36 @@ export function CTASection({ handleJoinWithUs }: CTASectionProps) {
 
       {/* Floating Project Cards */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="bg-card/20 border-border/20 absolute top-20 left-10 h-20 w-28 rotate-6 transform animate-pulse rounded-lg border backdrop-blur-sm">
+        <div
+          className={cn(
+            'bg-card/20 border-border/20 absolute top-20 left-10 h-20 w-28 rotate-6 transform rounded-lg border backdrop-blur-sm',
+            !prefersReducedMotion && 'animate-pulse',
+          )}
+        >
           <div className="p-3">
             <div className="bg-muted-foreground/20 mb-2 h-3 w-full rounded"></div>
             <div className="bg-muted-foreground/15 h-2 w-2/3 rounded"></div>
           </div>
         </div>
 
-        <div className="bg-card/20 border-border/20 absolute top-16 right-12 h-20 w-28 -rotate-6 transform animate-pulse rounded-lg border backdrop-blur-sm delay-300">
+        <div
+          className={cn(
+            'bg-card/20 border-border/20 absolute top-16 right-12 h-20 w-28 -rotate-6 transform rounded-lg border backdrop-blur-sm',
+            !prefersReducedMotion && 'animate-pulse delay-300',
+          )}
+        >
           <div className="p-2">
             <div className="bg-muted-foreground/20 mb-1 h-2 w-full rounded"></div>
             <div className="bg-muted-foreground/15 h-2 w-3/4 rounded"></div>
           </div>
         </div>
 
-        <div className="bg-card/20 border-border/20 absolute right-1/4 bottom-16 h-20 w-28 -rotate-3 transform animate-pulse rounded-lg border backdrop-blur-sm delay-500">
+        <div
+          className={cn(
+            'bg-card/20 border-border/20 absolute right-1/4 bottom-16 h-20 w-28 -rotate-3 transform rounded-lg border backdrop-blur-sm',
+            !prefersReducedMotion && 'animate-pulse delay-500',
+          )}
+        >
           <div className="p-3">
             <div className="bg-muted-foreground/20 mb-2 h-3 w-full rounded"></div>
             <div className="bg-muted-foreground/15 h-2 w-1/2 rounded"></div>
@@ -77,11 +96,17 @@ export function CTASection({ handleJoinWithUs }: CTASectionProps) {
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button
+            asChild
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={handleJoinWithUs}
           >
-            {t('button')}
+            <Link
+              href={joinHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('button')}
+            </Link>
           </Button>
         </div>
       </div>
