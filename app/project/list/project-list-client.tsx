@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -45,6 +46,7 @@ export function ProjectListClient({
   filterOptions,
 }: ProjectListClientProps) {
   const t = useTranslations('projectList')
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   const {
     selectedFilter,
@@ -91,8 +93,8 @@ export function ProjectListClient({
               filterOptions={resolvedFilterOptions}
               selectedFilter={selectedFilter}
               setSelectedFilter={setSelectedFilter}
-              isOpen={false}
-              setIsOpen={() => {}}
+              isOpen={isFiltersOpen}
+              setIsOpen={setIsFiltersOpen}
               triggerClassName="w-full justify-between"
             />
 
@@ -122,8 +124,8 @@ export function ProjectListClient({
               filterOptions={resolvedFilterOptions}
               selectedFilter={selectedFilter}
               setSelectedFilter={setSelectedFilter}
-              isOpen={false}
-              setIsOpen={() => {}}
+              isOpen={isFiltersOpen}
+              setIsOpen={setIsFiltersOpen}
             />
           </div>
 
@@ -174,72 +176,72 @@ export function ProjectListClient({
           </div>
         ) : (
           projects.slice(0, visibleProjects).map((project) => (
-            <Link
+            <div
               key={project.id}
-              href={`/project/${project.slug}`}
-              className="group my-4 block cursor-pointer py-0"
+              className="group my-4 cursor-pointer py-0"
             >
-              <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-all duration-300 hover:shadow-xl">
-                <AspectRatio ratio={16 / 9}>
-                  <Image
-                    src={project.image || '/vibedev-guest-avatar.png'}
-                    alt={project.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    onError={(e) => {
-                      e.currentTarget.src = '/vibedev-guest-avatar.png'
-                    }}
-                  />
-                </AspectRatio>
-
-                <div className="absolute top-3 left-3">
-                  <span className="rounded-full bg-black/70 px-2 py-1 text-white text-xs backdrop-blur-sm">
-                    {project.category}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="line-clamp-2 py-0 font-semibold text-foreground text-lg leading-tight transition-colors duration-300 group-hover:text-primary">
-                  {project.title}
-                </h3>
-
-                <div className="flex items-center justify-between py-0">
-                  <div className="flex items-center gap-2.5">
-                    <Link
-                      href={`/${project.author.username}`}
-                      className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
+              <Link
+                href={`/project/${project.slug}`}
+                className="block"
+              >
+                <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-all duration-300 hover:shadow-xl">
+                  <AspectRatio ratio={16 / 9}>
+                    <Image
+                      src={project.image || '/vibedev-guest-avatar.png'}
+                      alt={project.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        e.currentTarget.src = '/vibedev-guest-avatar.png'
                       }}
-                    >
-                      <OptimizedAvatar
-                        src={project.author.avatar}
-                        alt={project.author.name}
-                        size="sm"
-                        className="ring-2 ring-muted"
-                        showSkeleton={false}
-                      />
-                      <UserDisplayName
-                        name={project.author.name}
-                        role={project.author.role}
-                        className="font-medium text-muted-foreground text-sm"
-                      />
-                    </Link>
-                  </div>
-                  <div className="relative z-20">
-                    <HeartButtonDisplay
-                      likes={project.likes || 0}
-                      variant="default"
                     />
+                  </AspectRatio>
+
+                  <div className="absolute top-3 left-3">
+                    <span className="rounded-full bg-black/70 px-2 py-1 text-white text-xs backdrop-blur-sm">
+                      {project.category}
+                    </span>
                   </div>
                 </div>
+
+                <div className="space-y-3">
+                  <h3 className="line-clamp-2 py-0 font-semibold text-foreground text-lg leading-tight transition-colors duration-300 group-hover:text-primary">
+                    {project.title}
+                  </h3>
+                </div>
+              </Link>
+
+              <div className="mt-3 flex items-center justify-between py-0">
+                <div className="flex items-center gap-2.5">
+                  <Link
+                    href={`/${project.author.username}`}
+                    className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
+                  >
+                    <OptimizedAvatar
+                      src={project.author.avatar}
+                      alt={project.author.name}
+                      size="sm"
+                      className="ring-2 ring-muted"
+                      showSkeleton={false}
+                    />
+                    <UserDisplayName
+                      name={project.author.name}
+                      role={project.author.role}
+                      className="font-medium text-muted-foreground text-sm"
+                    />
+                  </Link>
+                </div>
+                <div className="relative z-20">
+                  <HeartButtonDisplay
+                    likes={project.likes || 0}
+                    variant="default"
+                  />
+                </div>
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>
