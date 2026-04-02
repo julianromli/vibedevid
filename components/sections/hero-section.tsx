@@ -46,7 +46,7 @@ function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordIt
 export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const hasAnimated = useRef(false)
+  const lastAnimationKey = useRef<string | null>(null)
   const t = useTranslations('hero')
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
@@ -54,10 +54,15 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
+  const titleKey = useMemo(() => `${titleLine1.join(' ')}\n${titleLine2.join(' ')}`, [titleLine1, titleLine2])
+  const animationKey = useMemo(
+    () => `${prefersReducedMotion ? 'reduce' : 'animate'}\n${titleKey}`,
+    [prefersReducedMotion, titleKey],
+  )
 
   useEffect(() => {
-    if (hasAnimated.current) return
-    hasAnimated.current = true
+    if (lastAnimationKey.current === animationKey) return
+    lastAnimationKey.current = animationKey
 
     if (prefersReducedMotion) {
       setAnimatedWords([...titleLine1, ...titleLine2].map((_, index) => index))
@@ -91,7 +96,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
         clearTimeout(timer)
       })
     }
-  }, [prefersReducedMotion, titleLine1, titleLine2])
+  }, [animationKey, prefersReducedMotion, titleLine1, titleLine2])
 
   return (
     <section className="bg-grid-pattern relative mt-0 py-16 sm:py-20 lg:py-28">
