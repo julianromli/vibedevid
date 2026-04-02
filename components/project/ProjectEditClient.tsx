@@ -43,7 +43,18 @@ const techOptions: Option[] = [
 ]
 
 interface ProjectEditClientProps {
-  project: any
+  project: {
+    title: string
+    description: string
+    tagline: string
+    categoryRaw: string
+    url: string | null
+    imageUrls: string[]
+    image: string | null
+    imageKeys: string[]
+    tags: string[]
+    faviconUrl: string
+  }
   categories: Category[]
   projectSlug: string
   isOwner: boolean

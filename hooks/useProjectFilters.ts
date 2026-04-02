@@ -96,7 +96,7 @@ export function useProjectFilters({
     }
   }, [pathname, router, searchParams, selectedFilter, selectedTrending])
 
-  // Fetch projects with sorting
+  // Fetch projects with sorting and abort deduplication
   useEffect(() => {
     if (!authReady) {
       return
@@ -107,16 +107,19 @@ export function useProjectFilters({
       return
     }
 
+    const controller = new AbortController()
+
     const fetchProjects = async () => {
       try {
         setLoading(true)
 
-        // Fetch projects with new sorting function
         const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
           selectedTrending,
           selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
-          20, // limit
+          20,
         )
+
+        if (controller.signal.aborted) return
 
         if (error) {
           console.error('Error fetching projects:', error)
@@ -125,13 +128,20 @@ export function useProjectFilters({
 
         setProjects(fetchedProjects || [])
       } catch (error) {
+        if (controller.signal.aborted) return
         console.error('Error fetching projects:', error)
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchProjects()
+
+    return () => {
+      controller.abort()
+    }
   }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter, skipInitialFetch])
 
   const loadMore = () => {
