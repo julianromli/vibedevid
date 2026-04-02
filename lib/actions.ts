@@ -1,14 +1,16 @@
 'use server'
 
 import { createServerClient } from '@supabase/ssr'
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getCategoryDisplayName } from './categories'
+import { getCategories, getCategoryDisplayName } from './categories'
 import { getSupabaseConfig } from './env-config'
 import { fetchFavicon } from './favicon-utils'
 import { normalizeProjectWebsiteUrl } from './project-url'
 import { getProjectIdBySlug } from './slug'
 import { createAdminClient } from './supabase/admin'
+import { deleteUploadthingFiles } from './uploadthing'
 
 function toLoggableError(error: unknown): string | Record<string, string | number> {
   if (typeof error === 'string') {
@@ -320,30 +322,23 @@ export async function getProjectBySlug(slug: string) {
       return { project: null, error: 'Project slug is required' }
     }
 
-    // Enhanced analytics queries with unique views counting
-    const [
-      { data: project, error: projectError },
-      projectForCounts, // Get project ID for subsequent queries
-    ] = await Promise.all([
-      supabase
-        .from('projects')
-        .select(
-          `
-          *,
-          users:author_id (
-            username,
-            display_name,
-            avatar_url,
-            role,
-            bio,
-            location
-          )
-        `,
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select(
+        `
+        *,
+        users:author_id (
+          username,
+          display_name,
+          avatar_url,
+          role,
+          bio,
+          location
         )
-        .eq('slug', slug.trim())
-        .single(),
-      supabase.from('projects').select('id').eq('slug', slug.trim()).single(),
-    ])
+      `,
+      )
+      .eq('slug', slug.trim())
+      .single()
 
     if (projectError) {
       console.error('Get project by slug error:', projectError)
@@ -355,10 +350,8 @@ export async function getProjectBySlug(slug: string) {
       return { project: null, error: 'Project author not found' }
     }
 
-    // Use project.id (UUID/string) directly without parseInt
     const projectPk = project.id
 
-    // Run analytics queries in parallel
     const [{ count: likesCount }, { count: totalViews }, { count: uniqueViews }, { count: todayViews }] =
       await Promise.all([
         supabase.from('likes').select('*', { count: 'exact', head: true }).eq('project_id', projectPk),
@@ -375,15 +368,14 @@ export async function getProjectBySlug(slug: string) {
           .eq('view_date', new Date().toISOString().split('T')[0]),
       ])
 
-    // Get the display name for the category
     const categoryDisplayName = await getCategoryDisplayName(project.category)
 
     const formattedProject = {
       id: project.id,
-      slug: project.slug, // Add slug to returned object
+      slug: project.slug,
       title: project.title,
       description: project.description,
-      fullDescription: project.description, // Use same description for now
+      fullDescription: project.description,
       image: project.image_url,
       imageUrls: project.image_urls || (project.image_url ? [project.image_url] : []),
       imageKeys: project.image_keys || [],
@@ -396,11 +388,11 @@ export async function getProjectBySlug(slug: string) {
         location: project.users.location || 'Unknown location',
       },
       url: project.website_url,
-      category: categoryDisplayName, // Use display name for UI display
-      categoryRaw: project.category, // Keep raw category name for edit forms
+      category: categoryDisplayName,
+      categoryRaw: project.category,
       tagline: project.tagline || '',
       faviconUrl: project.favicon_url || '/default-favicon.svg',
-      tags: project.tags || [], // Use actual tags from database
+      tags: project.tags || [],
       likes: likesCount || 0,
       views: totalViews || 0,
       uniqueViews: uniqueViews || 0,
@@ -735,19 +727,29 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     console.log('[v0] getBatchLikeStatus: Raw likes data:', allLikes?.length || 0, 'likes found')
 
-    // Process the data
-    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
+    const likesByProject = new Map<string, { count: number; userLiked: boolean }>()
 
     cleanProjectIds.forEach((projectId) => {
-      // Convert projectId string to number for comparison since database returns integers
-      const projectIdNum = parseInt(projectId)
-      const projectLikes = allLikes?.filter((like) => like.project_id === projectIdNum) || []
-      const totalLikes = projectLikes.length
-      const isLiked = user ? projectLikes.some((like) => like.user_id === user.id) : false
-
-      // Store using original string key for consistency
-      likesData[projectId] = { totalLikes, isLiked }
+      likesByProject.set(projectId, { count: 0, userLiked: false })
     })
+
+    if (allLikes) {
+      for (const like of allLikes) {
+        const likeProjectId = String(like.project_id)
+        const entry = likesByProject.get(likeProjectId)
+        if (entry) {
+          entry.count++
+          if (user && like.user_id === user.id) {
+            entry.userLiked = true
+          }
+        }
+      }
+    }
+
+    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
+    for (const [projectId, data] of likesByProject) {
+      likesData[projectId] = { totalLikes: data.count, isLiked: data.userLiked }
+    }
 
     console.log('[v0] getBatchLikeStatus: Processed likes data:', likesData)
     return { likesData, error: null }
@@ -882,7 +884,10 @@ export async function editProject(projectSlug: string, formData: FormData) {
       return { success: false, error: updateError.message }
     }
 
-    return { success: true, slug: projectSlug } // Return slug instead of projectId
+    revalidatePath(`/project/${projectSlug}`)
+    revalidatePath('/project/list')
+
+    return { success: true, slug: projectSlug }
   } catch (error) {
     console.error('Edit project error:', error)
     return { success: false, error: 'An unexpected error occurred' }
@@ -907,33 +912,11 @@ export async function fetchProjectsWithSorting(
         )
       `)
 
-    // Apply category filter if specified using the stable category key.
     if (category && category !== 'all') {
       query = query.eq('category', category)
     }
 
-    // Apply sorting based on sortBy parameter
-    switch (sortBy) {
-      case 'trending':
-        // For trending: projects with most likes in the last 7 days
-        // We'll approximate by recent likes using a subquery approach
-        // For now, let's sort by created_at desc and likes (we'll improve this)
-        query = query.order('created_at', { ascending: false })
-        break
-
-      case 'top':
-        // For top: we'll need to join with likes count
-        // For now, let's sort by created_at desc and we'll add likes count after
-        query = query.order('created_at', { ascending: false })
-        break
-
-      case 'newest':
-      default:
-        query = query.order('created_at', { ascending: false })
-        break
-    }
-
-    query = query.limit(limit)
+    query = query.order('created_at', { ascending: false }).limit(limit)
 
     const { data: projectsWithUsers, error } = await query
 
@@ -946,61 +929,57 @@ export async function fetchProjectsWithSorting(
       return { projects: [], error: null }
     }
 
-    // Get likes count for all projects in parallel
     const projectIds = projectsWithUsers.map((p) => p.id)
-    const { likesData, error: likesError } = await getBatchLikeStatus(projectIds)
+    const [likesResult, categories] = await Promise.all([getBatchLikeStatus(projectIds), getCategories()])
 
-    if (likesError) {
-      console.error('[fetchProjectsWithSorting] Error fetching likes:', likesError)
-      // Continue without likes data
+    const categoryMap = new Map<string, string>()
+    for (const cat of categories) {
+      categoryMap.set(cat.name, cat.display_name)
     }
 
-    // Format projects with all required data
-    const formattedProjects = await Promise.all(
-      projectsWithUsers.map(async (project) => {
-        // Get display name for category
-        const categoryDisplayName = await getCategoryDisplayName(project.category)
+    const likesData = likesResult.likesData || {}
 
-        const projectLikesData = (likesData && likesData[String(project.id)]) || {
-          totalLikes: 0,
-          isLiked: false,
-        }
+    const formattedProjects = projectsWithUsers.map((project) => {
+      const projectLikesData = likesData[String(project.id)] || { totalLikes: 0, isLiked: false }
+      const categoryDisplayName = categoryMap.get(project.category) || project.category
 
-        return {
-          id: project.id,
-          slug: project.slug,
-          title: project.title,
-          description: project.description,
-          image: project.image_url,
-          author: {
-            name: project.users?.display_name || 'Unknown',
-            username: project.users?.username || 'unknown',
-            role: project.users?.role ?? null,
-            avatar: project.users?.avatar_url || '/vibedev-guest-avatar.png',
-          },
-          url: project.website_url,
-          category: categoryDisplayName,
-          likes: projectLikesData.totalLikes,
-          views: 0, // We'll add views later if needed
-          createdAt: project.created_at,
-        }
-      }),
-    )
+      return {
+        id: project.id,
+        slug: project.slug,
+        title: project.title,
+        description: project.description,
+        image: project.image_url,
+        author: {
+          name: project.users?.display_name || 'Unknown',
+          username: project.users?.username || 'unknown',
+          role: project.users?.role ?? null,
+          avatar: project.users?.avatar_url || '/vibedev-guest-avatar.png',
+        },
+        url: project.website_url || undefined,
+        category: categoryDisplayName,
+        likes: projectLikesData.totalLikes,
+        views: 0,
+        createdAt: project.created_at,
+      }
+    })
 
-    // Apply post-processing sorting based on likes for trending and top
     const sortedProjects = [...formattedProjects]
 
     if (sortBy === 'trending' || sortBy === 'top') {
-      // Sort by likes descending, then by creation date for tie-breaking
       sortedProjects.sort((a, b) => {
         if (b.likes !== a.likes) {
           return b.likes - a.likes
         }
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       })
+    }
 
-      // For trending, we could add more sophisticated logic here
-      // like weighing recent likes more heavily, but for now this works
+    if (sortBy === 'trending') {
+      sortedProjects.sort((a, b) => {
+        const aRecency = a.likes / Math.max(1, (Date.now() - new Date(a.createdAt).getTime()) / 86400000)
+        const bRecency = b.likes / Math.max(1, (Date.now() - new Date(b.createdAt).getTime()) / 86400000)
+        return bRecency - aRecency
+      })
     }
 
     console.log(
@@ -1051,21 +1030,35 @@ export async function deleteProject(projectSlug: string) {
       return { success: false, error: 'You can only delete your own projects' }
     }
 
-    // Delete related records first (comments, likes, views) - CASCADE should handle this automatically
-    // But we'll do it explicitly for safety
+    const { data: projectWithImages } = await supabase
+      .from('projects')
+      .select('image_keys')
+      .eq('id', projectId)
+      .single()
+
     await Promise.all([
-      supabase.from('comments').delete().eq('project_id', projectId), // Use UUID directly
-      supabase.from('likes').delete().eq('project_id', projectId), // Use UUID directly
-      supabase.from('views').delete().eq('project_id', projectId), // Use UUID directly
+      supabase.from('comments').delete().eq('project_id', projectId),
+      supabase.from('likes').delete().eq('project_id', projectId),
+      supabase.from('views').delete().eq('project_id', projectId),
     ])
 
-    // Then delete the project
-    const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId) // Use UUID directly, no parseInt
+    const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId)
 
     if (deleteError) {
       console.error('Delete project error:', deleteError)
       return { success: false, error: deleteError.message }
     }
+
+    if (projectWithImages?.image_keys?.length) {
+      try {
+        await deleteUploadthingFiles(projectWithImages.image_keys)
+      } catch {
+        console.warn('Failed to cleanup uploaded images for deleted project:', projectSlug)
+      }
+    }
+
+    revalidatePath('/project/list')
+    revalidatePath(`/project/${projectSlug}`)
 
     console.log('[Delete Project] Successfully deleted project with slug:', projectSlug)
     return { success: true }
