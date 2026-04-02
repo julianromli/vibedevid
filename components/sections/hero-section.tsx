@@ -8,7 +8,7 @@
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
@@ -45,6 +45,7 @@ function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordIt
 export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectionProps) {
   const [animatedWords, setAnimatedWords] = useState<number[]>([])
   const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const hasAnimated = useRef(false)
   const t = useTranslations('hero')
 
   const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
@@ -53,6 +54,9 @@ export function HeroSection({ handleJoinWithUs, handleViewShowcase }: HeroSectio
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
 
   useEffect(() => {
+    if (hasAnimated.current) return
+    hasAnimated.current = true
+
     setAnimatedWords([])
     setSubtitleVisible(false)
 
