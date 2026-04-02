@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowLeft, FileText, LogOut, Upload, User } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -127,6 +127,9 @@ export function Navbar({
   const scrolled = useScroll(10)
   const router = useRouter()
   const t = useTranslations()
+  const prefersReducedMotion = useReducedMotion()
+
+  const currentTransition = prefersReducedMotion ? { duration: 0 } : springTransition
 
   useEffect(() => {
     if (open) {
@@ -209,7 +212,7 @@ export function Navbar({
           marginTop: scrolled ? 16 : 0,
           borderRadius: scrolled ? 16 : 0,
         }}
-        transition={springTransition}
+        transition={currentTransition}
         style={{
           marginLeft: 'auto',
           marginRight: 'auto',
@@ -224,7 +227,7 @@ export function Navbar({
               scale: scrolled ? 0.92 : 1,
               x: scrolled ? -2 : 0,
             }}
-            transition={springTransition}
+            transition={currentTransition}
           >
             {showBackButton ? (
               <Link href="/">
@@ -255,7 +258,7 @@ export function Navbar({
                 y: scrolled ? 0 : 0,
                 opacity: 1,
               }}
-              transition={springTransition}
+              transition={currentTransition}
             >
               {navItems.map((item) => (
                 <DesktopNavItem
@@ -274,7 +277,7 @@ export function Navbar({
               scale: scrolled ? 0.95 : 1,
               x: scrolled ? 2 : 0,
             }}
-            transition={springTransition}
+            transition={currentTransition}
           >
             <LanguageSwitcher />
             <ThemeToggle />
@@ -428,6 +431,9 @@ export function Navbar({
                 onClick={() => setOpen(!open)}
                 size="icon"
                 variant="ghost"
+                aria-expanded={open}
+                aria-controls="mobile-menu"
+                aria-label={t('common.toggleMenu')}
               >
                 <MenuToggleIcon
                   className="size-6"
@@ -561,15 +567,19 @@ type MobileMenuProps = {
 }
 
 function MobileMenu({ open, children, className }: MobileMenuProps) {
-  const menuTransition = {
-    duration: 0.5,
-    ease: [0.16, 1, 0.3, 1] as const,
-  }
+  const prefersReducedMotion = useReducedMotion()
+  const menuTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : {
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      }
 
   const content = (
     <AnimatePresence>
       {open && (
         <motion.div
+          id="mobile-menu"
           className={cn(
             'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
             className,

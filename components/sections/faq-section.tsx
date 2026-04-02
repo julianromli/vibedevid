@@ -43,31 +43,40 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
           {faqArray.map((faq, index) => (
             <Card
               key={faq.question}
-              className={`cursor-pointer transition-all duration-700 hover:shadow-md ${
+              className={`transition duration-700 hover:shadow-md motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
                 isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
-              onClick={() => toggleFAQ(index)}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+              <CardContent className="p-0">
+                <button
+                  type="button"
+                  onClick={() => toggleFAQ(index)}
+                  className="flex w-full cursor-pointer items-center justify-between p-6"
+                  aria-expanded={openFAQ === index}
+                  aria-controls={`faq-answer-${index}`}
+                  id={`faq-question-${index}`}
+                >
                   <h3 className="text-left font-semibold">{faq.question}</h3>
-                  <div className="ml-4 flex-shrink-0 transition-transform duration-300">
+                  <div className="ml-4 flex-shrink-0 transition-transform duration-300 motion-reduce:transition-none">
                     {openFAQ === index ? (
                       <Minus className="text-muted-foreground h-5 w-5" />
                     ) : (
                       <Plus className="text-muted-foreground h-5 w-5" />
                     )}
                   </div>
-                </div>
+                </button>
 
-                <div
-                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                    openFAQ === index ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                <section
+                  id={`faq-answer-${index}`}
+                  aria-labelledby={`faq-question-${index}`}
+                  aria-hidden={openFAQ !== index}
+                  className={`overflow-hidden px-6 transition-all duration-500 ease-in-out motion-reduce:transition-none ${
+                    openFAQ === index ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
                   <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
-                </div>
+                </section>
               </CardContent>
             </Card>
           ))}

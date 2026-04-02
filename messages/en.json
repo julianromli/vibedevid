@@ -20,6 +20,18 @@
         "title": "Events",
         "description": "Discover upcoming AI and dev community events from VibeDev ID."
       }
+    },
+    "organization": {
+      "contactType": "Community Support",
+      "audienceType": "Developers, AI enthusiasts, and tech innovators",
+      "keywords": [
+        "vibe coding",
+        "AI-powered coding",
+        "Indonesian developer community",
+        "open source collaboration",
+        "developer events Indonesia",
+        "AI tools for developers"
+      ]
     }
   },
   "common": {
@@ -30,7 +42,9 @@
     "write": "Write",
     "writePost": "Write a Post",
     "close": "Close",
-    "submitProject": "Submit Project"
+    "submitProject": "Submit Project",
+    "skipToMainContent": "Skip to main content",
+    "toggleMenu": "Toggle menu"
   },
   "settings": {
     "language": "Language",
@@ -73,6 +87,7 @@
     "viewAll": "View All Videos on Our Channel",
     "watch": "Watch",
     "videoLabel": "Video",
+    "dateUnavailable": "Date not available",
     "views": "views",
     "error": "Failed to load videos. Please try refreshing the page!",
     "fallbackVideos": {
@@ -196,6 +211,7 @@
   "projectList": {
     "title": "Indonesian Developer Project Showcase",
     "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
+    "all": "All",
     "filter": "Filter",
     "submitButton": "Submit Project",
     "noProjects": "No projects found with the selected filter",
