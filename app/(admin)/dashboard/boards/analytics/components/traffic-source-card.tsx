@@ -89,7 +89,6 @@ export default function TrafficSourceCard() {
             />
             <Bar
               dataKey="amount"
-              layout="vertical"
               fill="var(--color-amount)"
               barSize={14}
               radius={4}

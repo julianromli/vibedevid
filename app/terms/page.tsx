@@ -80,7 +80,6 @@ export default function TermsPage() {
           showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={user}
-          scrollToSection={scrollToSection}
         />
 
         <main className="pt-20 pb-12">

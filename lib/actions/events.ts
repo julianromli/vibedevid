@@ -176,7 +176,7 @@ export async function submitEvent(formData: EventFormData) {
     }
 
     revalidatePath('/event/list')
-    revalidateTag('event-list-events')
+    revalidateTag('event-list-events', 'max')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error submitting event:', error)
@@ -248,7 +248,7 @@ export async function approveEvent(eventId: string) {
 
     revalidatePath('/dashboard')
     revalidatePath('/event/list')
-    revalidateTag('event-list-events')
+    revalidateTag('event-list-events', 'max')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error approving event:', error)
@@ -283,7 +283,7 @@ export async function rejectEvent(eventId: string) {
 
     revalidatePath('/dashboard')
     revalidatePath('/event/list')
-    revalidateTag('event-list-events')
+    revalidateTag('event-list-events', 'max')
     return { success: true }
   } catch (error) {
     console.error('Unexpected error rejecting event:', error)
