@@ -149,19 +149,9 @@ export default function CalendarPage() {
     }
   }
 
-  const scrollToSection = (sectionId: string) => {
-    // For calendar page, redirect to homepage sections if needed
-    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.push(`/#${sectionId}`)
-    }
-  }
-
   return (
     <div className="bg-background min-h-screen">
-      <Navbar
-        showNavigation={true}
-        scrollToSection={scrollToSection}
-      />
+      <Navbar showNavigation={true} />
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

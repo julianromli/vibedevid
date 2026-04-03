@@ -92,7 +92,7 @@ export async function createBlogPost(data: {
 
   revalidatePath('/blog')
   revalidatePath('/dashboard/posts')
-  revalidateTag('blog-list-posts')
+  revalidateTag('blog-list-posts', 'max')
   return { success: true, slug }
 }
 
@@ -163,7 +163,7 @@ export async function updateBlogPost(
   revalidatePath('/blog')
   revalidatePath(`/blog/${finalSlug}`)
   revalidatePath('/dashboard/posts')
-  revalidateTag('blog-list-posts')
+  revalidateTag('blog-list-posts', 'max')
   return { success: true, slug: finalSlug }
 }
 
@@ -300,6 +300,6 @@ export async function deleteBlogPost(id: string) {
   }
 
   revalidatePath('/blog')
-  revalidateTag('blog-list-posts')
+  revalidateTag('blog-list-posts', 'max')
   return { success: true }
 }

@@ -1,5 +1,4 @@
-import { type Icon, IconGift, IconMenuOrder, type IconProps, IconSubscript } from '@tabler/icons-react'
-import type { ForwardRefExoticComponent, RefAttributes } from 'react'
+import { IconGift, IconMenuOrder, IconSubscript, type TablerIcon } from '@tabler/icons-react'
 
 export const dashboard2Stats: Dashboard2Stats[] = [
   {
@@ -69,5 +68,5 @@ export type Dashboard2Stats = {
     value: number
   }[]
   strokeColor: string
-  icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>
+  icon: TablerIcon
 }
