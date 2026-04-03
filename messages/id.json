@@ -110,17 +110,6 @@
       "description": "Bikin project bareng, share knowledge, dan build something amazing together."
     }
   },
-  "aiLeaderboard": {
-    "badge": "Live Rankings",
-    "title": "Benchmark AI Coding Model 2025",
-    "description": "Ranking model AI untuk coding berdasarkan <liveCodeBench>LiveCodeBench</liveCodeBench>, <sciCode>SciCode</sciCode>, dan <terminalBench>Terminal-Bench Hard</terminalBench>",
-    "attribution": {
-      "title": "Data from Artificial Analysis",
-      "subtitle": "Independent AI model benchmarking"
-    },
-    "viewFull": "Lihat Ranking Lengkap",
-    "score": "SCORE"
-  },
   "aiTools": {
     "title": "AI untuk Coding & Development Tools",
     "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
