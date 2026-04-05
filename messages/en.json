@@ -110,17 +110,6 @@
       "description": "Build projects together, share knowledge, and build something amazing together."
     }
   },
-  "aiLeaderboard": {
-    "badge": "Live Rankings",
-    "title": "AI Coding Model Benchmark 2025",
-    "description": "AI coding model rankings based on <liveCodeBench>LiveCodeBench</liveCodeBench>, <sciCode>SciCode</sciCode>, and <terminalBench>Terminal-Bench Hard</terminalBench>",
-    "attribution": {
-      "title": "Data from Artificial Analysis",
-      "subtitle": "Independent AI model benchmarking"
-    },
-    "viewFull": "View Full Rankings",
-    "score": "SCORE"
-  },
   "aiTools": {
     "title": "AI for Coding & Development Tools",
     "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
