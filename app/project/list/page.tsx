@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { fetchProjectsWithSorting } from '@/lib/actions'
@@ -9,6 +10,7 @@ type SearchParams = Promise<{ sort?: string; filter?: string }>
 
 export default async function ProjectListPage({ searchParams }: { searchParams: SearchParams }) {
   const { sort, filter } = await searchParams
+  const t = await getTranslations('projectList')
 
   const initialSort = sort === 'top' || sort === 'newest' ? sort : 'trending'
   const initialFilter = filter || 'all'
@@ -22,6 +24,10 @@ export default async function ProjectListPage({ searchParams }: { searchParams: 
   const filterOptions = categories.map((cat) => ({
     value: cat.name,
     label: cat.display_name,
+  }))
+  const normalizedProjects = (initialProjects ?? []).map((project) => ({
+    ...project,
+    image: project.image ?? '/vibedev-guest-avatar.png',
   }))
 
   const user = currentUser
@@ -48,14 +54,12 @@ export default async function ProjectListPage({ searchParams }: { searchParams: 
         <section className="relative bg-transparent py-12 pt-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-12 text-center">
-              <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">Projects</h1>
-              <p className="mx-auto max-w-2xl text-muted-foreground text-xl">
-                Discover amazing projects from our community
-              </p>
+              <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">{t('title')}</h1>
+              <p className="mx-auto max-w-2xl text-muted-foreground text-xl">{t('description')}</p>
             </div>
 
             <ProjectListClient
-              initialProjects={initialProjects || []}
+              initialProjects={normalizedProjects}
               initialFilter={initialFilter}
               initialSort={initialSort}
               filterOptions={filterOptions}

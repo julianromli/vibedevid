@@ -56,19 +56,21 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
 
   useEffect(() => {
-    if (hasAnimated.current) return
-    hasAnimated.current = true
+    const words = [...titleLine1, ...titleLine2]
 
     if (prefersReducedMotion) {
-      setAnimatedWords([...titleLine1, ...titleLine2].map((_, index) => index))
+      hasAnimated.current = true
+      setAnimatedWords(words.map((_, index) => index))
       setSubtitleVisible(true)
       return
     }
 
+    if (hasAnimated.current) return
+    hasAnimated.current = true
+
     setAnimatedWords([])
     setSubtitleVisible(false)
 
-    const words = [...titleLine1, ...titleLine2]
     const timers: ReturnType<typeof setTimeout>[] = []
 
     words.forEach((_word, index) => {

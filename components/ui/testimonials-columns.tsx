@@ -1,6 +1,6 @@
 'use client'
 import Image from 'next/image'
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
@@ -9,24 +9,11 @@ export const TestimonialsColumns = (props: {
   testimonials: typeof testimonials
   duration?: number
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-
-  useEffect(() => {
-    const element = scrollRef.current
-    if (!element || prefersReducedMotion) return
-
-    const duration = props.duration || 10
-    element.style.animation = `scroll-up ${duration}s linear infinite`
-    return () => {
-      element.style.animation = ''
-    }
-  }, [prefersReducedMotion, props.duration])
 
   return (
     <div className={props.className}>
       <div
-        ref={scrollRef}
         className={cn(
           'flex flex-col gap-6 bg-transparent pb-6',
           !prefersReducedMotion &&
@@ -34,33 +21,31 @@ export const TestimonialsColumns = (props: {
         )}
         style={prefersReducedMotion ? undefined : { animationDuration: `${props.duration || 10}s` }}
       >
-        {[
-          ...new Array(2).fill(0).map((_, index) => (
-            <React.Fragment key={index}>
-              {props.testimonials.map(({ text, image, name, role }, i) => (
-                <div
-                  className="shadow-primary/5 bg-background w-full max-w-xs rounded-2xl border p-8 shadow-lg"
-                  key={i}
-                >
-                  <div className="text-muted-foreground mb-4 text-sm leading-relaxed">{text}</div>
-                  <div className="flex items-center gap-3">
-                    <Image
-                      width={40}
-                      height={40}
-                      src={image || '/placeholder.svg'}
-                      alt={name}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div className="flex flex-col">
-                      <div className="text-sm leading-5 font-semibold tracking-tight">{name}</div>
-                      <div className="text-muted-foreground text-xs leading-5 tracking-tight">{role}</div>
-                    </div>
+        {['first', 'second'].map((loopKey) => (
+          <React.Fragment key={loopKey}>
+            {props.testimonials.map(({ text, image, name, role }) => (
+              <div
+                className="shadow-primary/5 bg-background w-full max-w-xs rounded-2xl border p-8 shadow-lg"
+                key={`${loopKey}-${name}`}
+              >
+                <div className="text-muted-foreground mb-4 text-sm leading-relaxed">{text}</div>
+                <div className="flex items-center gap-3">
+                  <Image
+                    width={40}
+                    height={40}
+                    src={image || '/placeholder.svg'}
+                    alt={name}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-sm leading-5 font-semibold tracking-tight">{name}</div>
+                    <div className="text-muted-foreground text-xs leading-5 tracking-tight">{role}</div>
                   </div>
                 </div>
-              ))}
-            </React.Fragment>
-          )),
-        ]}
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   )

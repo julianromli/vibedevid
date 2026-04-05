@@ -8,11 +8,18 @@ export function useClickOutside(
   useEffect(() => {
     if (!enabled) return
 
-    const handleClickOutside = (event: MouseEvent) => {
-      const refsArray = Array.isArray(refs) ? refs : [refs]
-      const clickedOutside = refsArray.every((ref) => ref.current && !ref.current.contains(event.target as Node))
+    const refsArray = Array.isArray(refs) ? refs : [refs]
 
-      if (clickedOutside) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target
+
+      if (!(target instanceof Node)) {
+        return
+      }
+
+      const clickedInside = refsArray.some((ref) => ref.current?.contains(target))
+
+      if (!clickedInside) {
         handler()
       }
     }

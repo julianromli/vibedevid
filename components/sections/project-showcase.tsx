@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -107,8 +107,9 @@ export function ProjectShowcase({
   filterOptions,
 }: ProjectShowcaseProps) {
   const t = useTranslations('projectShowcase')
+  const tCommon = useTranslations('common')
 
-  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: 'All' }, ...filterOptions]
+  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
   const trendingOptions: Array<{ value: SortBy; label: string }> = [
     { value: 'trending', label: t('trendingOptions.trending') },
     { value: 'top', label: t('trendingOptions.top') },
@@ -120,9 +121,13 @@ export function ProjectShowcase({
   const gridRef = useRef<HTMLDivElement>(null)
   const mobileTrendingRef = useRef<HTMLDivElement>(null)
   const desktopTrendingRef = useRef<HTMLDivElement>(null)
+  const trendingRefs = useMemo(() => [mobileTrendingRef, desktopTrendingRef], [])
+  const closeTrendingDropdown = useCallback(() => {
+    setIsTrendingOpen(false)
+  }, [])
   const isInView = useInView(gridRef, { once: true, margin: '-50px' })
 
-  useClickOutside([mobileTrendingRef, desktopTrendingRef], () => setIsTrendingOpen(false), isTrendingOpen)
+  useClickOutside(trendingRefs, closeTrendingDropdown, isTrendingOpen)
 
   return (
     <section

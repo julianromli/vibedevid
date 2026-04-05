@@ -46,6 +46,7 @@ export function ProjectListClient({
   filterOptions,
 }: ProjectListClientProps) {
   const t = useTranslations('projectList')
+  const tCommon = useTranslations('common')
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   const {
@@ -61,10 +62,12 @@ export function ProjectListClient({
   } = useProjectFilters({
     authReady: true,
     initialProjects,
-    initialCategories: [{ value: 'all', label: 'All' }, ...filterOptions],
+    initialCategories: [{ value: 'all', label: tCommon('all') }, ...filterOptions],
     initialFilter,
     initialSort,
   })
+
+  const visibleProjectCount = Math.min(visibleProjects, projects.length)
 
   const trendingOptions = [
     { value: 'trending' as SortBy, label: t('trendingOptions.trending') },
@@ -260,7 +263,7 @@ export function ProjectListClient({
 
       {!loading && projects.length > 0 && (
         <div className="mt-8 text-center">
-          <p className="text-muted-foreground">{t('showingProjects', { count: projects.length })}</p>
+          <p className="text-muted-foreground">{t('showingProjects', { count: visibleProjectCount })}</p>
         </div>
       )}
     </>
