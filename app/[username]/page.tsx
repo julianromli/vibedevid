@@ -437,12 +437,6 @@ export default function ProfilePage() {
     }
   }
 
-  const scrollToSection = (sectionId: string) => {
-    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.push(`/#${sectionId}`)
-    }
-  }
-
   if (loading) {
     return (
       <div className="bg-grid-pattern relative min-h-screen">
@@ -452,7 +446,6 @@ export default function ProfilePage() {
           showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={currentUser || undefined}
-          scrollToSection={scrollToSection}
         />
         <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="space-y-8">
@@ -479,7 +472,6 @@ export default function ProfilePage() {
           showNavigation={true}
           isLoggedIn={isLoggedIn}
           user={currentUser || undefined}
-          scrollToSection={scrollToSection}
         />
         <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -503,7 +495,6 @@ export default function ProfilePage() {
         showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={currentUser || undefined}
-        scrollToSection={scrollToSection}
       />
 
       <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
