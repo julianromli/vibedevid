@@ -407,6 +407,16 @@ export async function getProjectBySlug(slug: string) {
   }
 }
 
+const getPrimaryProjectImage = (project: {
+  image_url?: string | null
+  image_urls?: string[] | null
+}): string | null => {
+  const firstImageUrl = Array.isArray(project.image_urls)
+    ? project.image_urls.find((url) => typeof url === 'string' && url)
+    : null
+  return firstImageUrl || project.image_url || null
+}
+
 // Legacy function for backward compatibility (will be removed after migration)
 export async function getProject(projectId: string) {
   console.warn('[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.')
@@ -948,7 +958,7 @@ export async function fetchProjectsWithSorting(
         slug: project.slug,
         title: project.title,
         description: project.description,
-        image: project.image_url,
+        image: getPrimaryProjectImage(project),
         author: {
           name: project.users?.display_name || 'Unknown',
           username: project.users?.username || 'unknown',

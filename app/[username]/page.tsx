@@ -54,6 +54,17 @@ interface UserProject {
   comments_count: number
 }
 
+function getPrimaryProjectImage(imageUrls: unknown, imageUrl: string | null | undefined): string | null {
+  if (Array.isArray(imageUrls)) {
+    const firstImageUrl = imageUrls.find((url): url is string => typeof url === 'string' && url.trim().length > 0)
+    if (firstImageUrl) {
+      return firstImageUrl
+    }
+  }
+
+  return imageUrl || null
+}
+
 async function fetchUserProjects(username: string): Promise<UserProject[]> {
   const supabase = createClient()
 
@@ -67,6 +78,17 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
     return await fetchUserProjectsFallback(username)
   }
 
+  const projectIds = (projectsData || [])
+    .map((project: Record<string, unknown>) => project.id as string)
+    .filter(Boolean)
+  const { data: projectImages } = projectIds.length
+    ? await supabase.from('projects').select('id, image_url, image_urls').in('id', projectIds)
+    : { data: [] }
+
+  const projectImageMap = new Map(
+    (projectImages || []).map((project) => [project.id, getPrimaryProjectImage(project.image_urls, project.image_url)]),
+  )
+
   return (projectsData || []).map((project: Record<string, unknown>) => ({
     id: project.id as string,
     slug: project.slug as string,
@@ -74,8 +96,8 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
     description: (project.description as string) || null,
     category: (project.category as string) || null,
     website_url: (project.website_url as string) || null,
-    image_url: (project.image_url as string) || null,
-    thumbnail_url: (project.image_url as string) || null,
+    image_url: projectImageMap.get(project.id as string) || (project.image_url as string) || null,
+    thumbnail_url: projectImageMap.get(project.id as string) || (project.image_url as string) || null,
     url: (project.website_url as string) || null,
     author_id: project.author_id as string,
     created_at: project.created_at as string,
@@ -107,6 +129,7 @@ async function fetchUserProjectsFallback(username: string): Promise<UserProject[
       category,
       website_url,
       image_url,
+      image_urls,
       author_id,
       created_at,
       updated_at
@@ -157,10 +180,11 @@ async function fetchUserProjectsFallback(username: string): Promise<UserProject[
 
   return projects.map((project) => ({
     ...project,
+    image_url: getPrimaryProjectImage(project.image_urls, project.image_url),
     likes: likeCounts[project.id] || 0,
     views_count: viewCounts[project.id] || 0,
     comments_count: commentCounts[project.id] || 0,
-    thumbnail_url: project.image_url,
+    thumbnail_url: getPrimaryProjectImage(project.image_urls, project.image_url),
     url: project.website_url,
   }))
 }
