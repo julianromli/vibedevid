@@ -1,4 +1,5 @@
 import { getAllProjects, getProjectCategories } from '@/lib/actions/admin/projects'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { ProjectFilters } from './components/project-filters'
 import { ProjectsTable } from './components/projects-table'
 
@@ -11,6 +12,7 @@ interface SearchParams {
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
+  const access = await getCurrentRoleAccess()
 
   const filters = {
     status: params.status as 'all' | 'featured' | 'regular' | undefined,
@@ -41,6 +43,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         projects={projects}
         totalCount={totalCount}
         currentPage={page}
+        canManage={access?.canManageAdminDashboard ?? false}
       />
     </div>
   )

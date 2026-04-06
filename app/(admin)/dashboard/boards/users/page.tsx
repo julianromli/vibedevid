@@ -1,4 +1,5 @@
 import { getAllUsers } from '@/lib/actions/admin/users'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { UserSearch } from './components/user-search'
 import { UsersTable } from './components/users-table'
 
@@ -11,6 +12,7 @@ interface SearchParams {
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
+  const access = await getCurrentRoleAccess()
 
   const filters = {
     search: params.search,
@@ -38,6 +40,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
         users={users}
         totalCount={totalCount}
         currentPage={page}
+        canManage={access?.canManageAdminDashboard ?? false}
       />
     </div>
   )

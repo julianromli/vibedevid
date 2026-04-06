@@ -15,9 +15,10 @@ interface PostsTableProps {
   posts: AdminPost[]
   totalCount: number
   currentPage: number
+  canManage: boolean
 }
 
-export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) {
+export function PostsTable({ posts, totalCount, currentPage, canManage }: PostsTableProps) {
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
 
   if (posts.length === 0) {
@@ -137,6 +138,7 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                 <TableCell className="text-right">
                   <PostActions
                     post={post}
+                    canManage={canManage}
                     onEdit={() => setEditingPost(post)}
                   />
                 </TableCell>
@@ -178,7 +180,7 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
         </div>
       </div>
 
-      {editingPost && (
+      {canManage && editingPost && (
         <PostEditDialog
           post={editingPost}
           open={!!editingPost}

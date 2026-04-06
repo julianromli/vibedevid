@@ -1,6 +1,6 @@
 'use client'
 
-import { IconBan, IconChartBar, IconDotsVertical, IconEdit, IconShield, IconUserCheck } from '@tabler/icons-react'
+import { IconBan, IconChartBar, IconDotsVertical, IconShield, IconUserCheck } from '@tabler/icons-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,12 +14,13 @@ import type { AdminUser } from '@/lib/actions/admin/users'
 
 interface UserActionsProps {
   user: AdminUser
+  canManage: boolean
   onEditRole: () => void
   onSuspend: () => void
   onViewStats: () => void
 }
 
-export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserActionsProps) {
+export function UserActions({ user, canManage, onEditRole, onSuspend, onViewStats }: UserActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -47,20 +48,24 @@ export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserAc
           View Stats
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
+        {canManage && (
+          <>
+            <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={onEditRole}>
-          <IconShield className="mr-2 h-4 w-4" />
-          Edit Role
-        </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEditRole}>
+              <IconShield className="mr-2 h-4 w-4" />
+              Edit Role
+            </DropdownMenuItem>
 
-        <DropdownMenuItem
-          onClick={onSuspend}
-          className={user.is_suspended ? 'text-green-600' : 'text-destructive'}
-        >
-          <IconBan className="mr-2 h-4 w-4" />
-          {user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-        </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onSuspend}
+              className={user.is_suspended ? 'text-green-600' : 'text-destructive'}
+            >
+              <IconBan className="mr-2 h-4 w-4" />
+              {user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getPostForEdit } from '@/lib/actions/blog'
-import BlogEditorClient from '../blog-editor-client'
+import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
+import BlogEditorClient from '../blog-editor-client'
 
 async function getUserData(userId: string, email: string): Promise<User | null> {
   const supabase = await createClient()
@@ -48,7 +48,7 @@ export default async function BlogEditorEditPage({ params }: PageProps) {
   }
 
   if (!postResult.success || !postResult.data) {
-    redirect('/dashboard/posts') // Redirect to dashboard if not found/authorized
+    redirect('/blog/posts')
   }
 
   return (

@@ -1,15 +1,6 @@
 'use client'
 
-import {
-  IconArchive,
-  IconArchiveOff,
-  IconDotsVertical,
-  IconEdit,
-  IconExternalLink,
-  IconStar,
-  IconStarOff,
-  IconTrash,
-} from '@tabler/icons-react'
+import { IconDotsVertical, IconEdit, IconExternalLink, IconStar, IconStarOff, IconTrash } from '@tabler/icons-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -35,10 +26,11 @@ import { type AdminPost, adminDeletePost, togglePostFeatured } from '@/lib/actio
 
 interface PostActionsProps {
   post: AdminPost
+  canManage: boolean
   onEdit: () => void
 }
 
-export function PostActions({ post, onEdit }: PostActionsProps) {
+export function PostActions({ post, canManage, onEdit }: PostActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -52,7 +44,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || 'Failed to update post')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -69,7 +61,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || 'Failed to delete post')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -101,34 +93,38 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={onEdit}>
-            <IconEdit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
+          {canManage && (
+            <>
+              <DropdownMenuItem onClick={onEdit}>
+                <IconEdit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={handleToggleFeatured}>
-            {post.featured ? (
-              <>
-                <IconStarOff className="mr-2 h-4 w-4" />
-                Unfeature
-              </>
-            ) : (
-              <>
-                <IconStar className="mr-2 h-4 w-4" />
-                Feature
-              </>
-            )}
-          </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleToggleFeatured}>
+                {post.featured ? (
+                  <>
+                    <IconStarOff className="mr-2 h-4 w-4" />
+                    Unfeature
+                  </>
+                ) : (
+                  <>
+                    <IconStar className="mr-2 h-4 w-4" />
+                    Feature
+                  </>
+                )}
+              </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-destructive focus:text-destructive"
-          >
-            <IconTrash className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <IconTrash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

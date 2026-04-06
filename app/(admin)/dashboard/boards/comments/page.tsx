@@ -1,4 +1,5 @@
 import { getReportedComments } from '@/lib/actions/admin/comments'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { ReportsTable } from './components/reports-table'
 
 interface SearchParams {
@@ -8,6 +9,7 @@ interface SearchParams {
 
 export default async function CommentsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
+  const access = await getCurrentRoleAccess()
 
   const filters = {
     status: params.status as 'all' | 'pending' | 'reviewed' | 'dismissed' | undefined,
@@ -32,6 +34,7 @@ export default async function CommentsPage({ searchParams }: { searchParams: Pro
         reports={reports}
         totalCount={totalCount}
         currentPage={page}
+        canManage={access?.canManageAdminDashboard ?? false}
       />
     </div>
   )

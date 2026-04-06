@@ -17,9 +17,10 @@ interface UsersTableProps {
   users: AdminUser[]
   totalCount: number
   currentPage: number
+  canManage: boolean
 }
 
-export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) {
+export function UsersTable({ users, totalCount, currentPage, canManage }: UsersTableProps) {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [suspendingUser, setSuspendingUser] = useState<AdminUser | null>(null)
   const [viewingStats, setViewingStats] = useState<AdminUser | null>(null)
@@ -87,6 +88,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                 <TableCell>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <button
+                      type="button"
                       onClick={() => setViewingStats(user)}
                       className="flex items-center gap-1 hover:text-foreground transition-colors"
                     >
@@ -120,6 +122,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                 <TableCell className="text-right">
                   <UserActions
                     user={user}
+                    canManage={canManage}
                     onEditRole={() => setEditingUser(user)}
                     onSuspend={() => setSuspendingUser(user)}
                     onViewStats={() => setViewingStats(user)}
@@ -163,7 +166,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
         </div>
       </div>
 
-      {editingUser && (
+      {canManage && editingUser && (
         <UserRoleDialog
           user={editingUser}
           open={!!editingUser}
@@ -171,7 +174,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
         />
       )}
 
-      {suspendingUser && (
+      {canManage && suspendingUser && (
         <UserSuspendDialog
           user={suspendingUser}
           open={!!suspendingUser}

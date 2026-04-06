@@ -26,10 +26,11 @@ import { type AdminProject, adminDeleteProject, toggleProjectFeatured } from '@/
 
 interface ProjectActionsProps {
   project: AdminProject
+  canManage: boolean
   onEdit: () => void
 }
 
-export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
+export function ProjectActions({ project, canManage, onEdit }: ProjectActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -43,7 +44,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
       } else {
         toast.error(result.error || 'Failed to update project')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -60,7 +61,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
       } else {
         toast.error(result.error || 'Failed to delete project')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -92,34 +93,38 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={onEdit}>
-            <IconEdit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
+          {canManage && (
+            <>
+              <DropdownMenuItem onClick={onEdit}>
+                <IconEdit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={handleToggleFeatured}>
-            {project.featured ? (
-              <>
-                <IconStarOff className="mr-2 h-4 w-4" />
-                Unfeature
-              </>
-            ) : (
-              <>
-                <IconStar className="mr-2 h-4 w-4" />
-                Feature
-              </>
-            )}
-          </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleToggleFeatured}>
+                {project.featured ? (
+                  <>
+                    <IconStarOff className="mr-2 h-4 w-4" />
+                    Unfeature
+                  </>
+                ) : (
+                  <>
+                    <IconStar className="mr-2 h-4 w-4" />
+                    Feature
+                  </>
+                )}
+              </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-destructive focus:text-destructive"
-          >
-            <IconTrash className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <IconTrash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -11,9 +11,10 @@ import { createTag, deleteTag, type Tag } from '@/lib/actions/admin/posts'
 
 interface TagsManagerProps {
   tags: Tag[]
+  canManage: boolean
 }
 
-export function TagsManager({ tags: initialTags }: TagsManagerProps) {
+export function TagsManager({ tags: initialTags, canManage }: TagsManagerProps) {
   const [tags, setTags] = useState<Tag[]>(initialTags)
   const [newTagName, setNewTagName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +32,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || 'Failed to create tag')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -50,7 +51,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || 'Failed to delete tag')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -59,22 +60,26 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="New tag name..."
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
-          className="max-w-sm"
-        />
-        <Button
-          onClick={handleCreateTag}
-          disabled={isLoading || !newTagName.trim()}
-        >
-          <IconPlus className="h-4 w-4 mr-1" />
-          Add Tag
-        </Button>
-      </div>
+      {canManage ? (
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="New tag name..."
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
+            className="max-w-sm"
+          />
+          <Button
+            onClick={handleCreateTag}
+            disabled={isLoading || !newTagName.trim()}
+          >
+            <IconPlus className="h-4 w-4 mr-1" />
+            Add Tag
+          </Button>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Tags are visible in read-only mode for moderators.</p>
+      )}
 
       <div className="border rounded-lg overflow-hidden">
         <Table>
@@ -83,14 +88,14 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
               <TableHead>Tag Name</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {canManage && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {tags.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={canManage ? 4 : 3}
                   className="text-center text-muted-foreground py-8"
                 >
                   No tags found
@@ -104,17 +109,19 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
                   </TableCell>
                   <TableCell className="font-mono text-sm text-muted-foreground">{tag.slug}</TableCell>
                   <TableCell>{new Date(tag.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteTag(tag.id)}
-                      disabled={isLoading}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <IconTrash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+                  {canManage && (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTag(tag.id)}
+                        disabled={isLoading}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <IconTrash className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

@@ -10,9 +10,10 @@ import type { User } from '@/types/homepage'
 interface Props {
   children: React.ReactNode
   user: User
+  isReadOnly: boolean
 }
 
-export default function DashboardLayoutClient({ children, user }: Props) {
+export default function DashboardLayoutClient({ children, user, isReadOnly }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -22,7 +23,10 @@ export default function DashboardLayoutClient({ children, user }: Props) {
     >
       <SearchProvider value={{ open, setOpen }}>
         <SidebarProvider>
-          <AppSidebar user={user} />
+          <AppSidebar
+            user={user}
+            isReadOnly={isReadOnly}
+          />
           <div
             id="content"
             className={cn(
@@ -32,6 +36,11 @@ export default function DashboardLayoutClient({ children, user }: Props) {
               'has-[data-layout=fixed]:group-data-[scroll-locked=1]/body:h-svh',
             )}
           >
+            {isReadOnly && (
+              <div className="border-b bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
+                Moderator access is read-only. Admin approval is required for dashboard changes.
+              </div>
+            )}
             {children}
           </div>
         </SidebarProvider>

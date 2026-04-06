@@ -1,7 +1,7 @@
 'use client'
 
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IconCalendarEvent } from '@tabler/icons-react'
+import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -14,9 +14,10 @@ import type { AIEvent } from '@/types/events'
 
 interface PendingEventsTableProps {
   events: AIEvent[]
+  canManage: boolean
 }
 
-export function PendingEventsTable({ events }: PendingEventsTableProps) {
+export function PendingEventsTable({ events, canManage }: PendingEventsTableProps) {
   const router = useRouter()
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
 
@@ -92,34 +93,39 @@ export function PendingEventsTable({ events }: PendingEventsTableProps) {
       header: 'Organizer',
       cell: ({ row }) => <div>{row.getValue('organizer')}</div>,
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const event = row.original
-        const isProcessing = processingIds.has(event.id)
+    ...(canManage
+      ? [
+          {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => {
+              const event = row.original
+              const isProcessing = processingIds.has(event.id)
 
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="default"
-              size="sm"
-              disabled={isProcessing}
-              onClick={() => handleApprove(event.id)}
-            >
-              Approve
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={isProcessing}
-              onClick={() => handleReject(event.id)}
-            >
-              Reject
-            </Button>
-          </div>
-        )
-      },
-    },
+              return (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={isProcessing}
+                    onClick={() => handleApprove(event.id)}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={isProcessing}
+                    onClick={() => handleReject(event.id)}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              )
+            },
+          } satisfies ColumnDef<AIEvent>,
+        ]
+      : []),
   ]
 
   const table = useReactTable({
@@ -135,6 +141,7 @@ export function PendingEventsTable({ events }: PendingEventsTableProps) {
         <CardDescription>
           {events.length} event{events.length !== 1 ? 's' : ''} awaiting approval
         </CardDescription>
+        {!canManage && <CardDescription>Review access is read-only for moderators.</CardDescription>}
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (

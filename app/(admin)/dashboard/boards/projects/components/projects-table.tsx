@@ -15,9 +15,10 @@ interface ProjectsTableProps {
   projects: AdminProject[]
   totalCount: number
   currentPage: number
+  canManage: boolean
 }
 
-export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTableProps) {
+export function ProjectsTable({ projects, totalCount, currentPage, canManage }: ProjectsTableProps) {
   const [editingProject, setEditingProject] = useState<AdminProject | null>(null)
 
   if (projects.length === 0) {
@@ -111,6 +112,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                 <TableCell className="text-right">
                   <ProjectActions
                     project={project}
+                    canManage={canManage}
                     onEdit={() => setEditingProject(project)}
                   />
                 </TableCell>
@@ -152,7 +154,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
         </div>
       </div>
 
-      {editingProject && (
+      {canManage && editingProject && (
         <ProjectEditDialog
           project={editingProject}
           open={!!editingProject}
