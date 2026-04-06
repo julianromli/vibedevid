@@ -65,16 +65,6 @@ Dokumen legal dan kebijakan.
 Untuk AI agents (Claude, Cursor, dll), lihat:
 
 - [`AGENTS.md`](../AGENTS.md) - Root level repo guidance
-- [`app/AGENTS.md`](../app/AGENTS.md) - App Router routes, layouts, and API handlers
-- [`app/(admin)/AGENTS.md`](../app/%28admin%29/AGENTS.md) - Protected admin dashboard subtree
-- [`components/AGENTS.md`](../components/AGENTS.md) - Feature/shared component guidance
-- [`components/ui/AGENTS.md`](../components/ui/AGENTS.md) - Shared UI primitives and large widgets
-- [`lib/AGENTS.md`](../lib/AGENTS.md) - Utility, auth, Supabase, SEO, and upload helpers
-- [`lib/actions/AGENTS.md`](../lib/actions/AGENTS.md) - Server action and mutation rules
-- [`docs/AGENTS.md`](./AGENTS.md) - Documentation organization rules
-- [`scripts/AGENTS.md`](../scripts/AGENTS.md) - SQL migration and script rules
-- [`admin-kit/AGENTS.md`](../admin-kit/AGENTS.md) - Separate Next.js 15 subproject rules
-- [`orchestrator/AGENTS.md`](../orchestrator/AGENTS.md) - Orchestration docs/config guidance
 
 ---
 
