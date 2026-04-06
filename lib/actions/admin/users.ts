@@ -1,14 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { ROLES, requireAdminAccess, requireElevatedAccess } from '@/lib/server/role-access'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
 
 // IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20
@@ -48,25 +43,6 @@ export interface UserFilters {
   status?: 'all' | 'active' | 'suspended'
 }
 
-async function checkAdminAccess() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error('Admin access required')
-  }
-
-  return user
-}
-
 // CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
 function sanitizeSearchInput(search: string): string {
   // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
@@ -79,9 +55,10 @@ export async function getAllUsers(
   pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetAllUsersResult> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     let query = supabase.from('users').select('*', { count: 'exact' })
 
@@ -156,7 +133,7 @@ export async function getAllUsers(
     })
 
     // Get email from auth.users
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
+    const { data: authUsers } = await adminSupabase.auth.admin.listUsers()
     const emailMap: Record<string, string> = {}
     authUsers?.users?.forEach((authUser) => {
       emailMap[authUser.id] = authUser.email || ''
@@ -201,9 +178,13 @@ export async function getAllUsers(
 
 export async function updateUserRole(userId: string, role: number): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
-    const supabase = await createClient()
+    if (!Object.values(ROLES).includes(role as (typeof ROLES)[keyof typeof ROLES])) {
+      return { success: false, error: 'Invalid role value' }
+    }
+
+    const supabase = createAdminClient()
 
     const { error } = await supabase
       .from('users')
@@ -233,9 +214,9 @@ export async function suspendUser(
   reason?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { error } = await supabase
       .from('users')
@@ -270,7 +251,7 @@ export async function getUserStats(userId: string): Promise<{
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 

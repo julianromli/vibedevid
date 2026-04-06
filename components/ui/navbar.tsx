@@ -334,7 +334,7 @@ export function Navbar({
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link
-                        href="/dashboard/posts"
+                        href="/blog/posts"
                         className="flex items-center"
                       >
                         <FileText className="mr-2 h-4 w-4" />
@@ -408,7 +408,7 @@ export function Navbar({
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
-                      href="/dashboard/posts"
+                      href="/blog/posts"
                       className="flex items-center"
                     >
                       <FileText className="mr-2 h-4 w-4" />
@@ -530,7 +530,7 @@ export function Navbar({
                       asChild
                     >
                       <Link
-                        href="/dashboard/posts"
+                        href="/blog/posts"
                         onClick={() => setOpen(false)}
                       >
                         <FileText className="mr-2 h-4 w-4" /> {t('common.myPosts')}

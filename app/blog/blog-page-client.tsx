@@ -38,16 +38,6 @@ interface BlogPageClientProps {
 }
 
 export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClientProps) {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
-  }
-
   // Flatten tags from nested structure to string array
   const flattenedPosts = posts.map((post) => ({
     ...post,
@@ -77,7 +67,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
               {/* Quick Actions for logged-in users */}
               {isLoggedIn && (
                 <div className="flex flex-wrap items-center gap-3">
-                  <Link href="/dashboard/posts">
+                  <Link href="/blog/posts">
                     <Button
                       variant="outline"
                       className="gap-2"

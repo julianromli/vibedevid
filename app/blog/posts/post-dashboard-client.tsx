@@ -1,9 +1,8 @@
 'use client'
 
-import { Edit, Eye, MoreHorizontal, Plus, Trash2, Calendar, FileText } from 'lucide-react'
+import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -20,8 +19,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { deleteBlogPost, getAuthorPosts } from '@/lib/actions/blog'
+
+type PostFilter = 'all' | 'published' | 'draft' | 'archived'
 
 interface Post {
   id: string
@@ -36,8 +37,7 @@ interface Post {
 }
 
 export function PostDashboardClient() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState<string>('all')
+  const [activeTab, setActiveTab] = useState<PostFilter>('all')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -45,13 +45,13 @@ export function PostDashboardClient() {
   const fetchPosts = useCallback(async () => {
     setLoading(true)
     try {
-      const { success, data, error } = await getAuthorPosts(1, activeTab as any)
+      const { success, data, error } = await getAuthorPosts(1, activeTab)
       if (success && data) {
         setPosts(data as unknown as Post[])
       } else {
         toast.error(error || 'Failed to fetch posts')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setLoading(false)
@@ -73,7 +73,7 @@ export function PostDashboardClient() {
       } else {
         toast.error(result.error || 'Failed to delete')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setDeleteId(null)
@@ -119,7 +119,7 @@ export function PostDashboardClient() {
       <Tabs
         defaultValue="all"
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={(value) => setActiveTab(value as PostFilter)}
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

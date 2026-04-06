@@ -1,16 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireAdminAccess, requireElevatedAccess } from '@/lib/server/role-access'
 import { normalizeProjectWebsiteUrl } from '../../project-url'
 import { createAdminClient } from '../../supabase/admin'
 import { createClient } from '../../supabase/server'
-
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
 
 // IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20
@@ -53,25 +47,6 @@ export interface ProjectFilters {
   search?: string
 }
 
-async function checkAdminAccess() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error('Admin access required')
-  }
-
-  return user
-}
-
 // CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
 function sanitizeSearchInput(search: string): string {
   // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
@@ -84,7 +59,7 @@ export async function getAllProjects(
   pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetAllProjectsResult> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 
@@ -206,7 +181,7 @@ export async function adminUpdateProject(
   updates: Partial<AdminProject>,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
     const normalizedWebsiteUrl =
@@ -269,7 +244,7 @@ export async function adminUpdateProject(
 
 export async function adminDeleteProject(projectId: number): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
 
@@ -313,7 +288,7 @@ export async function toggleProjectFeatured(
   featured: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
 
@@ -349,8 +324,7 @@ export async function getProjectCategories(): Promise<{
   error?: string
 }> {
   try {
-    // CRITICAL-1: Add missing admin access check
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 

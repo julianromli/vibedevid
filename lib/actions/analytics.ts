@@ -1,5 +1,6 @@
 'use server'
 
+import { requireElevatedAccess } from '@/lib/server/role-access'
 import { createClient } from '@/lib/supabase/server'
 
 export interface PlatformStats {
@@ -23,32 +24,13 @@ export interface TrendingItem {
   created_at: string
 }
 
-async function checkAdminAccess() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-
-  if (!userData || userData.role !== 0) {
-    throw new Error('Admin access required')
-  }
-
-  return user
-}
-
 export async function getPlatformStats(): Promise<{
   success: boolean
   stats?: PlatformStats
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
@@ -104,7 +86,7 @@ export async function getMostViewedProjects(limit: number = 10): Promise<{
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 
@@ -186,7 +168,7 @@ export async function getMostViewedPosts(limit: number = 10): Promise<{
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 
@@ -261,7 +243,7 @@ export async function getAnalyticsTimeSeries(days: number = 30): Promise<{
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 

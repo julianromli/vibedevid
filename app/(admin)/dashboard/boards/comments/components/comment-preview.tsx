@@ -1,6 +1,6 @@
 'use client'
 
-import { IconFileText, IconMessageCircle, IconTrash, IconX } from '@tabler/icons-react'
+import { IconFileText, IconTrash, IconX } from '@tabler/icons-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,10 +12,11 @@ import { type ReportedComment, takeActionOnReport } from '@/lib/actions/admin/co
 interface CommentPreviewProps {
   report: ReportedComment
   open: boolean
+  canManage: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function CommentPreview({ report, open, onOpenChange }: CommentPreviewProps) {
+export function CommentPreview({ report, open, canManage, onOpenChange }: CommentPreviewProps) {
   const handleAction = async (action: 'delete' | 'dismiss') => {
     try {
       const result = await takeActionOnReport(report.id, action)
@@ -26,7 +27,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
       } else {
         toast.error(result.error || 'Failed to process report')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     }
   }
@@ -106,7 +107,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
           </div>
         </div>
 
-        {report.status === 'pending' && (
+        {canManage && report.status === 'pending' && (
           <div className="flex gap-2 pt-4 border-t">
             <Button
               variant="destructive"

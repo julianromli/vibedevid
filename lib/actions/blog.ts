@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 
@@ -91,7 +92,7 @@ export async function createBlogPost(data: {
   }
 
   revalidatePath('/blog')
-  revalidatePath('/dashboard/posts')
+  revalidatePath('/blog/posts')
   revalidateTag('blog-list-posts', 'max')
   return { success: true, slug }
 }
@@ -162,7 +163,7 @@ export async function updateBlogPost(
 
   revalidatePath('/blog')
   revalidatePath(`/blog/${finalSlug}`)
-  revalidatePath('/dashboard/posts')
+  revalidatePath('/blog/posts')
   revalidateTag('blog-list-posts', 'max')
   return { success: true, slug: finalSlug }
 }
@@ -270,9 +271,9 @@ export async function getPostForEdit(slug: string) {
 
 export async function deleteBlogPost(id: string) {
   const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const access = await getCurrentRoleAccess()
 
-  if (!authData.user) {
+  if (!access) {
     return { success: false, error: 'Unauthorized' }
   }
 
@@ -286,8 +287,8 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: 'Post not found' }
   }
 
-  const isAuthor = post.author_id === authData.user.id
-  const isAdmin = authData.user.user_metadata.role === 0
+  const isAuthor = post.author_id === access.userId
+  const isAdmin = access.canManageAdminDashboard
 
   if (!isAuthor && !isAdmin) {
     return { success: false, error: 'Not authorized' }

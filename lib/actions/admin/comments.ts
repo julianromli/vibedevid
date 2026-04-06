@@ -1,15 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireAdminAccess, requireElevatedAccess } from '@/lib/server/role-access'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
 
 // IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20
@@ -56,32 +50,13 @@ export interface ReportFilters {
   dateTo?: string
 }
 
-async function checkAdminAccess() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error('Admin access required')
-  }
-
-  return user
-}
-
 export async function getReportedComments(
   filters: ReportFilters = {},
   page: number = 1,
   pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetReportedCommentsResult> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 
@@ -247,7 +222,7 @@ export async function getReportedComments(
 
 export async function adminDeleteComment(commentId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
 
@@ -294,7 +269,7 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
 
 export async function dismissReport(reportId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
 
@@ -329,7 +304,7 @@ export async function takeActionOnReport(
   action: 'delete' | 'dismiss' | 'warn',
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await requireAdminAccess()
 
     const supabase = createAdminClient()
 
@@ -400,7 +375,7 @@ export async function getCommentModerationStats(): Promise<{
   error?: string
 }> {
   try {
-    await checkAdminAccess()
+    await requireElevatedAccess()
 
     const supabase = await createClient()
 

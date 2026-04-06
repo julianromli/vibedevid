@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getAllPosts, getAllTags } from '@/lib/actions/admin/posts'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { PostFilters } from './components/post-filters'
 import { PostsTable } from './components/posts-table'
 import { TagsManager } from './components/tags-manager'
@@ -12,6 +13,8 @@ interface SearchParams {
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
+  const access = await getCurrentRoleAccess()
+  const canManage = access?.canManageAdminDashboard ?? false
 
   const filters = {
     status: params.status as 'all' | 'draft' | 'published' | 'archived' | undefined,
@@ -20,10 +23,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
   const page = params.page ? parseInt(params.page, 10) : 1
 
-  const [{ posts, totalCount, error }, { tags, error: tagsError }] = await Promise.all([
-    getAllPosts(filters, page, 20),
-    getAllTags(),
-  ])
+  const [{ posts, totalCount, error }, { tags }] = await Promise.all([getAllPosts(filters, page, 20), getAllTags()])
 
   if (error) {
     return (
@@ -53,11 +53,15 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           posts={posts}
           totalCount={totalCount}
           currentPage={page}
+          canManage={canManage}
         />
       </TabsContent>
 
       <TabsContent value="tags">
-        <TagsManager tags={tags || []} />
+        <TagsManager
+          tags={tags || []}
+          canManage={canManage}
+        />
       </TabsContent>
     </Tabs>
   )

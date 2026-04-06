@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/user'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import DashboardLayoutClient from './layout-client'
 
 export const dynamic = 'force-dynamic'
@@ -8,24 +9,23 @@ interface Props {
   children: React.ReactNode
 }
 
-// Role constants - Admin is role 0
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
-
 export default async function DashboardLayout({ children }: Props) {
-  const { user, error } = await getCurrentUser()
+  const [{ user, error }, access] = await Promise.all([getCurrentUser(), getCurrentRoleAccess()])
 
-  if (error || !user) {
-    redirect('/user/auth')
+  if (error || !user || !access) {
+    redirect('/user/auth?redirectTo=/dashboard')
   }
 
-  // CRITICAL-3: Verify user has admin role before granting access
-  if (user.role !== ROLES.ADMIN) {
+  if (!access.canAccessAdminDashboard) {
     redirect('/')
   }
 
-  return <DashboardLayoutClient user={user}>{children}</DashboardLayoutClient>
+  return (
+    <DashboardLayoutClient
+      user={user}
+      isReadOnly={!access.canManageAdminDashboard}
+    >
+      {children}
+    </DashboardLayoutClient>
+  )
 }

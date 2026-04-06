@@ -1,7 +1,9 @@
 import { getPendingEvents } from '@/lib/actions/events'
+import { getCurrentRoleAccess } from '@/lib/server/role-access'
 import { PendingEventsTable } from './components/pending-events-table'
 
 export default async function EventsApprovalPage() {
+  const access = await getCurrentRoleAccess()
   const { events, error } = await getPendingEvents()
 
   if (error) {
@@ -15,7 +17,10 @@ export default async function EventsApprovalPage() {
 
   return (
     <div className="space-y-4">
-      <PendingEventsTable events={events} />
+      <PendingEventsTable
+        events={events}
+        canManage={access?.canManageAdminDashboard ?? false}
+      />
     </div>
   )
 }

@@ -14,9 +14,10 @@ interface ReportsTableProps {
   reports: ReportedComment[]
   totalCount: number
   currentPage: number
+  canManage: boolean
 }
 
-export function ReportsTable({ reports, totalCount, currentPage }: ReportsTableProps) {
+export function ReportsTable({ reports, totalCount, currentPage, canManage }: ReportsTableProps) {
   const [viewingReport, setViewingReport] = useState<ReportedComment | null>(null)
 
   if (reports.length === 0) {
@@ -104,6 +105,7 @@ export function ReportsTable({ reports, totalCount, currentPage }: ReportsTableP
                 <TableCell className="text-right">
                   <ReportActions
                     report={report}
+                    canManage={canManage}
                     onView={() => setViewingReport(report)}
                   />
                 </TableCell>
@@ -149,6 +151,7 @@ export function ReportsTable({ reports, totalCount, currentPage }: ReportsTableP
         <CommentPreview
           report={viewingReport}
           open={!!viewingReport}
+          canManage={canManage}
           onOpenChange={(open: boolean) => !open && setViewingReport(null)}
         />
       )}

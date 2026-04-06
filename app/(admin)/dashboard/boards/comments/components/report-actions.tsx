@@ -1,6 +1,6 @@
 'use client'
 
-import { IconCheck, IconDotsVertical, IconEye, IconTrash, IconX } from '@tabler/icons-react'
+import { IconDotsVertical, IconEye, IconTrash, IconX } from '@tabler/icons-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -15,10 +15,11 @@ import { type ReportedComment, takeActionOnReport } from '@/lib/actions/admin/co
 
 interface ReportActionsProps {
   report: ReportedComment
+  canManage: boolean
   onView: () => void
 }
 
-export function ReportActions({ report, onView }: ReportActionsProps) {
+export function ReportActions({ report, canManage, onView }: ReportActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleAction = async (action: 'delete' | 'dismiss') => {
@@ -31,7 +32,7 @@ export function ReportActions({ report, onView }: ReportActionsProps) {
       } else {
         toast.error(result.error || 'Failed to process report')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -55,7 +56,7 @@ export function ReportActions({ report, onView }: ReportActionsProps) {
           View Details
         </DropdownMenuItem>
 
-        {report.status === 'pending' && (
+        {canManage && report.status === 'pending' && (
           <>
             <DropdownMenuSeparator />
 

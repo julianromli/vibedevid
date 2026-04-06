@@ -147,7 +147,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
             if (status === 'published') {
               router.push(`/blog/${finalSlug}`)
             } else {
-              router.push('/dashboard/posts')
+              router.push('/blog/posts')
             }
           } else {
             if (status === 'published') {
