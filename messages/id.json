@@ -30,7 +30,9 @@
     "write": "Tulis",
     "writePost": "Tulis Postingan",
     "close": "Tutup",
-    "submitProject": "Kirim Project"
+    "submitProject": "Kirim Project",
+    "all": "Semua",
+    "skipToMainContent": "Lewati ke konten utama"
   },
   "settings": {
     "language": "Bahasa",

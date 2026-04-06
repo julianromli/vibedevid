@@ -30,7 +30,9 @@
     "write": "Write",
     "writePost": "Write a Post",
     "close": "Close",
-    "submitProject": "Submit Project"
+    "submitProject": "Submit Project",
+    "all": "All",
+    "skipToMainContent": "Skip to main content"
   },
   "settings": {
     "language": "Language",

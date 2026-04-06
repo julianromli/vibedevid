@@ -6,18 +6,25 @@
 'use client'
 
 import { ChevronDown, Plus } from 'lucide-react'
-import { motion, useInView } from 'motion/react'
+import { useInView } from 'motion/react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import { useClickOutside } from '@/hooks/useClickOutside'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
+
+const MotionDiv = dynamic(() => import('motion/react').then((mod) => mod.motion.div), {
+  ssr: false,
+  loading: () => <div className="group my-4 cursor-pointer py-0" />,
+})
 
 interface ProjectShowcaseProps {
   projects: Project[]
@@ -100,8 +107,9 @@ export function ProjectShowcase({
   filterOptions,
 }: ProjectShowcaseProps) {
   const t = useTranslations('projectShowcase')
+  const tCommon = useTranslations('common')
 
-  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: 'All' }, ...filterOptions]
+  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
   const trendingOptions: Array<{ value: SortBy; label: string }> = [
     { value: 'trending', label: t('trendingOptions.trending') },
     { value: 'top', label: t('trendingOptions.top') },
@@ -113,28 +121,13 @@ export function ProjectShowcase({
   const gridRef = useRef<HTMLDivElement>(null)
   const mobileTrendingRef = useRef<HTMLDivElement>(null)
   const desktopTrendingRef = useRef<HTMLDivElement>(null)
+  const trendingRefs = useMemo(() => [mobileTrendingRef, desktopTrendingRef], [])
+  const closeTrendingDropdown = useCallback(() => {
+    setIsTrendingOpen(false)
+  }, [])
   const isInView = useInView(gridRef, { once: true, margin: '-50px' })
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!isTrendingOpen) {
-        return
-      }
-
-      const target = event.target as Node
-      const clickedOutsideMobile = mobileTrendingRef.current && !mobileTrendingRef.current.contains(target)
-      const clickedOutsideDesktop = desktopTrendingRef.current && !desktopTrendingRef.current.contains(target)
-
-      if (clickedOutsideMobile && clickedOutsideDesktop) {
-        setIsTrendingOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isTrendingOpen])
+  useClickOutside(trendingRefs, closeTrendingDropdown, isTrendingOpen)
 
   return (
     <section
@@ -260,7 +253,7 @@ export function ProjectShowcase({
                 </div>
               ))
             : projects.slice(0, visibleProjects).map((project, index) => (
-                <motion.div
+                <MotionDiv
                   key={project.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -270,6 +263,7 @@ export function ProjectShowcase({
                     ease: [0.25, 0.46, 0.45, 0.94],
                   }}
                   whileHover={{ y: -2 }}
+                  className="[contain-intrinsic-size:0_500px] [content-visibility:auto]"
                 >
                   <div className="group my-4 cursor-pointer py-0">
                     <Link
@@ -338,7 +332,7 @@ export function ProjectShowcase({
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </MotionDiv>
               ))}
         </div>
 

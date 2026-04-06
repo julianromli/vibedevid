@@ -242,7 +242,18 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               {/* Edit Mode - Client Component */}
               {isOwner && (
                 <ProjectEditClient
-                  project={project}
+                  project={{
+                    title: project.title,
+                    description: project.description,
+                    tagline: project.tagline,
+                    categoryRaw: project.categoryRaw,
+                    url: project.url,
+                    imageUrls: project.imageUrls,
+                    image: project.image,
+                    imageKeys: project.imageKeys,
+                    tags: project.tags,
+                    faviconUrl: project.faviconUrl,
+                  }}
                   categories={categories}
                   projectSlug={slug}
                   isOwner={isOwner}

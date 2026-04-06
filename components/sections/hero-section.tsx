@@ -61,11 +61,13 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   )
 
   useEffect(() => {
+    const words = [...titleLine1, ...titleLine2]
+
     if (lastAnimationKey.current === animationKey) return
     lastAnimationKey.current = animationKey
 
     if (prefersReducedMotion) {
-      setAnimatedWords([...titleLine1, ...titleLine2].map((_, index) => index))
+      setAnimatedWords(words.map((_, index) => index))
       setSubtitleVisible(true)
       return
     }
@@ -73,7 +75,6 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
     setAnimatedWords([])
     setSubtitleVisible(false)
 
-    const words = [...titleLine1, ...titleLine2]
     const timers: ReturnType<typeof setTimeout>[] = []
 
     words.forEach((_word, index) => {
