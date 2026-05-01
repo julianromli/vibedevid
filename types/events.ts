@@ -18,6 +18,7 @@ export interface AIEvent {
   coverImage: string
   category: EventCategory
   status: EventStatus
+  createdAt?: string
 }
 
 export interface EventFormData extends Omit<AIEvent, 'id' | 'endDate' | 'endTime'> {
