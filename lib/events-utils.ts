@@ -132,6 +132,7 @@ export interface EventFilters {
   locationType?: EventLocationType | 'All'
   startDate?: string
   endDate?: string
+  sort?: 'nearest' | 'latest'
 }
 
 export function applyFilters(events: AIEvent[], filters: EventFilters): AIEvent[] {
@@ -147,6 +148,14 @@ export function applyFilters(events: AIEvent[], filters: EventFilters): AIEvent[
 
   if (filters.startDate || filters.endDate) {
     filtered = filterByDateRange(filtered, filters.startDate, filters.endDate)
+  }
+
+  if (filters.sort === 'latest') {
+    return [...filtered].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return dateB - dateA
+    })
   }
 
   return sortByNearestDate(filtered)
