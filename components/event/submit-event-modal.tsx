@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useEventForm } from '@/hooks/useEventForm'
-import { submitEvent } from '@/lib/actions/events'
 import type { EventFormData } from '@/types/events'
 
 interface SubmitEventModalProps {
@@ -23,41 +22,26 @@ interface SubmitEventModalProps {
 
 export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModalProps) {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { formData, errors, setField, validateForm, resetForm } = useEventForm({
+  const { formData, errors, setField, validateForm, resetForm, handleSubmit, isLoading } = useEventForm({
     userId,
+    onSuccess: () => {
+      toast.success('Event berhasil disubmit! 🎉 Menunggu persetujuan admin.')
+      onOpenChange(false)
+      resetForm()
+      router.push('/event/list')
+    },
   })
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!validateForm()) {
-      return
-    }
+    const result = await handleSubmit()
 
-    setIsSubmitting(true)
-
-    try {
-      const result = await submitEvent(formData as EventFormData)
-
-      if (result.success) {
-        toast.success('Event berhasil disubmit! 🎉 Menunggu persetujuan admin.')
-        onOpenChange(false)
-        resetForm()
-        router.push('/event/list')
-      } else {
-        toast.error(result.error || 'Gagal submit event. Silakan coba lagi.')
-      }
-    } catch (error) {
-      console.error('Submit event error:', error)
-      toast.error('Terjadi kesalahan saat submit event. Silakan coba lagi.')
-    } finally {
-      setIsSubmitting(false)
+    if (!result.success && result.error) {
+      toast.error(result.error || 'Gagal submit event. Silakan coba lagi.')
     }
   }
-
-  const isLoading = isSubmitting
 
   return (
     <Dialog
@@ -102,7 +86,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 htmlFor="date"
                 className="form-label-enhanced"
               >
-                Tanggal *
+                Tanggal Mulai *
               </Label>
               <Input
                 id="date"
@@ -120,7 +104,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 htmlFor="time"
                 className="form-label-enhanced"
               >
-                Waktu *
+                Waktu Mulai *
               </Label>
               <Input
                 id="time"
@@ -131,6 +115,43 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 className="form-input-enhanced"
               />
               {errors.time && <p className="text-red-500 text-sm">{errors.time}</p>}
+            </div>
+          </div>
+
+          {/* End Date and Time (Optional) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="endDate"
+                className="form-label-enhanced"
+              >
+                Tanggal Selesai <span className="text-muted-foreground font-normal">(Opsional)</span>
+              </Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={formData.endDate || ''}
+                onChange={(e) => setField('endDate', e.target.value)}
+                disabled={isLoading}
+                className="form-input-enhanced"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="endTime"
+                className="form-label-enhanced"
+              >
+                Waktu Selesai <span className="text-muted-foreground font-normal">(Opsional)</span>
+              </Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={formData.endTime || ''}
+                onChange={(e) => setField('endTime', e.target.value)}
+                disabled={isLoading}
+                className="form-input-enhanced"
+              />
             </div>
           </div>
 

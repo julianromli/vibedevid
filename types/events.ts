@@ -19,9 +19,10 @@ export interface AIEvent {
   category: EventCategory
   status: EventStatus
   createdAt?: string
+  approved?: boolean
 }
 
-export interface EventFormData extends Omit<AIEvent, 'id' | 'endDate' | 'endTime'> {
+export interface EventFormData extends Omit<AIEvent, 'id'> {
   approved: boolean
   submitted_by: string
 }

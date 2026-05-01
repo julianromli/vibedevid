@@ -172,7 +172,8 @@ export async function submitEvent(formData: EventFormData) {
       name: formData.name,
       date: formData.date,
       time: formData.time,
-      // end_date and end_time are omitted from EventFormData
+      end_date: formData.endDate || null,
+      end_time: formData.endTime || null,
       location_type: formData.locationType,
       location_detail: formData.locationDetail,
       description: formData.description,
@@ -323,5 +324,35 @@ export async function rejectEvent(eventId: string) {
   } catch (error) {
     console.error('Unexpected error rejecting event:', error)
     return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+// Get events submitted by the current user
+export async function getMyEvents() {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { events: [], error: 'Unauthorized' }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('submitted_by', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching my events:', error)
+      return { events: [], error: 'Failed to fetch events' }
+    }
+
+    return { events: data?.map(mapEventFromDB) || [] }
+  } catch (error) {
+    console.error('Unexpected error fetching my events:', error)
+    return { events: [], error: 'An unexpected error occurred' }
   }
 }
