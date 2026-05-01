@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { generateEventSlug, validateEventForm } from '@/lib/event-form-utils'
+import { submitEvent } from '@/lib/actions/events'
 import type { EventFormData } from '@/types/events'
 
 export interface UseEventFormReturn {
@@ -80,7 +81,6 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
   }
 
   const handleSubmit = async (): Promise<SubmitResult> => {
-    // Validate form
     if (!validateForm()) {
       return {
         success: false,
@@ -91,19 +91,14 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
     setIsLoading(true)
 
     try {
-      // Phase 1: Mock submission (console.log)
-      console.log('[useEventForm] Submitting event:', formData)
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Phase 1: Always succeed
+      const result = await submitEvent(formData as EventFormData)
       setIsLoading(false)
-      onSuccess?.()
 
-      return {
-        success: true,
+      if (result.success) {
+        onSuccess?.()
       }
+
+      return result
     } catch (error) {
       setIsLoading(false)
       console.error('[useEventForm] Submission error:', error)
