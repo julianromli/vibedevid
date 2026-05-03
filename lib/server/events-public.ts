@@ -1,18 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { getSupabaseConfig } from '@/lib/env-config'
-import type { AIEvent, EventCategory, EventLocationType, EventStatus } from '@/types/events'
-
-function computeEventStatus(date: string): EventStatus {
-  const eventDate = new Date(date)
-  eventDate.setHours(0, 0, 0, 0)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (eventDate < today) return 'past'
-  if (eventDate.getTime() === today.getTime()) return 'ongoing'
-  return 'upcoming'
-}
+import { computeEventStatus } from '@/lib/event-status'
+import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 
 interface EventRow {
   id: string

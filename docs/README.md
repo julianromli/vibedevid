@@ -44,6 +44,12 @@ Dated implementation and design plans.
 
 - [Landing Page UI Guidelines Fix Plan](./plans/2026-04-02-landing-page-ui-guidelines-fixes.md) - Homepage accessibility, motion, and URL-state fix plan
 
+### Events
+
+Feature follow-up notes for the AI Events experience.
+
+- [Events Feature Next Steps](./events-feature/next-steps.md) - Prioritized follow-up work for event listing, detail, submit, and approval flows
+
 ### Testing
 
 Testing guides dan checklists.
