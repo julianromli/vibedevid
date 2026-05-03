@@ -3,20 +3,10 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
+import { computeEventStatus } from '@/lib/event-status'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import type { AIEvent, EventCategory, EventFormData, EventLocationType, EventStatus } from '@/types/events'
-
-function computeEventStatus(date: string): EventStatus {
-  const eventDate = new Date(date)
-  eventDate.setHours(0, 0, 0, 0)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (eventDate < today) return 'past'
-  if (eventDate.getTime() === today.getTime()) return 'ongoing'
-  return 'upcoming'
-}
+import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
 
 // Helper to map DB result (snake_case) to AIEvent (camelCase)
 function mapEventFromDB(data: any): AIEvent {
