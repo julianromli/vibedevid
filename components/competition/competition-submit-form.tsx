@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  CompetitionSubmitPreview,
   type CompetitionDraftSubmission,
+  CompetitionSubmitPreview,
 } from '@/components/competition/competition-submit-preview'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -462,7 +462,7 @@ export function CompetitionSubmitForm({ competitionId, categories }: Competition
               <div className="grid gap-3 sm:grid-cols-2">
                 {formState.galleryUrls.map((url, index) => (
                   <div
-                    key={`${url}-${index}`}
+                    key={formState.galleryKeys[index] || url}
                     className="space-y-2"
                   >
                     <div className="relative overflow-hidden rounded-xl border">

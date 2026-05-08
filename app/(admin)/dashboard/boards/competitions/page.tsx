@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getCompetitionCategories, getCompetitionEntries, getActiveCompetition } from '@/lib/server/competition-public'
+import { getActiveCompetition, getCompetitionCategories, getCompetitionEntries } from '@/lib/server/competition-public'
 
 export default async function CompetitionsPage() {
   const competition = await getActiveCompetition()

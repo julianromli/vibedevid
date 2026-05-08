@@ -5,8 +5,8 @@ import { CompetitionRules } from '@/components/competition/competition-rules'
 import { CompetitionTimeline } from '@/components/competition/competition-timeline'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import { getCompetitionCategories, getActiveCompetition } from '@/lib/server/competition-public'
 import { getCurrentUser } from '@/lib/server/auth'
+import { getActiveCompetition, getCompetitionCategories } from '@/lib/server/competition-public'
 
 function isCompetitionOpen(startsAt: string, endsAt: string) {
   const now = new Date()

@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
+import { getCurrentUser } from '@/lib/server/auth'
 import {
+  getActiveCompetition,
   getCompetitionEntries,
   getCompetitionEntryVoteState,
-  getActiveCompetition,
 } from '@/lib/server/competition-public'
-import { getCurrentUser } from '@/lib/server/auth'
 import type { CompetitionSort } from '@/types/competition'
 import { CompetitionListClient } from './competition-list-client'
 

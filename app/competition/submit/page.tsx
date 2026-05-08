@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { CompetitionSubmitForm } from '@/components/competition/competition-submit-form'
 import { Card, CardContent } from '@/components/ui/card'
+import { getActiveCompetition, getCompetitionCategories } from '@/lib/server/competition-public'
 import { createClient } from '@/lib/supabase/server'
-import { getCompetitionCategories, getActiveCompetition } from '@/lib/server/competition-public'
 
 function isCompetitionOpen(startsAt: string, endsAt: string) {
   const now = new Date()

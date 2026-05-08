@@ -3,16 +3,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CompetitionVoteButton } from '@/components/competition/competition-vote-button'
-import { CommentSection } from '@/components/ui/comment-section'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { getComments } from '@/lib/actions/comments'
-import { getCompetitionEntryBySlug } from '@/lib/server/competition-public'
 import { getCurrentUser } from '@/lib/server/auth'
+import { getCompetitionEntryBySlug } from '@/lib/server/competition-public'
 
 function isCompetitionOpen(startsAt: string, endsAt: string) {
   const now = new Date()
