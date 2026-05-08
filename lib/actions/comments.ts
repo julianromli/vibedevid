@@ -67,7 +67,23 @@ const normalizeComment = (raw: RawComment): Comment => {
 /**
  * Get revalidation path based on entity type
  */
-const getRevalidatePath = (entityType: CommentEntityType): string => (entityType === 'post' ? '/blog' : '/project')
+const COMMENT_TARGET_COLUMN_MAP: Record<CommentEntityType, 'post_id' | 'project_id' | 'competition_entry_id'> = {
+  post: 'post_id',
+  project: 'project_id',
+  competition: 'competition_entry_id',
+}
+
+const getRevalidatePath = (entityType: CommentEntityType): string => {
+  switch (entityType) {
+    case 'post':
+      return '/blog'
+    case 'competition':
+      return '/competition'
+    case 'project':
+    default:
+      return '/project'
+  }
+}
 
 /**
  * Create a new comment for blog post or project
@@ -87,6 +103,26 @@ export async function createComment(input: CreateCommentInput): Promise<CommentR
   const supabase = await createClient()
   const { data: authData } = await supabase.auth.getUser()
 
+  if (entityType === 'competition') {
+    if (!authData.user) {
+      return { success: false, error: 'You must be logged in to comment on competition entries' }
+    }
+
+    const { data: competitionEntry } = await supabase
+      .from('competition_entries')
+      .select('id, comments_locked, status')
+      .eq('id', entityId)
+      .maybeSingle()
+
+    if (!competitionEntry || competitionEntry.status !== 'published') {
+      return { success: false, error: 'Competition entry not found' }
+    }
+
+    if (competitionEntry.comments_locked) {
+      return { success: false, error: 'Comments are locked for this entry' }
+    }
+  }
+
   // Build insert data based on entity type
   const insertData: Record<string, unknown> = {
     content: content.trim(),
@@ -94,14 +130,10 @@ export async function createComment(input: CreateCommentInput): Promise<CommentR
   }
 
   // Set the appropriate foreign key based on entity type
-  if (entityType === 'post') {
-    insertData.post_id = entityId
-  } else {
-    insertData.project_id = entityId
-  }
+  insertData[COMMENT_TARGET_COLUMN_MAP[entityType]] = entityId
 
   // Add guest name if not authenticated
-  if (!authData.user && guestName) {
+  if (!authData.user && guestName && entityType !== 'competition') {
     insertData.author_name = guestName.trim()
   }
 
@@ -128,7 +160,7 @@ export async function getComments(entityType: CommentEntityType, entityId: strin
   const supabase = await createClient()
 
   // Build query with appropriate filter
-  const filterColumn = entityType === 'post' ? 'post_id' : 'project_id'
+  const filterColumn = COMMENT_TARGET_COLUMN_MAP[entityType]
 
   const { data, error } = await supabase
     .from('comments')
@@ -175,7 +207,7 @@ export async function reportComment(commentId: string, reason: string): Promise<
     return { success: false, error: 'Comment ID and reason are required' }
   }
 
-  const { error } = await supabase.from('comment_reports').insert({
+  const { error } = await supabase.from('blog_reports').insert({
     comment_id: commentId,
     reporter_id: authData.user.id,
     reason: reason.trim(),

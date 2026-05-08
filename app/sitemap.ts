@@ -6,6 +6,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static core routes. Add dynamic routes (projects/users) here if desired.
   const routes = [
     '',
+    '/competition',
+    '/competition/list',
+    '/competition/submit',
     '/project/list',
     '/project/submit',
     '/user/auth',
