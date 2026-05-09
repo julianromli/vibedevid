@@ -7,6 +7,7 @@ import {
   IconNews,
   IconNotification,
   IconSettings2,
+  IconTrophy,
   IconUsers,
 } from '@tabler/icons-react'
 import { Header } from '@/components/admin-panel/header'
@@ -14,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Analytics from './boards/analytics'
 import BlogPage from './boards/blog/page'
 import CommentsPage from './boards/comments/page'
+import CompetitionsPage from './boards/competitions/page'
 import EventsApproval from './boards/events-approval/page'
 import Overview from './boards/overview'
 import ProjectsPage from './boards/projects/page'
@@ -113,6 +115,13 @@ export default async function Dashboard1Page({ searchParams }: { searchParams: P
                 Users
               </TabsTrigger>
               <TabsTrigger
+                value="competitions"
+                className="flex items-center gap-2"
+              >
+                <IconTrophy size={16} />
+                Competitions
+              </TabsTrigger>
+              <TabsTrigger
                 value="comments"
                 className="flex items-center gap-2"
               >
@@ -156,6 +165,12 @@ export default async function Dashboard1Page({ searchParams }: { searchParams: P
             className="space-y-4"
           >
             <UsersPage searchParams={searchParams} />
+          </TabsContent>
+          <TabsContent
+            value="competitions"
+            className="space-y-4"
+          >
+            <CompetitionsPage />
           </TabsContent>
           <TabsContent
             value="comments"

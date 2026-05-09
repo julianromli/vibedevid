@@ -39,7 +39,7 @@ export interface ReportedComment {
     display_name: string
     username: string
   }
-  entity_type: 'post' | 'project'
+  entity_type: 'post' | 'project' | 'competition'
   entity_id: string
   entity_title: string
 }
@@ -138,37 +138,50 @@ export async function getReportedComments(
     // Get all comment IDs from reports to batch fetch entity info
     const commentIds = (reports || []).map((r) => r.comment_id).filter(Boolean)
 
-    // Batch fetch all comments with their post_id and project_id in a single query
-    const { data: allComments } = await supabase.from('comments').select('id, post_id, project_id').in('id', commentIds)
+    // Batch fetch all comments with their linked entities in a single query
+    const { data: allComments } = await supabase
+      .from('comments')
+      .select('id, post_id, project_id, competition_entry_id')
+      .in('id', commentIds)
 
     // Separate comment IDs by entity type
     const postCommentIds: string[] = []
-    const projectCommentIds: number[] = []
-    const commentEntityMap = new Map<string, { type: 'post' | 'project'; entityId: string }>()
+    const projectCommentIds: string[] = []
+    const competitionCommentIds: string[] = []
+    const commentEntityMap = new Map<string, { type: 'post' | 'project' | 'competition'; entityId: string }>()
 
     allComments?.forEach((comment) => {
       if (comment.post_id) {
-        postCommentIds.push(comment.id)
+        postCommentIds.push(comment.post_id)
         commentEntityMap.set(comment.id, {
           type: 'post',
           entityId: comment.post_id,
         })
       } else if (comment.project_id) {
-        projectCommentIds.push(comment.project_id)
+        projectCommentIds.push(String(comment.project_id))
         commentEntityMap.set(comment.id, {
           type: 'project',
           entityId: String(comment.project_id),
         })
+      } else if (comment.competition_entry_id) {
+        competitionCommentIds.push(comment.competition_entry_id)
+        commentEntityMap.set(comment.id, {
+          type: 'competition',
+          entityId: comment.competition_entry_id,
+        })
       }
     })
 
-    // Batch fetch all posts and projects in parallel
-    const [postsResult, projectsResult] = await Promise.all([
+    // Batch fetch all posts, projects, and competition entries in parallel
+    const [postsResult, projectsResult, competitionEntriesResult] = await Promise.all([
       postCommentIds.length > 0
         ? supabase.from('posts').select('id, title').in('id', postCommentIds)
         : Promise.resolve({ data: [] }),
       projectCommentIds.length > 0
         ? supabase.from('projects').select('id, title').in('id', projectCommentIds)
+        : Promise.resolve({ data: [] }),
+      competitionCommentIds.length > 0
+        ? supabase.from('competition_entries').select('id, title').in('id', competitionCommentIds)
         : Promise.resolve({ data: [] }),
     ])
 
@@ -176,24 +189,30 @@ export async function getReportedComments(
     const postMap = new Map<string, string>(
       (postsResult.data || []).map((p: { id: string; title: string }) => [p.id, p.title]),
     )
-    const projectMap = new Map<number, string>(
-      (projectsResult.data || []).map((p: { id: number; title: string }) => [p.id, p.title]),
+    const projectMap = new Map<string, string>(
+      (projectsResult.data || []).map((p: { id: number | string; title: string }) => [String(p.id), p.title]),
+    )
+    const competitionMap = new Map<string, string>(
+      (competitionEntriesResult.data || []).map((entry: { id: string; title: string }) => [entry.id, entry.title]),
     )
 
     // Format reports using the lookup maps (no additional queries)
     const formattedReports: ReportedComment[] = (reports || []).map((report) => {
       const entityInfo = commentEntityMap.get(report.comment_id)
-      let entity_type: 'post' | 'project' = 'post'
+      let entity_type: 'post' | 'project' | 'competition' = 'post'
       let entity_id = ''
       let entity_title = 'Unknown'
 
       if (entityInfo) {
         entity_type = entityInfo.type
         entity_id = entityInfo.entityId
-        entity_title =
-          entityInfo.type === 'post'
-            ? postMap.get(entityInfo.entityId) || 'Unknown Post'
-            : projectMap.get(Number(entityInfo.entityId)) || 'Unknown Project'
+        if (entityInfo.type === 'post') {
+          entity_title = postMap.get(entityInfo.entityId) || 'Unknown Post'
+        } else if (entityInfo.type === 'project') {
+          entity_title = projectMap.get(entityInfo.entityId) || 'Unknown Project'
+        } else {
+          entity_title = competitionMap.get(entityInfo.entityId) || 'Unknown Competition Entry'
+        }
       }
 
       const comment = report.comment
@@ -252,7 +271,11 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
     const supabase = createAdminClient()
 
     // Get comment info for revalidation
-    const { data: comment } = await supabase.from('comments').select('post_id, project_id').eq('id', commentId).single()
+    const { data: comment } = await supabase
+      .from('comments')
+      .select('post_id, project_id, competition_entry_id')
+      .eq('id', commentId)
+      .single()
 
     // Delete related reports first
     const { error: reportDeleteError } = await supabase.from('blog_reports').delete().eq('comment_id', commentId)
@@ -279,6 +302,11 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
     if (comment?.project_id) {
       revalidatePath('/project/[slug]')
       revalidatePath('/project/list')
+    }
+    if (comment?.competition_entry_id) {
+      revalidatePath('/competition')
+      revalidatePath('/competition/list')
+      revalidatePath('/competition/[slug]')
     }
     revalidatePath('/admin/dashboard/boards/comments')
 

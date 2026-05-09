@@ -52,17 +52,17 @@ export interface CommentApiResponse {
 }
 
 /**
- * Entity type for comments (blog post or project)
+ * Entity type for comments (blog post, project, or competition entry)
  */
-export type CommentEntityType = 'post' | 'project'
+export type CommentEntityType = 'post' | 'project' | 'competition'
 
 /**
  * Props for unified CommentSection component
  */
 export interface CommentSectionProps {
-  /** Entity type: 'post' for blog, 'project' for projects */
+  /** Entity type: 'post' for blog, 'project' for projects, 'competition' for competition entries */
   entityType: CommentEntityType
-  /** Entity ID (post_id or project_id) */
+  /** Entity ID (post_id, project_id, or competition_entry_id) */
   entityId: string
   /** Pre-fetched comments from server */
   initialComments: Comment[]
