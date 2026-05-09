@@ -207,10 +207,13 @@ function mapCompetitionEntrySummary(row: CompetitionEntryRow, commentCountOverri
 
 async function fetchActiveCompetition(): Promise<Competition | null> {
   const supabase = createPublicClient()
+  const nowIso = new Date().toISOString()
   const { data } = await supabase
     .from('competitions')
     .select('*')
     .eq('status', 'active')
+    .lte('starts_at', nowIso)
+    .gt('ends_at', nowIso)
     .order('starts_at', { ascending: false })
     .limit(1)
     .maybeSingle()

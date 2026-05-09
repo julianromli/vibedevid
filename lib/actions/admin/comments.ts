@@ -190,7 +190,7 @@ export async function getReportedComments(
       (postsResult.data || []).map((p: { id: string; title: string }) => [p.id, p.title]),
     )
     const projectMap = new Map<string, string>(
-      (projectsResult.data || []).map((p: { id: string; title: string }) => [p.id, p.title]),
+      (projectsResult.data || []).map((p: { id: number | string; title: string }) => [String(p.id), p.title]),
     )
     const competitionMap = new Map<string, string>(
       (competitionEntriesResult.data || []).map((entry: { id: string; title: string }) => [entry.id, entry.title]),
