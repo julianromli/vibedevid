@@ -54,6 +54,23 @@ async function fetchProjectsWithTimeout(sortBy: SortBy, category?: string): Prom
   }
 }
 
+function isCurrentProjectRequest(isActive: boolean, currentRequestId: number, requestId: number): boolean {
+  return isActive && currentRequestId === requestId
+}
+
+async function loadFilteredProjects(sortBy: SortBy, selectedFilter: string): Promise<Project[]> {
+  const { projects, error } = await fetchProjectsWithTimeout(
+    sortBy,
+    selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
+  )
+
+  if (error) {
+    throw new Error(error)
+  }
+
+  return projects || []
+}
+
 export function useProjectFilters({
   authReady,
   initialProjects = [],
@@ -125,11 +142,7 @@ export function useProjectFilters({
       return
     }
 
-    if (
-      shouldSkipInitialFetchRef.current &&
-      selectedTrending === initialSort &&
-      selectedFilter === initialFilter
-    ) {
+    if (shouldSkipInitialFetchRef.current && selectedTrending === initialSort && selectedFilter === initialFilter) {
       shouldSkipInitialFetchRef.current = false
       return
     }
@@ -142,29 +155,21 @@ export function useProjectFilters({
       try {
         setLoading(true)
 
-        const { projects: fetchedProjects, error } = await fetchProjectsWithTimeout(
-          selectedTrending,
-          selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
-        )
+        const fetchedProjects = await loadFilteredProjects(selectedTrending, selectedFilter)
 
-        if (!isActive || latestRequestIdRef.current !== requestId) {
+        if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return
         }
 
-        if (error) {
-          console.error('Error fetching projects:', error)
-          return
-        }
-
-        setProjects(fetchedProjects || [])
+        setProjects(fetchedProjects)
       } catch (error) {
-        if (!isActive || latestRequestIdRef.current !== requestId) {
+        if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return
         }
 
         console.error('Error fetching projects:', error)
       } finally {
-        if (isActive && latestRequestIdRef.current === requestId) {
+        if (isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           setLoading(false)
         }
       }
