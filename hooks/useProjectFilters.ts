@@ -4,7 +4,7 @@
  */
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
@@ -19,6 +19,9 @@ interface UseProjectFiltersOptions {
 
 const ALL_FILTER_VALUE = 'all'
 const DEFAULT_SORT: SortBy = 'trending'
+const PROJECT_FETCH_TIMEOUT_MS = 10_000
+
+type FetchProjectsResult = Awaited<ReturnType<typeof fetchProjectsWithSorting>>
 
 function normalizeSortParam(value: string | null | undefined): SortBy {
   return value === 'top' || value === 'newest' || value === 'trending' ? value : DEFAULT_SORT
@@ -30,6 +33,42 @@ function normalizeFilterParam(value: string | null | undefined, categories: Proj
   }
 
   return categories.some((category) => category.value === value) ? value : ALL_FILTER_VALUE
+}
+
+async function fetchProjectsWithTimeout(sortBy: SortBy, category?: string): Promise<FetchProjectsResult> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  try {
+    return await Promise.race([
+      fetchProjectsWithSorting(sortBy, category, 20),
+      new Promise<FetchProjectsResult>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`Project fetch timed out after ${PROJECT_FETCH_TIMEOUT_MS}ms`))
+        }, PROJECT_FETCH_TIMEOUT_MS)
+      }),
+    ])
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
+function isCurrentProjectRequest(isActive: boolean, currentRequestId: number, requestId: number): boolean {
+  return isActive && currentRequestId === requestId
+}
+
+async function loadFilteredProjects(sortBy: SortBy, selectedFilter: string): Promise<Project[]> {
+  const { projects, error } = await fetchProjectsWithTimeout(
+    sortBy,
+    selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
+  )
+
+  if (error) {
+    throw new Error(error)
+  }
+
+  return projects || []
 }
 
 export function useProjectFilters({
@@ -49,7 +88,8 @@ export function useProjectFilters({
   const [filterOptions, setFilterOptions] = useState<ProjectFilterOption[]>(initialCategories)
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [loading, setLoading] = useState(initialProjects.length === 0)
-  const [skipInitialFetch, setSkipInitialFetch] = useState(initialProjects.length > 0)
+  const shouldSkipInitialFetchRef = useRef(initialProjects.length > 0)
+  const latestRequestIdRef = useRef(0)
 
   // Fetch categories for filter options
   useEffect(() => {
@@ -96,42 +136,40 @@ export function useProjectFilters({
     }
   }, [pathname, router, searchParams, selectedFilter, selectedTrending])
 
-  // Fetch projects with sorting and abort deduplication
+  // Fetch projects with sorting while ignoring stale responses.
   useEffect(() => {
     if (!authReady) {
       return
     }
 
-    if (skipInitialFetch && selectedTrending === initialSort && selectedFilter === initialFilter) {
-      setSkipInitialFetch(false)
+    if (shouldSkipInitialFetchRef.current && selectedTrending === initialSort && selectedFilter === initialFilter) {
+      shouldSkipInitialFetchRef.current = false
       return
     }
 
-    const controller = new AbortController()
+    const requestId = latestRequestIdRef.current + 1
+    latestRequestIdRef.current = requestId
+    let isActive = true
 
     const fetchProjects = async () => {
       try {
         setLoading(true)
 
-        const { projects: fetchedProjects, error } = await fetchProjectsWithSorting(
-          selectedTrending,
-          selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
-          20,
-        )
+        const fetchedProjects = await loadFilteredProjects(selectedTrending, selectedFilter)
 
-        if (controller.signal.aborted) return
-
-        if (error) {
-          console.error('Error fetching projects:', error)
+        if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return
         }
 
-        setProjects(fetchedProjects || [])
+        setProjects(fetchedProjects)
       } catch (error) {
-        if (controller.signal.aborted) return
+        if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
+          return
+        }
+
         console.error('Error fetching projects:', error)
       } finally {
-        if (!controller.signal.aborted) {
+        if (isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           setLoading(false)
         }
       }
@@ -140,9 +178,9 @@ export function useProjectFilters({
     fetchProjects()
 
     return () => {
-      controller.abort()
+      isActive = false
     }
-  }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter, skipInitialFetch])
+  }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter])
 
   const loadMore = () => {
     setVisibleProjects((prev) => prev + 6)
