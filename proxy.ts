@@ -140,10 +140,11 @@ async function handleAuth(request: NextRequest, response: NextResponse): Promise
     // Check for email confirmation requirements
     const isAuthPath = pathname.startsWith('/user/auth')
     const isConfirmEmailPath = pathname.includes('/confirm-email')
+    const isResetPasswordPath = pathname === '/user/auth/reset-password'
     const isCallbackPath = pathname.includes('/auth/callback')
     const hasConfirmEmailCookie = !!request.cookies.get(CONFIRM_EMAIL_COOKIE)?.value
 
-    if (user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
+    if (user && isAuthPath && !isConfirmEmailPath && !isResetPasswordPath && !isCallbackPath) {
       const redirectTo = getSafeRedirectPath(requestUrl.searchParams.get('redirectTo'))
       const redirectResponse = NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
       return withSupabaseCookies(response, redirectResponse)

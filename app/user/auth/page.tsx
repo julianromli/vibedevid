@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { resetPassword, signIn } from '@/lib/actions'
+import { getClientAuthCallbackUrl } from '@/lib/constants/auth'
 import { createClient } from '@/lib/supabase/client'
 
 // Email domain whitelist helper
@@ -184,7 +185,7 @@ function AuthPageContent() {
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
+          emailRedirectTo: getClientAuthCallbackUrl(),
           data: {
             username: username,
             display_name: username,
@@ -237,7 +238,7 @@ function AuthPageContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getClientAuthCallbackUrl(),
         },
       })
       if (error) throw error
