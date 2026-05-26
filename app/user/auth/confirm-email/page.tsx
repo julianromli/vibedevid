@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { CONFIRM_EMAIL_COOKIE } from '@/lib/constants/auth'
+import { CONFIRM_EMAIL_COOKIE, getClientAuthCallbackUrl } from '@/lib/constants/auth'
 import { createClient } from '@/lib/supabase/client'
 
 function getCookieValue(cookieName: string): string {
@@ -66,7 +66,7 @@ function ConfirmEmailContent() {
         type: 'signup',
         email: email.toString(),
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
+          emailRedirectTo: getClientAuthCallbackUrl(),
         },
       })
 

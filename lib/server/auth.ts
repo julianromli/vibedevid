@@ -1,5 +1,6 @@
 'use server'
 
+import { getCurrentUser as getCurrentUserFromActions } from '@/lib/actions/user'
 import { createClient } from '@/lib/supabase/server'
 
 export async function getServerSession() {
@@ -12,29 +13,22 @@ export async function getServerSession() {
 
   if (!user) return null
 
-  // Return a partial session object containing just the user
-  // This satisfies the usage in getCurrentUser which only checks session.user
-  return { user } as any
+  return { user }
 }
 
 export async function getCurrentUser() {
-  const session = await getServerSession()
-  if (!session?.user) return null
+  const { user } = await getCurrentUserFromActions()
+  if (!user?.id) return null
 
-  const supabase = await createClient()
-  const { data: user } = await supabase.from('users').select('*').eq('id', session.user.id).single()
-
-  return user
-    ? {
-        id: user.id,
-        name: user.display_name,
-        email: session.user.email || '',
-        avatar: user.avatar_url || '/placeholder.svg',
-        avatar_url: user.avatar_url || '/placeholder.svg',
-        username: user.username,
-        role: user.role,
-      }
-    : null
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || user.avatar_url || '/placeholder.svg',
+    avatar_url: user.avatar_url || user.avatar || '/placeholder.svg',
+    username: user.username,
+    role: user.role,
+  }
 }
 
 export async function checkProjectOwnership(authorUsername: string, userId: string) {
