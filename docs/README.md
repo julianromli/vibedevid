@@ -42,6 +42,7 @@ Dokumentasi migrasi database dan breaking changes.
 
 Dated implementation and design plans.
 
+- [Mini Vibeathon Technical Implementation Plan](./plans/2026-05-08-mini-vibeathon-technical-implementation.md) - Detailed technical blueprint for the competition system, routes, schema, admin workflows, and rollout
 - [Landing Page UI Guidelines Fix Plan](./plans/2026-04-02-landing-page-ui-guidelines-fixes.md) - Homepage accessibility, motion, and URL-state fix plan
 
 ### Testing
