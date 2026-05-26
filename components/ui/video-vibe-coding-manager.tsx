@@ -339,11 +339,11 @@ export function VideoVibeCodingManager() {
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2"
+                className="flex w-full items-center justify-center gap-2 sm:w-auto"
               >
                 {loading ? (
                   <>
@@ -363,6 +363,7 @@ export function VideoVibeCodingManager() {
                   type="button"
                   variant="outline"
                   onClick={resetForm}
+                  className="w-full sm:w-auto"
                 >
                   Reset
                 </Button>
@@ -405,12 +406,13 @@ export function VideoVibeCodingManager() {
       {videoData && !loading && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Video Preview ✨
+            <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>Video Preview ✨</span>
               <Button
                 variant="outline"
                 size="sm"
                 asChild
+                className="w-full sm:w-auto"
               >
                 <a
                   href={videoData.url}
@@ -503,16 +505,17 @@ export function VideoVibeCodingManager() {
       {/* Current Videos Management Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Youtube className="h-5 w-5 text-red-500" />
-              Current Videos on Homepage
+              <Youtube className="h-5 w-5 shrink-0 text-red-500" />
+              <span>Current Videos on Homepage</span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={fetchCurrentVideos}
               disabled={videosLoading}
+              className="w-full shrink-0 sm:w-auto"
             >
               {videosLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
               Refresh
@@ -536,15 +539,15 @@ export function VideoVibeCodingManager() {
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex gap-4 rounded-lg border p-4"
+                  className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:gap-4 sm:p-4"
                 >
-                  <Skeleton className="h-16 w-24 rounded" />
+                  <Skeleton className="mx-auto h-20 w-full max-w-[160px] rounded sm:mx-0 sm:h-16 sm:w-24 sm:max-w-none" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-3 w-1/2" />
                     <Skeleton className="h-3 w-1/4" />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex justify-end gap-2 sm:flex-col sm:justify-start">
                     <Skeleton className="h-8 w-8" />
                     <Skeleton className="h-8 w-8" />
                   </div>
@@ -556,19 +559,21 @@ export function VideoVibeCodingManager() {
               {currentVideos.map((video) => (
                 <div
                   key={video.id}
-                  className="hover:bg-muted/50 flex gap-4 rounded-lg border p-4 transition-colors"
+                  className="hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-3 transition-colors sm:flex-row sm:gap-4 sm:p-4"
                 >
                   {/* Thumbnail */}
-                  <div className="flex-shrink-0">
+                  <div className="flex shrink-0 justify-center sm:justify-start">
                     <Image
                       src={video.thumbnail}
                       alt={video.title}
-                      className="h-16 w-24 rounded object-cover"
+                      width={96}
+                      height={64}
+                      className="h-20 w-full max-w-[160px] rounded object-cover sm:h-16 sm:w-24 sm:max-w-none"
                     />
                   </div>
 
                   {/* Video Info */}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 sm:min-w-0">
                     {editingVideo?.id === video.id ? (
                       // Edit Mode
                       <div className="space-y-2">
@@ -578,18 +583,18 @@ export function VideoVibeCodingManager() {
                             <Youtube className="h-4 w-4" />
                             Replace with YouTube URL
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col gap-2 sm:flex-row">
                             <Input
                               value={editYoutubeUrl}
                               onChange={(e) => setEditYoutubeUrl(e.target.value)}
                               placeholder="https://www.youtube.com/watch?v=example"
-                              className="h-8 flex-1 text-xs"
+                              className="h-8 min-w-0 flex-1 text-xs"
                             />
                             <Button
                               size="sm"
                               onClick={handleEditFetchYoutube}
                               disabled={editFetching}
-                              className="h-8 px-3"
+                              className="h-8 w-full shrink-0 px-3 sm:w-auto"
                             >
                               {editFetching ? (
                                 <>
@@ -630,7 +635,7 @@ export function VideoVibeCodingManager() {
                           className="bg-background h-16 w-full resize-none rounded border p-2 text-sm"
                           placeholder="Video description"
                         />
-                        <div className="text-muted-foreground flex gap-2 text-xs">
+                        <div className="text-muted-foreground flex flex-col gap-2 text-xs sm:flex-row">
                           <Input
                             value={editFormData.viewCount || ''}
                             onChange={(e) =>
@@ -639,7 +644,7 @@ export function VideoVibeCodingManager() {
                                 viewCount: e.target.value,
                               }))
                             }
-                            className="h-8 w-20 text-xs"
+                            className="h-8 w-full text-xs sm:w-24"
                             placeholder="Views"
                           />
                           <Input
@@ -651,7 +656,7 @@ export function VideoVibeCodingManager() {
                                 publishedAt: e.target.value,
                               }))
                             }
-                            className="h-8 w-32 text-xs"
+                            className="h-8 w-full text-xs sm:w-36"
                           />
                         </div>
                       </div>
@@ -660,23 +665,29 @@ export function VideoVibeCodingManager() {
                       <div className="space-y-1">
                         <h3 className="line-clamp-2 text-sm font-medium">{video.title}</h3>
                         <p className="text-muted-foreground line-clamp-2 text-xs">{video.description}</p>
-                        <div className="text-muted-foreground flex gap-4 text-xs">
+                        <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
                           <span className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
+                            <Eye className="h-3 w-3 shrink-0" />
                             {video.viewCount} views
                           </span>
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
+                            <Calendar className="h-3 w-3 shrink-0" />
                             {new Date(video.publishedAt).toLocaleDateString('id-ID')}
                           </span>
-                          <span>Position: {video.position}</span>
+                          <span className="shrink-0">Position: {video.position}</span>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-shrink-0 gap-2">
+                  <div
+                    className={
+                      editingVideo?.id === video.id
+                        ? 'flex gap-2 sm:shrink-0 sm:flex-col'
+                        : 'flex justify-end gap-2 sm:shrink-0 sm:flex-col sm:justify-start'
+                    }
+                  >
                     {editingVideo?.id === video.id ? (
                       // Edit Mode Actions
                       <>
@@ -684,6 +695,7 @@ export function VideoVibeCodingManager() {
                           size="sm"
                           onClick={() => handleUpdateVideo(video.id, editFormData)}
                           disabled={!editFormData.title?.trim()}
+                          className="flex-1 sm:flex-none"
                         >
                           Save
                         </Button>
@@ -691,6 +703,7 @@ export function VideoVibeCodingManager() {
                           size="sm"
                           variant="outline"
                           onClick={cancelEditing}
+                          className="flex-1 sm:flex-none"
                         >
                           Cancel
                         </Button>
@@ -702,6 +715,7 @@ export function VideoVibeCodingManager() {
                           size="sm"
                           variant="outline"
                           onClick={() => startEditing(video)}
+                          aria-label="Edit video"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -712,6 +726,7 @@ export function VideoVibeCodingManager() {
                               size="sm"
                               variant="outline"
                               className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                              aria-label="Delete video"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -744,6 +759,7 @@ export function VideoVibeCodingManager() {
                             href={`https://www.youtube.com/watch?v=${video.videoId}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label="Open on YouTube"
                           >
                             <ExternalLink className="h-3 w-3" />
                           </a>
