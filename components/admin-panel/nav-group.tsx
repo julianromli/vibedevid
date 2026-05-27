@@ -101,6 +101,14 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 )
 
 function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false) {
+  if (item.items?.length) {
+    return item.items.some((subItem) => checkIsActive(pathname, dashboardTab, subItem))
+  }
+
+  if (!item.url) {
+    return false
+  }
+
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
     const itemTab = getDashboardTabFromNavUrl(item.url)
     if (itemTab !== null) {
@@ -108,15 +116,15 @@ function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, ma
     }
   }
 
+  const itemPath = item.url.split('?')[0]
   return (
-    pathname === item.url.split('?')[0] ||
-    !!item?.items?.filter((i) => checkIsActive(pathname, dashboardTab, i)).length ||
-    (mainNav && pathname.split('/')[1] !== '' && pathname.split('/')[1] === item?.url?.split('/')[1])
+    pathname === itemPath ||
+    (mainNav && pathname.split('/')[1] !== '' && pathname.split('/')[1] === itemPath.split('/')[1])
   )
 }
 
-function getDashboardTabFromNavUrl(url: string): string | null {
-  if (!url.startsWith('/dashboard')) {
+function getDashboardTabFromNavUrl(url: string | undefined): string | null {
+  if (!url?.startsWith('/dashboard')) {
     return null
   }
 

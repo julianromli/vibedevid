@@ -4,7 +4,7 @@ import { AdminManagementBoard } from './components/admin-management-board'
 export default async function AdminManagementPage() {
   const result = await getPrivilegedUsers()
 
-  if (!result.success || !result.users || !result.currentUserId) {
+  if (!result.success) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="text-destructive">Failed to load admin management</div>
@@ -15,7 +15,7 @@ export default async function AdminManagementPage() {
 
   return (
     <AdminManagementBoard
-      initialUsers={result.users}
+      initialUsers={result.users ?? []}
       adminCount={result.adminCount || 0}
       moderatorCount={result.moderatorCount || 0}
     />

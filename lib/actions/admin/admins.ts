@@ -71,7 +71,7 @@ async function getEmailMap(userIds: string[]) {
   }
 
   const idSet = new Set(userIds)
-  authData.users.forEach((authUser) => {
+  authData?.users?.forEach((authUser) => {
     if (idSet.has(authUser.id)) {
       emailMap[authUser.id] = authUser.email || ''
     }
