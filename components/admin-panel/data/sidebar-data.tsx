@@ -4,6 +4,7 @@ import {
   IconLayoutDashboard,
   IconMessageCircle,
   IconNews,
+  IconShield,
   IconUsers,
 } from '@tabler/icons-react'
 import type { NavGroup } from '../types'
@@ -53,6 +54,11 @@ export const sidebarData: { navGroups: NavGroup[] } = {
           title: 'Users',
           url: '/dashboard?tab=users',
           icon: IconUsers,
+        },
+        {
+          title: 'Admin management',
+          url: '/dashboard?tab=admin-management',
+          icon: IconShield,
         },
         {
           title: 'Comments',

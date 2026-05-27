@@ -7,6 +7,7 @@ import CommentsPage from './boards/comments/page'
 import EventsApproval from './boards/events-approval/page'
 import Overview from './boards/overview'
 import ProjectsPage from './boards/projects/page'
+import AdminManagementPage from './boards/admin-management/page'
 import UsersPage from './boards/users/page'
 import { DashboardTabs, DashboardTabsFallback } from './components/dashboard-tabs'
 import Dashboard1Actions from './components/dashboard-1-actions'
@@ -70,6 +71,12 @@ export default async function Dashboard1Page({ searchParams }: { searchParams: P
               className="space-y-4"
             >
               <UsersPage searchParams={searchParams} />
+            </TabsContent>
+            <TabsContent
+              value="admin-management"
+              className="space-y-4"
+            >
+              <AdminManagementPage />
             </TabsContent>
             <TabsContent
               value="comments"

@@ -5,6 +5,7 @@ export const DASHBOARD_TAB_VALUES = [
   'projects',
   'blog',
   'users',
+  'admin-management',
   'comments',
 ] as const
 

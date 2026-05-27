@@ -9,6 +9,7 @@ import {
   IconNews,
   IconNotification,
   IconSettings2,
+  IconShield,
   IconUsers,
 } from '@tabler/icons-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -96,6 +97,13 @@ export function DashboardTabs({ children }: DashboardTabsProps) {
           >
             <IconUsers size={16} />
             Users
+          </TabsTrigger>
+          <TabsTrigger
+            value="admin-management"
+            className="flex items-center gap-2"
+          >
+            <IconShield size={16} />
+            Admins
           </TabsTrigger>
           <TabsTrigger
             value="comments"
