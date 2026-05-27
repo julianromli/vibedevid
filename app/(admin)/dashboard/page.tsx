@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { Header } from '@/components/admin-panel/header'
-import { TabsContent } from '@/components/ui/tabs'
 import { resolveDashboardTab, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
 import Analytics from './boards/analytics'
 import AdminManagementPage from './boards/admin-management/page'
@@ -10,8 +9,7 @@ import EventsApproval from './boards/events-approval/page'
 import Overview from './boards/overview'
 import ProjectsPage from './boards/projects/page'
 import UsersPage from './boards/users/page'
-import { DashboardTabs, DashboardTabsFallback } from './components/dashboard-tabs'
-import Dashboard1Actions from './components/dashboard-1-actions'
+import { DashboardContent, DashboardContentFallback } from './components/dashboard-tabs'
 
 interface SearchParams {
   search?: string
@@ -20,6 +18,17 @@ interface SearchParams {
   page?: string
   tab?: string
   category?: string
+}
+
+const TAB_TITLES: Record<DashboardTabValue, string> = {
+  overview: 'Overview',
+  analytics: 'Analytics',
+  'events-approval': 'Events',
+  projects: 'Projects',
+  blog: 'Blog',
+  users: 'Users',
+  'admin-management': 'Admin management',
+  comments: 'Comments',
 }
 
 async function DashboardTabPanel({
@@ -63,22 +72,16 @@ export default async function Dashboard1Page({ searchParams }: { searchParams: P
         className="space-y-4 p-4"
         suppressHydrationWarning
       >
-        <div className="mb-2 flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <Dashboard1Actions />
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold tracking-tight">{TAB_TITLES[activeTab]}</h1>
         </div>
-        <Suspense fallback={<DashboardTabsFallback />}>
-          <DashboardTabs>
-            <TabsContent
-              value={activeTab}
-              className="space-y-4"
-            >
-              <DashboardTabPanel
-                tab={activeTab}
-                searchParams={searchParams}
-              />
-            </TabsContent>
-          </DashboardTabs>
+        <Suspense fallback={<DashboardContentFallback />}>
+          <DashboardContent>
+            <DashboardTabPanel
+              tab={activeTab}
+              searchParams={searchParams}
+            />
+          </DashboardContent>
         </Suspense>
       </div>
     </>

@@ -23,6 +23,10 @@ export const sidebarData: { navGroups: NavGroup[] } = {
               title: 'Overview',
               url: '/dashboard',
             },
+            {
+              title: 'Analytics',
+              url: '/dashboard?tab=analytics',
+            },
           ],
         },
       ],
