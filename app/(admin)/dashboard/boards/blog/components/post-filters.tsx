@@ -6,6 +6,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { buildDashboardBoardClearHref, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+
+const BOARD_TAB: DashboardTabValue = 'blog'
 
 export function PostFilters() {
   const router = useRouter()
@@ -16,6 +19,7 @@ export function PostFilters() {
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', BOARD_TAB)
 
     if (search) params.set('search', search)
     else params.delete('search')
@@ -31,7 +35,7 @@ export function PostFilters() {
   const clearFilters = () => {
     setSearch('')
     setStatus('all')
-    router.push('?')
+    router.push(buildDashboardBoardClearHref(BOARD_TAB))
   }
 
   const hasFilters = search || status !== 'all'

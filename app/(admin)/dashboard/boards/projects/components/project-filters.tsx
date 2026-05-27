@@ -6,6 +6,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { buildDashboardBoardClearHref, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+
+const BOARD_TAB: DashboardTabValue = 'projects'
 
 interface ProjectFiltersProps {
   categories: string[]
@@ -21,6 +24,7 @@ export function ProjectFilters({ categories }: ProjectFiltersProps) {
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', BOARD_TAB)
 
     if (search) params.set('search', search)
     else params.delete('search')
@@ -40,7 +44,7 @@ export function ProjectFilters({ categories }: ProjectFiltersProps) {
     setSearch('')
     setStatus('all')
     setCategory('all')
-    router.push('?')
+    router.push(buildDashboardBoardClearHref(BOARD_TAB))
   }
 
   const hasFilters = search || status !== 'all' || category !== 'all'

@@ -1,16 +1,6 @@
-import {
-  IconAnalyze,
-  IconCalendarEvent,
-  IconFileReport,
-  IconFolder,
-  IconMessageCircle,
-  IconNews,
-  IconNotification,
-  IconSettings2,
-  IconUsers,
-} from '@tabler/icons-react'
+import { Suspense } from 'react'
 import { Header } from '@/components/admin-panel/header'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TabsContent } from '@/components/ui/tabs'
 import Analytics from './boards/analytics'
 import BlogPage from './boards/blog/page'
 import CommentsPage from './boards/comments/page'
@@ -18,6 +8,7 @@ import EventsApproval from './boards/events-approval/page'
 import Overview from './boards/overview'
 import ProjectsPage from './boards/projects/page'
 import UsersPage from './boards/users/page'
+import { DashboardTabs, DashboardTabsFallback } from './components/dashboard-tabs'
 import Dashboard1Actions from './components/dashboard-1-actions'
 
 interface SearchParams {
@@ -30,11 +21,6 @@ interface SearchParams {
 }
 
 export default async function Dashboard1Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const params = await searchParams
-
-  // Determine active tab from URL or default to overview
-  const activeTab = params.tab || 'overview'
-
   return (
     <>
       <Header />
@@ -47,123 +33,52 @@ export default async function Dashboard1Page({ searchParams }: { searchParams: P
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <Dashboard1Actions />
         </div>
-        <Tabs
-          orientation="vertical"
-          defaultValue={activeTab}
-          className="space-y-4"
-        >
-          <div className="w-full overflow-x-auto pb-2">
-            <TabsList>
-              <TabsTrigger
-                value="overview"
-                className="flex items-center gap-2"
-              >
-                <IconSettings2 size={14} />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="analytics"
-                className="flex items-center gap-2"
-              >
-                <IconAnalyze size={16} />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger
-                value="reports"
-                className="flex items-center gap-2"
-                disabled
-              >
-                <IconFileReport size={16} />
-                Reports
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="flex items-center gap-2"
-                disabled
-              >
-                <IconNotification size={16} />
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger
-                value="events-approval"
-                className="flex items-center gap-2"
-              >
-                <IconCalendarEvent size={16} />
-                Events
-              </TabsTrigger>
-              <TabsTrigger
-                value="projects"
-                className="flex items-center gap-2"
-              >
-                <IconFolder size={16} />
-                Projects
-              </TabsTrigger>
-              <TabsTrigger
-                value="blog"
-                className="flex items-center gap-2"
-              >
-                <IconNews size={16} />
-                Blog
-              </TabsTrigger>
-              <TabsTrigger
-                value="users"
-                className="flex items-center gap-2"
-              >
-                <IconUsers size={16} />
-                Users
-              </TabsTrigger>
-              <TabsTrigger
-                value="comments"
-                className="flex items-center gap-2"
-              >
-                <IconMessageCircle size={16} />
-                Comments
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          <TabsContent
-            value="overview"
-            className="space-y-4"
-          >
-            <Overview />
-          </TabsContent>
-          <TabsContent
-            value="analytics"
-            className="space-y-4"
-          >
-            <Analytics />
-          </TabsContent>
-          <TabsContent
-            value="events-approval"
-            className="space-y-4"
-          >
-            <EventsApproval />
-          </TabsContent>
-          <TabsContent
-            value="projects"
-            className="space-y-4"
-          >
-            <ProjectsPage searchParams={searchParams} />
-          </TabsContent>
-          <TabsContent
-            value="blog"
-            className="space-y-4"
-          >
-            <BlogPage searchParams={searchParams} />
-          </TabsContent>
-          <TabsContent
-            value="users"
-            className="space-y-4"
-          >
-            <UsersPage searchParams={searchParams} />
-          </TabsContent>
-          <TabsContent
-            value="comments"
-            className="space-y-4"
-          >
-            <CommentsPage searchParams={searchParams} />
-          </TabsContent>
-        </Tabs>
+        <Suspense fallback={<DashboardTabsFallback />}>
+          <DashboardTabs>
+            <TabsContent
+              value="overview"
+              className="space-y-4"
+            >
+              <Overview />
+            </TabsContent>
+            <TabsContent
+              value="analytics"
+              className="space-y-4"
+            >
+              <Analytics />
+            </TabsContent>
+            <TabsContent
+              value="events-approval"
+              className="space-y-4"
+            >
+              <EventsApproval />
+            </TabsContent>
+            <TabsContent
+              value="projects"
+              className="space-y-4"
+            >
+              <ProjectsPage searchParams={searchParams} />
+            </TabsContent>
+            <TabsContent
+              value="blog"
+              className="space-y-4"
+            >
+              <BlogPage searchParams={searchParams} />
+            </TabsContent>
+            <TabsContent
+              value="users"
+              className="space-y-4"
+            >
+              <UsersPage searchParams={searchParams} />
+            </TabsContent>
+            <TabsContent
+              value="comments"
+              className="space-y-4"
+            >
+              <CommentsPage searchParams={searchParams} />
+            </TabsContent>
+          </DashboardTabs>
+        </Suspense>
       </div>
     </>
   )

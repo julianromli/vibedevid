@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -17,11 +17,15 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Badge } from '../ui/badge'
+import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
 import type { NavGroup, NavItem } from './types'
 
 export function NavGroup({ title, items }: NavGroup) {
   const { setOpenMobile } = useSidebar()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const dashboardTab = resolveDashboardTab(searchParams.get('tab'))
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
@@ -32,7 +36,7 @@ export function NavGroup({ title, items }: NavGroup) {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
-                  isActive={checkIsActive(pathname, item, true)}
+                  isActive={checkIsActive(pathname, dashboardTab, item, true)}
                   tooltip={item.title}
                 >
                   <Link
@@ -50,7 +54,7 @@ export function NavGroup({ title, items }: NavGroup) {
           return (
             <Collapsible
               key={item.title}
-              defaultOpen={checkIsActive(pathname, item, true)}
+              defaultOpen={checkIsActive(pathname, dashboardTab, item, true)}
               className="group/collapsible"
             >
               <SidebarMenuItem>
@@ -68,7 +72,7 @@ export function NavGroup({ title, items }: NavGroup) {
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           asChild
-                          isActive={checkIsActive(pathname, subItem)}
+                          isActive={checkIsActive(pathname, dashboardTab, subItem)}
                         >
                           <Link
                             href={subItem.url}
@@ -96,11 +100,31 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
 )
 
-function checkIsActive(href: string, item: NavItem, mainNav = false) {
+function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false) {
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+    const itemTab = getDashboardTabFromNavUrl(item.url)
+    if (itemTab !== null) {
+      return dashboardTab === itemTab
+    }
+  }
+
   return (
-    href === item.url || // /endpint?search=param
-    href.split('?')[0] === item.url || // endpoint
-    !!item?.items?.filter((i) => i.url === href).length || // if child nav is active
-    (mainNav && href.split('/')[1] !== '' && href.split('/')[1] === item?.url?.split('/')[1])
+    pathname === item.url.split('?')[0] ||
+    !!item?.items?.filter((i) => checkIsActive(pathname, dashboardTab, i)).length ||
+    (mainNav && pathname.split('/')[1] !== '' && pathname.split('/')[1] === item?.url?.split('/')[1])
   )
+}
+
+function getDashboardTabFromNavUrl(url: string): string | null {
+  if (!url.startsWith('/dashboard')) {
+    return null
+  }
+
+  const queryIndex = url.indexOf('?')
+  if (queryIndex === -1) {
+    return DEFAULT_DASHBOARD_TAB
+  }
+
+  const params = new URLSearchParams(url.slice(queryIndex))
+  return resolveDashboardTab(params.get('tab'))
 }
