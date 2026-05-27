@@ -3,7 +3,19 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { RoleSchema, ROLES, SearchSchema, UserIdSchema } from './schemas'
+import { RoleSchema, ROLES, UserIdSchema } from './schemas'
+
+function sanitizeSearchInput(search: string): string {
+  return search.replace(/[%_]/g, '\\$&')
+}
+
+type UserProfileRow = {
+  id: string
+  username: string
+  display_name: string
+  avatar_url: string | null
+  role: number | null
+}
 
 export interface PrivilegedUser {
   id: string
@@ -139,6 +151,56 @@ export async function getPrivilegedUsers(): Promise<PrivilegedUsersResult> {
   }
 }
 
+async function searchUsersByProfile(
+  adminClient: ReturnType<typeof createAdminClient>,
+  sanitized: string,
+  limit: number,
+): Promise<{ users: UserProfileRow[]; error?: string }> {
+  const pattern = `%${sanitized}%`
+
+  const { data, error } = await adminClient
+    .from('users')
+    .select('id, username, display_name, avatar_url, role')
+    .or(`username.ilike.${pattern},display_name.ilike.${pattern}`)
+    .order('display_name', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    return { users: [], error: error.message }
+  }
+
+  return { users: data || [] }
+}
+
+async function searchUsersByEmail(
+  adminClient: ReturnType<typeof createAdminClient>,
+  query: string,
+  limit: number,
+): Promise<UserProfileRow[]> {
+  const lowerQuery = query.toLowerCase()
+  const { data: authData, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 })
+
+  if (error || !authData?.users?.length) {
+    return []
+  }
+
+  const matchingIds = authData.users
+    .filter((authUser) => authUser.email?.toLowerCase().includes(lowerQuery))
+    .map((authUser) => authUser.id)
+    .slice(0, limit)
+
+  if (matchingIds.length === 0) {
+    return []
+  }
+
+  const { data } = await adminClient
+    .from('users')
+    .select('id, username, display_name, avatar_url, role')
+    .in('id', matchingIds)
+
+  return data || []
+}
+
 export async function searchUsersForAdminGrant(query: string): Promise<UserSearchResult> {
   try {
     await getAdminSession()
@@ -148,26 +210,33 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
       return { success: true, users: [] }
     }
 
-    const sanitized = SearchSchema.parse(trimmed)
+    const sanitized = sanitizeSearchInput(trimmed)
     const adminClient = createAdminClient()
+    const limit = 20
 
-    const { data: users, error } = await adminClient
-      .from('users')
-      .select('id, username, display_name, avatar_url, role')
-      .eq('role', ROLES.USER)
-      .or(`username.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`)
-      .order('joined_at', { ascending: false })
-      .limit(10)
+    const [profileResult, emailUsers] = await Promise.all([
+      searchUsersByProfile(adminClient, sanitized, limit),
+      searchUsersByEmail(adminClient, trimmed, limit),
+    ])
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (profileResult.error) {
+      return { success: false, error: profileResult.error }
     }
 
-    const emailMap = await getEmailMap(users?.map((u) => u.id) || [])
+    const merged = new Map<string, UserProfileRow>()
+    for (const user of [...profileResult.users, ...emailUsers]) {
+      merged.set(user.id, user)
+    }
+
+    const users = Array.from(merged.values())
+      .sort((a, b) => a.display_name.localeCompare(b.display_name))
+      .slice(0, limit)
+
+    const emailMap = await getEmailMap(users.map((u) => u.id))
 
     return {
       success: true,
-      users: (users || []).map((user) => ({
+      users: users.map((user) => ({
         id: user.id,
         username: user.username,
         display_name: user.display_name,

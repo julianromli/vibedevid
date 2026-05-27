@@ -73,7 +73,7 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
       if (result.success && result.users) {
         setSearchResults(result.users)
         if (result.users.length === 0) {
-          toast.message('No standard users found matching your search')
+          toast.message('No users found matching your search')
         }
       } else {
         toast.error(result.error || 'Search failed')
@@ -162,14 +162,14 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Add admin or moderator</CardTitle>
-          <CardDescription>Search registered users with standard (member) role only</CardDescription>
+          <CardDescription>Search any user by username, display name, or email</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <IconSearch className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
-                placeholder="Search by username or display name..."
+                placeholder="Username, display name, or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -201,36 +201,51 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
                       <AvatarFallback>{user.display_name[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.display_name}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{user.display_name}</p>
+                        {getRoleBadge(user.role)}
+                      </div>
                       <p className="text-muted-foreground text-sm">@{user.username}</p>
                       {user.email && <p className="text-muted-foreground text-xs">{user.email}</p>}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      disabled={pendingUserId === user.id}
-                      onClick={() =>
-                        runRoleAction(user.id, () => grantAdminAccess(user.id), `${user.display_name} is now an admin`)
-                      }
-                    >
-                      <IconUserPlus className="mr-1 h-4 w-4" />
-                      Make admin
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={pendingUserId === user.id}
-                      onClick={() =>
-                        runRoleAction(
-                          user.id,
-                          () => grantModeratorAccess(user.id),
-                          `${user.display_name} is now a moderator`,
-                        )
-                      }
-                    >
-                      Make moderator
-                    </Button>
+                    {user.role === ROLES.ADMIN ? (
+                      <span className="text-muted-foreground self-center text-sm">Already an admin</span>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          disabled={pendingUserId === user.id}
+                          onClick={() =>
+                            runRoleAction(
+                              user.id,
+                              () => grantAdminAccess(user.id),
+                              `${user.display_name} is now an admin`,
+                            )
+                          }
+                        >
+                          <IconUserPlus className="mr-1 h-4 w-4" />
+                          {user.role === ROLES.MODERATOR ? 'Promote to admin' : 'Make admin'}
+                        </Button>
+                        {user.role !== ROLES.MODERATOR && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={pendingUserId === user.id}
+                            onClick={() =>
+                              runRoleAction(
+                                user.id,
+                                () => grantModeratorAccess(user.id),
+                                `${user.display_name} is now a moderator`,
+                              )
+                            }
+                          >
+                            Make moderator
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
