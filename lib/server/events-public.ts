@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { unstable_cache } from 'next/cache'
+import { unstable_cache } from '@/lib/cache'
 import { getSupabaseConfig } from '@/lib/env-config'
 import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 

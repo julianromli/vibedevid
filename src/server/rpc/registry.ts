@@ -1,0 +1,93 @@
+import * as actions from '@/lib/actions'
+import * as projects from '@/lib/actions/projects'
+import * as blog from '@/lib/actions/blog'
+import * as events from '@/lib/actions/events'
+import * as comments from '@/lib/actions/comments'
+import * as user from '@/lib/actions/user'
+import * as analytics from '@/lib/actions/analytics'
+import * as adminAdmins from '@/lib/actions/admin/admins'
+import * as adminComments from '@/lib/actions/admin/comments'
+import * as adminPosts from '@/lib/actions/admin/posts'
+import * as adminProjects from '@/lib/actions/admin/projects'
+import * as adminUsers from '@/lib/actions/admin/users'
+
+type RpcHandler = (...args: unknown[]) => Promise<unknown>
+
+export const rpcRegistry: Record<string, RpcHandler> = {
+  'actions.signIn': actions.signIn as RpcHandler,
+  'actions.signUp': actions.signUp as RpcHandler,
+  'actions.signOut': actions.signOut as RpcHandler,
+  'actions.resetPassword': actions.resetPassword as RpcHandler,
+  'actions.resendConfirmationEmail': actions.resendConfirmationEmail as RpcHandler,
+  'actions.getProjectBySlug': actions.getProjectBySlug as RpcHandler,
+  'actions.getProject': actions.getProject as RpcHandler,
+  'actions.incrementProjectViews': actions.incrementProjectViews as RpcHandler,
+  'actions.incrementBlogPostViews': actions.incrementBlogPostViews as RpcHandler,
+  'actions.toggleLike': actions.toggleLike as RpcHandler,
+  'actions.getLikeStatus': actions.getLikeStatus as RpcHandler,
+  'actions.signInWithGoogle': actions.signInWithGoogle as RpcHandler,
+  'actions.signInWithGitHub': actions.signInWithGitHub as RpcHandler,
+  'actions.getBatchLikeStatus': actions.getBatchLikeStatus as RpcHandler,
+  'actions.editProject': actions.editProject as RpcHandler,
+  'actions.fetchProjectsWithSorting': actions.fetchProjectsWithSorting as RpcHandler,
+  'actions.deleteProject': actions.deleteProject as RpcHandler,
+  'projects.validateAndNormalizeSubmitProjectInput': projects.validateAndNormalizeSubmitProjectInput as RpcHandler,
+  'projects.cleanupProjectProvisionalUpload': projects.cleanupProjectProvisionalUpload as RpcHandler,
+  'projects.cleanupReplacedProjectProvisionalUpload': projects.cleanupReplacedProjectProvisionalUpload as RpcHandler,
+  'projects.submitProject': projects.submitProject as RpcHandler,
+  'blog.createBlogPost': blog.createBlogPost as RpcHandler,
+  'blog.updateBlogPost': blog.updateBlogPost as RpcHandler,
+  'blog.getTags': blog.getTags as RpcHandler,
+  'blog.getAuthorPosts': blog.getAuthorPosts as RpcHandler,
+  'blog.getPostForEdit': blog.getPostForEdit as RpcHandler,
+  'blog.deleteBlogPost': blog.deleteBlogPost as RpcHandler,
+  'events.getEvents': events.getEvents as RpcHandler,
+  'events.getEventBySlug': events.getEventBySlug as RpcHandler,
+  'events.getRelatedEvents': events.getRelatedEvents as RpcHandler,
+  'events.submitEvent': events.submitEvent as RpcHandler,
+  'events.getPendingEvents': events.getPendingEvents as RpcHandler,
+  'events.approveEvent': events.approveEvent as RpcHandler,
+  'events.rejectEvent': events.rejectEvent as RpcHandler,
+  'comments.createComment': comments.createComment as RpcHandler,
+  'comments.getComments': comments.getComments as RpcHandler,
+  'comments.reportComment': comments.reportComment as RpcHandler,
+  'user.getCurrentUser': user.getCurrentUser as RpcHandler,
+  'user.updateUserProfile': user.updateUserProfile as RpcHandler,
+  'analytics.getPlatformStats': analytics.getPlatformStats as RpcHandler,
+  'analytics.getMostViewedProjects': analytics.getMostViewedProjects as RpcHandler,
+  'analytics.getMostViewedPosts': analytics.getMostViewedPosts as RpcHandler,
+  'analytics.getContentGrowthTimeSeries': analytics.getContentGrowthTimeSeries as RpcHandler,
+  'analytics.getProjectsByCategory': analytics.getProjectsByCategory as RpcHandler,
+  'analytics.getUsersByRole': analytics.getUsersByRole as RpcHandler,
+  'analytics.getPostsByStatus': analytics.getPostsByStatus as RpcHandler,
+  'analytics.getCommunityHealthCounts': analytics.getCommunityHealthCounts as RpcHandler,
+  'analytics.getPeriodSignupStats': analytics.getPeriodSignupStats as RpcHandler,
+  'analytics.getAnalyticsTimeSeries': analytics.getAnalyticsTimeSeries as RpcHandler,
+  'admin-admins.getPrivilegedUsers': adminAdmins.getPrivilegedUsers as RpcHandler,
+  'admin-admins.searchUsersForAdminGrant': adminAdmins.searchUsersForAdminGrant as RpcHandler,
+  'admin-admins.setPrivilegedUserRole': adminAdmins.setPrivilegedUserRole as RpcHandler,
+  'admin-admins.grantAdminAccess': adminAdmins.grantAdminAccess as RpcHandler,
+  'admin-admins.grantModeratorAccess': adminAdmins.grantModeratorAccess as RpcHandler,
+  'admin-admins.revokePrivilegedAccess': adminAdmins.revokePrivilegedAccess as RpcHandler,
+  'admin-comments.getReportedComments': adminComments.getReportedComments as RpcHandler,
+  'admin-comments.adminDeleteComment': adminComments.adminDeleteComment as RpcHandler,
+  'admin-comments.dismissReport': adminComments.dismissReport as RpcHandler,
+  'admin-comments.takeActionOnReport': adminComments.takeActionOnReport as RpcHandler,
+  'admin-comments.getCommentModerationStats': adminComments.getCommentModerationStats as RpcHandler,
+  'admin-posts.getAllPosts': adminPosts.getAllPosts as RpcHandler,
+  'admin-posts.adminUpdatePost': adminPosts.adminUpdatePost as RpcHandler,
+  'admin-posts.adminDeletePost': adminPosts.adminDeletePost as RpcHandler,
+  'admin-posts.togglePostFeatured': adminPosts.togglePostFeatured as RpcHandler,
+  'admin-posts.getAllTags': adminPosts.getAllTags as RpcHandler,
+  'admin-posts.createTag': adminPosts.createTag as RpcHandler,
+  'admin-posts.deleteTag': adminPosts.deleteTag as RpcHandler,
+  'admin-projects.getAllProjects': adminProjects.getAllProjects as RpcHandler,
+  'admin-projects.adminUpdateProject': adminProjects.adminUpdateProject as RpcHandler,
+  'admin-projects.adminDeleteProject': adminProjects.adminDeleteProject as RpcHandler,
+  'admin-projects.toggleProjectFeatured': adminProjects.toggleProjectFeatured as RpcHandler,
+  'admin-projects.getProjectCategories': adminProjects.getProjectCategories as RpcHandler,
+  'admin-users.getAllUsers': adminUsers.getAllUsers as RpcHandler,
+  'admin-users.updateUserRole': adminUsers.updateUserRole as RpcHandler,
+  'admin-users.suspendUser': adminUsers.suspendUser as RpcHandler,
+  'admin-users.getUserStats': adminUsers.getUserStats as RpcHandler,
+}

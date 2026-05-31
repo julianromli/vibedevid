@@ -1,6 +1,6 @@
-'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+
+import { revalidatePath, revalidateTag } from '@/lib/cache'
 import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 

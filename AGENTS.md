@@ -6,7 +6,7 @@
 
 ## OVERVIEW
 
-VibeDev ID is a Next.js 16 App Router app backed by Supabase, `next-intl`, Bun, Biome, Vitest, and Playwright. This repo also contains `admin-kit/`, a separate Next.js 15 package with its own pnpm + ESLint + Prettier workflow.
+VibeDev ID is a **React + Vite + Hono** monolith (SPA + API) backed by Supabase, `react-i18next`, npm, Biome, Vitest, and Playwright. Legacy `app/` Next.js routes remain as reference; production entry is `src/client/` + `src/server/`. This repo also contains `admin-kit/` (separate Next.js 15 template; not used in production).
 
 This is the only repo-local `AGENTS.md`. Ignore `%TEMP%/nextjs-docs/AGENTS.md`; it is imported reference material, not repo-local policy.
 
@@ -25,13 +25,13 @@ This is the only repo-local `AGENTS.md`. Ignore `%TEMP%/nextjs-docs/AGENTS.md`; 
 ## ROOT COMMANDS
 
 ```bash
-bun run dev
+npm run dev
 bun run lint        # changed files only
 bun run lint:all
 bunx tsc --noEmit   # required; build ignores TS errors
 bun run test
 bun run test:e2e
-bun run build
+npm run build
 ```
 
 ## GLOBAL WHERE TO LOOK
@@ -56,7 +56,7 @@ bun run build
 
 ## GLOBAL ANTI-PATTERNS
 
-- Do not rely on `bun run build` for type safety; `next.config.mjs` sets `typescript.ignoreBuildErrors = true`.
+- Do not rely on `npm run build` for type safety; `next.config.mjs` sets `typescript.ignoreBuildErrors = true`.
 - Do not mix root tooling assumptions with `admin-kit/`.
 - Do not create or update files under `.next/`, `node_modules/`, `playwright-report/`, `%TEMP%/`, or `nul`.
 - Do not assume every `/admin` route is protected by `app/(admin)`.
@@ -93,7 +93,7 @@ bun run build
 ### Verify
 
 - run `bunx tsc --noEmit`
-- run `bun run dev` for route/layout changes
+- run `npm run dev` for route/layout changes
 - manually hit changed routes and relevant API handlers
 
 ### Anti-Patterns
@@ -126,7 +126,7 @@ bun run build
 ### Verify
 
 - check the layout gate still redirects unauthorized users
-- manually exercise changed board filters/actions in `bun run dev`
+- manually exercise changed board filters/actions in `npm run dev`
 - re-check cache refresh and moderation state after admin mutations
 
 ### Anti-Patterns

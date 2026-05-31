@@ -1,0 +1,34 @@
+import { serveStatic } from '@hono/node-server/serve-static'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { localeMiddleware } from '@/src/server/middleware/locale'
+import { supabaseMiddleware } from '@/src/server/middleware/supabase'
+import { apiRoutes } from '@/src/server/routes/api'
+import { authCallbackHandler } from '@/src/server/routes/auth-callback'
+import { rpcRoutes } from '@/src/server/routes/rpc'
+
+const app = new Hono()
+
+app.use(
+  '*',
+  cors({
+    origin: (origin) => origin ?? '*',
+    credentials: true,
+  }),
+)
+
+app.use('*', localeMiddleware)
+app.use('/api/*', supabaseMiddleware)
+
+app.route('/api', rpcRoutes)
+app.route('/api', apiRoutes)
+
+app.get('/api/health', (c) => c.json({ status: 'ok' }))
+app.get('/auth/callback', authCallbackHandler)
+
+if (process.env.NODE_ENV === 'production') {
+  app.use('/*', serveStatic({ root: './dist/client' }))
+  app.use('/*', serveStatic({ root: './dist/client', path: 'index.html' }))
+}
+
+export default app

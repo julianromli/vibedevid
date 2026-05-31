@@ -78,28 +78,28 @@ export function getOptimalImageProps(
     sizes: '100vw',
   }
 
-  const mobile = getImageProps({
+  const mobile: SimpleImageProps = {
     ...common,
     width: mobileWidth,
     height: mobileHeight,
-    quality: Math.max(60, quality - 15), // Lower quality for mobile
-  })
+    loading: 'lazy',
+  }
 
-  const tablet = getImageProps({
+  const tablet: SimpleImageProps = {
     ...common,
     width: tabletWidth,
     height: tabletHeight,
-    quality: Math.max(70, quality - 10), // Medium quality for tablet
-  })
+    loading: 'lazy',
+  }
 
-  const desktop = getImageProps({
+  const desktop: SimpleImageProps = {
     ...common,
     width: desktopWidth,
     height: desktopHeight,
-    quality,
-  })
+    loading: 'lazy',
+  }
 
-  return { mobile: mobile.props, tablet: tablet.props, desktop: desktop.props }
+  return { mobile, tablet, desktop }
 }
 
 /**

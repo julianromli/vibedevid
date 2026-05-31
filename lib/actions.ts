@@ -1,15 +1,12 @@
-'use server'
-
-import { createServerClient } from '@supabase/ssr'
-import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from '@/lib/cache'
+import { getSiteUrlFromEnv } from '@/lib/env-config'
+import { redirect } from '@/lib/navigation-server'
 import { getCategories, getCategoryDisplayName } from './categories'
-import { getSupabaseConfig } from './env-config'
 import { fetchFavicon } from './favicon-utils'
 import { normalizeProjectWebsiteUrl } from './project-url'
 import { getProjectIdBySlug } from './slug'
 import { createAdminClient } from './supabase/admin'
+import { createClient } from './supabase/server'
 import { deleteUploadthingFiles } from './uploadthing'
 
 function toLoggableError(error: unknown): string | Record<string, string | number> {
@@ -59,29 +56,6 @@ function isAuthSessionMissingError(error: unknown): boolean {
   const message = typeof source.message === 'string' ? source.message : ''
 
   return name === 'AuthSessionMissingError' || message.toLowerCase().includes('auth session missing')
-}
-
-async function createClient() {
-  const cookieStore = await cookies()
-  const { url, anonKey } = getSupabaseConfig()
-  return createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
 }
 
 function getSafeRedirectPath(value: FormDataEntryValue | null): string {
@@ -220,7 +194,7 @@ export async function signUp(prevState: any, formData: FormData) {
       options: {
         emailRedirectTo:
           process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}`,
+          `${getSiteUrlFromEnv()}`,
         data: {
           full_name: firstName && lastName ? `${firstName} ${lastName}`.trim() : email.toString().split('@')[0],
         },
@@ -262,7 +236,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
     const { error } = await supabase.auth.resetPasswordForEmail(email.toString(), {
       redirectTo:
         process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-        `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/user/auth`,
+        `${getSiteUrlFromEnv()}/user/auth`,
     })
 
     if (error) {
@@ -296,7 +270,7 @@ export async function resendConfirmationEmail(prevState: any, formData: FormData
       options: {
         emailRedirectTo:
           process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}`,
+          `${getSiteUrlFromEnv()}`,
       },
     })
 
@@ -648,7 +622,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${getSiteUrlFromEnv()}/auth/callback`,
     },
   })
 
@@ -668,7 +642,7 @@ export async function signInWithGitHub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${getSiteUrlFromEnv()}/auth/callback`,
     },
   })
 

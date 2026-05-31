@@ -1,6 +1,6 @@
-'use server'
 
-import { revalidatePath } from 'next/cache'
+
+import { revalidatePath } from '@/lib/cache'
 import { z } from 'zod'
 import { fetchFavicon } from '../favicon-utils'
 import { normalizeProjectWebsiteUrl } from '../project-url'

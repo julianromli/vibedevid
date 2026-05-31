@@ -1,16 +1,46 @@
+function readEnv(key: string): string {
+  if (typeof process !== 'undefined' && process.env[key]) {
+    return process.env[key] ?? ''
+  }
+  return ''
+}
+
+function getPublicSupabaseUrl(): string {
+  return (
+    readEnv('VITE_SUPABASE_URL') ||
+    readEnv('NEXT_PUBLIC_SUPABASE_URL') ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+    ''
+  )
+}
+
+function getPublicSupabaseAnonKey(): string {
+  return (
+    readEnv('VITE_SUPABASE_ANON_KEY') ||
+    readEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+    ''
+  )
+}
+
+export function getSiteUrlFromEnv(): string {
+  return (
+    readEnv('VITE_SITE_URL') ||
+    readEnv('NEXT_PUBLIC_SITE_URL') ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) ||
+    'http://localhost:3000'
+  )
+}
+
 // Environment configuration with fallbacks for build-time safety
 export const getSupabaseConfig = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  const url = getPublicSupabaseUrl()
+  const anonKey = getPublicSupabaseAnonKey()
 
-  // SIMPLE FIX: Always use fallback during build if URL is invalid
-  // Check if URL is valid (must start with http)
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://')
 
-  // If URL is invalid or missing, use fallback
   if (!isValidUrl) {
-    console.warn('Invalid or missing NEXT_PUBLIC_SUPABASE_URL. Using fallback for build.')
-    console.warn('Current value:', url || '[EMPTY]')
+    console.warn('Invalid or missing Supabase URL. Using fallback for build.')
     return {
       url: 'https://placeholder.supabase.co',
       anonKey:
@@ -18,9 +48,8 @@ export const getSupabaseConfig = () => {
     }
   }
 
-  // If we have a valid URL but missing anon key, still use fallback
   if (!anonKey) {
-    console.warn('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Using fallback for build.')
+    console.warn('Missing Supabase anon key. Using fallback for build.')
     return {
       url: 'https://placeholder.supabase.co',
       anonKey:
@@ -32,22 +61,19 @@ export const getSupabaseConfig = () => {
 }
 
 export const getSupabaseServerConfig = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const url = getPublicSupabaseUrl()
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-  // Check if URL is valid (must start with http)
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://')
 
-  // If URL is invalid or missing, use fallback
   if (!isValidUrl) {
-    console.warn('Invalid or missing NEXT_PUBLIC_SUPABASE_URL for server. Using fallback.')
+    console.warn('Invalid or missing Supabase URL for server. Using fallback.')
     return {
       url: 'https://placeholder.supabase.co',
       serviceRoleKey: 'placeholder-service-role-key',
     }
   }
 
-  // If we have a valid URL but missing service role key, still use fallback
   if (!serviceRoleKey) {
     console.warn('Missing SUPABASE_SERVICE_ROLE_KEY. Using fallback for server operations.')
     return {

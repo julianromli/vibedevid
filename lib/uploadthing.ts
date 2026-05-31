@@ -1,4 +1,4 @@
-import { createUploadthing, type FileRouter } from 'uploadthing/next'
+import { createUploadthing, type FileRouter } from 'uploadthing/server'
 import { UTApi } from 'uploadthing/server'
 import { createClient } from './supabase/server'
 
