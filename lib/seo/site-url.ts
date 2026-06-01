@@ -28,6 +28,8 @@ function normalizeUrl(input: string | undefined | null): URL | null {
 
 export function getSiteUrl(): string {
   const candidates = [
+    process.env.VITE_SITE_URL,
+    process.env.VITE_PUBLIC_SITE_URL,
     process.env.NEXT_PUBLIC_SITE_URL,
     process.env.SITE_URL,
     process.env.VERCEL_PROJECT_PRODUCTION_URL,
