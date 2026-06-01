@@ -238,17 +238,99 @@ apiRoutes.get('/pages/project/:slug', async (c) => {
 
 apiRoutes.get('/pages/event/:slug', async (c) => {
   const slug = c.req.param('slug')
-  const event = await getEventBySlug(slug)
-  const related = event ? await getRelatedEvents(event.category, event.id) : []
-  return c.json({ event, related })
+  const [{ event, error: eventError }, { user: currentUser }] = await Promise.all([
+    getEventBySlug(slug),
+    getCurrentUser(),
+  ])
+
+  if (eventError || !event) {
+    return c.json({ event: null, relatedEvents: [], currentUser: currentUser ?? null, error: eventError })
+  }
+
+  const { events: relatedEvents } = await getRelatedEvents(event.category, event.id)
+  return c.json({ event, relatedEvents, currentUser: currentUser ?? null })
 })
 
 apiRoutes.get('/pages/blog/:slug', async (c) => {
   const slug = c.req.param('slug')
   const supabase = await createClient()
-  const { data: post } = await supabase.from('posts').select('*').eq('slug', slug).eq('status', 'published').single()
-  const comments = post ? await getComments('post', post.id) : []
-  return c.json({ post, comments })
+
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+
+  const { data: post, error } = await supabase
+    .from('posts')
+    .select(
+      `
+      *,
+      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio, role, username),
+      tags:blog_post_tags(post_tags(name))
+    `,
+    )
+    .eq('slug', slug)
+    .single()
+
+  if (error || !post || post.status !== 'published') {
+    return c.json({
+      post: null,
+      comments: [],
+      viewCount: 0,
+      currentUser: null,
+      commentUser: null,
+    })
+  }
+
+  const rawTags = post.tags as unknown as Array<{ post_tags: { name: string } | null }> | null
+  const tags = rawTags?.map((t) => t.post_tags?.name).filter((name): name is string => Boolean(name)) ?? []
+
+  const [{ count: viewCount }, { comments }] = await Promise.all([
+    supabase.from('views').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+    getComments('post', post.id),
+  ])
+
+  let currentUser = null
+  let commentUser: { id: string; name: string; avatar?: string } | null = null
+
+  if (authUser) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id, display_name, avatar_url, username, role')
+      .eq('id', authUser.id)
+      .single()
+
+    if (profile) {
+      currentUser = {
+        id: profile.id,
+        username: profile.username,
+        name: profile.display_name,
+        displayName: profile.display_name,
+        email: authUser.email || '',
+        avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
+        avatar_url: profile.avatar_url,
+        role: profile.role ?? null,
+      }
+      commentUser = {
+        id: profile.id,
+        name: profile.display_name || profile.username,
+        avatar: profile.avatar_url || undefined,
+      }
+    }
+  }
+
+  const { tags: _nestedTags, author, ...postFields } = post
+
+  return c.json({
+    post: {
+      ...postFields,
+      author: author as Record<string, unknown> | null,
+      tags,
+    },
+    comments,
+    viewCount: viewCount ?? 0,
+    currentUser,
+    commentUser,
+  })
 })
 
 apiRoutes.get('/pages/events', async (c) => {
