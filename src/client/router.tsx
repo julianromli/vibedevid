@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AdminLayout } from './layouts/AdminLayout'
 import { RootLayout } from './layouts/RootLayout'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -22,12 +23,6 @@ const EventSlugPage = lazy(() => import('./pages/EventDetailPage'))
 const ProjectSlugPage = lazy(() => import('./pages/ProjectDetailPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
-const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
-const AdminProjectsPage = lazy(() => import('./pages/admin/AdminProjectsPage'))
-const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage'))
-const AdminCommentsPage = lazy(() => import('./pages/admin/AdminCommentsPage'))
-const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'))
-const AdminManagementPage = lazy(() => import('./pages/admin/AdminManagementPage'))
 
 function PageLoader() {
   return (
@@ -65,6 +60,10 @@ function UsernameRoute() {
   )
 }
 
+function RedirectToDashboardTab({ tab }: { tab: string }) {
+  return <Navigate to={`/dashboard?tab=${tab}`} replace />
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -86,13 +85,22 @@ export const router = createBrowserRouter([
       { path: 'event/:slug', element: <S><EventSlugPage /></S> },
       { path: 'dashboard/posts', element: <S><PostDashboardPage /></S> },
       { path: 'admin', element: <S><AdminVideoPage /></S> },
-      { path: 'admin/dashboard', element: <S><AdminDashboardPage /></S> },
-      { path: 'admin/dashboard/boards/users', element: <S><AdminUsersPage /></S> },
-      { path: 'admin/dashboard/boards/projects', element: <S><AdminProjectsPage /></S> },
-      { path: 'admin/dashboard/boards/blog', element: <S><AdminBlogPage /></S> },
-      { path: 'admin/dashboard/boards/comments', element: <S><AdminCommentsPage /></S> },
-      { path: 'admin/dashboard/boards/events-approval', element: <S><AdminEventsPage /></S> },
-      { path: 'admin/dashboard/boards/admin-management', element: <S><AdminManagementPage /></S> },
+      {
+        path: 'dashboard',
+        element: (
+          <S>
+            <AdminLayout />
+          </S>
+        ),
+        children: [{ index: true, element: <S><AdminDashboardPage /></S> }],
+      },
+      { path: 'admin/dashboard', element: <Navigate to="/dashboard" replace /> },
+      { path: 'admin/dashboard/boards/users', element: <RedirectToDashboardTab tab="users" /> },
+      { path: 'admin/dashboard/boards/projects', element: <RedirectToDashboardTab tab="projects" /> },
+      { path: 'admin/dashboard/boards/blog', element: <RedirectToDashboardTab tab="blog" /> },
+      { path: 'admin/dashboard/boards/comments', element: <RedirectToDashboardTab tab="comments" /> },
+      { path: 'admin/dashboard/boards/events-approval', element: <RedirectToDashboardTab tab="events-approval" /> },
+      { path: 'admin/dashboard/boards/admin-management', element: <RedirectToDashboardTab tab="admin-management" /> },
       { path: 'calendar', element: <S><CalendarPage /></S> },
       { path: 'privacy-policy', element: <S><PrivacyPage /></S> },
       { path: 'terms', element: <S><TermsPage /></S> },

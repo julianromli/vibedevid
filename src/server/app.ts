@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { localeMiddleware } from '@/src/server/middleware/locale'
 import { supabaseMiddleware } from '@/src/server/middleware/supabase'
+import { adminPageRoutes } from '@/src/server/routes/admin-pages'
 import { apiRoutes } from '@/src/server/routes/api'
 import { authCallbackHandler } from '@/src/server/routes/auth-callback'
 import { rpcRoutes } from '@/src/server/routes/rpc'
@@ -22,6 +23,7 @@ app.use('/api/*', supabaseMiddleware)
 
 app.route('/api', rpcRoutes)
 app.route('/api', apiRoutes)
+app.route('/api/admin', adminPageRoutes)
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.get('/auth/callback', authCallbackHandler)

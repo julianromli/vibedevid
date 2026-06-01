@@ -7,6 +7,8 @@ import { getComments } from '@/lib/actions/comments'
 import { getEventBySlug, getRelatedEvents, getEvents } from '@/lib/actions/events'
 import { getPostForEdit, getTags } from '@/lib/actions/blog'
 import { getProjectBySlug } from '@/lib/actions'
+import { getCategories } from '@/lib/categories'
+import { checkProjectOwnership } from '@/lib/server/auth'
 import { getCurrentUser } from '@/lib/actions/user'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -218,9 +220,20 @@ apiRoutes.get('/pages/home', async (c) => {
 
 apiRoutes.get('/pages/project/:slug', async (c) => {
   const slug = c.req.param('slug')
-  const project = await getProjectBySlug(slug)
-  const comments = project ? await getComments('project', project.id) : []
-  return c.json({ project, comments })
+  const [{ user: currentUser }, { project, error: projectError }, categories] = await Promise.all([
+    getCurrentUser(),
+    getProjectBySlug(slug),
+    getCategories(),
+  ])
+
+  if (projectError || !project) {
+    return c.json({ project: null, comments: [], categories, currentUser, isOwner: false, error: projectError })
+  }
+
+  const { comments } = await getComments('project', project.id)
+  const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
+
+  return c.json({ project, comments, categories, currentUser, isOwner })
 })
 
 apiRoutes.get('/pages/event/:slug', async (c) => {
