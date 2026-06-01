@@ -20,6 +20,7 @@ app.use(
 
 app.use('*', localeMiddleware)
 app.use('/api/*', supabaseMiddleware)
+app.use('/auth/callback', supabaseMiddleware)
 
 app.route('/', seoRoutes)
 app.route('/api', rpcRoutes)

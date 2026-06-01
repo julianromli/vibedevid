@@ -1,4 +1,4 @@
-
+'use server'
 
 import { revalidatePath } from '@/lib/cache'
 import { createAdminClient } from '@/lib/supabase/admin'

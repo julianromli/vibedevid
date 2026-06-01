@@ -19,38 +19,46 @@ export function formatProjectDescription(text: string): string {
       const hasBullets = lines.some((line) => /^[\s]*[•\-*]\s/.test(line))
 
       if (hasBullets) {
-        const listItems = lines
-          .map((line) => {
-            const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
-            if (bulletMatch) {
-              return `<li>${bulletMatch[1]}</li>`
-            }
-            return line.trim() ? `<p>${line}</p>` : ''
-          })
-          .filter(Boolean)
-          .join('')
-
         const firstLine = lines[0]
         const isHeader = firstLine && !/^[\s]*[•\-*]\s/.test(firstLine)
 
         if (isHeader) {
           const headerLine = `<p class="font-semibold mt-4 mb-2">${firstLine}</p>`
-          const remainingItems = lines
-            .slice(1)
-            .map((line) => {
-              const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
-              return bulletMatch ? `<li>${bulletMatch[1]}</li>` : ''
-            })
-            .filter(Boolean)
-            .join('')
-          return `${headerLine}<ul class="list-disc list-inside space-y-1 mb-4">${remainingItems}</ul>`
+          return `${headerLine}${formatLinesWithLists(lines.slice(1))}`
         }
 
-        return `<ul class="list-disc list-inside space-y-1 mb-4">${listItems}</ul>`
+        return formatLinesWithLists(lines)
       }
 
       const formattedParagraph = paragraph.replace(/\n/g, '<br>')
       return `<p class="mb-4">${formattedParagraph}</p>`
     })
     .join('')
+}
+
+function formatLinesWithLists(lines: string[]): string {
+  const parts: string[] = []
+  let listItems: string[] = []
+
+  const flushList = () => {
+    if (listItems.length === 0) return
+    parts.push(`<ul class="list-disc list-inside space-y-1 mb-4">${listItems.join('')}</ul>`)
+    listItems = []
+  }
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
+    if (bulletMatch) {
+      listItems.push(`<li>${bulletMatch[1]}</li>`)
+      continue
+    }
+
+    flushList()
+    if (line.trim()) {
+      parts.push(`<p class="mb-4">${line}</p>`)
+    }
+  }
+
+  flushList()
+  return parts.join('')
 }

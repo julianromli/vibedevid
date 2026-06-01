@@ -15,5 +15,5 @@ export function getMetadataMessages(locale: SeoLocale): MetadataMessages {
 }
 
 export function formatTitle(template: string, pageTitle: string): string {
-  return template.replace('%s', pageTitle)
+  return template.replace('%s', () => pageTitle)
 }

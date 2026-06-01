@@ -1,4 +1,4 @@
-
+'use server'
 
 import { revalidatePath } from '@/lib/cache'
 import type { Comment, CommentEntityType, CommentResult, CreateCommentInput, GetCommentsResult } from '@/types/comments'

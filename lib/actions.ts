@@ -1,3 +1,5 @@
+'use server'
+
 import { revalidatePath } from '@/lib/cache'
 import { getSiteUrlFromEnv } from '@/lib/env-config'
 import { redirect } from '@/lib/navigation-server'
