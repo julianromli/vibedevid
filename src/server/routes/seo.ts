@@ -27,11 +27,14 @@ seoRoutes.get('/api/seo/meta', async (c) => {
 export async function documentHandler(c: import('hono').Context): Promise<Response | null> {
   const pathname = new URL(c.req.url).pathname
 
-  if (!shouldHandleAsDocument(pathname)) {
+  if (c.req.method !== 'GET' && c.req.method !== 'HEAD') {
     return null
   }
 
-  if (c.req.method !== 'GET' && c.req.method !== 'HEAD') {
+  const staticResponse = await tryServeProductionStatic(c)
+  if (staticResponse) return staticResponse
+
+  if (!shouldHandleAsDocument(pathname)) {
     return null
   }
 
@@ -39,9 +42,6 @@ export async function documentHandler(c: import('hono').Context): Promise<Respon
   if (accept && !accept.includes('text/html') && !accept.includes('*/*') && accept.includes('application/json')) {
     return null
   }
-
-  const staticResponse = await tryServeProductionStatic(c)
-  if (staticResponse) return staticResponse
 
   const locale = resolveLocaleFromPath(pathname, getCookieLocale(c))
   const meta = await runWithHonoRequestContext(c, () => resolvePageMeta(pathname, locale))

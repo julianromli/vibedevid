@@ -1,5 +1,3 @@
-import { ServerRedirect } from '@/lib/navigation-server'
-
 export type RpcResult<T> = T | { __redirect: string }
 
 function serializeArg(arg: unknown): unknown {
@@ -38,14 +36,6 @@ export async function invokeRpc<T>(procedure: string, args: unknown[]): Promise<
     }),
   })
 
-  if (response.status === 302 || response.status === 301) {
-    const location = response.headers.get('Location')
-    if (location) {
-      window.location.href = location
-      return undefined as T
-    }
-  }
-
   const payload = (await response.json()) as { ok: boolean; data?: T; error?: string; redirect?: string }
 
   if (payload.redirect) {
@@ -63,17 +53,7 @@ export async function invokeRpc<T>(procedure: string, args: unknown[]): Promise<
 export function createRpcAction<TArgs extends unknown[], TResult>(
   procedure: string,
 ): (...args: TArgs) => Promise<TResult> {
-  return async (...args: TArgs) => {
-    try {
-      return await invokeRpc<TResult>(procedure, args)
-    } catch (error) {
-      if (error instanceof ServerRedirect) {
-        window.location.href = error.url
-        return undefined as TResult
-      }
-      throw error
-    }
-  }
+  return (...args: TArgs) => invokeRpc<TResult>(procedure, args)
 }
 
 export function formDataFromRpc(arg: unknown): FormData {

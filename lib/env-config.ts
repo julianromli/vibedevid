@@ -1,3 +1,5 @@
+import { getSiteUrl } from '@/lib/seo/site-url'
+
 function readEnv(key: string): string {
   if (typeof process !== 'undefined' && process.env[key]) {
     return process.env[key] ?? ''
@@ -24,12 +26,7 @@ function getPublicSupabaseAnonKey(): string {
 }
 
 export function getSiteUrlFromEnv(): string {
-  return (
-    readEnv('VITE_SITE_URL') ||
-    readEnv('NEXT_PUBLIC_SITE_URL') ||
-    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) ||
-    'http://localhost:5173'
-  )
+  return getSiteUrl()
 }
 
 // Environment configuration with fallbacks for build-time safety

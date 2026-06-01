@@ -2,6 +2,10 @@ import type { PageMeta } from '@/lib/seo/types'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { SITE_NAME, TWITTER_SITE } from '@/lib/seo/constants'
 
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c')
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -65,7 +69,7 @@ export function renderPageMetaTags(meta: PageMeta): string {
   if (meta.jsonLd) {
     const blocks = Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]
     for (const block of blocks) {
-      lines.push(`<script type="application/ld+json">${JSON.stringify(block)}</script>`)
+      lines.push(`<script type="application/ld+json">${serializeJsonLd(block)}</script>`)
     }
   }
 
