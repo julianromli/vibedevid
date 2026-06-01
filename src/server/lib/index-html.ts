@@ -11,10 +11,10 @@ export async function loadIndexHtmlTemplate(): Promise<string> {
     return cachedTemplate
   }
 
-  const candidates = [
-    join(process.cwd(), 'dist/client/index.html'),
-    join(process.cwd(), 'index.html'),
-  ]
+  const candidates =
+    process.env.NODE_ENV === 'production'
+      ? [join(process.cwd(), 'dist/client/index.html'), join(process.cwd(), 'index.html')]
+      : [join(process.cwd(), 'index.html'), join(process.cwd(), 'dist/client/index.html')]
 
   for (const file of candidates) {
     if (existsSync(file)) {

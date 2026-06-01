@@ -1,6 +1,6 @@
 import path from 'node:path'
 import build from '@hono/vite-build/node'
-import devServer from '@hono/vite-dev-server'
+import devServer, { defaultOptions } from '@hono/vite-dev-server'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -35,6 +35,21 @@ const compatAliases = {
   '@vercel/speed-insights/next': path.resolve(__dirname, 'src/client/compat/empty.tsx'),
 }
 
+const actionServerAliases: Record<string, string> = {
+  '@/lib/actions/admin/admins': path.resolve(__dirname, 'lib/actions/admin/admins.ts'),
+  '@/lib/actions/admin/comments': path.resolve(__dirname, 'lib/actions/admin/comments.ts'),
+  '@/lib/actions/admin/posts': path.resolve(__dirname, 'lib/actions/admin/posts.ts'),
+  '@/lib/actions/admin/projects': path.resolve(__dirname, 'lib/actions/admin/projects.ts'),
+  '@/lib/actions/admin/users': path.resolve(__dirname, 'lib/actions/admin/users.ts'),
+  '@/lib/actions/projects': path.resolve(__dirname, 'lib/actions/projects.ts'),
+  '@/lib/actions/comments': path.resolve(__dirname, 'lib/actions/comments.ts'),
+  '@/lib/actions/analytics': path.resolve(__dirname, 'lib/actions/analytics.ts'),
+  '@/lib/actions/events': path.resolve(__dirname, 'lib/actions/events.ts'),
+  '@/lib/actions/blog': path.resolve(__dirname, 'lib/actions/blog.ts'),
+  '@/lib/actions/user': path.resolve(__dirname, 'lib/actions/user.ts'),
+  '@/lib/actions': path.resolve(__dirname, 'lib/actions.ts'),
+}
+
 const clientResolve = {
   alias: {
     ...actionClientAliases,
@@ -63,9 +78,12 @@ export default defineConfig(({ mode }) => {
         tsconfigPaths(),
         build({
           entry: './src/server/app.ts',
-          port: Number(process.env.PORT || 3000),
+          port: Number(process.env.PORT || 5173),
         }),
       ],
+      resolve: {
+        alias: actionServerAliases,
+      },
       build: {
         outDir: 'dist/server',
         emptyOutDir: true,
@@ -79,11 +97,23 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths(),
       devServer({
         entry: './src/server/app.ts',
+        exclude: [
+          // Let Vite serve + transform index.html and SPA routes in dev.
+          /^(?!\/api(?:\/|$)|\/robots\.txt|\/sitemap\.xml|\/auth\/callback(?:\/|$)).*/,
+          /.*\.json(\?.*)?$/,
+          ...defaultOptions.exclude,
+        ],
       }),
     ],
     resolve: clientResolve,
+    ssr: {
+      resolve: {
+        alias: actionServerAliases,
+      },
+    },
     server: {
-      port: Number(process.env.PORT || 3000),
+      host: '127.0.0.1',
+      port: Number(process.env.PORT || 5173),
     },
   }
 })

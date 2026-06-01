@@ -10,7 +10,7 @@ export function useRouter() {
   const navigate = useNavigate()
   return {
     push: (url: string) => navigate(url),
-    replace: (url: string) => navigate(url, { replace: true }),
+    replace: (url: string, _options?: { scroll?: boolean }) => navigate(url, { replace: true }),
     back: () => navigate(-1),
     refresh: () => navigate(0),
     prefetch: async (_url: string) => {},
@@ -26,8 +26,8 @@ export function useParams<T extends Record<string, string | undefined> = Record<
 }
 
 export function useSearchParams() {
-  const [params, setParams] = useRouterSearchParams()
-  const readOnly = {
+  const [params] = useRouterSearchParams()
+  return {
     get: (key: string) => params.get(key),
     getAll: (key: string) => params.getAll(key),
     has: (key: string) => params.has(key),
@@ -37,7 +37,6 @@ export function useSearchParams() {
     values: () => params.values(),
     forEach: (fn: (value: string, key: string) => void) => params.forEach(fn),
   }
-  return [readOnly, setParams] as const
 }
 
 export function useSelectedLayoutSegment() {

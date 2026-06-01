@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
 function canUseLocalStorage(): boolean {
@@ -19,7 +19,7 @@ function canUseLocalStorage(): boolean {
   }
 }
 
-export function AgentationProvider() {
+export function AgentationProvider({ children }: { children?: ReactNode }) {
   const [Component, setComponent] = useState<ComponentType | null>(null)
 
   useEffect(() => {
@@ -44,6 +44,10 @@ export function AgentationProvider() {
     }
   }, [])
 
-  if (!Component) return null
-  return <Component />
+  return (
+    <>
+      {children}
+      {Component ? <Component /> : null}
+    </>
+  )
 }

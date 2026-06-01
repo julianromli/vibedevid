@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { getCurrentUser } from '@/lib/actions/user'
+import { getCurrentUser } from '../../../lib/actions/user'
 import type { User } from '@/types/homepage'
 
 const ADMIN_ROLE = 0

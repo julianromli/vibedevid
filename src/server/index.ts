@@ -3,7 +3,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { fileURLToPath } from 'node:url'
 import app from './app.js'
 
-const port = Number(process.env.PORT || 3000)
+const port = Number(process.env.PORT || 5173)
 const root = fileURLToPath(new URL('../../dist/client', import.meta.url))
 
 app.use('/*', serveStatic({ root }))

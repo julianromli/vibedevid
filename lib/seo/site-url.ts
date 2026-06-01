@@ -1,5 +1,26 @@
 const DEFAULT_PRODUCTION_SITE_URL = 'https://www.vibedevid.com'
-const DEFAULT_DEVELOPMENT_SITE_URL = 'http://localhost:3000'
+const DEFAULT_DEVELOPMENT_SITE_URL = 'http://localhost:5173'
+
+function readEnv(key: string): string {
+  if (typeof process !== 'undefined' && process.env[key]) {
+    return process.env[key] ?? ''
+  }
+
+  if (typeof import.meta !== 'undefined' && import.meta.env && key in import.meta.env) {
+    const value = import.meta.env[key as keyof ImportMetaEnv]
+    return typeof value === 'string' ? value : ''
+  }
+
+  return ''
+}
+
+function isDevelopment(): boolean {
+  if (typeof process !== 'undefined' && process.env.NODE_ENV) {
+    return process.env.NODE_ENV === 'development'
+  }
+
+  return Boolean(import.meta.env?.DEV)
+}
 
 function isLikelySupabaseUrl(url: URL): boolean {
   const host = url.hostname.toLowerCase()
@@ -28,12 +49,12 @@ function normalizeUrl(input: string | undefined | null): URL | null {
 
 export function getSiteUrl(): string {
   const candidates = [
-    process.env.VITE_SITE_URL,
-    process.env.VITE_PUBLIC_SITE_URL,
-    process.env.NEXT_PUBLIC_SITE_URL,
-    process.env.SITE_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL,
-    process.env.VERCEL_URL,
+    readEnv('VITE_SITE_URL'),
+    readEnv('VITE_PUBLIC_SITE_URL'),
+    readEnv('NEXT_PUBLIC_SITE_URL'),
+    readEnv('SITE_URL'),
+    readEnv('VERCEL_PROJECT_PRODUCTION_URL'),
+    readEnv('VERCEL_URL'),
   ]
 
   for (const candidate of candidates) {
@@ -43,7 +64,7 @@ export function getSiteUrl(): string {
     return url.toString().replace(/\/$/, '')
   }
 
-  return process.env.NODE_ENV === 'development' ? DEFAULT_DEVELOPMENT_SITE_URL : DEFAULT_PRODUCTION_SITE_URL
+  return isDevelopment() ? DEFAULT_DEVELOPMENT_SITE_URL : DEFAULT_PRODUCTION_SITE_URL
 }
 
 export function absoluteUrl(pathname: string): string {

@@ -28,7 +28,7 @@ export function getSiteUrlFromEnv(): string {
     readEnv('VITE_SITE_URL') ||
     readEnv('NEXT_PUBLIC_SITE_URL') ||
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) ||
-    'http://localhost:3000'
+    'http://localhost:5173'
   )
 }
 

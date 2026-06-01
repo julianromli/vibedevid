@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
-import { getPrivilegedUsers } from '@/lib/actions/admin/admins'
-import { getReportedComments } from '@/lib/actions/admin/comments'
-import { getAllPosts, getAllTags } from '@/lib/actions/admin/posts'
-import { getAllProjects, getProjectCategories } from '@/lib/actions/admin/projects'
-import { getAllUsers } from '@/lib/actions/admin/users'
-import { getPendingEvents } from '@/lib/actions/events'
+import { getPrivilegedUsers } from '../../../lib/actions/admin/admins'
+import { getReportedComments } from '../../../lib/actions/admin/comments'
+import { getAllPosts, getAllTags } from '../../../lib/actions/admin/posts'
+import { getAllProjects, getProjectCategories } from '../../../lib/actions/admin/projects'
+import { getAllUsers } from '../../../lib/actions/admin/users'
+import { getPendingEvents } from '../../../lib/actions/events'
 import { isUser, requireAdmin } from '@/src/server/lib/require-admin'
 
 export const adminPageRoutes = new Hono()

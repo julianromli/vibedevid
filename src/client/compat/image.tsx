@@ -7,13 +7,24 @@ export type ImageProps = ImgHTMLAttributes<HTMLImageElement> & {
   height?: number
   fill?: boolean
   priority?: boolean
+  unoptimized?: boolean
   sizes?: string
   quality?: number
   placeholder?: 'blur' | 'empty'
   blurDataURL?: string
 }
 
-export default function Image({ fill, priority, sizes, quality, placeholder, blurDataURL, style, ...props }: ImageProps) {
+export default function Image({
+  fill,
+  priority,
+  unoptimized: _unoptimized,
+  sizes: _sizes,
+  quality: _quality,
+  placeholder: _placeholder,
+  blurDataURL: _blurDataURL,
+  style,
+  ...props
+}: ImageProps) {
   const mergedStyle = fill
     ? { position: 'absolute' as const, inset: 0, width: '100%', height: '100%', objectFit: 'cover', ...style }
     : style
