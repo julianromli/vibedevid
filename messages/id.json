@@ -188,6 +188,11 @@
     "title": "Showcase Project Developer Indonesia",
     "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
     "filter": "Filter",
+    "trendingOptions": {
+      "trending": "Trending",
+      "top": "Top",
+      "newest": "Terbaru"
+    },
     "submitButton": "Submit Project",
     "noProjects": "Belum ada project dengan filter yang dipilih",
     "beFirst": "Jadi yang Pertama Submit Project",

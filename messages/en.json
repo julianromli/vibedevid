@@ -188,6 +188,11 @@
     "title": "Indonesian Developer Project Showcase",
     "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
     "filter": "Filter",
+    "trendingOptions": {
+      "trending": "Trending",
+      "top": "Top",
+      "newest": "Newest"
+    },
     "submitButton": "Submit Project",
     "noProjects": "No projects found with the selected filter",
     "beFirst": "Be the First to Submit a Project",
