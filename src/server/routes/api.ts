@@ -333,13 +333,11 @@ apiRoutes.get('/pages/blog/:slug', async (c) => {
 })
 
 apiRoutes.get('/pages/events', async (c) => {
-  const events = await getEvents()
-  return c.json({ events })
+  return c.json(await getEvents())
 })
 
 apiRoutes.get('/session', async (c) => {
-  const user = await getCurrentUser()
-  return c.json({ user })
+  return c.json(await getCurrentUser())
 })
 
 apiRoutes.get('/pages/project-submit', async (c) => {

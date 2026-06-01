@@ -36,6 +36,7 @@ const compatAliases = {
 }
 
 const actionServerAliases: Record<string, string> = {
+  '@/lib/actions/admin/schemas': path.resolve(__dirname, 'lib/actions/admin/schemas.ts'),
   '@/lib/actions/admin/admins': path.resolve(__dirname, 'lib/actions/admin/admins.ts'),
   '@/lib/actions/admin/comments': path.resolve(__dirname, 'lib/actions/admin/comments.ts'),
   '@/lib/actions/admin/posts': path.resolve(__dirname, 'lib/actions/admin/posts.ts'),

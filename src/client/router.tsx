@@ -9,9 +9,17 @@ const ProjectListPage = lazy(() => import('./pages/ProjectListPage'))
 const ProjectSubmitPage = lazy(() => import('./pages/ProjectSubmitPage'))
 const BlogPage = lazy(() => import('./pages/BlogListPage'))
 const ConfirmEmailPage = lazy(() => import('@/app/user/auth/confirm-email/page'))
-const PrivacyPage = lazy(() => import('@/app/privacy-policy/privacy-policy-client'))
+const PrivacyPage = lazy(() =>
+  import('@/app/privacy-policy/privacy-policy-client').then((m) => ({
+    default: m.PrivacyPolicyClient,
+  })),
+)
 const TermsPage = lazy(() => import('@/app/terms/page'))
-const TermsServicePage = lazy(() => import('@/app/terms-of-service/terms-of-service-client'))
+const TermsServicePage = lazy(() =>
+  import('@/app/terms-of-service/terms-of-service-client').then((m) => ({
+    default: m.TermsOfServiceClient,
+  })),
+)
 const CalendarPage = lazy(() => import('@/app/calendar/page'))
 const AdminVideoPage = lazy(() => import('@/app/admin/page'))
 const PostDashboardPage = lazy(() => import('@/app/dashboard/posts/post-dashboard-client'))
