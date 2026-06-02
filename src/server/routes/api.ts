@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { ourFileRouter } from '@/lib/uploadthing'
 import { getVideoIconKey } from '@/lib/video-icon-key'
+import { fetchYouTubeVideoMetadata, YouTubeMetadataError } from '@/lib/youtube-metadata'
 import { isUser, requireAdmin } from '@/src/server/lib/require-admin'
 import { authCallbackHandler } from '@/src/server/routes/auth-callback'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
@@ -203,11 +204,16 @@ apiRoutes.post('/github-import', async (c) => {
 })
 
 apiRoutes.post('/youtube', async (c) => {
-  const { url } = await c.req.json<{ url?: string }>()
-  if (!url) return c.json({ error: 'url required' }, 400)
-  const oembed = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`)
-  if (!oembed.ok) return c.json({ error: 'Invalid YouTube URL' }, 400)
-  return c.json(await oembed.json())
+  try {
+    const { url } = await c.req.json<{ url?: string }>()
+    return c.json(await fetchYouTubeVideoMetadata(url ?? ''))
+  } catch (error) {
+    if (error instanceof YouTubeMetadataError) {
+      return c.json({ error: error.message }, error.status as 400)
+    }
+
+    return c.json({ error: 'Terjadi error saat mengambil data video. Coba lagi ya cuy!' }, 500)
+  }
 })
 
 apiRoutes.get('/vibe-videos', async (c) => {
