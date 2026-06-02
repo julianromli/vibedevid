@@ -10,12 +10,12 @@ You need to set these environment variables in your Vercel dashboard:
 
 | Variable Name                           | Description                        | Example Value                              |
 | --------------------------------------- | ---------------------------------- | ------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`              | Your Supabase project URL          | `https://qabfrhpbfvjcgdrxdlba.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`         | Your Supabase anonymous key        | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
-| `SUPABASE_SERVICE_ROLE_KEY`             | Your Supabase service role key     | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
-| `NEXT_PUBLIC_SITE_URL`                  | Your production site URL           | `https://your-domain.vercel.app`           |
-| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Redirect URL for auth              | `https://your-domain.vercel.app`           |
+| `VITE_SUPABASE_URL`                     | Public Supabase project URL        | `https://qabfrhpbfvjcgdrxdlba.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY`                | Public Supabase anonymous key      | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
+| `VITE_SITE_URL`                         | Public production site URL         | `https://your-domain.vercel.app`           |
+| `SUPABASE_SERVICE_ROLE_KEY`             | Supabase service role key          | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  |
 | `UPLOADTHING_TOKEN`                     | UploadThing token for file uploads | `eyJhcGlLZXkiOiJza19saXZlX...`             |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Public redirect URL for auth       | `https://your-domain.vercel.app`           |
 
 ### 2. How to Set Environment Variables in Vercel
 
@@ -29,11 +29,11 @@ You need to set these environment variables in your Vercel dashboard:
 
 #### Issue: `TypeError: Invalid URL`
 
-**Cause:** The `NEXT_PUBLIC_SUPABASE_URL` is not set correctly or contains an invalid URL.
+**Cause:** The `VITE_SUPABASE_URL` is not set correctly or contains an invalid URL.
 
 **Solution:**
 
-- Make sure `NEXT_PUBLIC_SUPABASE_URL` is set to your actual Supabase project URL
+- Make sure `VITE_SUPABASE_URL` is set to your actual Supabase project URL
 - The URL should look like: `https://your-project-ref.supabase.co`
 - DO NOT use the API key as the URL
 
@@ -52,8 +52,8 @@ You need to set these environment variables in your Vercel dashboard:
 1. Go to your Supabase project dashboard
 2. Click on "Settings" → "API"
 3. Copy the following:
-   - **Project URL** → use for `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon public** key → use for `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **Project URL** → use for `VITE_SUPABASE_URL`
+   - **anon public** key → use for `VITE_SUPABASE_ANON_KEY`
    - **service_role** key → use for `SUPABASE_SERVICE_ROLE_KEY`
 
 ### 5. Deployment Steps
@@ -84,12 +84,17 @@ If you're still experiencing issues:
 
 ```bash
 # Copy these to Vercel Environment Variables
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key_here
+VITE_SITE_URL=https://your-domain.vercel.app
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+UPLOADTHING_TOKEN=your_uploadthing_token_here
+NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=https://your-domain.vercel.app
+
+# Legacy aliases while app/ routes remain in the repo:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=https://your-domain.vercel.app
-UPLOADTHING_TOKEN=your_uploadthing_token_here
 ```
 
 ## Contact Support

@@ -4,20 +4,27 @@
 # Required environment variables:
 # Copy these variable names and add your actual values in Vercel
 
-NEXT_PUBLIC_SUPABASE_URL          # Your Supabase project URL (https://xxxx.supabase.co)
-NEXT_PUBLIC_SUPABASE_ANON_KEY     # Your Supabase anonymous key
-UPLOADTHING_TOKEN                 # Your UploadThing API token
+VITE_SUPABASE_URL                 # Public Supabase project URL (https://xxxx.supabase.co)
+VITE_SUPABASE_ANON_KEY            # Public Supabase anonymous key
+VITE_SITE_URL                     # Production URL (e.g., https://vibedev.id)
+SUPABASE_SERVICE_ROLE_KEY         # Supabase service role key (server-only secret)
+UPLOADTHING_TOKEN                 # UploadThing API token (server-only secret)
 
 # Optional environment variables:
-NEXT_PUBLIC_SITE_URL              # Your production URL (e.g., https://vibedev.id)
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL  # OAuth redirect URL
-OPENROUTER_API_KEY                # OpenRouter API key for AI features (get from openrouter.ai)
+OPENROUTER_API_KEY                # OpenRouter API key for AI features
+GITHUB_TOKEN                      # Optional GitHub import token (or use GH_TOKEN)
+GH_TOKEN                          # Optional GitHub import token alternative
+NEXT_PUBLIC_SUPABASE_URL          # Legacy alias; keep aligned with VITE_SUPABASE_URL while app/ routes remain
+NEXT_PUBLIC_SUPABASE_ANON_KEY     # Legacy alias; keep aligned with VITE_SUPABASE_ANON_KEY while app/ routes remain
+NEXT_PUBLIC_SITE_URL              # Legacy alias; keep aligned with VITE_SITE_URL while app/ routes remain
+NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL  # Public Supabase auth redirect URL
 
 # IMPORTANT NOTES:
-# 1. NEXT_PUBLIC_SUPABASE_URL must be a valid URL starting with https://
+# 1. VITE_SUPABASE_URL must be a valid URL starting with https://
 # 2. Do NOT use placeholder values like "sb_publishable_..." for the URL
 # 3. Get your actual values from:
 #    - Supabase: Project Settings > API
 #    - UploadThing: Dashboard > API Keys
 #    - OpenRouter: https://openrouter.ai/keys
-# 4. Keep UPLOADTHING_TOKEN, SUPABASE_SERVICE_ROLE_KEY, and OPENROUTER_API_KEY private (don't expose in client code)
+# 4. Keep SUPABASE_SERVICE_ROLE_KEY, UPLOADTHING_TOKEN, OPENROUTER_API_KEY, and GitHub tokens private
+# 5. `.env.example` is the canonical template for local and production env setup

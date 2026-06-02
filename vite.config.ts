@@ -2,7 +2,7 @@ import path from 'node:path'
 import build from '@hono/vite-build/node'
 import devServer, { defaultOptions } from '@hono/vite-dev-server'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 const actionClientAliases: Record<string, string> = {
@@ -51,6 +51,18 @@ const actionServerAliases: Record<string, string> = {
   '@/lib/actions': path.resolve(__dirname, 'lib/actions.ts'),
 }
 
+const serverEnvKeys = ['SUPABASE_SERVICE_ROLE_KEY'] as const
+
+function loadServerEnv(mode: string) {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  for (const key of serverEnvKeys) {
+    if (env[key] && !process.env[key]) {
+      process.env[key] = env[key]
+    }
+  }
+}
+
 const clientResolve = {
   alias: {
     ...actionClientAliases,
@@ -59,6 +71,8 @@ const clientResolve = {
 }
 
 export default defineConfig(({ mode }) => {
+  loadServerEnv(mode)
+
   if (mode === 'client') {
     return {
       plugins: [react(), tsconfigPaths()],

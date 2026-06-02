@@ -91,17 +91,17 @@ pnpm install
 3. Set up environment variables:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-4. Update `.env.local` with your Supabase credentials:
+4. Update `.env.local` with your Supabase credentials and server secrets:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SITE_URL=http://localhost:5173
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 UPLOADTHING_TOKEN=your-uploadthing-token-here
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 5. Set up the database:
@@ -125,7 +125,7 @@ npm run dev
 pnpm dev
 ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+7. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Commands
 
@@ -172,11 +172,13 @@ bunx playwright test --project=chromium
 
 | Variable | Description | Required |
 | -------- | ----------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `VITE_SUPABASE_URL` | Public Supabase project URL for the Vite client | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Public Supabase anonymous key for the Vite client | Yes |
+| `VITE_SITE_URL` | Public site URL for metadata, CORS, and canonical links | Yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (keep secret!) | Yes |
 | `UPLOADTHING_TOKEN` | Your UploadThing API token (keep secret!) | Yes |
-| `NEXT_PUBLIC_SITE_URL` | Your site URL (for production) | Yes |
+| `OPENROUTER_API_KEY` | OpenRouter API key for AI features | Optional |
+| `GITHUB_TOKEN` / `GH_TOKEN` | GitHub API token for higher import rate limits | Optional |
 
 ## Database Schema
 
