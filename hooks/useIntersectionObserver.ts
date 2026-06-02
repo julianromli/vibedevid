@@ -34,7 +34,9 @@ export function useIntersectionObserver() {
     )
 
     const sections = document.querySelectorAll('[data-animate]')
-    sections.forEach((section) => observer.observe(section))
+    for (const section of sections) {
+      observer.observe(section)
+    }
 
     return () => observer.disconnect()
   }, [])

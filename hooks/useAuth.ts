@@ -60,8 +60,7 @@ export function useAuth() {
         }
 
         setUser(getFallbackUser(userId, email))
-      } catch (error) {
-        console.error('[useAuth] Error fetching profile:', error)
+      } catch (_error) {
         if (!isMounted) return
         setUser(getFallbackUser(userId, email))
       }
@@ -77,7 +76,6 @@ export function useAuth() {
       if (!isMounted) return
 
       if (error) {
-        console.error('[useAuth] Initial auth hydration failed:', error)
         setSignedOutState()
         setReadyIfMounted()
         return

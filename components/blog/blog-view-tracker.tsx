@@ -40,9 +40,7 @@ export function BlogViewTracker({ postId }: BlogViewTrackerProps) {
       try {
         const sessionId = getOrCreateSessionId()
         await incrementBlogPostViews(postId, sessionId)
-      } catch (error) {
-        console.error('[BlogViewTracker] Failed to track view:', error)
-      }
+      } catch (_error) {}
     }
 
     // Small delay to ensure page is loaded

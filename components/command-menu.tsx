@@ -4,6 +4,7 @@ import { IconArrowRightDashed, IconDeviceLaptop, IconMoon, IconSun } from '@tabl
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
+import { sidebarData } from '@/components/admin-panel/data/sidebar-data'
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,7 +14,6 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { sidebarData } from '@/components/admin-panel/data/sidebar-data'
 import { useSearch } from './search-provider'
 import { ScrollArea } from './ui/scroll-area'
 

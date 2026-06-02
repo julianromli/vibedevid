@@ -1,8 +1,8 @@
 'use server'
 
 import { revalidatePath } from '@/lib/cache'
-import type { Comment, CommentEntityType, CommentResult, CreateCommentInput, GetCommentsResult } from '@/types/comments'
 import { createClient } from '@/lib/supabase/server'
+import type { Comment, CommentEntityType, CommentResult, CreateCommentInput, GetCommentsResult } from '@/types/comments'
 
 /**
  * Raw user data from Supabase join
@@ -108,7 +108,6 @@ export async function createComment(input: CreateCommentInput): Promise<CommentR
   const { error } = await supabase.from('comments').insert(insertData)
 
   if (error) {
-    console.error('Create comment error:', error)
     return { success: false, error: 'Failed to add comment' }
   }
 
@@ -151,7 +150,6 @@ export async function getComments(entityType: CommentEntityType, entityId: strin
     .order('created_at', { ascending: false }) // Newest first
 
   if (error) {
-    console.error('Get comments error:', error)
     return { comments: [], error: 'Failed to load comments' }
   }
 
@@ -186,7 +184,6 @@ export async function reportComment(commentId: string, reason: string): Promise<
     if (error.code === '23505') {
       return { success: false, error: 'You have already reported this comment' }
     }
-    console.error('Report comment error:', error)
     return { success: false, error: 'Failed to report comment' }
   }
 

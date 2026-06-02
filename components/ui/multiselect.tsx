@@ -211,7 +211,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
       [selected],
     )
 
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+    const handleClickOutside = React.useCallback((event: MouseEvent | TouchEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
@@ -221,7 +221,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
         setOpen(false)
         inputRef.current.blur()
       }
-    }
+    }, [])
 
     const handleUnselect = React.useCallback(
       (option: Option) => {
@@ -267,7 +267,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
         document.removeEventListener('mousedown', handleClickOutside)
         document.removeEventListener('touchend', handleClickOutside)
       }
-    }, [open])
+    }, [open, handleClickOutside])
 
     useEffect(() => {
       if (value) {
@@ -284,7 +284,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
       if (JSON.stringify(newOption) !== JSON.stringify(options)) {
         setOptions(newOption)
       }
-    }, [arrayDefaultOptions, arrayOptions, groupBy, onSearch, options])
+    }, [arrayOptions, groupBy, onSearch, options])
 
     useEffect(() => {
       /** sync search */
@@ -308,7 +308,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
 
       void exec()
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus])
+    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus, onSearchSync])
 
     useEffect(() => {
       /** async search */
@@ -334,7 +334,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
 
       void exec()
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus])
+    }, [debouncedSearchTerm, groupBy, open, triggerSearchOnFocus, onSearch])
 
     const CreatableItem = () => {
       if (!creatable) return undefined
@@ -429,6 +429,9 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
         filter={commandFilter()}
       >
         <div
+          role="combobox"
+          aria-expanded={open}
+          tabIndex={disabled ? -1 : 0}
           className={cn(
             'border-input focus-within:border-ring focus-within:ring-ring/20 relative min-h-[38px] rounded-lg border text-sm transition-shadow focus-within:ring-[3px] focus-within:outline-none has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
             {
@@ -438,6 +441,13 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
             !hideClearAllButton && 'pe-9',
             className,
           )}
+          onKeyDown={(e) => {
+            if (disabled) return
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              inputRef?.current?.focus()
+            }
+          }}
           onClick={() => {
             if (disabled) return
             inputRef?.current?.focus()
@@ -457,6 +467,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                 >
                   {option.label}
                   <button
+                    type="button"
                     className="text-muted-foreground/80 hover:text-foreground focus-visible:outline-ring/70 absolute -inset-y-px -end-px flex size-7 items-center justify-center rounded-e-lg border border-transparent p-0 outline-0 transition-colors focus-visible:outline focus-visible:outline-2"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -562,7 +573,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                 }}
               >
                 {isLoading ? (
-                  <>{loadingIndicator}</>
+                  loadingIndicator
                 ) : (
                   <>
                     {EmptyItem()}
@@ -579,37 +590,35 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                         heading={key}
                         className="h-full overflow-auto"
                       >
-                        <>
-                          {dropdowns.map((option) => {
-                            return (
-                              <CommandItem
-                                key={option.value}
-                                value={option.value}
-                                disabled={option.disable}
-                                onMouseDown={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                }}
-                                onSelect={() => {
-                                  if (selected.length >= maxSelected) {
-                                    onMaxSelected?.(selected.length)
-                                    return
-                                  }
-                                  setInputValue('')
-                                  const newOptions = [...selected, option]
-                                  setSelected(newOptions)
-                                  onChange?.(newOptions)
-                                  // Auto-close dropdown after selection
-                                  setOpen(false)
-                                  inputRef?.current?.blur()
-                                }}
-                                className={cn('cursor-pointer', option.disable && 'cursor-not-allowed opacity-50')}
-                              >
-                                {option.label}
-                              </CommandItem>
-                            )
-                          })}
-                        </>
+                        {dropdowns.map((option) => {
+                          return (
+                            <CommandItem
+                              key={option.value}
+                              value={option.value}
+                              disabled={option.disable}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                              }}
+                              onSelect={() => {
+                                if (selected.length >= maxSelected) {
+                                  onMaxSelected?.(selected.length)
+                                  return
+                                }
+                                setInputValue('')
+                                const newOptions = [...selected, option]
+                                setSelected(newOptions)
+                                onChange?.(newOptions)
+                                // Auto-close dropdown after selection
+                                setOpen(false)
+                                inputRef?.current?.blur()
+                              }}
+                              className={cn('cursor-pointer', option.disable && 'cursor-not-allowed opacity-50')}
+                            >
+                              {option.label}
+                            </CommandItem>
+                          )
+                        })}
                       </CommandGroup>
                     ))}
                   </>

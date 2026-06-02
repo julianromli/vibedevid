@@ -48,18 +48,21 @@ export function ShareButton({ projectTitle }: ShareButtonProps) {
         <div className="bg-background border-border absolute top-full right-0 left-0 z-10 mt-2 rounded-lg border shadow-lg">
           <div className="space-y-1 p-2">
             <button
+              type="button"
               onClick={() => handleShare('twitter')}
               className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
             >
               Share on Twitter
             </button>
             <button
+              type="button"
               onClick={() => handleShare('linkedin')}
               className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
             >
               Share on LinkedIn
             </button>
             <button
+              type="button"
               onClick={() => handleShare('copy')}
               className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors"
             >

@@ -1,18 +1,15 @@
-import type * as actions from './actions'
 import { createRpcAction } from '@/lib/rpc-client'
+import type * as actions from './actions'
 
-export const signIn = createRpcAction<
-  Parameters<typeof actions.signIn>,
-  Awaited<ReturnType<typeof actions.signIn>>
->('actions.signIn')
-export const signUp = createRpcAction<
-  Parameters<typeof actions.signUp>,
-  Awaited<ReturnType<typeof actions.signUp>>
->('actions.signUp')
-export const signOut = createRpcAction<
-  Parameters<typeof actions.signOut>,
-  Awaited<ReturnType<typeof actions.signOut>>
->('actions.signOut')
+export const signIn = createRpcAction<Parameters<typeof actions.signIn>, Awaited<ReturnType<typeof actions.signIn>>>(
+  'actions.signIn',
+)
+export const signUp = createRpcAction<Parameters<typeof actions.signUp>, Awaited<ReturnType<typeof actions.signUp>>>(
+  'actions.signUp',
+)
+export const signOut = createRpcAction<Parameters<typeof actions.signOut>, Awaited<ReturnType<typeof actions.signOut>>>(
+  'actions.signOut',
+)
 export const resetPassword = createRpcAction<
   Parameters<typeof actions.resetPassword>,
   Awaited<ReturnType<typeof actions.resetPassword>>

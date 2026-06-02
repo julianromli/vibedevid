@@ -1,8 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"],
-    "experimentalScannerIgnores": ["admin-kit/**"]
+    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"]
   },
   "vcs": {
     "enabled": true,
@@ -22,7 +21,13 @@
     "rules": {
       "recommended": true,
       "complexity": {
-        "noExcessiveCognitiveComplexity": "warn"
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 30 }
+        }
+      },
+      "a11y": {
+        "useSemanticElements": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "error",

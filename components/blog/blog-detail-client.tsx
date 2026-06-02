@@ -152,6 +152,7 @@ export default function BlogDetailClient({
 
         <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
           {post.content && typeof post.content === 'object' ? (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap JSON is converted to escaped HTML via contentToHtml
             <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
           ) : (
             <p>{String(post.content ?? '')}</p>

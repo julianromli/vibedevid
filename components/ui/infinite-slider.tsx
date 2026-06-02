@@ -27,10 +27,10 @@ export function InfiniteSlider({
   const [ref, { width, height }] = useMeasure()
   const translation = useMotionValue(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [key, setKey] = useState(0)
+  const [_key, setKey] = useState(0)
 
   useEffect(() => {
-    let controls
+    let controls: ReturnType<typeof animate> | undefined
     const size = direction === 'horizontal' ? width : height
     const contentSize = size + gap
     const from = reverse ? -contentSize / 2 : 0
@@ -65,7 +65,7 @@ export function InfiniteSlider({
     }
 
     return controls?.stop
-  }, [key, translation, currentSpeed, width, height, gap, isTransitioning, direction, reverse])
+  }, [translation, currentSpeed, width, height, gap, isTransitioning, direction, reverse])
 
   const hoverProps = speedOnHover
     ? {

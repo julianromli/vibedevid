@@ -3,26 +3,44 @@ import { revalidatePath, revalidateTag } from '@/lib/cache'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
+import type { AIEvent, EventCategory, EventFormData, EventLocationType, EventStatus } from '@/types/events'
 
 // Helper to map DB result (snake_case) to AIEvent (camelCase)
-function mapEventFromDB(data: any): AIEvent {
+interface EventDBRow {
+  id: string
+  slug: string
+  name: string
+  date: string
+  time: string | null
+  end_date: string | null
+  end_time: string | null
+  location_type: string
+  location_detail: string | null
+  description: string | null
+  organizer: string | null
+  registration_url: string | null
+  cover_image: string | null
+  category: string | null
+  status: string
+}
+
+function mapEventFromDB(data: EventDBRow): AIEvent {
   return {
     id: data.id,
     slug: data.slug,
     name: data.name,
     date: data.date,
-    time: data.time,
-    endDate: data.end_date,
-    endTime: data.end_time,
+    time: data.time ?? '',
+    endDate: data.end_date ?? undefined,
+    endTime: data.end_time ?? undefined,
     locationType: data.location_type as EventLocationType,
-    locationDetail: data.location_detail,
-    description: data.description,
-    organizer: data.organizer,
-    registrationUrl: data.registration_url,
-    coverImage: data.cover_image,
-    category: data.category as EventCategory,
-    status: data.status,
+    locationDetail: data.location_detail ?? '',
+    description: data.description ?? '',
+    organizer: data.organizer ?? '',
+    registrationUrl: data.registration_url ?? '',
+    coverImage: data.cover_image ?? '',
+    category: (data.category ?? 'meetup') as EventCategory,
+    status: data.status as EventStatus,
   }
 }
 
@@ -77,7 +95,6 @@ export async function getEvents(filters: GetEventsFilters = {}) {
   const { data, error } = await query
 
   if (error) {
-    console.error('Error fetching events:', error)
     return { events: [], error: 'Failed to fetch events' }
   }
 
@@ -106,7 +123,6 @@ export async function getEventBySlug(slug: string) {
     .single()
 
   if (error) {
-    console.error('Error fetching event by slug:', error)
     return { event: null, error: 'Failed to fetch event' }
   }
 
@@ -124,7 +140,6 @@ export async function getRelatedEvents(category: string, excludeId: string, limi
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching related events:', error)
     return { events: [], error: 'Failed to fetch related events' }
   }
 
@@ -174,15 +189,13 @@ export async function submitEvent(formData: EventFormData) {
     const { error } = await supabase.from('events').insert(dbData)
 
     if (error) {
-      console.error('Error submitting event:', error)
       return { success: false, error: 'Failed to submit event' }
     }
 
     revalidatePath('/event/list')
     revalidateTag('event-list-events', 'max')
     return { success: true }
-  } catch (error) {
-    console.error('Unexpected error submitting event:', error)
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -209,13 +222,11 @@ export async function getPendingEvents() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching pending events:', error)
       return { events: [], error: 'Failed to fetch pending events' }
     }
 
     return { events: data?.map(mapEventFromDB) || [] }
-  } catch (error) {
-    console.error('Unexpected error fetching pending events:', error)
+  } catch (_error) {
     return { events: [], error: 'An unexpected error occurred' }
   }
 }
@@ -241,7 +252,6 @@ export async function approveEvent(eventId: string) {
       .select('id')
 
     if (error) {
-      console.error('Error approving event:', error)
       return { success: false, error: 'Failed to approve event' }
     }
 
@@ -253,8 +263,7 @@ export async function approveEvent(eventId: string) {
     revalidatePath('/event/list')
     revalidateTag('event-list-events', 'max')
     return { success: true }
-  } catch (error) {
-    console.error('Unexpected error approving event:', error)
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -276,7 +285,6 @@ export async function rejectEvent(eventId: string) {
     const { data: deletedRows, error } = await adminSupabase.from('events').delete().eq('id', eventId).select('id')
 
     if (error) {
-      console.error('Error rejecting event:', error)
       return { success: false, error: 'Failed to reject event' }
     }
 
@@ -288,8 +296,7 @@ export async function rejectEvent(eventId: string) {
     revalidatePath('/event/list')
     revalidateTag('event-list-events', 'max')
     return { success: true }
-  } catch (error) {
-    console.error('Unexpected error rejecting event:', error)
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }

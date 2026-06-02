@@ -3,7 +3,7 @@
 import { AlertCircle, Calendar, Edit, ExternalLink, Eye, Loader2, RotateCcw, Trash2, Youtube } from 'lucide-react'
 import Image from 'next/image'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -111,7 +111,7 @@ export function VideoVibeCodingManager() {
   }
 
   // Fetch current videos dari database
-  const fetchCurrentVideos = async () => {
+  const fetchCurrentVideos = useCallback(async () => {
     try {
       setVideosLoading(true)
       const response = await fetch('/api/vibe-videos')
@@ -128,12 +128,12 @@ export function VideoVibeCodingManager() {
     } finally {
       setVideosLoading(false)
     }
-  }
+  }, [])
 
   // Load videos on component mount
   useEffect(() => {
     fetchCurrentVideos()
-  }, [])
+  }, [fetchCurrentVideos])
 
   // Handle add video ke database
   const handleAddToDatabase = async () => {
@@ -536,9 +536,9 @@ export function VideoVibeCodingManager() {
 
           {videosLoading ? (
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, index) => (
+              {(['video-skeleton-0', 'video-skeleton-1', 'video-skeleton-2'] as const).map((key) => (
                 <div
-                  key={index}
+                  key={key}
                   className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:gap-4 sm:p-4"
                 >
                   <Skeleton className="mx-auto h-20 w-full max-w-[160px] rounded sm:mx-0 sm:h-16 sm:w-24 sm:max-w-none" />

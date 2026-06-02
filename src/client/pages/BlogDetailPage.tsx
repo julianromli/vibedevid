@@ -33,7 +33,10 @@ export default function BlogDetailPage() {
         <Navbar />
         <div className="container mx-auto px-4 py-20 text-center">
           <p>Post not found.</p>
-          <Link to="/blog" className="text-primary underline">
+          <Link
+            to="/blog"
+            className="text-primary underline"
+          >
             Back to blog
           </Link>
         </div>

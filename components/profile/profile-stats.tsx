@@ -1,6 +1,6 @@
 'use client'
 
-import { FileText, Heart, LayoutGrid, Eye } from 'lucide-react'
+import { Eye, FileText, Heart, LayoutGrid } from 'lucide-react'
 
 interface ProfileStatsProps {
   stats: {

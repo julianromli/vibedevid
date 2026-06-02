@@ -74,7 +74,7 @@ async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 2000) // 2 second timeout per request
 
-      const response = await fetch(faviconUrl, {
+      const _response = await fetch(faviconUrl, {
         method: 'HEAD',
         mode: 'no-cors', // Avoid CORS issues
         signal: controller.signal,

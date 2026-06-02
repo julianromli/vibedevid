@@ -54,9 +54,9 @@ export function ReviewsSection() {
             fallback={
               <div className="flex justify-center gap-6">
                 <div className="flex flex-col space-y-4">
-                  {Array.from({ length: 3 }).map((_, idx) => (
+                  {(['reviews-skeleton-0', 'reviews-skeleton-1', 'reviews-skeleton-2'] as const).map((key) => (
                     <div
-                      key={idx}
+                      key={key}
                       className="bg-muted/20 w-80 animate-pulse rounded-lg p-4"
                     >
                       <div className="bg-muted/30 mb-3 h-20 rounded"></div>

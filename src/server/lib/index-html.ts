@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { injectPageMetaIntoHtml } from '@/lib/seo/render-meta'
 import type { PageMeta } from '@/lib/seo/types'

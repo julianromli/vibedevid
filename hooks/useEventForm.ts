@@ -7,7 +7,7 @@ export interface UseEventFormReturn {
   errors: Record<string, string>
   isValid: boolean
   isLoading: boolean
-  setField: (field: keyof EventFormData, value: any) => void
+  setField: <K extends keyof EventFormData>(field: K, value: EventFormData[K]) => void
   validateForm: () => boolean
   resetForm: () => void
   handleSubmit: () => Promise<SubmitResult>
@@ -32,7 +32,7 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const setField = (field: keyof EventFormData, value: any) => {
+  const setField = <K extends keyof EventFormData>(field: K, value: EventFormData[K]) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
 
@@ -106,7 +106,6 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
       }
     } catch (error) {
       setIsLoading(false)
-      console.error('[useEventForm] Submission error:', error)
 
       return {
         success: false,

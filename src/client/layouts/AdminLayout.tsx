@@ -1,8 +1,8 @@
 'use client'
 
 import { Navigate, Outlet } from 'react-router-dom'
-import DashboardLayoutClient from '@/src/client/layouts/AdminLayoutClient'
 import { useAdminSession } from '@/src/client/hooks/use-admin-session'
+import DashboardLayoutClient from '@/src/client/layouts/AdminLayoutClient'
 
 export function AdminLayout() {
   const { user, isAdmin, isLoading } = useAdminSession()
@@ -16,11 +16,21 @@ export function AdminLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/user/auth" replace />
+    return (
+      <Navigate
+        to="/user/auth"
+        replace
+      />
+    )
   }
 
   if (!isAdmin) {
-    return <Navigate to="/" replace />
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    )
   }
 
   return (

@@ -1,5 +1,3 @@
-
-
 import { revalidatePath } from '@/lib/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -148,7 +146,6 @@ export async function getAllPosts(
     const { data: posts, error, count } = await query
 
     if (error) {
-      console.error('Get all posts error:', error)
       return { posts: [], totalCount: 0, error: error.message }
     }
 
@@ -185,7 +182,6 @@ export async function getAllPosts(
       totalCount: count || 0,
     }
   } catch (error) {
-    console.error('Get all posts error:', error)
     return {
       posts: [],
       totalCount: 0,
@@ -227,7 +223,6 @@ export async function adminUpdatePost(
     const { data: updatedRows, error } = await supabase.from('posts').update(updateData).eq('id', postId).select('id')
 
     if (error) {
-      console.error('Admin update post error:', error)
       return { success: false, error: error.message }
     }
     if (!updatedRows || updatedRows.length === 0) {
@@ -245,7 +240,6 @@ export async function adminUpdatePost(
 
     return { success: true }
   } catch (error) {
-    console.error('Admin update post error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update post',
@@ -274,11 +268,7 @@ async function updatePostTags(postId: string, tagNames: string[]) {
       tagIds.push(existingTag.id)
     } else {
       // Create new tag
-      const { data: newTag, error } = await supabase
-        .from('post_tags')
-        .insert({ name: tagName, slug })
-        .select('id')
-        .single()
+      const { data: newTag } = await supabase.from('post_tags').insert({ name: tagName, slug }).select('id').single()
 
       if (newTag) {
         tagIds.push(newTag.id)
@@ -307,7 +297,6 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
     const { data: deletedRows, error } = await supabase.from('posts').delete().eq('id', postId).select('id')
 
     if (error) {
-      console.error('Admin delete post error:', error)
       return { success: false, error: error.message }
     }
     if (!deletedRows || deletedRows.length === 0) {
@@ -322,15 +311,9 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
       supabase.from('blog_post_tags').delete().eq('post_id', postId),
     ])
 
-    const cleanupTargets = ['comments', 'likes', 'views', 'blog_post_tags'] as const
-    cleanupResults.forEach((result, index) => {
+    const _cleanupTargets = ['comments', 'likes', 'views', 'blog_post_tags'] as const
+    cleanupResults.forEach((result, _index) => {
       if (result.error) {
-        console.error(`Admin delete post cleanup warning (${cleanupTargets[index]}):`, {
-          postId,
-          message: result.error.message,
-          code: result.error.code,
-          details: result.error.details,
-        })
       }
     })
 
@@ -339,7 +322,6 @@ export async function adminDeletePost(postId: string): Promise<{ success: boolea
 
     return { success: true }
   } catch (error) {
-    console.error('Admin delete post error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete post',
@@ -363,7 +345,6 @@ export async function togglePostFeatured(
       .select('id')
 
     if (error) {
-      console.error('Toggle post featured error:', error)
       return { success: false, error: error.message }
     }
     if (!updatedRows || updatedRows.length === 0) {
@@ -375,7 +356,6 @@ export async function togglePostFeatured(
 
     return { success: true }
   } catch (error) {
-    console.error('Toggle post featured error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to toggle featured status',

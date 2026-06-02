@@ -1,5 +1,3 @@
-
-
 import { revalidatePath } from '@/lib/cache'
 import { createClient } from '@/lib/supabase/server'
 
@@ -115,7 +113,6 @@ export async function getAllUsers(
     const { data: users, error, count } = await query
 
     if (error) {
-      console.error('Get all users error:', error)
       return { users: [], totalCount: 0, error: error.message }
     }
 
@@ -190,7 +187,6 @@ export async function getAllUsers(
       totalCount: count || 0,
     }
   } catch (error) {
-    console.error('Get all users error:', error)
     return {
       users: [],
       totalCount: 0,
@@ -211,7 +207,6 @@ export async function updateUserRole(userId: string, role: number): Promise<{ su
       .eq('id', userId)
 
     if (error) {
-      console.error('Update user role error:', error)
       return { success: false, error: error.message }
     }
 
@@ -219,7 +214,6 @@ export async function updateUserRole(userId: string, role: number): Promise<{ su
 
     return { success: true }
   } catch (error) {
-    console.error('Update user role error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update user role',
@@ -248,7 +242,6 @@ export async function suspendUser(
       .eq('id', userId)
 
     if (error) {
-      console.error('Suspend user error:', error)
       return { success: false, error: error.message }
     }
 
@@ -256,7 +249,6 @@ export async function suspendUser(
 
     return { success: true }
   } catch (error) {
-    console.error('Suspend user error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update user suspension status',
@@ -291,7 +283,6 @@ export async function getUserStats(userId: string): Promise<{
       },
     }
   } catch (error) {
-    console.error('Get user stats error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load user stats',

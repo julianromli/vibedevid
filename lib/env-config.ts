@@ -37,7 +37,6 @@ export const getSupabaseConfig = () => {
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://')
 
   if (!isValidUrl) {
-    console.warn('Invalid or missing Supabase URL. Using fallback for build.')
     return {
       url: 'https://placeholder.supabase.co',
       anonKey:
@@ -46,7 +45,6 @@ export const getSupabaseConfig = () => {
   }
 
   if (!anonKey) {
-    console.warn('Missing Supabase anon key. Using fallback for build.')
     return {
       url: 'https://placeholder.supabase.co',
       anonKey:
@@ -64,7 +62,6 @@ export const getSupabaseServerConfig = () => {
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://')
 
   if (!isValidUrl) {
-    console.warn('Invalid or missing Supabase URL for server. Using fallback.')
     return {
       url: 'https://placeholder.supabase.co',
       serviceRoleKey: 'placeholder-service-role-key',
@@ -72,7 +69,6 @@ export const getSupabaseServerConfig = () => {
   }
 
   if (!serviceRoleKey) {
-    console.warn('Missing SUPABASE_SERVICE_ROLE_KEY. Using fallback for server operations.')
     return {
       url: 'https://placeholder.supabase.co',
       serviceRoleKey: 'placeholder-service-role-key',

@@ -1,5 +1,3 @@
-
-
 import { revalidatePath } from '@/lib/cache'
 import { normalizeProjectWebsiteUrl } from '../../project-url'
 import { createAdminClient } from '../../supabase/admin'
@@ -133,7 +131,6 @@ export async function getAllProjects(
     const { data: projects, error, count } = await query
 
     if (error) {
-      console.error('Get all projects error:', error)
       return { projects: [], totalCount: 0, error: error.message }
     }
 
@@ -192,7 +189,6 @@ export async function getAllProjects(
       totalCount: count || 0,
     }
   } catch (error) {
-    console.error('Get all projects error:', error)
     return {
       projects: [],
       totalCount: 0,
@@ -244,7 +240,6 @@ export async function adminUpdateProject(
       .select('id')
 
     if (error) {
-      console.error('Admin update project error:', error)
       return { success: false, error: error.message }
     }
     if (!updatedRows || updatedRows.length === 0) {
@@ -259,7 +254,6 @@ export async function adminUpdateProject(
 
     return { success: true }
   } catch (error) {
-    console.error('Admin update project error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update project',
@@ -288,7 +282,6 @@ export async function adminDeleteProject(projectId: number): Promise<{ success: 
     const { data: deletedRows, error } = await supabase.from('projects').delete().eq('id', projectId).select('id')
 
     if (error) {
-      console.error('Admin delete project error:', error)
       return { success: false, error: error.message }
     }
     if (!deletedRows || deletedRows.length === 0) {
@@ -300,7 +293,6 @@ export async function adminDeleteProject(projectId: number): Promise<{ success: 
 
     return { success: true }
   } catch (error) {
-    console.error('Admin delete project error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete project',
@@ -324,7 +316,6 @@ export async function toggleProjectFeatured(
       .select('id')
 
     if (error) {
-      console.error('Toggle project featured error:', error)
       return { success: false, error: error.message }
     }
     if (!updatedRows || updatedRows.length === 0) {
@@ -336,7 +327,6 @@ export async function toggleProjectFeatured(
 
     return { success: true }
   } catch (error) {
-    console.error('Toggle project featured error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to toggle featured status',

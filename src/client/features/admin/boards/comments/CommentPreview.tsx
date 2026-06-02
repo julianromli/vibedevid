@@ -1,6 +1,6 @@
 'use client'
 
-import { IconFileText, IconMessageCircle, IconTrash, IconX } from '@tabler/icons-react'
+import { IconFileText, IconTrash, IconX } from '@tabler/icons-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -26,7 +26,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
       } else {
         toast.error(result.error || 'Failed to process report')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     }
   }

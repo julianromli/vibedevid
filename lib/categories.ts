@@ -37,7 +37,6 @@ export async function getCategories(): Promise<Category[]> {
       .order('sort_order', { ascending: true })
 
     if (error) {
-      console.error('Error fetching categories:', error)
       return []
     }
 
@@ -46,8 +45,7 @@ export async function getCategories(): Promise<Category[]> {
     cacheTimestamp = now
 
     return categories || []
-  } catch (error) {
-    console.error('Failed to fetch categories:', error)
+  } catch (_error) {
     return []
   }
 }

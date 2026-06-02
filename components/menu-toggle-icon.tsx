@@ -20,6 +20,7 @@ export function MenuToggleIcon({
 }: MenuToggleProps) {
   return (
     <svg
+      aria-hidden="true"
       className={cn('transition-transform ease-in-out', open && '-rotate-45', className)}
       fill={fill}
       stroke={stroke}

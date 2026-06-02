@@ -87,6 +87,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                 <TableCell>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <button
+                      type="button"
                       onClick={() => setViewingStats(user)}
                       className="flex items-center gap-1 hover:text-foreground transition-colors"
                     >

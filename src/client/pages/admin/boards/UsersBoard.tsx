@@ -2,16 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
 import { UserSearch } from '@/src/client/features/admin/boards/users/UserSearch'
 import { UsersTable } from '@/src/client/features/admin/boards/users/UsersTable'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export function UsersBoard() {
   const [searchParams] = useSearchParams()
   const search = searchParams.get('search') ?? undefined
   const role = searchParams.get('role') ?? undefined
   const status = searchParams.get('status') ?? undefined
-  const page = searchParams.get('page') ? Number.parseInt(searchParams.get('page')!, 10) : 1
+  const pageQuery = searchParams.get('page')
+  const page = pageQuery ? Number.parseInt(pageQuery, 10) : 1
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'users', search, role, status, page],
@@ -48,7 +49,11 @@ export function UsersBoard() {
   return (
     <div className="space-y-4">
       <UserSearch />
-      <UsersTable users={data.users ?? []} totalCount={data.totalCount ?? 0} currentPage={page} />
+      <UsersTable
+        users={data.users ?? []}
+        totalCount={data.totalCount ?? 0}
+        currentPage={page}
+      />
     </div>
   )
 }

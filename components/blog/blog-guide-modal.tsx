@@ -46,6 +46,7 @@ const TypingAnimation = () => (
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="text-primary"
+      aria-hidden="true"
     >
       <rect
         x="20"

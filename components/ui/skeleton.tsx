@@ -91,9 +91,9 @@ function CommentsSkeleton() {
 
       {/* Comments list */}
       <div className="space-y-4">
-        {[...Array(2)].map((_, i) => (
+        {(['comment-skeleton-0', 'comment-skeleton-1'] as const).map((key) => (
           <div
-            key={i}
+            key={key}
             className="rounded-lg border p-4"
           >
             <div className="flex items-start gap-3">
@@ -136,9 +136,9 @@ function ProjectStatsSkeleton() {
       <div className="rounded-lg border p-6">
         <Skeleton className="mb-4 h-5 w-24" />
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
+          {(['stat-skeleton-0', 'stat-skeleton-1', 'stat-skeleton-2'] as const).map((key) => (
             <div
-              key={i}
+              key={key}
               className="flex items-center justify-between"
             >
               <Skeleton className="h-4 w-16" />
@@ -195,9 +195,9 @@ function ProfileHeaderSkeleton() {
 
         {/* Stats */}
         <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
-          {[...Array(3)].map((_, i) => (
+          {(['profile-stat-0', 'profile-stat-1', 'profile-stat-2'] as const).map((key) => (
             <div
-              key={i}
+              key={key}
               className="bg-muted/30 min-w-[80px] rounded-xl p-4 text-center"
             >
               <Skeleton className="mx-auto mb-1 h-8 w-8" />
@@ -221,9 +221,9 @@ function ProjectGridSkeleton({ count = 6, columns = 3 }: ProjectGridSkeletonProp
 
   return (
     <div className={`grid ${gridCols} gap-6`}>
-      {[...Array(count)].map((_, i) => (
+      {Array.from({ length: count }, (_, i) => `project-grid-skeleton-${i}`).map((key) => (
         <div
-          key={i}
+          key={key}
           className="space-y-4"
         >
           <div className="bg-muted relative overflow-hidden rounded-lg">

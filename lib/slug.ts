@@ -26,7 +26,6 @@ export async function ensureUniqueSlug(baseSlug: string, excludeProjectId?: stri
       const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).limit(1)
 
       if (error) {
-        console.error('Error checking slug uniqueness:', error)
         break
       }
 
@@ -41,11 +40,9 @@ export async function ensureUniqueSlug(baseSlug: string, excludeProjectId?: stri
       slug = `${baseSlug}-${i}`
 
       if (i > 100) {
-        console.warn('Slug collision detection exceeded 100 attempts')
         break
       }
-    } catch (error) {
-      console.error('Unexpected error in ensureUniqueSlug:', error)
+    } catch (_error) {
       break
     }
   }
@@ -73,8 +70,7 @@ export async function getProjectIdBySlug(slug: string): Promise<string | null> {
     }
 
     return data.id as string
-  } catch (error) {
-    console.error('Error getting project ID by slug:', error)
+  } catch (_error) {
     return null
   }
 }

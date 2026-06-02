@@ -1,15 +1,6 @@
 'use client'
 
-import {
-  IconArchive,
-  IconArchiveOff,
-  IconDotsVertical,
-  IconEdit,
-  IconExternalLink,
-  IconStar,
-  IconStarOff,
-  IconTrash,
-} from '@tabler/icons-react'
+import { IconDotsVertical, IconEdit, IconExternalLink, IconStar, IconStarOff, IconTrash } from '@tabler/icons-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -52,7 +43,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || 'Failed to update post')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -69,7 +60,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || 'Failed to delete post')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)

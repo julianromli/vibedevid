@@ -368,6 +368,66 @@ const STEPS = [
   { id: 'review', title: 'Review & Submit' },
 ]
 
+type BasicsStepValidationInput = {
+  title: string
+  description: string
+  tagline: string
+  category: string
+  categories: Category[]
+}
+
+function validateBasicsStep({ title, description, tagline, category, categories }: BasicsStepValidationInput): boolean {
+  if (!title.trim() || !description.trim() || !category) {
+    toast.error('Please fill in all required fields (Title, Description, Category)')
+    return false
+  }
+
+  if (title.trim().length < MIN_TITLE_LENGTH) {
+    toast.error(`Title must be at least ${MIN_TITLE_LENGTH} characters`)
+    return false
+  }
+  if (title.length > MAX_TITLE_LENGTH) {
+    toast.error(`Title cannot exceed ${MAX_TITLE_LENGTH} characters`)
+    return false
+  }
+
+  if (tagline.trim() && tagline.trim().length < MIN_TAGLINE_LENGTH) {
+    toast.error(`Tagline must be at least ${MIN_TAGLINE_LENGTH} characters`)
+    return false
+  }
+  if (tagline.length > MAX_TAGLINE_LENGTH) {
+    toast.error(`Tagline cannot exceed ${MAX_TAGLINE_LENGTH} characters`)
+    return false
+  }
+
+  if (description.trim().length < MIN_DESCRIPTION_LENGTH) {
+    toast.error(`Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`)
+    return false
+  }
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    toast.error(`Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`)
+    return false
+  }
+
+  const isValidCategory = categories.some((c) => c.name === category)
+  if (!isValidCategory) {
+    toast.error('Please select a valid, active category')
+    return false
+  }
+
+  return true
+}
+
+function validateLinksMediaStep(websiteUrl: string): boolean {
+  if (!isValidWebsiteUrl(websiteUrl)) {
+    toast.error('Please enter a valid website URL or leave it empty')
+    return false
+  }
+
+  return true
+}
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: multi-step wizard with draft persistence and upload flows
 export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProjectFormProps) {
   const [mounted, setMounted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
@@ -611,51 +671,11 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
 
   const validateCurrentStep = () => {
     if (currentStep === 1) {
-      // Basics
-      if (!title.trim() || !description.trim() || !category) {
-        toast.error('Please fill in all required fields (Title, Description, Category)')
-        return false
-      }
-
-      if (title.trim().length < MIN_TITLE_LENGTH) {
-        toast.error(`Title must be at least ${MIN_TITLE_LENGTH} characters`)
-        return false
-      }
-      if (title.length > MAX_TITLE_LENGTH) {
-        toast.error(`Title cannot exceed ${MAX_TITLE_LENGTH} characters`)
-        return false
-      }
-
-      if (tagline.trim() && tagline.trim().length < MIN_TAGLINE_LENGTH) {
-        toast.error(`Tagline must be at least ${MIN_TAGLINE_LENGTH} characters`)
-        return false
-      }
-      if (tagline.length > MAX_TAGLINE_LENGTH) {
-        toast.error(`Tagline cannot exceed ${MAX_TAGLINE_LENGTH} characters`)
-        return false
-      }
-
-      if (description.trim().length < MIN_DESCRIPTION_LENGTH) {
-        toast.error(`Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`)
-        return false
-      }
-      if (description.length > MAX_DESCRIPTION_LENGTH) {
-        toast.error(`Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`)
-        return false
-      }
-
-      const isValidCategory = categories.some((c) => c.name === category)
-      if (!isValidCategory) {
-        toast.error('Please select a valid, active category')
-        return false
-      }
+      return validateBasicsStep({ title, description, tagline, category, categories })
     }
 
     if (currentStep === 2) {
-      if (!isValidWebsiteUrl(websiteUrl)) {
-        toast.error('Please enter a valid website URL or leave it empty')
-        return false
-      }
+      return validateLinksMediaStep(websiteUrl)
     }
 
     return true

@@ -12,9 +12,7 @@ export async function localeMiddleware(c: Context, next: Next) {
   } else {
     const cookieLocale = c.req.header('cookie')?.match(/NEXT_LOCALE=([^;]+)/)?.[1]
     const locale =
-      cookieLocale && routing.locales.includes(cookieLocale as 'id' | 'en')
-        ? cookieLocale
-        : routing.defaultLocale
+      cookieLocale && routing.locales.includes(cookieLocale as 'id' | 'en') ? cookieLocale : routing.defaultLocale
     setCookie(c, 'NEXT_LOCALE', locale, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'Lax' })
   }
 

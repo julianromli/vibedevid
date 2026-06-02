@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { PendingEventsTable } from '@/src/client/features/admin/boards/events/PendingEventsTable'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PendingEventsTable } from '@/src/client/features/admin/boards/events/PendingEventsTable'
 
 export function EventsBoard() {
   const { data, isLoading, error } = useQuery({

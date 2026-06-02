@@ -12,7 +12,7 @@ export async function getServerSession() {
 
   // Return a partial session object containing just the user
   // This satisfies the usage in getCurrentUser which only checks session.user
-  return { user } as any
+  return { user }
 }
 
 export async function getCurrentUser() {

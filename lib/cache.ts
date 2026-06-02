@@ -8,10 +8,6 @@ export function revalidateTag(_tag: string, _profile?: string): void {
   // intentionally empty
 }
 
-export function unstable_cache<T>(
-  fn: () => Promise<T>,
-  _keyParts?: string[],
-  _options?: unknown,
-): () => Promise<T> {
+export function unstable_cache<T>(fn: () => Promise<T>, _keyParts?: string[], _options?: unknown): () => Promise<T> {
   return () => fn()
 }

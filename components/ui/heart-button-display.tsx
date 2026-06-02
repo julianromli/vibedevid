@@ -1,7 +1,6 @@
 'use client'
 
 import { Heart } from 'lucide-react'
-import * as React from 'react'
 
 export interface HeartButtonDisplayProps {
   likes: number

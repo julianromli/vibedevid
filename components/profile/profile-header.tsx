@@ -5,8 +5,21 @@ import { Button } from '@/components/ui/button'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 
+interface ProfileHeaderUser {
+  username: string
+  display_name?: string | null
+  bio?: string | null
+  location?: string | null
+  joined_at: string
+  role?: number | null
+  website?: string | null
+  github_url?: string | null
+  twitter_url?: string | null
+  avatar_url?: string | null
+}
+
 interface ProfileHeaderProps {
-  user: any
+  user: ProfileHeaderUser | null
   isOwner: boolean
   onEdit: () => void
 }

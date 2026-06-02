@@ -11,7 +11,7 @@ import { createAdminClient } from './supabase/admin'
 import { createClient } from './supabase/server'
 import { deleteUploadthingFiles } from './uploadthing'
 
-function toLoggableError(error: unknown): string | Record<string, string | number> {
+function _toLoggableError(error: unknown): string | Record<string, string | number> {
   if (typeof error === 'string') {
     return error
   }
@@ -70,7 +70,7 @@ function getSafeRedirectPath(value: FormDataEntryValue | null): string {
   return trimmed
 }
 
-export async function signIn(prevState: any, formData: FormData) {
+export async function signIn(_prevState: unknown, formData: FormData) {
   console.log('[Server Action] signIn called')
 
   if (!formData) {
@@ -161,19 +161,17 @@ export async function signIn(prevState: any, formData: FormData) {
         const { error: profileError } = await supabase.from('users').insert(profileData)
 
         if (profileError) {
-          console.error('Profile creation error:', profileError)
         }
       }
     }
 
     return { success: 'Login successful', redirect: redirectTo }
-  } catch (error) {
-    console.error('Login error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
 
-export async function signUp(prevState: any, formData: FormData) {
+export async function signUp(_prevState: unknown, formData: FormData) {
   if (!formData) {
     return { error: 'Form data is missing' }
   }
@@ -194,9 +192,7 @@ export async function signUp(prevState: any, formData: FormData) {
       email: email.toString(),
       password: password.toString(),
       options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${getSiteUrlFromEnv()}`,
+        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${getSiteUrlFromEnv()}`,
         data: {
           full_name: firstName && lastName ? `${firstName} ${lastName}`.trim() : email.toString().split('@')[0],
         },
@@ -208,8 +204,7 @@ export async function signUp(prevState: any, formData: FormData) {
     }
 
     return { success: 'Check your email to confirm your account.' }
-  } catch (error) {
-    console.error('Sign up error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
@@ -221,7 +216,7 @@ export async function signOut() {
   redirect('/')
 }
 
-export async function resetPassword(prevState: any, formData: FormData) {
+export async function resetPassword(_prevState: unknown, formData: FormData) {
   if (!formData) {
     return { error: 'Form data is missing' }
   }
@@ -236,9 +231,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email.toString(), {
-      redirectTo:
-        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-        `${getSiteUrlFromEnv()}/user/auth`,
+      redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${getSiteUrlFromEnv()}/user/auth`,
     })
 
     if (error) {
@@ -246,13 +239,12 @@ export async function resetPassword(prevState: any, formData: FormData) {
     }
 
     return { success: 'Password reset email sent. Check your inbox.' }
-  } catch (error) {
-    console.error('Password reset error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
 
-export async function resendConfirmationEmail(prevState: any, formData: FormData) {
+export async function resendConfirmationEmail(_prevState: unknown, formData: FormData) {
   if (!formData) {
     return { error: 'Form data is missing' }
   }
@@ -270,9 +262,7 @@ export async function resendConfirmationEmail(prevState: any, formData: FormData
       type: 'signup',
       email: email.toString(),
       options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${getSiteUrlFromEnv()}`,
+        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${getSiteUrlFromEnv()}`,
       },
     })
 
@@ -281,8 +271,7 @@ export async function resendConfirmationEmail(prevState: any, formData: FormData
     }
 
     return { success: 'Confirmation email sent. Check your inbox.' }
-  } catch (error) {
-    console.error('Resend confirmation error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
@@ -317,12 +306,10 @@ export async function getProjectBySlug(slug: string) {
       .single()
 
     if (projectError) {
-      console.error('Get project by slug error:', projectError)
       return { project: null, error: projectError.message }
     }
 
     if (!project?.users) {
-      console.error('Get project error: Author not found')
       return { project: null, error: 'Project author not found' }
     }
 
@@ -377,8 +364,7 @@ export async function getProjectBySlug(slug: string) {
     }
 
     return { project: formattedProject, error: null }
-  } catch (error) {
-    console.error('Get project by slug error:', error)
+  } catch (_error) {
     return { project: null, error: 'Failed to load project' }
   }
 }
@@ -395,8 +381,6 @@ const getPrimaryProjectImage = (project: {
 
 // Legacy function for backward compatibility (will be removed after migration)
 export async function getProject(projectId: string) {
-  console.warn('[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.')
-
   // For backward compatibility during migration phase
   const supabase = await createClient()
 
@@ -408,22 +392,19 @@ export async function getProject(projectId: string) {
     }
 
     return getProjectBySlug(data.slug)
-  } catch (error) {
-    console.error('Legacy getProject error:', error)
+  } catch (_error) {
     return { project: null, error: 'Failed to load project' }
   }
 }
 
 export async function incrementProjectViews(projectSlug: string, sessionId?: string) {
   if (!projectSlug || typeof projectSlug !== 'string' || projectSlug.trim() === '') {
-    console.error('[Server] incrementProjectViews: projectSlug is required')
     return
   }
 
   // Resolve project ID from slug
   const projectId = await getProjectIdBySlug(projectSlug.trim())
   if (!projectId) {
-    console.error('[Server] incrementProjectViews: Project not found for slug:', projectSlug)
     return
   }
 
@@ -456,19 +437,15 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
       if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
         console.log('[Server] View already tracked for this session')
       } else {
-        console.error('[Server] Increment views error:', error)
       }
     } else {
       console.log('[Server] View tracked successfully:', data)
     }
-  } catch (error) {
-    console.error('[Server] Increment views error:', error)
-  }
+  } catch (_error) {}
 }
 
 export async function incrementBlogPostViews(postId: string, sessionId?: string) {
   if (!postId || typeof postId !== 'string' || postId.trim() === '') {
-    console.error('[Server] incrementBlogPostViews: postId is required')
     return
   }
 
@@ -501,14 +478,11 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
       if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
         console.log('[Server] Blog view already tracked for this session')
       } else {
-        console.error('[Server] Increment blog views error:', error)
       }
     } else {
       console.log('[Server] Blog view tracked successfully:', data)
     }
-  } catch (error) {
-    console.error('[Server] Increment blog views error:', error)
-  }
+  } catch (_error) {}
 }
 
 export async function toggleLike(projectId: string) {
@@ -559,8 +533,7 @@ export async function toggleLike(projectId: string) {
 
       return { success: true, isLiked: true }
     }
-  } catch (error) {
-    console.error('Toggle like error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }
@@ -574,7 +547,6 @@ export async function getLikeStatus(projectId: string) {
 
   try {
     if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
-      console.error('Get like status error: projectId is required')
       return { totalLikes: 0, isLiked: false, error: 'Project ID is required' }
     }
 
@@ -587,7 +559,6 @@ export async function getLikeStatus(projectId: string) {
       .eq('project_id', cleanProjectId)
 
     if (countError) {
-      console.error('Get likes count error:', countError.message, countError.details)
       return { totalLikes: 0, isLiked: false, error: countError.message }
     }
 
@@ -601,15 +572,13 @@ export async function getLikeStatus(projectId: string) {
         .single()
 
       if (userLikeError && userLikeError.code !== 'PGRST116') {
-        console.error('Get user like status error:', userLikeError.message, userLikeError.details)
       } else if (userLike) {
         isLiked = true
       }
     }
 
     return { totalLikes: totalLikes || 0, isLiked, error: null }
-  } catch (error) {
-    console.error('Get like status error:', error)
+  } catch (_error) {
     return {
       totalLikes: 0,
       isLiked: false,
@@ -629,7 +598,6 @@ export async function signInWithGoogle() {
   })
 
   if (error) {
-    console.error('Google sign in error:', error)
     return { error: error.message }
   }
 
@@ -649,7 +617,6 @@ export async function signInWithGitHub() {
   })
 
   if (error) {
-    console.error('GitHub sign in error:', error)
     return { error: error.message }
   }
 
@@ -689,7 +656,6 @@ export async function getBatchLikeStatus(projectIds: string[]) {
     } = await supabase.auth.getUser()
 
     if (userError && !isAuthSessionMissingError(userError)) {
-      console.error('[v0] getBatchLikeStatus: User error:', toLoggableError(userError))
       // Continue without user - we can still get total likes
     }
 
@@ -702,7 +668,6 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       .in('project_id', cleanProjectIds)
 
     if (likesError) {
-      console.error('[v0] getBatchLikeStatus: Likes fetch error:', toLoggableError(likesError))
       // Return empty data instead of error to not break UI
       const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
       cleanProjectIds.forEach((projectId) => {
@@ -739,8 +704,7 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     console.log('[v0] getBatchLikeStatus: Processed likes data:', likesData)
     return { likesData, error: null }
-  } catch (error) {
-    console.error('[v0] getBatchLikeStatus: Unexpected error:', toLoggableError(error))
+  } catch (_error) {
     // Return safe fallback data to prevent UI breaks
     const fallbackLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {}
     if (projectIds && projectIds.length > 0) {
@@ -812,9 +776,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
       if (imageKeysString) {
         imageKeys = JSON.parse(imageKeysString)
       }
-    } catch (e) {
-      console.warn('Failed to parse image arrays', e)
-    }
+    } catch (_e) {}
 
     if (trimmedWebsiteUrl && !normalizedWebsiteUrl) {
       return { success: false, error: 'Enter a valid website URL' }
@@ -825,9 +787,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
     if (tagsString) {
       try {
         tags = JSON.parse(tagsString)
-      } catch (e) {
-        console.warn('Failed to parse tags, using empty array', e)
-      }
+      } catch (_e) {}
     }
 
     // Auto-fetch favicon if website URL changed
@@ -835,9 +795,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
     if (normalizedWebsiteUrl) {
       try {
         faviconUrl = await fetchFavicon(normalizedWebsiteUrl)
-      } catch (e) {
-        console.warn('Failed to fetch favicon, keeping existing', e)
-      }
+      } catch (_e) {}
     }
 
     if (!title || !description || !category) {
@@ -866,7 +824,6 @@ export async function editProject(projectSlug: string, formData: FormData) {
       .eq('id', projectId) // Use UUID directly, no parseInt
 
     if (updateError) {
-      console.error('Edit project error:', updateError)
       return { success: false, error: updateError.message }
     }
 
@@ -874,8 +831,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
     revalidatePath('/project/list')
 
     return { success: true, slug: projectSlug }
-  } catch (error) {
-    console.error('Edit project error:', error)
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -907,7 +863,6 @@ export async function fetchProjectsWithSorting(
     const { data: projectsWithUsers, error } = await query
 
     if (error) {
-      console.error('[fetchProjectsWithSorting] Error fetching projects:', toLoggableError(error))
       return { projects: [], error: error.message }
     }
 
@@ -973,8 +928,7 @@ export async function fetchProjectsWithSorting(
     )
 
     return { projects: sortedProjects, error: null }
-  } catch (error) {
-    console.error('[fetchProjectsWithSorting] Unexpected error:', toLoggableError(error))
+  } catch (_error) {
     return { projects: [], error: 'Failed to fetch projects' }
   }
 }
@@ -1031,16 +985,13 @@ export async function deleteProject(projectSlug: string) {
     const { error: deleteError } = await supabase.from('projects').delete().eq('id', projectId)
 
     if (deleteError) {
-      console.error('Delete project error:', deleteError)
       return { success: false, error: deleteError.message }
     }
 
     if (projectWithImages?.image_keys?.length) {
       try {
         await deleteUploadthingFiles(projectWithImages.image_keys)
-      } catch {
-        console.warn('Failed to cleanup uploaded images for deleted project:', projectSlug)
-      }
+      } catch {}
     }
 
     revalidatePath('/project/list')
@@ -1048,8 +999,7 @@ export async function deleteProject(projectSlug: string) {
 
     console.log('[Delete Project] Successfully deleted project with slug:', projectSlug)
     return { success: true }
-  } catch (error) {
-    console.error('Delete project error:', error)
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }

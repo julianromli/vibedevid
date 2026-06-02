@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import ProjectDetailClient from '@/components/project/project-detail-client'
-import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
 
 export default function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -33,7 +33,10 @@ export default function ProjectDetailPage() {
         <Navbar />
         <div className="container mx-auto px-4 py-20 text-center">
           <p>Project not found.</p>
-          <Link to="/project/list" className="text-primary underline">
+          <Link
+            to="/project/list"
+            className="text-primary underline"
+          >
             Back to projects
           </Link>
         </div>
@@ -42,9 +45,13 @@ export default function ProjectDetailPage() {
     )
   }
 
+  if (!slug) {
+    return null
+  }
+
   return (
     <ProjectDetailClient
-      slug={slug!}
+      slug={slug}
       project={project}
       initialComments={data.comments ?? []}
       categories={data.categories ?? []}

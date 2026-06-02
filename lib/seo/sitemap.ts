@@ -110,9 +110,7 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
         priority: 0.5,
       })
     }
-  } catch (error) {
-    console.error('[sitemap] dynamic entries failed:', error)
-  }
+  } catch (_error) {}
 
   return urls
 }

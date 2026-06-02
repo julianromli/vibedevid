@@ -9,10 +9,10 @@ interface UserAvatarProps {
   user?: {
     id?: string
     username?: string
-    display_name?: string
+    display_name?: string | null
     name?: string
-    avatar_url?: string
-    avatar?: string
+    avatar_url?: string | null
+    avatar?: string | null
   }
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
@@ -64,8 +64,7 @@ export function UserAvatar({
           } else {
             setAvatarUrl(initialUrl)
           }
-        } catch (error) {
-          console.error('Error fetching avatar:', error)
+        } catch (_error) {
           setAvatarUrl(initialUrl)
         }
       } else {

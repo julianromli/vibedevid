@@ -3,7 +3,7 @@ type RichTextMark = {
   attrs?: Record<string, unknown>
 }
 
-type RichTextNode = {
+export type RichTextNode = {
   type?: string
   text?: string
   attrs?: Record<string, unknown>
@@ -47,6 +47,70 @@ function sanitizeUrl(value: unknown): string {
   return ''
 }
 
+function applyTextMarks(text: string, marks: RichTextMark[]): string {
+  let html = escapeHtml(text)
+
+  for (const mark of marks) {
+    switch (mark.type) {
+      case 'bold':
+        html = `<strong>${html}</strong>`
+        break
+      case 'italic':
+        html = `<em>${html}</em>`
+        break
+      case 'code':
+        html = `<code>${html}</code>`
+        break
+      case 'link': {
+        const href = sanitizeUrl(mark.attrs?.href)
+        if (href) {
+          html = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${html}</a>`
+        }
+        break
+      }
+      case 'strike':
+        html = `<s>${html}</s>`
+        break
+    }
+  }
+
+  return html
+}
+
+function renderImageNode(richNode: RichTextNode): string {
+  const attrs = richNode.attrs || {}
+  const src = sanitizeUrl(attrs.src || attrs.url || richNode.src || richNode.url)
+  const alt = escapeHtml(String(attrs.alt || richNode.alt || ''))
+  const title = escapeHtml(String(attrs.title || richNode.title || ''))
+
+  if (!src) {
+    return ''
+  }
+
+  return `
+        <div class="not-prose my-10 flex flex-col items-center">
+          <img 
+            src="${src}" 
+            alt="${alt}" 
+            title="${title}" 
+            class="rounded-2xl border border-border/40 shadow-xl max-w-full h-auto"
+            loading="lazy"
+          />
+          ${alt ? `<p class="text-muted-foreground mt-4 text-center text-sm font-medium italic">${alt}</p>` : ''}
+        </div>
+      `
+}
+
+function renderParagraphNode(richNode: RichTextNode): string {
+  if (richNode.content?.length === 1 && richNode.content[0].type === 'image') {
+    return contentToHtmlRecursive(richNode.content[0])
+  }
+
+  const children = richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
+  const content = children.trim() ? children : '&nbsp;'
+  return `<p>${content}</p>`
+}
+
 export function contentToHtmlRecursive(node: unknown): string {
   if (typeof node === 'string') return escapeHtml(node)
   if (!node || typeof node !== 'object') return ''
@@ -58,16 +122,8 @@ export function contentToHtmlRecursive(node: unknown): string {
     case 'doc':
       return richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
 
-    case 'paragraph': {
-      // Check if this paragraph ONLY contains an image
-      if (richNode.content?.length === 1 && richNode.content[0].type === 'image') {
-        return contentToHtmlRecursive(richNode.content[0])
-      }
-
-      const children = richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
-      const content = children.trim() ? children : '&nbsp;'
-      return `<p>${content}</p>`
-    }
+    case 'paragraph':
+      return renderParagraphNode(richNode)
 
     case 'heading': {
       const level = Math.min(Math.max(Number(richNode.attrs?.level ?? 2), 1), 6)
@@ -89,31 +145,8 @@ export function contentToHtmlRecursive(node: unknown): string {
     case 'blockquote':
       return `<blockquote>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</blockquote>`
 
-    case 'image': {
-      const attrs = richNode.attrs || {}
-      // Support multiple attribute names for the source URL
-      const src = sanitizeUrl(attrs.src || attrs.url || richNode.src || richNode.url)
-      const alt = escapeHtml(String(attrs.alt || richNode.alt || ''))
-      const title = escapeHtml(String(attrs.title || richNode.title || ''))
-
-      if (!src) {
-        return ''
-      }
-
-      // Render as a figure-like block with consistent responsive styling
-      return `
-        <div class="not-prose my-10 flex flex-col items-center">
-          <img 
-            src="${src}" 
-            alt="${alt}" 
-            title="${title}" 
-            class="rounded-2xl border border-border/40 shadow-xl max-w-full h-auto"
-            loading="lazy"
-          />
-          ${alt ? `<p class="text-muted-foreground mt-4 text-center text-sm font-medium italic">${alt}</p>` : ''}
-        </div>
-      `
-    }
+    case 'image':
+      return renderImageNode(richNode)
 
     case 'horizontalRule':
       return '<hr />'
@@ -122,34 +155,8 @@ export function contentToHtmlRecursive(node: unknown): string {
       return '<br />'
 
     case 'text': {
-      let html = escapeHtml(String(richNode.text ?? ''))
-      if (richNode.marks) {
-        richNode.marks.forEach((mark) => {
-          switch (mark.type) {
-            case 'bold':
-              html = `<strong>${html}</strong>`
-              break
-            case 'italic':
-              html = `<em>${html}</em>`
-              break
-            case 'code':
-              html = `<code>${html}</code>`
-              break
-            case 'link':
-              {
-                const href = sanitizeUrl(mark.attrs?.href)
-                if (href) {
-                  html = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${html}</a>`
-                }
-              }
-              break
-            case 'strike':
-              html = `<s>${html}</s>`
-              break
-          }
-        })
-      }
-      return html
+      const text = String(richNode.text ?? '')
+      return richNode.marks ? applyTextMarks(text, richNode.marks) : escapeHtml(text)
     }
 
     default:

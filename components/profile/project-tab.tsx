@@ -1,13 +1,25 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { Heart, MessageCircle } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Badge } from '@/components/ui/badge'
 
+interface ProfileProject {
+  id: string
+  slug: string
+  title: string
+  description?: string | null
+  thumbnail_url?: string | null
+  category?: string | null
+  likes?: number
+  comments_count?: number
+  created_at?: string
+}
+
 interface ProjectTabProps {
-  projects: any[]
+  projects: ProfileProject[]
 }
 
 export function ProjectTab({ projects }: ProjectTabProps) {
@@ -57,7 +69,9 @@ export function ProjectTab({ projects }: ProjectTabProps) {
                 <MessageCircle className="h-3.5 w-3.5" />
                 <span>{project.comments_count || 0}</span>
               </div>
-              <div className="ml-auto text-xs">{new Date(project.created_at).toLocaleDateString()}</div>
+              {project.created_at && (
+                <div className="ml-auto text-xs">{new Date(project.created_at).toLocaleDateString()}</div>
+              )}
             </div>
           </div>
         </Link>

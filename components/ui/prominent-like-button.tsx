@@ -49,15 +49,14 @@ export function ProminentLikeButton({
           setLikes(totalLikes)
           setIsLiked(dbIsLiked)
         }
-      } catch (error) {
-        console.error('Failed to sync like status:', error)
+      } catch (_error) {
       } finally {
         setIsLoading(false)
       }
     }
 
     syncLikeStatus()
-  }, [projectId, isLoggedIn])
+  }, [projectId])
 
   // Fallback to initial props if database sync fails
   React.useEffect(() => {
@@ -90,7 +89,7 @@ export function ProminentLikeButton({
         setLikes(newIsLiked ? likes - 1 : likes + 1)
         onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)
       }
-    } catch (error) {
+    } catch (_error) {
       setIsLiked(!newIsLiked)
       setLikes(newIsLiked ? likes - 1 : likes + 1)
       onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)

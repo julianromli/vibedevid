@@ -2,10 +2,10 @@
 
 import { Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import Overview from '@/src/client/features/admin/boards/OverviewBoard'
-import Analytics from '@/src/client/features/admin/boards/AnalyticsBoard'
 import { Header } from '@/components/admin-panel/header'
-import { resolveDashboardTab, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import { type DashboardTabValue, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
+import Analytics from '@/src/client/features/admin/boards/AnalyticsBoard'
+import Overview from '@/src/client/features/admin/boards/OverviewBoard'
 import { DashboardContent, DashboardContentFallback } from '@/src/client/features/admin/DashboardContent'
 import { AdminManagementBoard } from '@/src/client/pages/admin/boards/AdminManagementBoard'
 import { BlogBoard } from '@/src/client/pages/admin/boards/BlogBoard'
@@ -55,7 +55,10 @@ function AdminDashboardInner() {
   return (
     <>
       <Header />
-      <div className="space-y-4 p-4" suppressHydrationWarning>
+      <div
+        className="space-y-4 p-4"
+        suppressHydrationWarning
+      >
         <div className="mb-2">
           <h1 className="text-2xl font-bold tracking-tight">{TAB_TITLES[activeTab]}</h1>
         </div>

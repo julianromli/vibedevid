@@ -90,7 +90,7 @@ const categoryColors = {
 }
 
 export default function CalendarPage() {
-  const router = useRouter()
+  const _router = useRouter()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [selectedRange, setSelectedRange] = useState<{
     from: Date | undefined
@@ -268,7 +268,7 @@ export default function CalendarPage() {
                       onChange={(e) =>
                         setNewEvent({
                           ...newEvent,
-                          attendees: parseInt(e.target.value) || 0,
+                          attendees: parseInt(e.target.value, 10) || 0,
                         })
                       }
                       placeholder="0"

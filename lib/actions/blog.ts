@@ -1,17 +1,15 @@
-
-
 import { revalidatePath, revalidateTag } from '@/lib/cache'
 import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 
-function normalizeEditorContent(content: unknown): Record<string, any> {
+function normalizeEditorContent(content: unknown): Record<string, unknown> {
   if (!content) return { type: 'doc', content: [] }
 
   if (typeof content === 'string') {
     try {
       const parsed = JSON.parse(content)
       if (parsed && typeof parsed === 'object') {
-        return parsed as Record<string, any>
+        return parsed as Record<string, unknown>
       }
     } catch {
       return { type: 'doc', content: [] }
@@ -19,7 +17,7 @@ function normalizeEditorContent(content: unknown): Record<string, any> {
   }
 
   if (typeof content === 'object') {
-    return content as Record<string, any>
+    return content as Record<string, unknown>
   }
 
   return { type: 'doc', content: [] }
@@ -27,7 +25,7 @@ function normalizeEditorContent(content: unknown): Record<string, any> {
 
 export async function createBlogPost(data: {
   title: string
-  content: Record<string, any> | string
+  content: Record<string, unknown> | string
   excerpt?: string
   cover_image?: string
   status?: 'published' | 'draft'
@@ -81,7 +79,6 @@ export async function createBlogPost(data: {
   const { data: post, error } = await supabase.from('posts').insert(insertData).select('id, slug').single()
 
   if (error || !post) {
-    console.error('Create post error:', error)
     return { success: false, error: 'Failed to create post' }
   }
 
@@ -100,7 +97,7 @@ export async function updateBlogPost(
   id: string,
   data: Partial<{
     title: string
-    content: Record<string, any> | string
+    content: Record<string, unknown> | string
     excerpt: string
     cover_image: string
     status: 'published' | 'draft' | 'archived'
@@ -121,7 +118,6 @@ export async function updateBlogPost(
     .single()
 
   if (fetchError || !post) {
-    console.error('Update fetch error:', fetchError)
     return { success: false, error: 'Post not found' }
   }
 
@@ -130,7 +126,7 @@ export async function updateBlogPost(
   }
 
   const { tags, ...updateDataRaw } = data
-  const updateData: any = { ...updateDataRaw, updated_at: new Date().toISOString() }
+  const updateData: Record<string, unknown> = { ...updateDataRaw, updated_at: new Date().toISOString() }
 
   if (data.title) {
     updateData.slug = slugifyTitle(data.title)
@@ -176,7 +172,7 @@ async function syncPostTags(postId: string, tagNames: string[]) {
   for (const name of tagNames) {
     const slug = slugifyTitle(name)
     // Upsert tag
-    const { data: tag, error } = await supabase
+    const { data: tag } = await supabase
       .from('post_tags')
       .upsert({ name, slug }, { onConflict: 'slug' })
       .select('id')
@@ -233,7 +229,6 @@ export async function getAuthorPosts(page = 1, status: 'published' | 'draft' | '
   const { data, count, error } = await query
 
   if (error) {
-    console.error('Error fetching author posts:', error)
     return { success: false, error: 'Failed to fetch posts', data: [], total: 0 }
   }
 
@@ -263,7 +258,10 @@ export async function getPostForEdit(slug: string) {
   }
 
   // Flatten tags
-  const tags = data.tags?.map((t: any) => t.post_tags?.name).filter(Boolean) || []
+  const tags =
+    (data.tags as Array<{ post_tags?: { name?: string } }> | null | undefined)
+      ?.map((t) => t.post_tags?.name)
+      .filter((name): name is string => Boolean(name)) ?? []
 
   return { success: true, data: { ...data, tags } }
 }

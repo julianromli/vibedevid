@@ -1,6 +1,5 @@
 /** UploadThing fallback used by blog posts without cover */
-export const BLOG_DEFAULT_OG_IMAGE =
-  'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'
+export const BLOG_DEFAULT_OG_IMAGE = 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'
 
 export const DEFAULT_OG_IMAGE_PATH = '/opengraph-image.png'
 

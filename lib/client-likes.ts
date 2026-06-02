@@ -39,7 +39,6 @@ export async function getLikeStatusClient(projectIdentifier: string) {
       .eq('project_id', projectId)
 
     if (countError) {
-      console.error('Get likes count error:', countError)
       return { totalLikes: 0, isLiked: false, error: countError.message }
     }
 
@@ -54,15 +53,13 @@ export async function getLikeStatusClient(projectIdentifier: string) {
         .single()
 
       if (userLikeError && userLikeError.code !== 'PGRST116') {
-        console.error('Get user like status error:', userLikeError)
       } else if (userLike) {
         isLiked = true
       }
     }
 
     return { totalLikes: totalLikes || 0, isLiked, error: null }
-  } catch (error) {
-    console.error('Get like status client error:', error)
+  } catch (_error) {
     return {
       totalLikes: 0,
       isLiked: false,
@@ -139,8 +136,7 @@ export async function toggleLikeClient(projectIdentifier: string) {
 
       return { success: true, isLiked: true }
     }
-  } catch (error) {
-    console.error('Toggle like client error:', error)
+  } catch (_error) {
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 }

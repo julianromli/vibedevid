@@ -15,7 +15,6 @@ export async function authCallbackHandler(c: Context) {
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('[Callback] Exchange code error:', error)
     return c.redirect(`${origin}/user/auth?error=Could not authenticate user`)
   }
 
@@ -27,9 +26,9 @@ export async function authCallbackHandler(c: Context) {
     return c.redirect(`${origin}/user/auth?error=Could not authenticate user`)
   }
 
-  const isOAuthUser =
-    user.identities &&
-    user.identities.some((identity) => identity.provider !== 'email' && identity.provider !== 'phone')
+  const isOAuthUser = user.identities?.some(
+    (identity) => identity.provider !== 'email' && identity.provider !== 'phone',
+  )
 
   if (!isOAuthUser && !user.email_confirmed_at) {
     await supabase.auth.signOut()

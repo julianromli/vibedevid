@@ -1,5 +1,3 @@
-
-
 import { revalidatePath } from '@/lib/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -130,7 +128,6 @@ export async function getReportedComments(
     const { data: reports, error, count } = await query
 
     if (error) {
-      console.error('Get reported comments error:', error)
       return { reports: [], totalCount: 0, error: error.message }
     }
 
@@ -236,7 +233,6 @@ export async function getReportedComments(
       totalCount: count || 0,
     }
   } catch (error) {
-    console.error('Get reported comments error:', error)
     return {
       reports: [],
       totalCount: 0,
@@ -264,7 +260,6 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
     const { data: deletedRows, error } = await supabase.from('comments').delete().eq('id', commentId).select('id')
 
     if (error) {
-      console.error('Admin delete comment error:', error)
       return { success: false, error: error.message }
     }
     if (!deletedRows || deletedRows.length === 0) {
@@ -284,7 +279,6 @@ export async function adminDeleteComment(commentId: string): Promise<{ success: 
 
     return { success: true }
   } catch (error) {
-    console.error('Admin delete comment error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete comment',
@@ -305,7 +299,6 @@ export async function dismissReport(reportId: string): Promise<{ success: boolea
       .select('id')
 
     if (error) {
-      console.error('Dismiss report error:', error)
       return { success: false, error: error.message }
     }
     if (!updatedRows || updatedRows.length === 0) {
@@ -316,7 +309,6 @@ export async function dismissReport(reportId: string): Promise<{ success: boolea
 
     return { success: true }
   } catch (error) {
-    console.error('Dismiss report error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to dismiss report',
@@ -381,7 +373,6 @@ export async function takeActionOnReport(
 
     return { success: true }
   } catch (error) {
-    console.error('Take action on report error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to take action',

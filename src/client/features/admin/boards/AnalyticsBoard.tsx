@@ -10,13 +10,16 @@ import {
   IconUsers,
 } from '@tabler/icons-react'
 import Link from 'next/link'
-import { useEffect, useState, type ElementType, type ReactNode } from 'react'
+import { type ElementType, type ReactNode, useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
+  type CategoryCount,
+  type CommunityHealthCounts,
+  type ContentGrowthPoint,
   getAnalyticsTimeSeries,
   getCommunityHealthCounts,
   getContentGrowthTimeSeries,
@@ -24,9 +27,6 @@ import {
   getPostsByStatus,
   getProjectsByCategory,
   getUsersByRole,
-  type CategoryCount,
-  type CommunityHealthCounts,
-  type ContentGrowthPoint,
   type RoleCount,
   type StatusCount,
 } from '@/lib/actions/analytics'
@@ -62,6 +62,67 @@ const statusChartConfig = {
   count: { label: 'Posts', color: 'hsl(var(--chart-3))' },
 } satisfies ChartConfig
 
+function formatChartDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+interface AnalyticsBoardData {
+  periodStats: { new_users: number; new_projects: number; new_posts: number }
+  contentGrowth: ContentGrowthPoint[]
+  engagement: EngagementPoint[]
+  categories: CategoryCount[]
+  roles: RoleCount[]
+  postStatuses: StatusCount[]
+  health: CommunityHealthCounts | null
+}
+
+async function fetchAnalyticsBoardData(days: number): Promise<AnalyticsBoardData> {
+  const [periodResult, growthResult, engagementResult, categoryResult, roleResult, statusResult, healthResult] =
+    await Promise.all([
+      getPeriodSignupStats(days),
+      getContentGrowthTimeSeries(days),
+      getAnalyticsTimeSeries(days),
+      getProjectsByCategory(8),
+      getUsersByRole(),
+      getPostsByStatus(),
+      getCommunityHealthCounts(),
+    ])
+
+  if (!periodResult.success) throw new Error(periodResult.error)
+  if (!growthResult.success) throw new Error(growthResult.error)
+  if (!engagementResult.success) throw new Error(engagementResult.error)
+  if (!categoryResult.success) throw new Error(categoryResult.error)
+  if (!roleResult.success) throw new Error(roleResult.error)
+  if (!statusResult.success) throw new Error(statusResult.error)
+  if (!healthResult.success) throw new Error(healthResult.error)
+
+  const engagement =
+    engagementResult.data?.dates.map((date, i) => ({
+      date: formatChartDate(date),
+      views: engagementResult.data?.views[i] || 0,
+      likes: engagementResult.data?.likes[i] || 0,
+      comments: engagementResult.data?.comments[i] || 0,
+    })) ?? []
+
+  return {
+    periodStats: {
+      new_users: periodResult.new_users || 0,
+      new_projects: periodResult.new_projects || 0,
+      new_posts: periodResult.new_posts || 0,
+    },
+    contentGrowth: (growthResult.data || []).map((point) => ({
+      ...point,
+      date: formatChartDate(point.date),
+    })),
+    engagement,
+    categories: categoryResult.categories || [],
+    roles: roleResult.roles || [],
+    postStatuses: statusResult.statuses || [],
+    health: healthResult.counts || null,
+  }
+}
+
 export default function Analytics() {
   const [days, setDays] = useState(30)
   const [loading, setLoading] = useState(true)
@@ -81,59 +142,14 @@ export default function Analytics() {
       setError(null)
 
       try {
-        const [
-          periodResult,
-          growthResult,
-          engagementResult,
-          categoryResult,
-          roleResult,
-          statusResult,
-          healthResult,
-        ] = await Promise.all([
-          getPeriodSignupStats(days),
-          getContentGrowthTimeSeries(days),
-          getAnalyticsTimeSeries(days),
-          getProjectsByCategory(8),
-          getUsersByRole(),
-          getPostsByStatus(),
-          getCommunityHealthCounts(),
-        ])
-
-        if (!periodResult.success) throw new Error(periodResult.error)
-        if (!growthResult.success) throw new Error(growthResult.error)
-        if (!engagementResult.success) throw new Error(engagementResult.error)
-        if (!categoryResult.success) throw new Error(categoryResult.error)
-        if (!roleResult.success) throw new Error(roleResult.error)
-        if (!statusResult.success) throw new Error(statusResult.error)
-        if (!healthResult.success) throw new Error(healthResult.error)
-
-        setPeriodStats({
-          new_users: periodResult.new_users || 0,
-          new_projects: periodResult.new_projects || 0,
-          new_posts: periodResult.new_posts || 0,
-        })
-        setContentGrowth(
-          (growthResult.data || []).map((point) => ({
-            ...point,
-            date: formatChartDate(point.date),
-          })),
-        )
-
-        if (engagementResult.data) {
-          setEngagement(
-            engagementResult.data.dates.map((date, i) => ({
-              date: formatChartDate(date),
-              views: engagementResult.data?.views[i] || 0,
-              likes: engagementResult.data?.likes[i] || 0,
-              comments: engagementResult.data?.comments[i] || 0,
-            })),
-          )
-        }
-
-        setCategories(categoryResult.categories || [])
-        setRoles(roleResult.roles || [])
-        setPostStatuses(statusResult.statuses || [])
-        setHealth(healthResult.counts || null)
+        const data = await fetchAnalyticsBoardData(days)
+        setPeriodStats(data.periodStats)
+        setContentGrowth(data.contentGrowth)
+        setEngagement(data.engagement)
+        setCategories(data.categories)
+        setRoles(data.roles)
+        setPostStatuses(data.postStatuses)
+        setHealth(data.health)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load analytics')
       } finally {
@@ -451,11 +467,6 @@ export default function Analytics() {
   )
 }
 
-function formatChartDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
 function PeriodStatCard({
   title,
   value,
@@ -474,7 +485,11 @@ function PeriodStatCard({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        {loading ? <Skeleton className="h-8 w-16" /> : <div className="font-bold text-2xl">{value.toLocaleString()}</div>}
+        {loading ? (
+          <Skeleton className="h-8 w-16" />
+        ) : (
+          <div className="font-bold text-2xl">{value.toLocaleString()}</div>
+        )}
       </CardContent>
     </Card>
   )
@@ -519,7 +534,13 @@ function HealthCard({
 }) {
   return (
     <Link href={href}>
-      <Card className={highlight ? 'border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10' : 'transition-colors hover:bg-muted/50'}>
+      <Card
+        className={
+          highlight
+            ? 'border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10'
+            : 'transition-colors hover:bg-muted/50'
+        }
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="font-medium text-sm">{title}</CardTitle>
           <Icon className="h-4 w-4 text-muted-foreground" />

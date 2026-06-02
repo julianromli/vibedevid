@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Navigate } from 'react-router-dom'
 import { useTranslations } from 'next-intl'
+import { Navigate } from 'react-router-dom'
 import { SubmitProjectForm } from '@/components/ui/submit-project-form'
 import type { Category } from '@/lib/categories'
 
@@ -26,7 +26,12 @@ export default function ProjectSubmitPage() {
   }
 
   if (!data || 'unauthorized' in data) {
-    return <Navigate to="/user/auth?redirectTo=/project/submit" replace />
+    return (
+      <Navigate
+        to="/user/auth?redirectTo=/project/submit"
+        replace
+      />
+    )
   }
 
   return (
@@ -38,7 +43,11 @@ export default function ProjectSubmitPage() {
             <h1 className="mb-2 font-bold text-3xl">{t('title')}</h1>
             <p className="text-muted-foreground">{t('description')}</p>
           </div>
-          <SubmitProjectForm userId={data.userId} categories={data.categories} redirectTo="/project/submit" />
+          <SubmitProjectForm
+            userId={data.userId}
+            categories={data.categories}
+            redirectTo="/project/submit"
+          />
         </div>
       </div>
     </div>

@@ -21,5 +21,11 @@ export default function BlogListPage() {
     )
   }
 
-  return <BlogPageClient isLoggedIn={data.isLoggedIn} user={data.user} posts={data.posts} />
+  return (
+    <BlogPageClient
+      isLoggedIn={data.isLoggedIn}
+      user={data.user}
+      posts={data.posts}
+    />
+  )
 }

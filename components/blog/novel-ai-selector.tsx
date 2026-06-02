@@ -117,8 +117,7 @@ export function NovelAISelector() {
       )
       setShowResponse(true)
     },
-    onError: (error) => {
-      console.error('[AI Selector] onError:', error)
+    onError: (_error) => {
       setCompletion('Failed to generate. Please try again.')
       setShowResponse(true)
     },

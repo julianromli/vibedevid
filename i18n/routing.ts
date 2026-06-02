@@ -1,1 +1,1 @@
-export { routing, type Locale } from './routing.vite'
+export { type Locale, routing } from './routing.vite'

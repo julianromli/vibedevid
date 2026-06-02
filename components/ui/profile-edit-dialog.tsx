@@ -1,7 +1,6 @@
 'use client'
 
 import { Loader2, Sparkles, Upload } from 'lucide-react'
-import type React from 'react'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AvatarUploader } from '@/components/ui/avatar-uploader'
@@ -13,20 +12,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { isOurStorageUrl, scheduleOldAvatarDeletion } from '@/lib/avatar-utils'
 import { createClient } from '@/lib/supabase/client'
 
+export interface ProfileFormData {
+  name: string
+  username: string
+  avatar: string
+  bio: string
+  location?: string
+  website?: string
+  github_url?: string
+  twitter_url?: string
+}
+
 interface ProfileEditDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultValues?: {
-    name: string
-    username: string
-    avatar: string
-    bio: string
-    location?: string
-    website?: string
-    github_url?: string
-    twitter_url?: string
-  }
-  onSave: (data: any) => Promise<void>
+  defaultValues?: ProfileFormData
+  onSave: (data: ProfileFormData) => Promise<void>
   saving?: boolean
 }
 
@@ -66,7 +67,6 @@ export default function ProfileEditDialog({
       } = await supabase.auth.getUser()
 
       if (!user) {
-        console.error('User not authenticated')
         return { success: false }
       }
 
@@ -74,13 +74,12 @@ export default function ProfileEditDialog({
       const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`
       console.log('[v0] Uploading to path:', fileName)
 
-      const { data, error } = await supabase.storage.from('avatars').upload(fileName, file, {
+      const { error } = await supabase.storage.from('avatars').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
       })
 
       if (error) {
-        console.error('[v0] Error uploading avatar:', error.message)
         return { success: false }
       }
 
@@ -105,8 +104,7 @@ export default function ProfileEditDialog({
       }
 
       return { success: true }
-    } catch (error) {
-      console.error('[v0] Error uploading avatar:', error)
+    } catch (_error) {
       return { success: false }
     } finally {
       setUploadingAvatar(false)
@@ -137,19 +135,7 @@ export default function ProfileEditDialog({
     console.log('[v0] Saving profile with avatar:', formData.avatar)
     console.log('[v0] Full formData:', formData)
 
-    const saveData = {
-      displayName: formData.name,
-      username: formData.username,
-      bio: formData.bio,
-      location: formData.location,
-      website: formData.website,
-      github_url: formData.github_url,
-      twitter_url: formData.twitter_url,
-      avatar_url: formData.avatar, // Ensure avatar is included
-    }
-
-    console.log('[v0] Data being sent to onSave:', saveData)
-    await onSave(saveData)
+    await onSave(formData)
   }
 
   return (

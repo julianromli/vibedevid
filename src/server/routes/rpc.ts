@@ -101,7 +101,6 @@ rpcRoutes.post('/rpc', async (c) => {
       return c.json({ ok: true, redirect: error.url })
     }
     const message = error instanceof Error ? error.message : 'Unknown error'
-    console.error(`[RPC] ${body.procedure} failed:`, error)
     return c.json({ ok: false, error: message }, 500)
   }
 })

@@ -1,5 +1,6 @@
 'use client'
 
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -14,7 +15,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function TermsPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function TermsPage() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user)
         setIsLoggedIn(true)
@@ -79,7 +80,17 @@ export default function TermsPage() {
         <Navbar
           showNavigation={true}
           isLoggedIn={isLoggedIn}
-          user={user}
+          user={
+            user
+              ? {
+                  id: user.id,
+                  name: (user.user_metadata?.full_name as string | undefined) ?? user.email ?? '',
+                  email: user.email ?? '',
+                  avatar_url: user.user_metadata?.avatar_url as string | undefined,
+                  username: user.user_metadata?.username as string | undefined,
+                }
+              : undefined
+          }
         />
 
         <main className="pt-20 pb-12">
@@ -273,9 +284,9 @@ export default function TermsPage() {
                           'Malicious code or viruses',
                           'Spam or fraudulent content',
                           'Adult or explicit material',
-                        ].map((item, index) => (
+                        ].map((item) => (
                           <div
-                            key={index}
+                            key={item}
                             className="flex items-center gap-2 rounded bg-red-50 p-2 dark:bg-red-900/20"
                           >
                             <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
@@ -412,9 +423,9 @@ export default function TermsPage() {
                         'Use automated access systems',
                         'Reverse engineer our platform',
                         'Distribute malicious content',
-                      ].map((item, index) => (
+                      ].map((item) => (
                         <div
-                          key={index}
+                          key={item}
                           className="flex items-center gap-2"
                         >
                           <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />

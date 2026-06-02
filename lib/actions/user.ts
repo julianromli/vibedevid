@@ -55,8 +55,7 @@ export async function getCurrentUser(): Promise<{ user: User | null; error?: str
         role: userData.role,
       } as User,
     }
-  } catch (error) {
-    console.error('Error fetching current user:', error)
+  } catch (_error) {
     return { user: null, error: 'Failed to fetch user' }
   }
 }
@@ -105,7 +104,7 @@ export async function updateUserProfile(
     }
 
     // Perform the update
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .update({
         username: profileData.username,
@@ -122,7 +121,6 @@ export async function updateUserProfile(
       .select()
 
     if (error) {
-      console.error('Error updating profile:', error)
       return { success: false, error: error.message }
     }
 
@@ -138,8 +136,7 @@ export async function updateUserProfile(
       usernameChanged,
       newUsername: usernameChanged ? profileData.username : undefined,
     }
-  } catch (error) {
-    console.error('Error updating profile:', error)
+  } catch (_error) {
     return { success: false, error: 'Failed to update profile' }
   }
 }

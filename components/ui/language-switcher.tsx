@@ -22,9 +22,9 @@ function getLocaleFromPathname(pathname: string): Locale {
 }
 
 export function LanguageSwitcher() {
-  const router = useRouter()
+  const _router = useRouter()
   const pathname = usePathname()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, _startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

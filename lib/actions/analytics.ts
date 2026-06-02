@@ -1,5 +1,3 @@
-
-
 import { createClient } from '@/lib/supabase/server'
 
 export interface PlatformStats {
@@ -145,7 +143,6 @@ export async function getPlatformStats(): Promise<{
       },
     }
   } catch (error) {
-    console.error('Get platform stats error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load platform stats',
@@ -227,7 +224,6 @@ export async function getMostViewedProjects(limit: number = 10): Promise<{
       projects: formattedProjects.slice(0, limit),
     }
   } catch (error) {
-    console.error('Get most viewed projects error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load projects',
@@ -297,7 +293,6 @@ export async function getMostViewedPosts(limit: number = 10): Promise<{
       posts: formattedPosts,
     }
   } catch (error) {
-    console.error('Get most viewed posts error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load posts',
@@ -364,7 +359,6 @@ export async function getContentGrowthTimeSeries(days: number = 30): Promise<{
 
     return { success: true, data }
   } catch (error) {
-    console.error('Get content growth time series error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load content growth',
@@ -398,7 +392,6 @@ export async function getProjectsByCategory(limit: number = 8): Promise<{
 
     return { success: true, categories }
   } catch (error) {
-    console.error('Get projects by category error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load project categories',
@@ -435,7 +428,6 @@ export async function getUsersByRole(): Promise<{
       ],
     }
   } catch (error) {
-    console.error('Get users by role error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load user roles',
@@ -468,7 +460,6 @@ export async function getPostsByStatus(): Promise<{
       ],
     }
   } catch (error) {
-    console.error('Get posts by status error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load post statuses',
@@ -508,7 +499,6 @@ export async function getCommunityHealthCounts(): Promise<{
       },
     }
   } catch (error) {
-    console.error('Get community health counts error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load community health',
@@ -542,7 +532,6 @@ export async function getPeriodSignupStats(days: number = 30): Promise<{
       new_posts: posts.count || 0,
     }
   } catch (error) {
-    console.error('Get period signup stats error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load period stats',
@@ -650,7 +639,6 @@ export async function getAnalyticsTimeSeries(days: number = 30): Promise<{
       },
     }
   } catch (error) {
-    console.error('Get analytics time series error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load analytics',

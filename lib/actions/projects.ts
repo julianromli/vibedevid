@@ -1,7 +1,7 @@
 'use server'
 
-import { revalidatePath } from '@/lib/cache'
 import { z } from 'zod'
+import { revalidatePath } from '@/lib/cache'
 import { fetchFavicon } from '../favicon-utils'
 import { normalizeProjectWebsiteUrl } from '../project-url'
 import { ensureUniqueSlug, slugifyTitle } from '../slug'

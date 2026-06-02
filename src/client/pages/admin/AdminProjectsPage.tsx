@@ -1,7 +1,6 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { Navigate } from 'react-router-dom'
-import { invokeRpc } from '@/lib/rpc-client'
 
 export default function AdminProjectsPage() {
   const { data: user, isLoading } = useQuery({
@@ -9,7 +8,13 @@ export default function AdminProjectsPage() {
     queryFn: () => fetch('/api/session').then((r) => r.json()),
   })
   if (isLoading) return null
-  if (!user?.user || user.user.role > 1) return <Navigate to="/" replace />
+  if (!user?.user || user.user.role > 1)
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    )
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-2xl font-bold">AdminProjectsPage</h1>

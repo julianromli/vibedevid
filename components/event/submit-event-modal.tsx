@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { useEventForm } from '@/hooks/useEventForm'
 import { submitEvent } from '@/lib/actions/events'
-import type { EventFormData } from '@/types/events'
+import type { EventCategory, EventFormData, EventLocationType } from '@/types/events'
 
 interface SubmitEventModalProps {
   open: boolean
@@ -49,8 +49,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
       } else {
         toast.error(result.error || 'Gagal submit event. Silakan coba lagi.')
       }
-    } catch (error) {
-      console.error('Submit event error:', error)
+    } catch (_error) {
       toast.error('Terjadi kesalahan saat submit event. Silakan coba lagi.')
     } finally {
       setIsSubmitting(false)
@@ -144,7 +143,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
             </Label>
             <Select
               value={formData.locationType || ''}
-              onValueChange={(value) => setField('locationType', value)}
+              onValueChange={(value) => setField('locationType', value as EventLocationType)}
               disabled={isLoading}
             >
               <SelectTrigger>
@@ -188,7 +187,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
             </Label>
             <Select
               value={formData.category || ''}
-              onValueChange={(value) => setField('category', value)}
+              onValueChange={(value) => setField('category', value as EventCategory)}
               disabled={isLoading}
             >
               <SelectTrigger>

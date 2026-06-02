@@ -38,7 +38,7 @@ interface BlogPageClientProps {
 }
 
 export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClientProps) {
-  const scrollToSection = (sectionId: string) => {
+  const _scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({

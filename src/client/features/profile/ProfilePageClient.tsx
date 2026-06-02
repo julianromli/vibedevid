@@ -1,8 +1,5 @@
 'use client'
-import { format } from 'date-fns'
 import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -15,7 +12,7 @@ import { ProjectTab } from '@/components/profile/project-tab'
 import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
+import ProfileEditDialog, { type ProfileFormData } from '@/components/ui/profile-edit-dialog'
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { updateUserProfile } from '@/lib/actions/user'
@@ -74,7 +71,6 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
   })
 
   if (error) {
-    console.warn('RPC not available, falling back to regular queries:', error)
     return await fetchUserProjectsFallback(username)
   }
 
@@ -114,7 +110,6 @@ async function fetchUserProjectsFallback(username: string): Promise<UserProject[
   const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single()
 
   if (userError || !user) {
-    console.error('Error fetching user for projects:', userError)
     return []
   }
 
@@ -197,7 +192,6 @@ async function fetchUserProfileWithStats(username: string) {
   const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
 
   if (userError || !user) {
-    console.error('[v0] Error fetching user:', userError)
     return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
   }
 
@@ -295,7 +289,6 @@ async function fetchUserBlogPosts(userId: string): Promise<UserBlogPost[]> {
     .returns<UserBlogPost[]>()
 
   if (error) {
-    console.error('[v0] Error fetching user blog posts:', error)
     return []
   }
 
@@ -378,8 +371,7 @@ export default function ProfilePage() {
         setUserProjects(projects)
         setUserPosts(posts)
         setUserStats({ ...stats, posts: posts.length })
-      } catch (error) {
-        console.error('[v0] Error loading profile data:', error)
+      } catch (_error) {
       } finally {
         setLoading(false)
       }
@@ -392,32 +384,36 @@ export default function ProfilePage() {
     setShowEditDialog(true)
   }
 
-  const handleSaveProfile = async (profileData: {
-    displayName: string
-    username: string
-    bio: string
-    location: string
-    website: string
-    github_url: string
-    twitter_url: string
-    avatar_url: string
-  }) => {
+  const handleSaveProfile = async (profileData: ProfileFormData) => {
     setSaving(true)
     try {
-      const result = await updateUserProfile(username, profileData)
+      const result = await updateUserProfile(username, {
+        displayName: profileData.name,
+        username: profileData.username,
+        bio: profileData.bio,
+        location: profileData.location ?? '',
+        website: profileData.website ?? '',
+        github_url: profileData.github_url ?? '',
+        twitter_url: profileData.twitter_url ?? '',
+        avatar_url: profileData.avatar,
+      })
       if (result.success) {
         setShowEditDialog(false)
 
+        if (!user) {
+          return
+        }
+
         const updatedUser: ProfileUser = {
-          ...user!,
+          ...user,
           username: profileData.username,
-          display_name: profileData.displayName,
+          display_name: profileData.name,
           bio: profileData.bio,
-          location: profileData.location,
-          website: profileData.website,
-          github_url: profileData.github_url,
-          twitter_url: profileData.twitter_url,
-          avatar_url: profileData.avatar_url,
+          location: profileData.location ?? '',
+          website: profileData.website ?? '',
+          github_url: profileData.github_url ?? '',
+          twitter_url: profileData.twitter_url ?? '',
+          avatar_url: profileData.avatar,
         }
 
         setUser(updatedUser)
@@ -429,8 +425,7 @@ export default function ProfilePage() {
       } else {
         toast.error(result.error || 'Failed to update profile')
       }
-    } catch (error) {
-      console.error('Error saving profile:', error)
+    } catch (_error) {
       toast.error('Error saving profile')
     } finally {
       setSaving(false)

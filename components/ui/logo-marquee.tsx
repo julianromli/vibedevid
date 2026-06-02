@@ -79,9 +79,9 @@ export function LogoMarquee() {
         speed={30}
         speedOnHover={10}
       >
-        {logos.map((logo, idx) => (
+        {logos.map((logo) => (
           <div
-            key={idx}
+            key={logo.name}
             className="flex items-center gap-2 px-4 transition-all duration-300"
           >
             {logo.url ? (

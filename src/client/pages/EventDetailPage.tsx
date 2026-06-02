@@ -33,7 +33,10 @@ export default function EventDetailPage() {
         <Navbar />
         <div className="container mx-auto px-4 py-20 text-center">
           <p>Event not found.</p>
-          <Link to="/event/list" className="text-primary underline">
+          <Link
+            to="/event/list"
+            className="text-primary underline"
+          >
             Back to events
           </Link>
         </div>

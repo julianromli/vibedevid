@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import type { Context, Next } from 'hono'
-import { getCookie, setCookie } from 'hono/cookie'
+import { setCookie } from 'hono/cookie'
 import { getSupabaseConfig } from '@/lib/env-config'
 import { type CookieRecord, type RequestContext, runWithRequestContext } from '@/lib/request-context'
 

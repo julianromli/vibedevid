@@ -29,7 +29,7 @@ export function UserRoleDialog({ user, open, onOpenChange }: UserRoleDialogProps
     setIsLoading(true)
 
     try {
-      const result = await updateUserRole(user.id, parseInt(selectedRole))
+      const result = await updateUserRole(user.id, parseInt(selectedRole, 10))
 
       if (result.success) {
         toast.success('User role updated successfully')
@@ -38,7 +38,7 @@ export function UserRoleDialog({ user, open, onOpenChange }: UserRoleDialogProps
       } else {
         toast.error(result.error || 'Failed to update role')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)

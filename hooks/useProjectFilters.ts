@@ -106,9 +106,7 @@ export function useProjectFilters({
             label: category.display_name,
           })),
         )
-      } catch (error) {
-        console.error('Failed to fetch categories for filters:', error)
-      }
+      } catch (_error) {}
     }
 
     fetchFilterCategories()
@@ -162,12 +160,10 @@ export function useProjectFilters({
         }
 
         setProjects(fetchedProjects)
-      } catch (error) {
+      } catch (_error) {
         if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return
         }
-
-        console.error('Error fetching projects:', error)
       } finally {
         if (isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           setLoading(false)

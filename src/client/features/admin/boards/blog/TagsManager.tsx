@@ -31,7 +31,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || 'Failed to create tag')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)
@@ -50,7 +50,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || 'Failed to delete tag')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)

@@ -110,17 +110,15 @@ export function ProgressiveImage({
         height,
         fill,
         priority,
-        loading: loading as any,
+        loading: loading as 'lazy' | 'eager' | undefined,
         placeholder: enableBlurPlaceholder ? 'blur' : 'empty',
         blurDataURL,
       })
 
       if (!validation.isValid) {
-        console.error('ProgressiveImage validation errors:', validation.errors)
       }
 
       if (validation.warnings.length > 0) {
-        console.warn('ProgressiveImage warnings:', validation.warnings)
       }
     }
   }, [currentSrc, alt, width, height, fill, priority, loading, enableBlurPlaceholder, blurDataURL, decorative])
@@ -133,7 +131,7 @@ export function ProgressiveImage({
       const fallbackBlur = `data:image/svg+xml,${encodeURIComponent(canvas)}`
       setBlurDataURL(fallbackBlur)
     }
-  }, [src, enableBlurPlaceholder, customBlurDataURL, autoPlaceholderColor])
+  }, [enableBlurPlaceholder, customBlurDataURL, autoPlaceholderColor])
 
   // Handle loading state changes
   useEffect(() => {
@@ -208,6 +206,7 @@ export function ProgressiveImage({
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <circle
                 className="opacity-25"
@@ -257,12 +256,12 @@ export function ProgressiveImage({
       {/* Error State Overlay */}
       {loadingState === 'error' && currentSrc === fallbackSrc && (
         <div
+          role="status"
           className={cn(
             'absolute inset-0 bg-gray-100 dark:bg-gray-800',
             'flex flex-col items-center justify-center',
             'text-sm text-gray-400 dark:text-gray-500',
           )}
-          aria-label="Image failed to load"
         >
           <svg
             className="mb-2 h-8 w-8"

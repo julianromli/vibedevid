@@ -1,6 +1,6 @@
 'use client'
 
-import { IconCheck, IconDotsVertical, IconEye, IconTrash, IconX } from '@tabler/icons-react'
+import { IconDotsVertical, IconEye, IconTrash, IconX } from '@tabler/icons-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,7 @@ export function ReportActions({ report, onView }: ReportActionsProps) {
       } else {
         toast.error(result.error || 'Failed to process report')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)

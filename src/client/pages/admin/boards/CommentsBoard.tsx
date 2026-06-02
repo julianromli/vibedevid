@@ -2,14 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ReportsTable } from '@/src/client/features/admin/boards/comments/ReportsTable'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ReportsTable } from '@/src/client/features/admin/boards/comments/ReportsTable'
 
 export function CommentsBoard() {
   const [searchParams, setSearchParams] = useSearchParams()
   const status = (searchParams.get('status') as 'all' | 'pending' | 'reviewed' | 'dismissed') || 'all'
-  const page = searchParams.get('page') ? Number.parseInt(searchParams.get('page')!, 10) : 1
+  const pageQuery = searchParams.get('page')
+  const page = pageQuery ? Number.parseInt(pageQuery, 10) : 1
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'comments', status, page],
     queryFn: async () => {
@@ -57,7 +58,11 @@ export function CommentsBoard() {
           <SelectItem value="dismissed">Dismissed</SelectItem>
         </SelectContent>
       </Select>
-      <ReportsTable reports={data.reports ?? []} totalCount={data.totalCount ?? 0} currentPage={page} />
+      <ReportsTable
+        reports={data.reports ?? []}
+        totalCount={data.totalCount ?? 0}
+        currentPage={page}
+      />
     </div>
   )
 }

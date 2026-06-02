@@ -38,7 +38,7 @@ export function UserSuspendDialog({ user, open, onOpenChange }: UserSuspendDialo
       } else {
         toast.error(result.error || 'Failed to update suspension status')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsLoading(false)

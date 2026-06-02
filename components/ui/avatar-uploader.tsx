@@ -94,7 +94,7 @@ export function AvatarUploader({
       open={open}
       onOpenChange={onOpenChange}
       drawerProps={{
-        dismissible: photo?.file ? false : true,
+        dismissible: !photo?.file,
       }}
     >
       <ModalTrigger asChild>{children}</ModalTrigger>

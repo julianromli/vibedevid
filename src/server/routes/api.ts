@@ -153,8 +153,7 @@ Use Markdown formatting when appropriate.`,
       maxOutputTokens: 200,
     })
     return result.toTextStreamResponse()
-  } catch (error) {
-    console.error('AI completion error:', error)
+  } catch (_error) {
     return c.json({ error: 'Failed to generate completion' }, 500)
   }
 })
@@ -176,8 +175,7 @@ apiRoutes.post('/ai/enhance-description', async (c) => {
       maxOutputTokens: 500,
     })
     return c.json({ enhanced: result.text })
-  } catch (error) {
-    console.error('AI enhance error:', error)
+  } catch (_error) {
     return c.json({ error: 'Failed to enhance description' }, 500)
   }
 })

@@ -8,7 +8,6 @@ const supabaseUrl = 'https://qabfrhpbfvjcgdrxdlba.supabase.co'
 const supabaseServiceRoleKey = ''
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
-  console.error('❌ Missing Supabase environment variables!')
   process.exit(1)
 }
 
@@ -26,7 +25,6 @@ async function clearDatabase() {
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
 
     if (commentsError) {
-      console.error('Error deleting comments:', commentsError)
     } else {
       console.log('✅ Comments deleted successfully')
     }
@@ -38,7 +36,6 @@ async function clearDatabase() {
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
 
     if (likesError) {
-      console.error('Error deleting likes:', likesError)
     } else {
       console.log('✅ Likes deleted successfully')
     }
@@ -50,7 +47,6 @@ async function clearDatabase() {
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
 
     if (viewsError) {
-      console.error('Error deleting views:', viewsError)
     } else {
       console.log('✅ Views deleted successfully')
     }
@@ -62,7 +58,6 @@ async function clearDatabase() {
       .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
 
     if (projectsError) {
-      console.error('Error deleting projects:', projectsError)
     } else {
       console.log('✅ Projects deleted successfully')
     }
@@ -74,8 +69,7 @@ async function clearDatabase() {
     console.log('📝 All projects, comments, likes, and views have been removed')
     console.log('👤 User profiles are preserved')
     console.log('\nReady for fresh data! 🚀')
-  } catch (error) {
-    console.error('❌ Error during database cleanup:', error)
+  } catch (_error) {
     process.exit(1)
   }
 }

@@ -48,7 +48,10 @@ export default function EventDetailClient({ event, relatedEvents, currentUser }:
           <div className="space-y-8 lg:col-span-8">
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="capitalize">
+                <Badge
+                  variant="secondary"
+                  className="capitalize"
+                >
                   {event.category}
                 </Badge>
                 <Badge
@@ -133,7 +136,11 @@ export default function EventDetailClient({ event, relatedEvents, currentUser }:
                           Secure your spot for this event. Registration is open until seats are filled.
                         </p>
                       </div>
-                      <Button asChild size="lg" className="w-full font-semibold shadow-md">
+                      <Button
+                        asChild
+                        size="lg"
+                        className="w-full font-semibold shadow-md"
+                      >
                         <a
                           href={event.registrationUrl}
                           target="_blank"
@@ -154,7 +161,10 @@ export default function EventDetailClient({ event, relatedEvents, currentUser }:
                     </div>
                   )}
 
-                  <EventShareButton eventTitle={event.name} eventSlug={event.slug} />
+                  <EventShareButton
+                    eventTitle={event.name}
+                    eventSlug={event.slug}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -166,14 +176,21 @@ export default function EventDetailClient({ event, relatedEvents, currentUser }:
             <div className="mb-8 flex items-center justify-between">
               <h2 className="font-bold text-2xl tracking-tight">Related Events</h2>
               <Link href="/event/list">
-                <Button variant="ghost" className="gap-1">
+                <Button
+                  variant="ghost"
+                  className="gap-1"
+                >
                   View all <ArrowLeft className="h-4 w-4 rotate-180" />
                 </Button>
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedEvents.map((relatedEvent) => (
-                <EventCard key={relatedEvent.id} event={relatedEvent} variant="grid" />
+                <EventCard
+                  key={relatedEvent.id}
+                  event={relatedEvent}
+                  variant="grid"
+                />
               ))}
             </div>
           </div>

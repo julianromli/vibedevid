@@ -63,6 +63,7 @@ export const ThemeToggle = ({ className }: props) => {
   if (!mounted) {
     return (
       <button
+        type="button"
         className={cn('opacity-0', className)}
         disabled
       >

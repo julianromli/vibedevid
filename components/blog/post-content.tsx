@@ -1,13 +1,13 @@
-import { Calendar, Clock } from 'lucide-react'
 import { format } from 'date-fns'
+import { Calendar, Clock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { contentToHtml, type RichTextNode } from '@/lib/blog-utils'
 import { cn } from '@/lib/utils'
-import { contentToHtml } from '@/lib/blog-utils'
 
 interface PostContentProps {
   post: {
     title: string
-    content: any
+    content: RichTextNode
     excerpt?: string
     cover_image?: string
     published_at?: string | null
@@ -67,6 +67,7 @@ export function PostContent({ post, className }: PostContentProps) {
 
       <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
         {post.content && typeof post.content === 'object' ? (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap JSON is converted to escaped HTML via contentToHtml
           <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
         ) : (
           <p>{post.content}</p>

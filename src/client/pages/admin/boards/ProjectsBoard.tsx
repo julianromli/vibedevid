@@ -2,16 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ProjectFilters } from '@/src/client/features/admin/boards/projects/ProjectFilters'
 import { ProjectsTable } from '@/src/client/features/admin/boards/projects/ProjectsTable'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export function ProjectsBoard() {
   const [searchParams] = useSearchParams()
   const status = searchParams.get('status') ?? undefined
   const category = searchParams.get('category') ?? undefined
   const search = searchParams.get('search') ?? undefined
-  const page = searchParams.get('page') ? Number.parseInt(searchParams.get('page')!, 10) : 1
+  const pageQuery = searchParams.get('page')
+  const page = pageQuery ? Number.parseInt(pageQuery, 10) : 1
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'projects', status, category, search, page],
@@ -48,7 +49,11 @@ export function ProjectsBoard() {
   return (
     <div className="space-y-4">
       <ProjectFilters categories={data.categories ?? []} />
-      <ProjectsTable projects={data.projects ?? []} totalCount={data.totalCount ?? 0} currentPage={page} />
+      <ProjectsTable
+        projects={data.projects ?? []}
+        totalCount={data.totalCount ?? 0}
+        currentPage={page}
+      />
     </div>
   )
 }

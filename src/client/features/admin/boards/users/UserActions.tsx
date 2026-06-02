@@ -1,6 +1,6 @@
 'use client'
 
-import { IconBan, IconChartBar, IconDotsVertical, IconEdit, IconShield, IconUserCheck } from '@tabler/icons-react'
+import { IconBan, IconChartBar, IconDotsVertical, IconShield, IconUserCheck } from '@tabler/icons-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {

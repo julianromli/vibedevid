@@ -54,7 +54,7 @@ function getSafeAuthRedirectPath(value: string | null): string {
   return trimmed
 }
 
-// Component yang menggunakan useSearchParams
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: auth page combines sign-in, sign-up, and password reset flows
 function AuthPageContent() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(false)

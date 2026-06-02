@@ -20,13 +20,12 @@ export function extractStoragePathFromUrl(url: string, bucketName: string = 'ava
     const supabaseStorageRegex = new RegExp(`/storage/v1/object/public/${bucketName}/(.+)`)
     const match = url.match(supabaseStorageRegex)
 
-    if (match && match[1]) {
+    if (match?.[1]) {
       return match[1] // Return file path tanpa bucket name
     }
 
     return null // Bukan URL dari bucket kita, mungkin external URL
-  } catch (error) {
-    console.error('[Avatar Utils] Error extracting storage path:', error)
+  } catch (_error) {
     return null
   }
 }
@@ -44,14 +43,12 @@ export async function deleteStorageFile(filePath: string, bucketName: string = '
     const { error } = await supabase.storage.from(bucketName).remove([filePath])
 
     if (error) {
-      console.error(`[Avatar Utils] Error deleting file ${filePath}:`, error.message)
       return false
     }
 
     console.log(`[Avatar Utils] Successfully deleted file: ${filePath}`)
     return true
-  } catch (error) {
-    console.error('[Avatar Utils] Unexpected error deleting file:', error)
+  } catch (_error) {
     return false
   }
 }
@@ -86,9 +83,7 @@ export function scheduleOldAvatarDeletion(
       } else {
         console.log(`[Avatar Utils] ❌ Failed to delete old avatar: ${filePath}`)
       }
-    } catch (error) {
-      console.error('[Avatar Utils] Error in scheduled deletion:', error)
-    }
+    } catch (_error) {}
   }, delayMs)
 }
 

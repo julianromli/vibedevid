@@ -2,16 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
 import { PostFilters } from '@/src/client/features/admin/boards/blog/PostFilters'
 import { PostsTable } from '@/src/client/features/admin/boards/blog/PostsTable'
 import { TagsManager } from '@/src/client/features/admin/boards/blog/TagsManager'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export function BlogBoard() {
   const [searchParams] = useSearchParams()
   const status = searchParams.get('status') ?? undefined
   const search = searchParams.get('search') ?? undefined
-  const page = searchParams.get('page') ? Number.parseInt(searchParams.get('page')!, 10) : 1
+  const pageQuery = searchParams.get('page')
+  const page = pageQuery ? Number.parseInt(pageQuery, 10) : 1
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'posts', status, search, page],
@@ -48,7 +49,11 @@ export function BlogBoard() {
     <div className="space-y-6">
       <TagsManager tags={data.tags ?? []} />
       <PostFilters />
-      <PostsTable posts={data.posts ?? []} totalCount={data.totalCount ?? 0} currentPage={page} />
+      <PostsTable
+        posts={data.posts ?? []}
+        totalCount={data.totalCount ?? 0}
+        currentPage={page}
+      />
     </div>
   )
 }

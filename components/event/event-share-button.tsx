@@ -9,7 +9,7 @@ interface EventShareButtonProps {
   eventSlug: string
 }
 
-export function EventShareButton({ eventTitle, eventSlug }: EventShareButtonProps) {
+export function EventShareButton({ eventTitle: _eventTitle, eventSlug }: EventShareButtonProps) {
   const handleShare = async () => {
     const url = `${window.location.origin}/event/${eventSlug}`
 
@@ -18,7 +18,7 @@ export function EventShareButton({ eventTitle, eventSlug }: EventShareButtonProp
       toast.success('Link copied to clipboard!', {
         description: 'Share this event with your friends',
       })
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to copy link', {
         description: 'Please try again',
       })

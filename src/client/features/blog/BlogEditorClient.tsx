@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import MultipleSelector, { type Option } from '@/components/ui/multiselect'
 import { Navbar } from '@/components/ui/navbar'
 import { createBlogPost, getTags, updateBlogPost } from '@/lib/actions/blog'
+import type { RichTextNode } from '@/lib/blog-utils'
 import type { User } from '@/types/homepage'
 
 const NovelEditor = lazy(() =>
@@ -29,14 +30,73 @@ function EditorSkeleton() {
 }
 
 interface EditorRef {
-  getContent: () => Record<string, any>
-  setContent: (content: Record<string, any>) => void
+  getContent: () => Record<string, unknown>
+  setContent: (content: Record<string, unknown>) => void
+}
+
+interface BlogPostEditorData {
+  id?: string
+  slug?: string
+  title?: string
+  excerpt?: string
+  cover_image?: string
+  content?: RichTextNode
+  tags?: string[]
 }
 
 interface BlogEditorClientProps {
   user: User
-  initialData?: any
+  initialData?: BlogPostEditorData
   mode?: 'create' | 'edit'
+}
+
+type BlogSaveResult = {
+  success: boolean
+  error?: string
+  slug?: string
+}
+
+function validateBlogSaveInputs({
+  title,
+  isUploadingCover,
+  trimmedCoverImage,
+  parsedCoverImageUrl,
+  contentJson,
+  status,
+}: {
+  title: string
+  isUploadingCover: boolean
+  trimmedCoverImage: string
+  parsedCoverImageUrl: ReturnType<typeof parseHttpOrHttpsUrl>
+  contentJson: string
+  status: 'published' | 'draft'
+}): boolean {
+  if (!title.trim()) {
+    toast.error('Please add a title')
+    return false
+  }
+
+  if (isUploadingCover) {
+    toast.error('Please wait for cover upload to finish')
+    return false
+  }
+
+  if (trimmedCoverImage && !parsedCoverImageUrl) {
+    toast.error('Cover image URL must be http(s)')
+    return false
+  }
+
+  if (parsedCoverImageUrl?.isHttp) {
+    toast.info('Cover image uses http:// and may fail to load on HTTPS')
+  }
+
+  const minLength = status === 'draft' ? 10 : 100
+  if (contentJson.length < minLength) {
+    toast.error('Content is too short')
+    return false
+  }
+
+  return true
 }
 
 function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
@@ -68,10 +128,12 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
   )
 
   // Memoize content for preview
-  const [currentContent, setCurrentContent] = useState<any>(initialData?.content || { type: 'doc', content: [] })
+  const [currentContent, setCurrentContent] = useState<RichTextNode>(
+    initialData?.content || { type: 'doc', content: [] },
+  )
 
   const initialEditorContent = useMemo(
-    () => initialData?.content || ({ type: 'doc', content: [] } as Record<string, any>),
+    () => initialData?.content || ({ type: 'doc', content: [] } as RichTextNode),
     [initialData],
   )
 
@@ -81,47 +143,36 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
 
   const handleSave = useCallback(
     async (status: 'published' | 'draft') => {
-      if (!title.trim()) {
-        toast.error('Please add a title')
-        return
-      }
-
-      if (isUploadingCover) {
-        toast.error('Please wait for cover upload to finish')
-        return
-      }
-
       const trimmedCoverImage = coverImage.trim()
       const parsedCoverImageUrl = trimmedCoverImage ? parseHttpOrHttpsUrl(trimmedCoverImage) : null
-
-      if (trimmedCoverImage && !parsedCoverImageUrl) {
-        toast.error('Cover image URL must be http(s)')
-        return
-      }
-
-      if (parsedCoverImageUrl?.isHttp) {
-        toast.info('Cover image uses http:// and may fail to load on HTTPS')
-      }
 
       const editorContent = editorRef.current?.getContent() ?? {
         type: 'doc',
         content: [],
       }
 
-      // Log content before saving for debugging
-      console.log('[BlogEditorClient] Content before save:', JSON.stringify(editorContent, null, 2))
-
       const contentJson = JSON.stringify(editorContent)
-      const minLength = status === 'draft' ? 10 : 100
-      if (contentJson.length < minLength) {
-        toast.error('Content is too short')
+
+      if (
+        !validateBlogSaveInputs({
+          title,
+          isUploadingCover,
+          trimmedCoverImage,
+          parsedCoverImageUrl,
+          contentJson,
+          status,
+        })
+      ) {
         return
       }
+
+      // Log content before saving for debugging
+      console.log('[BlogEditorClient] Content before save:', JSON.stringify(editorContent, null, 2))
 
       setSaving(true)
 
       try {
-        let result: any
+        let result: BlogSaveResult
         const postData = {
           title: title.trim(),
           excerpt: excerpt.trim() || undefined,
@@ -132,7 +183,7 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
         }
 
         if (mode === 'edit' && initialData?.id) {
-          result = await updateBlogPost(initialData.id, postData as any)
+          result = await updateBlogPost(initialData.id, postData)
         } else {
           result = await createBlogPost(postData)
         }
@@ -166,8 +217,8 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
     [title, excerpt, coverImage, isUploadingCover, router, mode, initialData, selectedTags],
   )
 
-  const handleEditorChange = useCallback((json: Record<string, any>) => {
-    setCurrentContent(json)
+  const handleEditorChange = useCallback((json: Record<string, unknown>) => {
+    setCurrentContent(json as RichTextNode)
   }, [])
 
   const handleTagSearch = async (query: string): Promise<Option[]> => {

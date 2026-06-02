@@ -3,7 +3,7 @@
 import { revalidatePath } from '@/lib/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { RoleSchema, ROLES, UserIdSchema } from './schemas'
+import { ROLES, RoleSchema, UserIdSchema } from './schemas'
 
 function sanitizeSearchInput(search: string): string {
   return search.replace(/[%_]/g, '\\$&')
@@ -78,7 +78,6 @@ async function getEmailMap(userIds: string[]) {
   const { data: authData, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 })
 
   if (error) {
-    console.error('List auth users error:', error)
     return emailMap
   }
 
@@ -143,7 +142,6 @@ export async function getPrivilegedUsers(): Promise<PrivilegedUsersResult> {
       currentUserId: userId,
     }
   } catch (error) {
-    console.error('Get privileged users error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to load admin users',
@@ -246,7 +244,6 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
       })),
     }
   } catch (error) {
-    console.error('Search users for admin grant error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to search users',
@@ -314,7 +311,6 @@ export async function setPrivilegedUserRole(
 
     return { success: true }
   } catch (error) {
-    console.error('Set privileged user role error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update role',
