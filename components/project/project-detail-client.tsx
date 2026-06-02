@@ -14,10 +14,10 @@ import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProjectImageCarousel } from '@/components/ui/project-image-carousel'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
-import { formatProjectDescription } from '@/lib/project-format-description'
-import type { Category } from '@/lib/categories'
-import type { User } from '@/types/homepage'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import type { Category } from '@/lib/categories'
+import { formatProjectDescription } from '@/lib/project-format-description'
+import type { User } from '@/types/homepage'
 
 // Server Component - async function
 
@@ -107,6 +107,7 @@ export default function ProjectDetailClient({
               <div className="prose prose-neutral dark:prose-invert max-w-none">
                 <div
                   className="text-muted-foreground text-base leading-relaxed"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: formatProjectDescription escapes all user text before producing markup.
                   dangerouslySetInnerHTML={{ __html: formatProjectDescription(project.description) }}
                 />
               </div>
@@ -114,9 +115,9 @@ export default function ProjectDetailClient({
               {/* Tech Stack Tags */}
               {project.tags && project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag: string, index: number) => (
+                  {project.tags.map((tag: string) => (
                     <span
-                      key={index}
+                      key={tag}
                       className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-3 py-1 text-sm"
                     >
                       <Tag className="h-3 w-3" />
@@ -186,7 +187,7 @@ export default function ProjectDetailClient({
               initialComments={initialComments}
               isLoggedIn={!!currentUser}
               currentUser={
-                currentUser
+                currentUser?.id
                   ? {
                       id: currentUser.id,
                       name: currentUser.name,

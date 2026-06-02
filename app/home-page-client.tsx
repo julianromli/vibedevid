@@ -16,6 +16,7 @@ import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
+import { serializeJsonLd } from '@/lib/seo/render-meta'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 
 interface HomePageClientProps {
@@ -71,7 +72,7 @@ export default function HomePageClient({
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: serializeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'Organization',
             name: 'VibeDev ID',
@@ -124,7 +125,7 @@ export default function HomePageClient({
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: serializeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
             mainEntity: FAQ_DATA.map((faq) => ({

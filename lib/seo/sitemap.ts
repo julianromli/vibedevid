@@ -1,5 +1,5 @@
-import { createAdminClient } from '@/lib/supabase/admin'
 import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface SitemapUrl {
   loc: string
@@ -36,10 +36,8 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
   const staticPaths = [
     '',
     '/project/list',
-    '/project/submit',
     '/blog',
     '/event/list',
-    '/user/auth',
     '/terms',
     '/privacy-policy',
     '/terms-of-service',
@@ -58,8 +56,18 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
 
     const [{ data: projects }, { data: posts }, { data: events }, { data: users }] = await Promise.all([
       admin.from('projects').select('slug, updated_at').order('updated_at', { ascending: false }).limit(5000),
-      admin.from('posts').select('slug, updated_at').eq('status', 'published').order('updated_at', { ascending: false }).limit(2000),
-      admin.from('events').select('slug, updated_at').eq('approved', true).order('updated_at', { ascending: false }).limit(2000),
+      admin
+        .from('posts')
+        .select('slug, updated_at')
+        .eq('status', 'published')
+        .order('updated_at', { ascending: false })
+        .limit(2000),
+      admin
+        .from('events')
+        .select('slug, updated_at')
+        .eq('approved', true)
+        .order('updated_at', { ascending: false })
+        .limit(2000),
       admin.from('users').select('username, updated_at').order('updated_at', { ascending: false }).limit(5000),
     ])
 
@@ -111,5 +119,16 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
 
 export function renderRobotsTxt(): string {
   const siteUrl = getSiteUrl()
-  return `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\nHost: ${siteUrl}\n`
+  return `User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /blog/editor
+Disallow: /project/submit
+Disallow: /user/auth
+
+Sitemap: ${siteUrl}/sitemap.xml
+Host: ${siteUrl}
+`
 }

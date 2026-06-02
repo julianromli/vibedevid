@@ -1,17 +1,13 @@
-import type { PageMeta } from '@/lib/seo/types'
-import { absoluteUrl } from '@/lib/seo/site-url'
 import { SITE_NAME, TWITTER_SITE } from '@/lib/seo/constants'
+import { absoluteUrl } from '@/lib/seo/site-url'
+import type { PageMeta } from '@/lib/seo/types'
 
-function serializeJsonLd(value: unknown): string {
+export function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 function toAbsoluteImage(url: string): string {
@@ -20,7 +16,6 @@ function toAbsoluteImage(url: string): string {
 }
 
 export function renderPageMetaTags(meta: PageMeta): string {
-  const title = escapeHtml(meta.title)
   const description = escapeHtml(meta.description)
   const canonical = escapeHtml(meta.canonical)
   const ogTitle = escapeHtml(meta.ogTitle ?? meta.title)
@@ -84,7 +79,10 @@ export function injectPageMetaIntoHtml(html: string, meta: PageMeta): string {
   out = out.replace(/<html([^>]*)lang="[^"]*"/i, `<html$1 lang="${meta.locale?.startsWith('en') ? 'en' : 'id'}"`)
 
   if (out.includes('<!-- vibedev-seo -->')) {
-    out = out.replace(/<!-- vibedev-seo -->[\s\S]*?<!-- \/vibedev-seo -->/, `<!-- vibedev-seo -->\n    ${tags}\n    <!-- /vibedev-seo -->`)
+    out = out.replace(
+      /<!-- vibedev-seo -->[\s\S]*?<!-- \/vibedev-seo -->/,
+      `<!-- vibedev-seo -->\n    ${tags}\n    <!-- /vibedev-seo -->`,
+    )
   } else {
     out = out.replace('</head>', `    <!-- vibedev-seo -->\n    ${tags}\n    <!-- /vibedev-seo -->\n  </head>`)
   }

@@ -1,55 +1,102 @@
-export function contentToHtml(content: Record<string, any>): string {
+type RichTextMark = {
+  type?: string
+  attrs?: Record<string, unknown>
+}
+
+type RichTextNode = {
+  type?: string
+  text?: string
+  attrs?: Record<string, unknown>
+  content?: RichTextNode[]
+  marks?: RichTextMark[]
+  src?: unknown
+  url?: unknown
+  alt?: unknown
+  title?: unknown
+}
+
+export function contentToHtml(content: RichTextNode): string {
   return contentToHtmlRecursive(content)
 }
 
-export function contentToHtmlRecursive(node: any): string {
-  if (typeof node === 'string') return node
-  if (!node || !node.type) return ''
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
-  switch (node.type) {
+function sanitizeUrl(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+
+  if (trimmed.startsWith('/')) return trimmed
+
+  try {
+    const url = new URL(trimmed)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.toString()
+    }
+  } catch {
+    return ''
+  }
+
+  return ''
+}
+
+export function contentToHtmlRecursive(node: unknown): string {
+  if (typeof node === 'string') return escapeHtml(node)
+  if (!node || typeof node !== 'object') return ''
+
+  const richNode = node as RichTextNode
+  if (!richNode.type) return ''
+
+  switch (richNode.type) {
     case 'doc':
-      return node.content?.map(contentToHtmlRecursive).join('') ?? ''
+      return richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
 
     case 'paragraph': {
       // Check if this paragraph ONLY contains an image
-      if (node.content?.length === 1 && node.content[0].type === 'image') {
-        return contentToHtmlRecursive(node.content[0])
+      if (richNode.content?.length === 1 && richNode.content[0].type === 'image') {
+        return contentToHtmlRecursive(richNode.content[0])
       }
 
-      const children = node.content?.map(contentToHtmlRecursive).join('') ?? ''
+      const children = richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
       const content = children.trim() ? children : '&nbsp;'
       return `<p>${content}</p>`
     }
 
     case 'heading': {
-      const level = node.attrs?.level ?? 2
-      return `<h${level}>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</h${level}>`
+      const level = Math.min(Math.max(Number(richNode.attrs?.level ?? 2), 1), 6)
+      return `<h${level}>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</h${level}>`
     }
 
     case 'bulletList':
-      return `<ul>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</ul>`
+      return `<ul>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</ul>`
 
     case 'orderedList':
-      return `<ol>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</ol>`
+      return `<ol>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</ol>`
 
     case 'listItem':
-      return `<li>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</li>`
+      return `<li>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</li>`
 
     case 'codeBlock':
-      return `<pre><code>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</code></pre>`
+      return `<pre><code>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</code></pre>`
 
     case 'blockquote':
-      return `<blockquote>${node.content?.map(contentToHtmlRecursive).join('') ?? ''}</blockquote>`
+      return `<blockquote>${richNode.content?.map(contentToHtmlRecursive).join('') ?? ''}</blockquote>`
 
     case 'image': {
-      const attrs = node.attrs || {}
+      const attrs = richNode.attrs || {}
       // Support multiple attribute names for the source URL
-      const src = attrs.src || attrs.url || node.src || node.url || ''
-      const alt = attrs.alt || node.alt || ''
-      const title = attrs.title || node.title || ''
+      const src = sanitizeUrl(attrs.src || attrs.url || richNode.src || richNode.url)
+      const alt = escapeHtml(String(attrs.alt || richNode.alt || ''))
+      const title = escapeHtml(String(attrs.title || richNode.title || ''))
 
       if (!src) {
-        console.warn('[BlogUtils] Image node missing src. Node:', JSON.stringify(node))
         return ''
       }
 
@@ -75,9 +122,9 @@ export function contentToHtmlRecursive(node: any): string {
       return '<br />'
 
     case 'text': {
-      let html = node.text ?? ''
-      if (node.marks) {
-        node.marks.forEach((mark: any) => {
+      let html = escapeHtml(String(richNode.text ?? ''))
+      if (richNode.marks) {
+        richNode.marks.forEach((mark) => {
           switch (mark.type) {
             case 'bold':
               html = `<strong>${html}</strong>`
@@ -89,7 +136,12 @@ export function contentToHtmlRecursive(node: any): string {
               html = `<code>${html}</code>`
               break
             case 'link':
-              html = `<a href="${mark.attrs?.href ?? ''}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${html}</a>`
+              {
+                const href = sanitizeUrl(mark.attrs?.href)
+                if (href) {
+                  html = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${html}</a>`
+                }
+              }
               break
             case 'strike':
               html = `<s>${html}</s>`
@@ -102,6 +154,6 @@ export function contentToHtmlRecursive(node: any): string {
 
     default:
       // Recursively process nodes we don't explicitly handle if they have content
-      return node.content?.map(contentToHtmlRecursive).join('') ?? ''
+      return richNode.content?.map(contentToHtmlRecursive).join('') ?? ''
   }
 }

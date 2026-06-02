@@ -36,7 +36,7 @@ function resetMessages() {
 }
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => translatorRef.current,
+  useTranslations: () => (key: keyof typeof messages) => translatorRef.current(key),
 }))
 
 vi.mock('next/link', () => ({
@@ -104,5 +104,20 @@ describe('HeroSection', () => {
     })
 
     expect(screen.getByText('Today')).toHaveClass('opacity-100')
+  })
+
+  it('keeps the title animation visible under React StrictMode', () => {
+    const props = {
+      joinHref: 'https://example.com/join',
+      handleViewShowcase: vi.fn(),
+    }
+
+    render(React.createElement(React.StrictMode, null, React.createElement(HeroSection, props)))
+
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+
+    expect(screen.getByText('Products')).toHaveClass('opacity-100')
   })
 })

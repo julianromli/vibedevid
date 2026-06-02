@@ -1,4 +1,4 @@
-import type { ImgHTMLAttributes } from 'react'
+import type { CSSProperties, ImgHTMLAttributes } from 'react'
 
 export type ImageProps = ImgHTMLAttributes<HTMLImageElement> & {
   src: string
@@ -15,6 +15,7 @@ export type ImageProps = ImgHTMLAttributes<HTMLImageElement> & {
 }
 
 export default function Image({
+  alt,
   fill,
   priority,
   unoptimized: _unoptimized,
@@ -25,14 +26,15 @@ export default function Image({
   style,
   ...props
 }: ImageProps) {
-  const mergedStyle = fill
+  const mergedStyle: CSSProperties | undefined = fill
     ? { position: 'absolute' as const, inset: 0, width: '100%', height: '100%', objectFit: 'cover', ...style }
     : style
 
   return (
     <img
       {...props}
-      loading={priority ? 'eager' : props.loading ?? 'lazy'}
+      alt={alt}
+      loading={priority ? 'eager' : (props.loading ?? 'lazy')}
       style={mergedStyle}
       decoding="async"
     />

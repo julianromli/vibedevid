@@ -107,9 +107,11 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     resolve: clientResolve,
-    ssr: {
-      resolve: {
-        alias: actionServerAliases,
+    environments: {
+      ssr: {
+        resolve: {
+          alias: actionServerAliases,
+        } as never,
       },
     },
     server: {

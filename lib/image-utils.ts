@@ -4,7 +4,8 @@
  */
 
 import type { ImageProps } from 'next/image'
-import { getImageProps } from 'next/image'
+
+type SimpleImageProps = Pick<ImageProps, 'alt' | 'src' | 'width' | 'height' | 'quality' | 'sizes' | 'loading'>
 
 // Type definitions
 export interface BlurPlaceholderResult {
@@ -14,9 +15,9 @@ export interface BlurPlaceholderResult {
 }
 
 export interface OptimalImageProps {
-  mobile: ReturnType<typeof getImageProps>['props']
-  tablet: ReturnType<typeof getImageProps>['props']
-  desktop: ReturnType<typeof getImageProps>['props']
+  mobile: SimpleImageProps
+  tablet: SimpleImageProps
+  desktop: SimpleImageProps
 }
 
 export interface ImageVariant {

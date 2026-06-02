@@ -50,8 +50,10 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   const t = useTranslations('hero')
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
-  const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
-  const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
+  const titleLine1Text = t('titleLine1')
+  const titleLine2Text = t('titleLine2')
+  const titleLine1 = useMemo(() => titleLine1Text.split(' '), [titleLine1Text])
+  const titleLine2 = useMemo(() => titleLine2Text.split(' '), [titleLine2Text])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
   const titleKey = useMemo(() => `${titleLine1.join(' ')}\n${titleLine2.join(' ')}`, [titleLine1, titleLine2])
@@ -96,6 +98,9 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
       timers.forEach((timer) => {
         clearTimeout(timer)
       })
+      if (lastAnimationKey.current === animationKey) {
+        lastAnimationKey.current = null
+      }
     }
   }, [animationKey, prefersReducedMotion, titleLine1, titleLine2])
 

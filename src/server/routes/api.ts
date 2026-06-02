@@ -1,20 +1,21 @@
 import { streamText } from 'ai'
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { createRouteHandler } from 'uploadthing/server'
+import { z } from 'zod'
 import { getAIModel } from '@/lib/ai/openrouter'
-import { fetchProjectsWithSorting, getProjectBySlug } from '../../../lib/actions'
-import { getComments } from '../../../lib/actions/comments'
-import { getEventBySlug, getRelatedEvents, getEvents } from '../../../lib/actions/events'
-import { getPostForEdit, getTags } from '../../../lib/actions/blog'
 import { getCategories } from '@/lib/categories'
 import { checkProjectOwnership } from '@/lib/server/auth'
-import { getCurrentUser } from '../../../lib/actions/user'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { ourFileRouter } from '@/lib/uploadthing'
 import { getVideoIconKey } from '@/lib/video-icon-key'
-import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
+import { isUser, requireAdmin } from '@/src/server/lib/require-admin'
 import { authCallbackHandler } from '@/src/server/routes/auth-callback'
+import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
+import { fetchProjectsWithSorting, getProjectBySlug } from '../../../lib/actions'
+import { getComments } from '../../../lib/actions/comments'
+import { getEventBySlug, getEvents, getRelatedEvents } from '../../../lib/actions/events'
+import { getCurrentUser } from '../../../lib/actions/user'
 
 const uploadHandlers = createRouteHandler({
   router: ourFileRouter,
@@ -24,6 +25,93 @@ const uploadHandlers = createRouteHandler({
 })
 
 export const apiRoutes = new Hono()
+
+const VibeVideoWriteSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional().nullable(),
+  thumbnail: z.string().url().optional().nullable(),
+  video_id: z.string().min(1).max(100).optional(),
+  published_at: z.string().optional().nullable(),
+  view_count: z.union([z.string(), z.number()]).optional().nullable(),
+  position: z.number().int().optional(),
+})
+
+type VibeVideoRow = {
+  id: string
+  title: string
+  description: string
+  thumbnail: string
+  video_id: string
+  published_at: string
+  view_count: string | number
+  position: number
+  created_at?: string
+  updated_at?: string
+}
+
+const FALLBACK_VIBE_VIDEOS: VibeVideo[] = [
+  {
+    title: 'Next.js Tutorial: Full Stack App Development',
+    description: 'Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.',
+    thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    videoId: 'dQw4w9WgXcQ',
+    publishedAt: '2024-12-20',
+    viewCount: '12.5K',
+    iconKey: 'code',
+  },
+  {
+    title: 'Live Coding: Building Modern Dashboard',
+    description: 'Live coding session to build a modern admin dashboard with React and Tailwind CSS.',
+    thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
+    videoId: '9bZkp7q19f0',
+    publishedAt: '2024-12-15',
+    viewCount: '8.3K',
+    iconKey: 'play',
+  },
+]
+
+function mapVibeVideo(row: VibeVideoRow) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    thumbnail: row.thumbnail,
+    videoId: row.video_id,
+    publishedAt: row.published_at,
+    viewCount: String(row.view_count ?? ''),
+    position: row.position,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+function mapHomepageVibeVideo(row: VibeVideoRow): VibeVideo {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    thumbnail: row.thumbnail,
+    videoId: row.video_id,
+    publishedAt: row.published_at,
+    viewCount: String(row.view_count ?? ''),
+    position: row.position,
+    iconKey: getVideoIconKey(row.title, row.description),
+  }
+}
+
+async function requireAuthenticatedApiUser() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user
+}
+
+async function requireAdminForRoute(c: Parameters<typeof requireAdmin>[0]) {
+  const user = await requireAdmin(c)
+  if (!isUser(user)) return user
+  return null
+}
 
 apiRoutes.all('/uploadthing', (c) => uploadHandlers(c.req.raw))
 
@@ -39,6 +127,9 @@ apiRoutes.get('/auth/callback', authCallbackHandler)
 
 apiRoutes.post('/ai/completion', async (c) => {
   try {
+    const user = await requireAuthenticatedApiUser()
+    if (!user) return c.json({ error: 'Unauthorized' }, 401)
+
     const body = await c.req.json()
     const { prompt } = body
     if (!prompt || typeof prompt !== 'string') {
@@ -70,6 +161,9 @@ Use Markdown formatting when appropriate.`,
 apiRoutes.post('/ai/enhance-description', async (c) => {
   const { generateText } = await import('ai')
   try {
+    const user = await requireAuthenticatedApiUser()
+    if (!user) return c.json({ error: 'Unauthorized' }, 401)
+
     const body = await c.req.json()
     const { description, title } = body
     if (!description || typeof description !== 'string') {
@@ -117,21 +211,41 @@ apiRoutes.post('/youtube', async (c) => {
 })
 
 apiRoutes.get('/vibe-videos', async (c) => {
+  const unauthorized = await requireAdminForRoute(c)
+  if (unauthorized) return unauthorized
+
   const supabase = createAdminClient()
   const { data, error } = await supabase.from('vibe_videos').select('*').order('position', { ascending: true })
   if (error) return c.json({ error: error.message }, 500)
-  return c.json(data ?? [])
+  return c.json({ videos: (data ?? []).map((row) => mapVibeVideo(row as VibeVideoRow)) })
 })
 
-apiRoutes.patch('/vibe-videos/:id', async (c) => {
+async function updateVibeVideo(c: Context) {
+  const unauthorized = await requireAdminForRoute(c)
+  if (unauthorized) return unauthorized
+
   const supabase = createAdminClient()
-  const body = await c.req.json()
-  const { data, error } = await supabase.from('vibe_videos').update(body).eq('id', c.req.param('id')).select().single()
+  const parsed = VibeVideoWriteSchema.safeParse(await c.req.json())
+  if (!parsed.success) {
+    return c.json({ error: 'Invalid video payload', issues: parsed.error.flatten().fieldErrors }, 400)
+  }
+  const { data, error } = await supabase
+    .from('vibe_videos')
+    .update(parsed.data)
+    .eq('id', c.req.param('id'))
+    .select()
+    .single()
   if (error) return c.json({ error: error.message }, 500)
-  return c.json(data)
-})
+  return c.json({ video: mapVibeVideo(data as VibeVideoRow) })
+}
+
+apiRoutes.patch('/vibe-videos/:id', updateVibeVideo)
+apiRoutes.put('/vibe-videos/:id', updateVibeVideo)
 
 apiRoutes.delete('/vibe-videos/:id', async (c) => {
+  const unauthorized = await requireAdminForRoute(c)
+  if (unauthorized) return unauthorized
+
   const supabase = createAdminClient()
   const { error } = await supabase.from('vibe_videos').delete().eq('id', c.req.param('id'))
   if (error) return c.json({ error: error.message }, 500)
@@ -139,11 +253,24 @@ apiRoutes.delete('/vibe-videos/:id', async (c) => {
 })
 
 apiRoutes.post('/vibe-videos', async (c) => {
+  const unauthorized = await requireAdminForRoute(c)
+  if (unauthorized) return unauthorized
+
   const supabase = createAdminClient()
-  const body = await c.req.json()
-  const { data, error } = await supabase.from('vibe_videos').insert(body).select().single()
+  const parsed = VibeVideoWriteSchema.required({
+    title: true,
+    description: true,
+    thumbnail: true,
+    video_id: true,
+    published_at: true,
+    view_count: true,
+  }).safeParse(await c.req.json())
+  if (!parsed.success) {
+    return c.json({ error: 'Invalid video payload', issues: parsed.error.flatten().fieldErrors }, 400)
+  }
+  const { data, error } = await supabase.from('vibe_videos').insert(parsed.data).select().single()
   if (error) return c.json({ error: error.message }, 500)
-  return c.json(data)
+  return c.json({ video: mapVibeVideo(data as VibeVideoRow) })
 })
 
 // Page data endpoints
@@ -193,18 +320,12 @@ apiRoutes.get('/pages/home', async (c) => {
   }
 
   const admin = createAdminClient()
-  const { data: vibeRows } = await admin.from('vibe_videos').select('*').order('position', { ascending: true })
-  const initialVibeVideos: VibeVideo[] = (vibeRows ?? []).map((video) => ({
-    id: video.id,
-    title: video.title,
-    description: video.description,
-    thumbnail: video.thumbnail,
-    videoId: video.video_id,
-    publishedAt: video.published_at,
-    viewCount: video.view_count,
-    position: video.position,
-    iconKey: getVideoIconKey(video.title, video.description),
-  }))
+  const { data: vibeRows, error: vibeRowsError } = await admin
+    .from('vibe_videos')
+    .select('*')
+    .order('position', { ascending: true })
+  const initialVibeVideos: VibeVideo[] =
+    vibeRowsError || !vibeRows?.length ? FALLBACK_VIBE_VIDEOS : (vibeRows as VibeVideoRow[]).map(mapHomepageVibeVideo)
 
   return c.json({
     initialIsLoggedIn: !!user,
@@ -230,7 +351,10 @@ apiRoutes.get('/pages/project/:slug', async (c) => {
   }
 
   const { comments } = await getComments('project', project.id)
-  const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
+  const isOwner =
+    currentUser?.id && project.author.username
+      ? await checkProjectOwnership(project.author.username, currentUser.id)
+      : false
 
   return c.json({ project, comments, categories, currentUser, isOwner })
 })

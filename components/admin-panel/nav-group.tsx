@@ -16,11 +16,11 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Badge } from '../ui/badge'
 import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
-import type { NavGroup, NavItem } from './types'
+import { Badge } from '../ui/badge'
+import type { NavGroup as NavGroupConfig, NavItem } from './types'
 
-export function NavGroup({ title, items }: NavGroup) {
+export function NavGroup({ title, items }: NavGroupConfig) {
   const { setOpenMobile } = useSidebar()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -100,7 +100,7 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
 )
 
-function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false) {
+function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false): boolean {
   if (item.items?.length) {
     return item.items.some((subItem) => checkIsActive(pathname, dashboardTab, subItem))
   }

@@ -8,10 +8,9 @@ export function useTranslations(namespace?: string): TranslationFn {
   const { t, i18n } = useTranslation()
 
   const namespaced = ((key: string, ...args: unknown[]) =>
-    t(namespace ? `${namespace}.${key}` : key, ...(args as [Record<string, unknown>?]))) as TranslationFn
+    t(namespace ? `${namespace}.${key}` : key, ...(args as [Record<string, unknown>?]))) as unknown as TranslationFn
 
-  namespaced.raw = (key: string) =>
-    i18n.t(namespace ? `${namespace}.${key}` : key, { returnObjects: true })
+  namespaced.raw = (key: string) => i18n.t(namespace ? `${namespace}.${key}` : key, { returnObjects: true })
 
   return namespaced
 }

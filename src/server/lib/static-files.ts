@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises'
 import { existsSync, statSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { join, normalize } from 'node:path'
 import type { Context } from 'hono'
 
@@ -43,7 +43,9 @@ export async function tryServeProductionStatic(c: Context): Promise<Response | n
   if (process.env.NODE_ENV !== 'production') return null
 
   const pathname = new URL(c.req.url).pathname
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '')
+  if (!hasStaticAssetExtension(pathname)) return null
+
+  const relative = pathname.replace(/^\//, '')
   const filePath = normalize(join(CLIENT_ROOT, relative))
 
   if (!filePath.startsWith(CLIENT_ROOT) || !existsSync(filePath)) {
@@ -53,7 +55,7 @@ export async function tryServeProductionStatic(c: Context): Promise<Response | n
   const stat = statSync(filePath)
   if (!stat.isFile()) return null
 
-  const body = await readFile(filePath)
+  const body = new Uint8Array(await readFile(filePath))
   const ext = filePath.slice(filePath.lastIndexOf('.'))
   const type = MIME[ext] ?? 'application/octet-stream'
 

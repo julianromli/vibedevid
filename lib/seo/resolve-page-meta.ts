@@ -1,10 +1,10 @@
 import { getProjectBySlug } from '@/lib/actions'
 import { getEventBySlug } from '@/lib/actions/events'
-import { createClient } from '@/lib/supabase/server'
 import { BLOG_DEFAULT_OG_IMAGE, DEFAULT_OG_IMAGE_PATH, RESERVED_PROFILE_SEGMENTS, SITE_NAME } from '@/lib/seo/constants'
 import { formatTitle, getMetadataMessages, type SeoLocale } from '@/lib/seo/messages'
 import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
 import type { PageMeta } from '@/lib/seo/types'
+import { createClient } from '@/lib/supabase/server'
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text
@@ -45,12 +45,7 @@ function homeMeta(locale: SeoLocale): PageMeta {
   }
 }
 
-function staticPageMeta(
-  locale: SeoLocale,
-  pathname: string,
-  title: string,
-  description: string,
-): PageMeta {
+function staticPageMeta(locale: SeoLocale, pathname: string, title: string, description: string): PageMeta {
   const m = getMetadataMessages(locale)
   return {
     title: formatTitle(m.titleTemplate, title),
@@ -66,16 +61,17 @@ async function projectMeta(slug: string, locale: SeoLocale): Promise<PageMeta> {
   const { project, error } = await getProjectBySlug(slug)
 
   if (error || !project) {
-    return staticPageMeta(locale, `/project/${slug}`, 'Project Not Found', 'This project could not be found on VibeDev ID.')
+    return staticPageMeta(
+      locale,
+      `/project/${slug}`,
+      'Project Not Found',
+      'This project could not be found on VibeDev ID.',
+    )
   }
 
   const description = truncate(project.tagline || project.description || project.title, 160)
   const pathname = `/project/${project.slug}`
-  const images = project.imageUrls?.length
-    ? project.imageUrls
-    : project.image
-      ? [project.image]
-      : []
+  const images = project.imageUrls?.length ? project.imageUrls : project.image ? [project.image] : []
   const ogImage = images[0] || project.faviconUrl || DEFAULT_OG_IMAGE_PATH
 
   return {
@@ -110,7 +106,12 @@ async function blogPostMeta(slug: string, locale: SeoLocale): Promise<PageMeta> 
     .single()
 
   if (!post) {
-    return staticPageMeta(locale, `/blog/${slug}`, 'Post Not Found', 'The blog post you are looking for does not exist.')
+    return staticPageMeta(
+      locale,
+      `/blog/${slug}`,
+      'Post Not Found',
+      'The blog post you are looking for does not exist.',
+    )
   }
 
   const author = post.author as unknown as { display_name: string } | null
@@ -223,6 +224,22 @@ export async function resolvePageMeta(pathname: string, locale: SeoLocale): Prom
 
   if (path === '/terms-of-service' || path === '/terms') {
     return staticPageMeta(locale, path, 'Terms of Service', 'Terms of service for VibeDev ID.')
+  }
+
+  if (
+    path === '/user/auth' ||
+    path === '/project/submit' ||
+    path === '/dashboard' ||
+    path.startsWith('/dashboard/') ||
+    path === '/admin' ||
+    path.startsWith('/admin/') ||
+    path === '/blog/editor' ||
+    path.startsWith('/blog/editor/')
+  ) {
+    return {
+      ...staticPageMeta(locale, path, 'Private Area', 'This page is not intended for search indexing.'),
+      robots: 'noindex, nofollow',
+    }
   }
 
   const projectMatch = path.match(/^\/project\/([^/]+)$/)

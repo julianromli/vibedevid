@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { resolveCorsOrigin } from '@/src/server/lib/request-security'
 import { localeMiddleware } from '@/src/server/middleware/locale'
 import { supabaseMiddleware } from '@/src/server/middleware/supabase'
 import { adminPageRoutes } from '@/src/server/routes/admin-pages'
@@ -13,7 +14,7 @@ const app = new Hono()
 app.use(
   '*',
   cors({
-    origin: (origin) => origin ?? '*',
+    origin: resolveCorsOrigin,
     credentials: true,
   }),
 )

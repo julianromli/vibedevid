@@ -1,7 +1,5 @@
-
-
-import { revalidatePath, revalidateTag } from '@/lib/cache'
 import { ROLES } from '@/lib/actions/admin/schemas'
+import { revalidatePath, revalidateTag } from '@/lib/cache'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -100,7 +98,12 @@ export async function getEventBySlug(slug: string) {
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('events').select('*').eq('slug', sanitizedSlug).single()
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('slug', sanitizedSlug)
+    .eq('approved', true)
+    .single()
 
   if (error) {
     console.error('Error fetching event by slug:', error)
