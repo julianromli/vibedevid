@@ -1,1 +1,1 @@
-export { default } from '@/app/blog/blog-page-client'
+export { default } from '@/src/client/features/blog/BlogPageClient'

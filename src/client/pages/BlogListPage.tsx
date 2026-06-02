@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import BlogPageClient from '@/app/blog/blog-page-client'
+import BlogPageClient from '@/src/client/features/blog/BlogPageClient'
 
 export default function BlogListPage() {
   const { data, isLoading } = useQuery({

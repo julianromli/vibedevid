@@ -146,26 +146,24 @@ bun tsc --noEmit
 bun lint
 bun format
 
-# E2E tests (Playwright) - runs all tests in tests/ directory
-bunx playwright test
+# E2E tests (Playwright) — suite lives in tests/e2e/ (add specs as needed)
+bun run test:e2e
 
-# Run single test file
-bunx playwright test tests/views-tracking.spec.ts
+# Run unit tests (Vitest)
+bun run test
 
-# Run single test by name
-bunx playwright test -g "should track views when visiting project page"
-
-# Run unit tests only
-bunx playwright test tests/unit/
+# Run all tests
+bun run test:all
 
 # Run tests in headed mode (see browser)
-bunx playwright test --headed
+bun run test:e2e:headed
 
 # Run tests in debug mode (step through)
-bunx playwright test --debug
+bun run test:e2e:debug
 
-# Run tests in specific browser
-bunx playwright test --project=chromium
+# Dead code analysis (knip + depcheck)
+bun run analyze:dead-code
+bun run analyze:deps
 ```
 
 ## Environment Variables

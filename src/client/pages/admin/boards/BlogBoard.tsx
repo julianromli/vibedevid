@@ -2,9 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { PostFilters } from '@/app/(admin)/dashboard/boards/blog/components/post-filters'
-import { PostsTable } from '@/app/(admin)/dashboard/boards/blog/components/posts-table'
-import { TagsManager } from '@/app/(admin)/dashboard/boards/blog/components/tags-manager'
+import { PostFilters } from '@/src/client/features/admin/boards/blog/PostFilters'
+import { PostsTable } from '@/src/client/features/admin/boards/blog/PostsTable'
+import { TagsManager } from '@/src/client/features/admin/boards/blog/TagsManager'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function BlogBoard() {

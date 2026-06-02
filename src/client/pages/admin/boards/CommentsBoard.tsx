@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ReportsTable } from '@/app/(admin)/dashboard/boards/comments/components/reports-table'
+import { ReportsTable } from '@/src/client/features/admin/boards/comments/ReportsTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 

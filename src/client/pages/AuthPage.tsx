@@ -1,1 +1,1 @@
-export { default } from '@/app/user/auth/page'
+export { default } from '@/src/client/features/auth/AuthPageClient'

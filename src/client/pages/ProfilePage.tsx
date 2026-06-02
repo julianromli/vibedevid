@@ -1,1 +1,1 @@
-export { default } from '@/app/[username]/page'
+export { default } from '@/src/client/features/profile/ProfilePageClient'

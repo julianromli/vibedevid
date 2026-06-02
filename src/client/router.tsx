@@ -10,30 +10,31 @@ const AuthPage = lazy(() => import('./pages/AuthPage'))
 const ProjectListPage = lazy(() => import('./pages/ProjectListPage'))
 const ProjectSubmitPage = lazy(() => import('./pages/ProjectSubmitPage'))
 const BlogPage = lazy(() => import('./pages/BlogListPage'))
-const ConfirmEmailPage = lazy(() => import('@/app/user/auth/confirm-email/page'))
+const ConfirmEmailPage = lazy(() => import('@/src/client/pages/ConfirmEmailPage'))
 const PrivacyPage = lazy(() =>
-  import('@/app/privacy-policy/privacy-policy-client').then((m) => ({
+  import('@/src/client/pages/PrivacyPolicyPage').then((m) => ({
     default: m.PrivacyPolicyClient,
   })),
 )
-const TermsPage = lazy(() => import('@/app/terms/page'))
+const TermsPage = lazy(() => import('@/src/client/pages/TermsPage'))
 const TermsServicePage = lazy(() =>
-  import('@/app/terms-of-service/terms-of-service-client').then((m) => ({
+  import('@/src/client/pages/TermsOfServicePage').then((m) => ({
     default: m.TermsOfServiceClient,
   })),
 )
-const CalendarPage = lazy(() => import('@/app/calendar/page'))
-const AdminVideoPage = lazy(() => import('@/app/admin/page'))
+const CalendarPage = lazy(() => import('@/src/client/pages/CalendarPage'))
+const AdminVideoPage = lazy(() => import('@/src/client/pages/AdminVideoPage'))
 const PostDashboardPage = lazy(() =>
-  import('@/app/dashboard/posts/post-dashboard-client').then((m) => ({ default: m.PostDashboardClient })),
+  import('@/src/client/pages/PostDashboardPage').then((m) => ({ default: m.PostDashboardClient })),
 )
-const BlogEditorClient = lazy(() => import('@/app/blog/editor/blog-editor-client'))
+const BlogEditorClient = lazy(() => import('@/src/client/features/blog/BlogEditorClient'))
 const BlogSlugPage = lazy(() => import('./pages/BlogDetailPage'))
 const EventListPage = lazy(() => import('./pages/EventListPage'))
 const EventSlugPage = lazy(() => import('./pages/EventDetailPage'))
 const ProjectSlugPage = lazy(() => import('./pages/ProjectDetailPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function PageLoader() {
   return (
@@ -64,6 +65,15 @@ const RESERVED = new Set([
 ])
 
 function UsernameRoute() {
+  const { username } = useParams<{ username: string }>()
+  if (username && RESERVED.has(username)) {
+    return (
+      <S>
+        <NotFoundPage />
+      </S>
+    )
+  }
+
   return (
     <S>
       <ProfilePage />
@@ -298,20 +308,13 @@ export const router = createBrowserRouter([
       {
         path: ':username',
         element: <UsernameRoute />,
-        loader: ({ params }) => {
-          if (RESERVED.has(params.username ?? '')) {
-            throw new Response('Not Found', { status: 404 })
-          }
-          return null
-        },
       },
       {
         path: '*',
         element: (
-          <Navigate
-            to="/"
-            replace
-          />
+          <S>
+            <NotFoundPage />
+          </S>
         ),
       },
     ],

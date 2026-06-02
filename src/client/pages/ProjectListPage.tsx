@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ProjectListClient } from '@/app/project/list/project-list-client'
+import { ProjectListClient } from '@/src/client/features/project/ProjectListClient'
 import type { ProjectFilterOption, SortBy } from '@/types/homepage'
 
 async function fetchProjectList(filter: string | null, sort: string | null) {

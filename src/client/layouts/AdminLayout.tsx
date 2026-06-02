@@ -1,7 +1,7 @@
 'use client'
 
 import { Navigate, Outlet } from 'react-router-dom'
-import DashboardLayoutClient from '@/app/(admin)/layout-client'
+import DashboardLayoutClient from '@/src/client/layouts/AdminLayoutClient'
 import { useAdminSession } from '@/src/client/hooks/use-admin-session'
 
 export function AdminLayout() {

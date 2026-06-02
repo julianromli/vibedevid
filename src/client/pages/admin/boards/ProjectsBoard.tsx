@@ -2,8 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ProjectFilters } from '@/app/(admin)/dashboard/boards/projects/components/project-filters'
-import { ProjectsTable } from '@/app/(admin)/dashboard/boards/projects/components/projects-table'
+import { ProjectFilters } from '@/src/client/features/admin/boards/projects/ProjectFilters'
+import { ProjectsTable } from '@/src/client/features/admin/boards/projects/ProjectsTable'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function ProjectsBoard() {

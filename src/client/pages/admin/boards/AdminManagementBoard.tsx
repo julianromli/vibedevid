@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { AdminManagementBoard as AdminManagementPanel } from '@/app/(admin)/dashboard/boards/admin-management/components/admin-management-board'
+import { AdminManagementBoard as AdminManagementPanel } from '@/src/client/features/admin/boards/admin/AdminManagementBoard'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function AdminManagementBoard() {

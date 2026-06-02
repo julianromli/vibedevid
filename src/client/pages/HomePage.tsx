@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import HomePageClient from '@/app/home-page-client'
+import HomePageClient from '@/src/client/features/home/HomePageClient'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 
 async function fetchHomeData(filter?: string | null, sort?: string | null) {

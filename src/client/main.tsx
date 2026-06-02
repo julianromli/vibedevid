@@ -3,7 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider } from 'react-router-dom'
-import '@/app/globals.css'
+import '@/src/client/styles/globals.css'
 import { router } from './router'
 import './i18n'
 

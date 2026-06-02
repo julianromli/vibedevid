@@ -23,3 +23,6 @@ jobs:
 
       - name: Run strict lint
         run: bun run lint:ci
+
+      - name: Dead code analysis (non-blocking)
+        run: bun run analyze:dead-code || true

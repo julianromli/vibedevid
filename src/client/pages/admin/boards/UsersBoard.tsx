@@ -2,8 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { UserSearch } from '@/app/(admin)/dashboard/boards/users/components/user-search'
-import { UsersTable } from '@/app/(admin)/dashboard/boards/users/components/users-table'
+import { UserSearch } from '@/src/client/features/admin/boards/users/UserSearch'
+import { UsersTable } from '@/src/client/features/admin/boards/users/UsersTable'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function UsersBoard() {

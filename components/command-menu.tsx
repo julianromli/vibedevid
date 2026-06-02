@@ -13,7 +13,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { sidebarData } from './layout/data/sidebar-data'
+import { sidebarData } from '@/components/admin-panel/data/sidebar-data'
 import { useSearch } from './search-provider'
 import { ScrollArea } from './ui/scroll-area'
 

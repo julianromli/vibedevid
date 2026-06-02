@@ -1,214 +1,199 @@
 # Dead Code Analysis Report
 
-**Generated**: January 25, 2026  
-**Project**: VibeDev ID  
-**Analysis Tools**: depcheck, TypeScript compiler, manual grep analysis
+**Generated**: June 2, 2026  
+**Project**: VibeDev ID (root app only; admin-kit excluded)  
+**Analysis Tools**: knip 6.15.0, depcheck 1.4.7, manual grep, TypeScript compiler
+
+---
+
+## Baseline (pre-cleanup)
+
+| Check | Command | Result |
+|-------|---------|--------|
+| TypeScript | `bunx tsc --noEmit` | PASS (0 errors) |
+| Unit tests | `bun run test` | PASS (10 tests, 6 files) |
+| Build | `npm run build` | PASS (client + server) |
+| Lint | `bun run lint:all` | FAIL (449 errors, pre-existing; mostly admin-kit) |
 
 ---
 
 ## Summary
 
-| Category | Count |
-|----------|-------|
-| Unused Dependencies | 10 |
-| Unused Dev Dependencies | 5 |
-| Missing Dependencies | 1 |
-| Unused Files (SAFE) | 6 |
-| Unused Files (CAUTION) | 3 |
-| TypeScript Errors | 19 |
+| Category | Count | Notes |
+|----------|-------|-------|
+| Tier 1 SAFE files (Next.js orphans) | 18 | Verified zero runtime imports |
+| Tier 1 SAFE files (orphan scripts) | 4 | `patch_*.js` one-off scripts |
+| Tier 1 SAFE dependencies | 3 | `@lobehub/icons`, `geist`, `country-region-data` |
+| Tier 2 CAUTION (knip unused files) | ~120+ | Many false positives from lazy `import('@/app/...')` |
+| Tier 3 DANGER | — | lib/actions pairs, Supabase, migrations — skip |
 
 ---
 
-## 1. Unused Dependencies (from depcheck)
+## 1. Tier 1 — SAFE to Delete (verified)
 
-### Production Dependencies (10 packages)
+### Legacy Next.js artifacts (Hono migration complete)
 
-| Package | Severity | Recommendation |
-|---------|----------|----------------|
-| `@lobehub/icons` | CAUTION | Verify if used in dynamic imports |
-| `@radix-ui/react-scroll-area` | SAFE | Remove - no imports found |
-| `@radix-ui/react-switch` | SAFE | Remove - no imports found |
-| `@radix-ui/react-toast` | SAFE | Remove - using sonner instead |
-| `@tailwindcss/postcss` | DANGER | Keep - PostCSS config dependency |
-| `@tailwindcss/typography` | DANGER | Keep - Tailwind plugin |
-| `geist` | CAUTION | Verify font usage in app/font.ts |
-| `react-grab` | SAFE | Remove - no imports found |
-| `swr` | SAFE | Remove - no imports found |
-| `tailwindcss-animate` | DANGER | Keep - Tailwind plugin |
+| File | Reason |
+|------|--------|
+| `next.config.mjs` | `next` not in package.json |
+| `proxy.ts` | Next middleware; no callers |
+| `i18n/request.ts` | Only referenced by next.config.mjs |
+| `app/robots.ts`, `app/sitemap.ts` | Served by `src/server/routes/seo.ts` |
+| `app/layout.tsx`, `app/page.tsx` | SPA uses `src/client/layouts/RootLayout.tsx` |
+| `app/auth/callback/route.ts` | Handled by `src/server/routes/auth-callback.ts` |
+| `app/api/**` (10 files) | Duplicated by `src/server/routes/api.ts` |
 
-### Dev Dependencies (5 packages)
+### Orphan maintenance scripts
 
-| Package | Severity | Recommendation |
-|---------|----------|----------------|
-| `cross-env` | SAFE | Remove - not used in scripts |
-| `postcss` | DANGER | Keep - build dependency |
-| `shadcn` | SAFE | Remove - CLI tool, not runtime |
-| `ultracite` | SAFE | Remove - no usage found |
-| `webpack-bundle-analyzer` | SAFE | Remove - not configured |
+| File | Reason |
+|------|--------|
+| `patch_category.js` | No imports/references |
+| `patch_form.js` | No imports/references |
+| `patch_test.js` | No imports/references |
+| `patch_test_2.js` | No imports/references |
 
-### Missing Dependencies (1 package)
+### Unused dependencies (root app)
 
-| Package | Used In | Recommendation |
-|---------|---------|----------------|
-| `vitest` | tests/unit/blog-actions.spec.ts | Add to devDependencies |
+| Package | Reason | Tier |
+|---------|--------|------|
+| `@lobehub/icons` | Components use unpkg CDN URLs | SAFE |
+| `geist` | No TS/TSX imports | SAFE |
+| `country-region-data` | Only used in admin-kit | SAFE |
 
 ---
 
-## 2. Unused Files
+## 2. Depcheck — false positives / keep
 
-### SAFE to Delete (Test/Demo files)
+| Package | Action | Reason |
+|---------|--------|--------|
+| `@hono/node-server` | KEEP | Used in server build (depcheck misses Vite SSR entry) |
+| `@hono/zod-validator` | KEEP | Used in `src/server/routes/*` |
+| `@tailwindcss/postcss` | KEEP | PostCSS/Tailwind build |
+| `@tailwindcss/typography` | KEEP | Tailwind plugin |
+| `tailwindcss-animate` | KEEP | Tailwind plugin |
+| `postcss` | KEEP | Build dependency |
+| `@testing-library/user-event` | CAUTION | May be used in future e2e/unit tests |
 
-| File | Reason | Size |
-|------|--------|------|
-| `components/avatar-uploader-demo.tsx` | Demo file, no imports | ~2KB |
-| `components/ui/mobile-skeletons.tsx` | No imports found | ~1KB |
-| `app/page.backup.tsx` | Backup file, not routed | ~5KB |
-| `vibedevid-landing-clone.html` | Static HTML, not referenced | ~10KB |
-| `vibedevid-linear-landing.html` | Static HTML, not referenced | ~10KB |
+### Depcheck missing deps (from dead Next.js files — resolve by deletion)
 
-### CAUTION (Components - verify before deletion)
-
-| File | Reason | Notes |
-|------|--------|-------|
-| `components/hero51.tsx` | No imports found | May be planned for future use |
-| `components/ui/aurora-background.tsx` | Commented out in WARP.md | Explicitly removed due to crashes |
-| `components/ui/spotlight.tsx` | Commented out in WARP.md | Explicitly removed due to crashes |
-
----
-
-## 3. TypeScript Errors (19 errors)
-
-### API Route Errors (2)
-- `.next/dev/types/validator.ts` - Route handler type mismatch for `/api/vibe-videos/[id]`
-- Params should be `Promise<{ id: string }>` in Next.js 16
-
-### Component Type Errors (12)
-- `app/calendar/page.tsx:366` - DateRange type mismatch
-- `app/user/auth/page.tsx:415` - CheckedState type mismatch
-- `components/ui/optimized-avatar.tsx:35` - Nullable string argument
-- `components/ui/submit-project-form.tsx:515-594` - Multiple implicit `any` types (7 errors)
-- `hooks/useProgressiveImage.ts:289-290` - RefObject null type issues
-
-### Library Type Errors (3)
-- `lib/actions.ts:990` - Implicit any in Record indexing
-- `lib/image-utils.ts:102` - ImgProps type mismatch (3 occurrences)
-
-### Test File Errors (1)
-- `tests/views-tracking.spec.ts:239` - `setUserAgent` doesn't exist on Page
+| Package | Source | Action |
+|---------|--------|--------|
+| `next`, `next-intl`, `@next/bundle-analyzer` | next.config.mjs, proxy.ts | Delete source files |
+| `@vercel/analytics`, `@vercel/speed-insights` | app/layout.tsx | Delete source file |
 
 ---
 
-## 4. Recommended Actions
+## 3. Knip — CAUTION items (do not bulk-delete)
 
-### Phase 1: Safe Deletions (No test required)
+Knip reported 144 unused files; most are **false positives** because:
 
-```bash
-# Remove unused static HTML files
-del vibedevid-landing-clone.html
-del vibedevid-linear-landing.html
+- Lazy routes in `src/client/router.tsx` use dynamic `import('@/app/...')`
+- Server modules imported only from `src/server/app.ts` chain
+- Compat shims resolved via Vite aliases (`next/*`, `next-intl`)
 
-# Remove backup file
-del app\page.backup.tsx
+**Confirmed used despite knip flag:** `src/server/**`, `src/client/compat/**`, most `app/**` page clients, `lib/seo/*`, `hooks/*`.
 
-# Remove demo file
-del components\avatar-uploader-demo.tsx
-
-# Remove unused skeleton component
-del components\ui\mobile-skeletons.tsx
-```
-
-### Phase 2: Dependency Cleanup
-
-```bash
-# Remove unused production dependencies
-bun remove @radix-ui/react-scroll-area @radix-ui/react-switch @radix-ui/react-toast react-grab swr
-
-# Remove unused dev dependencies
-bun remove cross-env shadcn ultracite webpack-bundle-analyzer
-
-# Add missing dependency
-bun add -d vitest
-```
-
-### Phase 3: Caution Items (Verify first)
-
-Before deleting these, verify they're not dynamically imported:
-- `components/hero51.tsx`
-- `components/ui/aurora-background.tsx`
-- `components/ui/spotlight.tsx`
-- `@lobehub/icons`
-- `geist`
+**Investigate individually** before deleting any knip-flagged component/lib file.
 
 ---
 
-## 5. TypeScript Fixes Required
+## 4. Prior cleanup (Jan 2026) — already completed
 
-### Priority 1: API Route Fix
-```typescript
-// app/api/vibe-videos/[id]/route.ts
-// Change params destructuring to await Promise
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params
-  // ...
-}
-```
-
-### Priority 2: Component Type Fixes
-- Add explicit types to uploadthing callbacks in `submit-project-form.tsx`
-- Fix DateRange handler in `calendar/page.tsx`
-- Fix CheckedState handler in `user/auth/page.tsx`
-
----
-
-## 6. Estimated Impact
-
-| Metric | Before | After (Est.) |
-|--------|--------|--------------|
-| Dependencies | 85+ | 78 |
-| Bundle Size | - | -15KB (est.) |
-| TypeScript Errors | 19 | 0 |
-| Dead Files | 8 | 0 |
+- 8 demo/backup/component files removed
+- 9 unused dependencies removed
+- Do not re-delete items from that report
 
 ---
 
 ## Execution Log
 
-### Completed Actions
+_(Updated during June 2026 cleanup run)_
 
-**Phase 1 - File Deletions (✅ Complete)**
-- ✅ Deleted `vibedevid-landing-clone.html`
-- ✅ Deleted `vibedevid-linear-landing.html`
-- ✅ Deleted `app/page.backup.tsx`
-- ✅ Deleted `components/avatar-uploader-demo.tsx`
-- ✅ Deleted `components/ui/mobile-skeletons.tsx`
-- ✅ Deleted `components/hero51.tsx`
-- ✅ Deleted `components/ui/aurora-background.tsx`
-- ✅ Deleted `components/ui/spotlight.tsx`
+### Phase 0 — Baseline
 
-**Phase 2 - Dependency Cleanup (✅ Complete)**
-- ✅ Removed: `@radix-ui/react-scroll-area`, `@radix-ui/react-switch`, `@radix-ui/react-toast`, `react-grab`, `swr`
-- ✅ Removed: `cross-env`, `shadcn`, `ultracite`, `webpack-bundle-analyzer`
-- ✅ Added: `vitest` (was missing)
+| Check | Result |
+|-------|--------|
+| `bunx tsc --noEmit` | PASS (0 errors) |
+| `bun run test` | PASS (10 tests) |
+| `npm run build` | PASS |
+| `bun run lint:all` | FAIL (449 errors, pre-existing admin-kit) |
 
-**Verification**
-- ✅ TypeScript compilation passes (same pre-existing errors)
-- ✅ No new errors introduced
+### Phase 1 — Tooling added
 
-### Remaining Items
+- `knip` + `depcheck` devDependencies
+- [`knip.json`](knip.json) with Vite/Hono entry points
+- Scripts: `analyze:dead-code`, `analyze:deps`
 
-**TypeScript Errors (Pre-existing - not from cleanup)**
-- API route type mismatch in `app/api/vibe-videos/[id]/route.ts`
-- Component type issues in calendar, auth, submit-project-form
-- These require separate fixes, not related to dead code
+### Phase 2–3 — Tier 1 deletions (22 files)
 
-### Summary
+- `next.config.mjs`, `proxy.ts`, `i18n/request.ts`
+- `app/robots.ts`, `app/sitemap.ts`, `app/layout.tsx`, `app/page.tsx`
+- `app/auth/callback/route.ts`
+- `app/api/**` (10 route files)
+- `patch_category.js`, `patch_form.js`, `patch_test.js`, `patch_test_2.js`
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Files Deleted | 0 | 8 |
-| Dependencies Removed | 0 | 9 |
-| Dependencies Added | 0 | 1 (vitest) |
-| TypeScript Errors | 19 | 19 (pre-existing) |
+### Phase 4 — Dependencies removed (3)
+
+- `@lobehub/icons`, `geist`, `country-region-data`
+
+### Phase 5 — Caution sweep (38 files)
+
+Confirmed unused in root app (admin-kit has separate copies where applicable):
+
+- **Config/lib/hooks:** `config/site.ts`, `lib/client-analytics.ts`, `lib/supabase/middleware.ts`, `hooks/useFAQ.ts`, `hooks/useProgressiveImage.ts`, `public/sw.js`
+- **Blog legacy:** `rich-text-editor.tsx`, `editor-image-uploader.tsx`, `novel-generative-menu.tsx`
+- **Template duplicates:** `components/layout/**` (7 files), `components/errors/**` (5 files), `back-button.tsx`, `confirm-dialog.tsx`, `calendar-date-picker.tsx`, date/copy/search helpers (6 files)
+- **Unused UI:** `heart-button.tsx`, `progressive-avatar.tsx`, `progressive-hero-image.tsx`, `animated-tooltip.tsx`, `motion-wrapper.tsx`, `tools-columns.tsx`, `typography.tsx`, `upload-dropzone.tsx`
+
+**Fix applied:** `components/command-menu.tsx` import redirected to `@/components/admin-panel/data/sidebar-data` after removing duplicate layout data.
+
+### Skipped (intentionally)
+
+- Remaining `app/**` page clients (lazy-loaded via React Router)
+- `lib/actions/*.ts` / `*.client.ts` pairs
+- `app/not-found.tsx` + `components/ui/empty.tsx` (not routed yet, kept for future)
+- `admin-kit/**` (excluded per scope)
+- Build deps flagged by depcheck: `@tailwindcss/*`, `postcss`, `tailwindcss-animate`
+- Runtime deps depcheck missed: `@hono/node-server`, `@hono/zod-validator`
+
+### Final verification
+
+| Check | Result |
+|-------|--------|
+| `bunx tsc --noEmit` | PASS |
+| `bun run test` | PASS |
+| `npm run build` | PASS |
+
+```text
+Dead Code Cleanup
+----------------------------
+Deleted:   60 files
+           3 dependencies
+Skipped:   ~120 knip false-positives + DANGER tier items
+Saved:     ~120 KB source (~15 KB client bundle gzip delta on index chunk)
+Verification: tsc PASS / vitest PASS / build PASS
+Residual:  app/not-found.tsx, remaining app/** clients, admin-kit
+----------------------------
+```
+
+### Phase 6 — Follow-up (June 2, 2026)
+
+**Architecture migration:** Moved 39 files from `app/` → `src/client/{pages,features,layouts,styles}/`. Deleted entire `app/` directory (~35 orphaned Next.js route shells).
+
+**404 route:** Added `src/client/pages/NotFoundPage.tsx`; router `*` catch-all and reserved username segments render it.
+
+**CI:** Non-blocking `analyze:dead-code` step in `.github/workflows/lint.yml`.
+
+**Lint:** `admin-kit/**` excluded via `biome.json` `experimentalScannerIgnores`. Root `lint:ci` still warns on pre-existing root issues (422 warnings).
+
+**README:** Updated test commands; removed stale `tests/views-tracking.spec.ts` reference.
+
+**Post-migration verification:**
+
+| Check | Result |
+|-------|--------|
+| `bunx tsc --noEmit` | PASS |
+| `bun run test` | PASS |
+| `npm run build` | PASS |
+| `bun run analyze:dead-code` | 51 unused files (mostly knip false-positives: compat shims, server entry chain) |
+| `bun run lint:ci` | FAIL (422 pre-existing root warnings; admin-kit excluded) |

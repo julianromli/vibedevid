@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { PendingEventsTable } from '@/app/(admin)/dashboard/boards/events-approval/components/pending-events-table'
+import { PendingEventsTable } from '@/src/client/features/admin/boards/events/PendingEventsTable'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function EventsBoard() {

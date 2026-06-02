@@ -1,0 +1,70 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "index.html",
+    "src/client/main.tsx",
+    "src/server/app.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "scripts/lint-changed.mjs",
+    "scripts/generate-rpc-client.mjs"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "hooks/**/*.{ts,tsx}",
+    "i18n/**/*.{ts,tsx}",
+    "tests/**/*.{ts,tsx}"
+  ],
+  "ignore": [
+    "admin-kit/**",
+    "dist/**",
+    ".next/**",
+    "docs/**",
+    "tasks/**",
+    "scripts/*.sql",
+    "scripts/clear_database.js",
+    "scripts/migrate-app-to-client.mjs",
+    "scripts/fix-app-imports.mjs"
+  ],
+  "ignoreDependencies": [
+    "@tailwindcss/postcss",
+    "@tailwindcss/typography",
+    "postcss",
+    "tailwindcss-animate",
+    "tailwindcss",
+    "@vitejs/plugin-react",
+    "vite-tsconfig-paths",
+    "jsdom"
+  ],
+  "vite": {
+    "config": ["vite.config.ts"]
+  },
+  "vitest": {
+    "config": ["vitest.config.ts"],
+    "entry": ["tests/unit/**/*.spec.ts", "tests/integration/**/*.spec.ts"]
+  },
+  "playwright": {
+    "config": ["playwright.config.ts"]
+  },
+  "paths": {
+    "@/*": ["./*"]
+  },
+  "workspaces": {
+    ".": {
+      "entry": [
+        "index.html",
+        "src/client/main.tsx",
+        "src/client/router.tsx",
+        "lib/actions/**/*.client.ts",
+        "lib/actions.client.ts"
+      ]
+    },
+    "server": {
+      "entry": ["src/server/app.ts"],
+      "project": ["src/server/**/*.ts", "lib/**/*.ts"],
+      "ignore": ["lib/**/*.client.ts", "lib/actions.client.ts"]
+    }
+  }
+}
