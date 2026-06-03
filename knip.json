@@ -18,7 +18,6 @@
     "tests/**/*.{ts,tsx}"
   ],
   "ignore": [
-    "admin-kit/**",
     "dist/**",
     ".next/**",
     "docs/**",

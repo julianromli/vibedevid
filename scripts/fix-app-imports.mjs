@@ -79,7 +79,7 @@ function walk(dir, files = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
     if (statSync(p).isDirectory()) {
-      if (name === 'node_modules' || name === 'admin-kit' || name === 'dist' || name === '.git') continue
+      if (name === 'node_modules' || name === 'dist' || name === '.git') continue
       walk(p, files)
     } else if (['.ts', '.tsx', '.json', '.mjs'].includes(extname(name))) {
       files.push(p)

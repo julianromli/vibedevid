@@ -6,7 +6,7 @@
 
 ## OVERVIEW
 
-VibeDev ID is a **React + Vite + Hono** monolith (SPA + API) backed by Supabase, `react-i18next`, npm, Biome, Vitest, and Playwright. Legacy `app/` Next.js routes remain as reference; production entry is `src/client/` + `src/server/`. This repo also contains `admin-kit/` (separate Next.js 15 template; not used in production).
+VibeDev ID is a **React + Vite + Hono** monolith (SPA + API) backed by Supabase, `react-i18next`, Bun, Biome, Vitest, and Playwright. Legacy `app/` Next.js routes remain as reference; production entry is `src/client/` + `src/server/`.
 
 This is the only repo-local `AGENTS.md`. Ignore `%TEMP%/nextjs-docs/AGENTS.md`; it is imported reference material, not repo-local policy.
 
@@ -18,20 +18,20 @@ This is the only repo-local `AGENTS.md`. Ignore `%TEMP%/nextjs-docs/AGENTS.md`; 
 ├── components/       # feature components + shared wrappers
 ├── lib/              # helpers, Supabase, auth, SEO, uploads
 ├── docs/             # operational and design documentation
-├── scripts/          # SQL migrations + repo scripts
-├── admin-kit/        # separate Next.js 15 package
+└── scripts/          # SQL migrations + repo scripts
 ```
 
 ## ROOT COMMANDS
 
 ```bash
-npm run dev
+bun run dev
 bun run lint        # changed files only
 bun run lint:all
 bunx tsc --noEmit   # required; build ignores TS errors
 bun run test
 bun run test:e2e
-npm run build
+bun run build
+bun run start       # production smoke after build
 ```
 
 ## GLOBAL WHERE TO LOOK
@@ -57,7 +57,6 @@ npm run build
 ## GLOBAL ANTI-PATTERNS
 
 - Do not rely on `npm run build` for type safety; `next.config.mjs` sets `typescript.ignoreBuildErrors = true`.
-- Do not mix root tooling assumptions with `admin-kit/`.
 - Do not create or update files under `.next/`, `node_modules/`, `playwright-report/`, `%TEMP%/`, or `nul`.
 - Do not assume every `/admin` route is protected by `app/(admin)`.
 - Do not duplicate Supabase client setup, env parsing, slug logic, or URL normalization outside `lib/`.
@@ -93,7 +92,7 @@ npm run build
 ### Verify
 
 - run `bunx tsc --noEmit`
-- run `npm run dev` for route/layout changes
+- run `bun run dev` for route/layout changes
 - manually hit changed routes and relevant API handlers
 
 ### Anti-Patterns
@@ -126,7 +125,7 @@ npm run build
 ### Verify
 
 - check the layout gate still redirects unauthorized users
-- manually exercise changed board filters/actions in `npm run dev`
+- manually exercise changed board filters/actions in `bun run dev`
 - re-check cache refresh and moderation state after admin mutations
 
 ### Anti-Patterns
@@ -158,7 +157,6 @@ npm run build
 
 ### Anti-Patterns
 
-- Do not import `admin-kit/src/components/*` into the root app.
 - Do not add another button, input, or modal primitive here when `components/ui/` already owns it.
 - Do not move route ownership out of `app/` just to share JSX.
 
@@ -185,7 +183,6 @@ npm run build
 
 ### Anti-Patterns
 
-- Do not import UI primitives from `admin-kit/` into the root app.
 - Do not grow the existing large files indefinitely; extract sections/helpers instead.
 - Do not put server secrets, Supabase admin clients, or direct service-role logic in client components.
 
@@ -297,52 +294,13 @@ npm run build
 - Preserve numeric migration ordering; append new migrations instead of renumbering old ones.
 - Keep SQL changes narrow and review the related docs in `docs/database/*` or `docs/migrations/*` before changing historical assumptions.
 - Treat RLS, indexes, and foreign keys as first-class concerns; many scripts in this folder exist only to tighten those areas.
-- Root linting for changed files runs through `node scripts/lint-changed.mjs`.
+- Root linting for changed files runs through `bun scripts/lint-changed.mjs`.
 
 ### Anti-Patterns
 
 - Do not casually run `production-reset.sql` or `clear_database.js`.
 - Do not rename or reorder historical migrations after they have meaning in the sequence.
 - Do not remove indexes just because they look unused; check the database docs first.
-
-## ADMIN-KIT GUIDE
-
-### Overview
-
-`admin-kit/` is a separate Next.js 15 package. It does not follow the root Bun + Biome workflow; it uses pnpm, ESLint, Prettier, Tailwind v4, and its own `src/`-scoped aliasing.
-
-### Commands
-
-```bash
-pnpm install
-pnpm run dev
-pnpm run build
-pnpm run lint
-pnpm run format
-pnpm run format:fix
-pnpm run lint:fix
-```
-
-### Where To Look
-
-- package and tooling: `package.json`, `eslint.config.mjs`, `.prettierrc`, `tsconfig.json`, `next.config.ts`
-- route tree: `src/app/*`
-- local UI layer: `src/components/ui/*`
-- local dashboard chrome: `src/components/layout/*`
-
-### Conventions
-
-- Use pnpm in this subtree.
-- Use ESLint + Prettier here; root Biome rules do not apply.
-- Respect the local alias mapping `@/* -> ./src/*`.
-- Keep `admin-kit` components isolated from root `components/` and `components/ui/`.
-- This package ships with template or demo-style data and layouts; verify real integrations before connecting it to production systems.
-
-### Anti-Patterns
-
-- Do not import root app components into this package.
-- Do not assume root commands, root lockfile rules, or Bun-specific workflows apply here.
-- Do not mix the root UI layer with `admin-kit/src/components/ui/*`.
 
 ## NOTES
 

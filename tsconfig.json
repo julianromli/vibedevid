@@ -19,5 +19,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "admin-kit", "dist", ".next"]
+  "exclude": ["node_modules", "dist", ".next"]
 }

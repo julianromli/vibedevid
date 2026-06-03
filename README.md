@@ -36,8 +36,10 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.0.10 with App Router + Turbopack
+- **Frontend**: React 19 + Vite 8 + React Router
+- **Backend**: Hono 4 (Bun runtime in production)
 - **Language**: TypeScript 5.x
+- **Runtime / package manager**: Bun 1.3+
 - **Database**: Supabase (PostgreSQL) with RLS policies
 - **Authentication**: Supabase Auth (email/password + OAuth)
 - **Styling**: Tailwind CSS v4.1.9
@@ -46,7 +48,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Rich Text**: Novel 1.0.2 + TipTap 3.14.0
 - **Icons**: Lucide React 0.562.0 + Tabler Icons + LobeHub Icons
 - **Fonts**: Geist Sans & Geist Mono
-- **Internationalization**: next-intl 4.7.0
+- **Internationalization**: react-i18next (legacy Next.js `app/` routes still use next-intl)
 - **Forms**: React Hook Form + Zod
 - **AI Integration**: AI SDK + OpenRouter Provider
 - **File Uploads**: UploadThing + Better Upload
@@ -62,7 +64,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ### Prerequisites
 
-- Node.js 18+ or **Bun** (recommended)
+- [Bun](https://bun.sh) 1.3+ (required for install, dev, test, and production server)
 - A Supabase account and project
 
 ### Installation
@@ -78,14 +80,6 @@ cd vibedevid_v0
 
 ```bash
 bun install
-
-# or
-
-npm install
-
-# or
-
-pnpm install
 ```
 
 3. Set up environment variables:
@@ -114,15 +108,7 @@ Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
 6. Run the development server:
 
 ```bash
-bun dev
-
-# or
-
-npm run dev
-
-# or
-
-pnpm dev
+bun run dev
 ```
 
 7. Open [http://localhost:5173](http://localhost:5173) in your browser.
@@ -133,35 +119,36 @@ pnpm dev
 # Install dependencies
 bun install
 
-# Development server (Turbopack is default in Next.js 16)
-bun dev
+# Development server (Vite + Hono API)
+bun run dev
 
-# Build for production
-bun build
+# Build client + server for production
+bun run build
 
-# Type checking (CRITICAL: build ignores TS errors via ignoreBuildErrors: true)
-bun tsc --noEmit
+# Run production server (after build; default http://localhost:3000)
+bun run start
+# curl http://127.0.0.1:3000/api/health
 
-# Linting & Formatting (Biome)
-bun lint
-bun format
+# Type checking
+bunx tsc --noEmit
 
-# E2E tests (Playwright) — suite lives in tests/e2e/ (add specs as needed)
-bun run test:e2e
+# Linting & formatting (Biome)
+bun run lint
+bun run format
 
-# Run unit tests (Vitest)
+# Unit tests (Vitest)
 bun run test
+
+# E2E tests (Playwright) — install browsers once: bunx playwright install chromium
+bun run test:e2e
 
 # Run all tests
 bun run test:all
 
-# Run tests in headed mode (see browser)
 bun run test:e2e:headed
-
-# Run tests in debug mode (step through)
 bun run test:e2e:debug
 
-# Dead code analysis (knip + depcheck)
+# Dead code analysis
 bun run analyze:dead-code
 bun run analyze:deps
 ```

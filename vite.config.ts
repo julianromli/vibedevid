@@ -1,5 +1,5 @@
 import path from 'node:path'
-import build from '@hono/vite-build/node'
+import build from '@hono/vite-build/bun'
 import devServer, { defaultOptions } from '@hono/vite-dev-server'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
@@ -93,7 +93,6 @@ export default defineConfig(({ mode }) => {
         tsconfigPaths(),
         build({
           entry: './src/server/app.ts',
-          port: Number(process.env.PORT || 5173),
         }),
       ],
       resolve: {
