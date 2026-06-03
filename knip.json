@@ -5,7 +5,7 @@
     "src/client/main.tsx",
     "src/server/app.ts",
     "vitest.config.ts",
-    "playwright.config.ts",
+    "scripts/smoke-agent-browser.mjs",
     "scripts/lint-changed.mjs",
     "scripts/generate-rpc-client.mjs"
   ],
@@ -43,9 +43,6 @@
   "vitest": {
     "config": ["vitest.config.ts"],
     "entry": ["tests/unit/**/*.spec.ts", "tests/integration/**/*.spec.ts"]
-  },
-  "playwright": {
-    "config": ["playwright.config.ts"]
   },
   "paths": {
     "@/*": ["./*"]

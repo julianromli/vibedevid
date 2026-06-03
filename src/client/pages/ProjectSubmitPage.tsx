@@ -3,12 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { Navigate } from 'react-router-dom'
-import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { SubmitProjectForm } from '@/components/ui/submit-project-form'
 import { useAuth } from '@/hooks/useAuth'
 import type { Category } from '@/lib/categories'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 
 async function fetchSubmitContext() {
   const res = await fetch('/api/pages/project-submit', { credentials: 'include' })

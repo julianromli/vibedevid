@@ -1,5 +1,5 @@
 'use client'
-import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
+import { FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -9,15 +9,15 @@ import { EmptyState } from '@/components/profile/empty-state'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileStats } from '@/components/profile/profile-stats'
 import { ProjectTab } from '@/components/profile/project-tab'
-import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import ProfileEditDialog, { type ProfileFormData } from '@/components/ui/profile-edit-dialog'
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { updateUserProfile } from '@/lib/actions/user'
 import { mapDbUserToAuthUser } from '@/hooks/useAuth'
+import { updateUserProfile } from '@/lib/actions/user'
 import { createClient } from '@/lib/supabase/client'
+import NotFoundPage from '@/src/client/pages/NotFoundPage'
 import type { User as AuthUser } from '@/types/homepage'
 
 interface ProfileUser {
@@ -187,7 +187,6 @@ async function fetchUserProjectsFallback(username: string): Promise<UserProject[
 
 async function fetchUserProfileWithStats(username: string) {
   const supabase = createClient()
-
 
   const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
 
@@ -448,27 +447,7 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return (
-      <div className="bg-grid-pattern relative min-h-screen">
-        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
-
-        <Navbar
-          showNavigation={true}
-          isLoggedIn={isLoggedIn}
-          user={currentUser || undefined}
-        />
-        <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold">User Not Found</h1>
-            <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
-            <Button onClick={() => router.push('/')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
+    return <NotFoundPage />
   }
 
   return (

@@ -2,10 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 import EventDetailClient from '@/components/event/event-detail-client'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 
 export default function EventDetailPage() {
   const { slug } = useParams<{ slug: string }>()

@@ -1,7 +1,7 @@
 import { execSync, spawnSync } from 'node:child_process'
 
 const BIOME_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.json'])
-const IGNORE_PREFIXES = ['node_modules/', '.next/', 'playwright-report/', 'test-results/']
+const IGNORE_PREFIXES = ['node_modules/', '.next/', 'playwright-report/', 'test-results/', '.agent-browser/']
 
 function run(command) {
   try {

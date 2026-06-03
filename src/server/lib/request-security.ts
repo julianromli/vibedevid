@@ -4,8 +4,11 @@ import { getSiteUrl } from '@/lib/seo/site-url'
 function normalizeOrigin(value: string | null | undefined): string | null {
   if (!value) return null
 
+  const trimmed = value.trim()
+  const withScheme = trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`
+
   try {
-    return new URL(value).origin
+    return new URL(withScheme).origin
   } catch {
     return null
   }
@@ -13,6 +16,25 @@ function normalizeOrigin(value: string | null | undefined): string | null {
 
 function readEnv(key: string): string {
   return typeof process !== 'undefined' ? (process.env[key] ?? '') : ''
+}
+
+function readCsvOrigins(key: string): string[] {
+  const raw = readEnv(key)
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function isPreviewOrDevelopment(): boolean {
+  const vercelEnv = readEnv('VERCEL_ENV')
+  if (vercelEnv === 'preview' || vercelEnv === 'development') return true
+  return readEnv('NODE_ENV') !== 'production'
+}
+
+function isPreviewHostname(hostname: string): boolean {
+  return hostname.endsWith('.sslip.io') || hostname.endsWith('.vercel.app')
 }
 
 export function getAllowedOrigins(): Set<string> {
@@ -27,6 +49,8 @@ export function getAllowedOrigins(): Set<string> {
     readEnv('SITE_URL'),
     readEnv('VERCEL_PROJECT_PRODUCTION_URL'),
     readEnv('VERCEL_URL'),
+    readEnv('VERCEL_BRANCH_URL'),
+    ...readCsvOrigins('CORS_ALLOWED_ORIGINS'),
   ]) {
     const origin = normalizeOrigin(value)
     if (origin) origins.add(origin)
@@ -42,7 +66,19 @@ export function getAllowedOrigins(): Set<string> {
 
 export function isAllowedOrigin(origin: string | null | undefined): boolean {
   const normalized = normalizeOrigin(origin)
-  return Boolean(normalized && getAllowedOrigins().has(normalized))
+  if (!normalized) return false
+  if (getAllowedOrigins().has(normalized)) return true
+
+  if (isPreviewOrDevelopment()) {
+    try {
+      const hostname = new URL(normalized).hostname
+      if (isPreviewHostname(hostname)) return true
+    } catch {
+      return false
+    }
+  }
+
+  return false
 }
 
 export function resolveCorsOrigin(origin: string): string {

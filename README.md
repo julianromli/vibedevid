@@ -55,7 +55,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Command Palette**: cmdk 1.1.1
 - **Charts**: Recharts 3.7.0
 - **Dates**: date-fns + date-fns-tz
-- **Testing**: Playwright 1.55.0 (E2E) + Vitest 4.0.18 (unit)
+- **Testing**: agent-browser (E2E smoke) + Vitest 4.0.18 (unit)
 - **Code Quality**: Biome 2.3.10 (linter + formatter)
 - **Analytics**: Vercel Analytics + Speed Insights
 - **Toast**: Sonner 2.0.7
@@ -139,14 +139,14 @@ bun run format
 # Unit tests (Vitest)
 bun run test
 
-# E2E tests (Playwright) — install browsers once: bunx playwright install chromium
+# E2E smoke (agent-browser) — start dev server first; install once: npx agent-browser@latest install
 bun run test:e2e
 
 # Run all tests
 bun run test:all
 
+# E2E with visible browser
 bun run test:e2e:headed
-bun run test:e2e:debug
 
 # Dead code analysis
 bun run analyze:dead-code
@@ -244,7 +244,7 @@ bun run analyze:deps
 │   └── ai/                 # AI integration (OpenRouter)
 ├── types/                  # TypeScript type definitions
 ├── scripts/                # Database migrations (20+ SQL files)
-├── tests/                  # Playwright E2E tests + unit tests
+├── tests/                  # Vitest unit tests; E2E smoke in scripts/smoke-agent-browser.mjs
 ├── messages/               # i18n messages (en.json, id.json)
 ├── docs/                   # Documentation (security, database, deployment)
 ├── biome.json              # Biome configuration

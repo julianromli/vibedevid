@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { BlogGuideModal } from '@/components/blog/blog-guide-modal'
 import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
@@ -137,10 +137,6 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
     [initialData],
   )
 
-  useEffect(() => {
-    console.log('[BlogEditorClient] User authenticated:', user.id)
-  }, [user])
-
   const handleSave = useCallback(
     async (status: 'published' | 'draft') => {
       const trimmedCoverImage = coverImage.trim()
@@ -167,7 +163,6 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
       }
 
       // Log content before saving for debugging
-      console.log('[BlogEditorClient] Content before save:', JSON.stringify(editorContent, null, 2))
 
       setSaving(true)
 
@@ -192,7 +187,6 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
           toast.success(status === 'published' ? 'Post published!' : 'Draft saved!')
 
           const finalSlug = result.slug || initialData?.slug
-          console.log('[BlogEditor] Redirecting with slug:', finalSlug)
 
           if (mode === 'create') {
             if (status === 'published') {

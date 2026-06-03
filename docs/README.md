@@ -49,7 +49,7 @@ Dated implementation and design plans.
 Testing guides dan checklists.
 
 - [Production Checklist](./testing/checklist.md) - Production verification checklist
-- [Playwright Setup](./testing/playwright.md) - Playwright MCP setup guide
+- [agent-browser E2E / smoke](./testing/agent-browser.md) - Browser smoke tests and CLI usage
 - [Avatar Test](./testing/avatar-test.md) - Avatar auto-delete test documentation
 
 ### Legal

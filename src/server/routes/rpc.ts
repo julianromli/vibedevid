@@ -23,7 +23,6 @@ const PUBLIC_PROCEDURES = new Set([
   'actions.getLikeStatus',
   'actions.getBatchLikeStatus',
   'blog.getTags',
-  'blog.getAuthorPosts',
   'comments.getComments',
   'events.getEvents',
   'events.getEventBySlug',
@@ -55,7 +54,13 @@ rpcRoutes.post('/rpc', async (c) => {
     return c.json({ ok: false, error: 'Cross-origin RPC requests are not allowed' }, 403)
   }
 
-  const body = await c.req.json<{ procedure: string; args: unknown[] }>()
+  let body: { procedure: string; args: unknown[] }
+  try {
+    body = await c.req.json<{ procedure: string; args: unknown[] }>()
+  } catch {
+    return c.json({ ok: false, error: 'Invalid JSON body' }, 400)
+  }
+
   if (!body?.procedure || typeof body.procedure !== 'string' || !Array.isArray(body.args ?? [])) {
     return c.json({ ok: false, error: 'Invalid RPC request' }, 400)
   }

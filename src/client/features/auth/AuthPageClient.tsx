@@ -388,9 +388,7 @@ function AuthPageContent() {
                           setEmailDomainError(null)
                         } else if (!isEmailDomainAllowed(val)) {
                           const domain = getEmailDomain(val)
-                          setEmailDomainError(
-                            domain ? t('emailDomainError', { domain }) : t('emailFormatError'),
-                          )
+                          setEmailDomainError(domain ? t('emailDomainError', { domain }) : t('emailFormatError'))
                         } else {
                           setEmailDomainError(null)
                         }

@@ -6,7 +6,7 @@
 
 ## OVERVIEW
 
-VibeDev ID is a **React + Vite + Hono** monolith (SPA + API) backed by Supabase, `react-i18next`, Bun, Biome, Vitest, and Playwright. Legacy `app/` Next.js routes remain as reference; production entry is `src/client/` + `src/server/`.
+VibeDev ID is a **React + Vite + Hono** monolith (SPA + API) backed by Supabase, `react-i18next`, Bun, Biome, Vitest, and agent-browser (E2E smoke). Legacy `app/` Next.js routes remain as reference; production entry is `src/client/` + `src/server/`.
 
 This is the only repo-local `AGENTS.md`. Ignore `%TEMP%/nextjs-docs/AGENTS.md`; it is imported reference material, not repo-local policy.
 
@@ -29,7 +29,7 @@ bun run lint        # changed files only
 bun run lint:all
 bunx tsc --noEmit   # required; build ignores TS errors
 bun run test
-bun run test:e2e
+bun run test:e2e   # agent-browser smoke; dev server must be running
 bun run build
 bun run start       # production smoke after build
 ```
@@ -57,7 +57,7 @@ bun run start       # production smoke after build
 ## GLOBAL ANTI-PATTERNS
 
 - Do not rely on `npm run build` for type safety; `next.config.mjs` sets `typescript.ignoreBuildErrors = true`.
-- Do not create or update files under `.next/`, `node_modules/`, `playwright-report/`, `%TEMP%/`, or `nul`.
+- Do not create or update files under `.next/`, `node_modules/`, `%TEMP%/`, or `nul`.
 - Do not assume every `/admin` route is protected by `app/(admin)`.
 - Do not duplicate Supabase client setup, env parsing, slug logic, or URL normalization outside `lib/`.
 
@@ -304,5 +304,5 @@ bun run start       # production smoke after build
 
 ## NOTES
 
-- Root test config points at `tests/unit`, `tests/integration`, and `tests/e2e`; verify actual test files exist in the current checkout before claiming coverage.
+- Root unit tests: `tests/unit` (Vitest). Browser smoke: `scripts/smoke-agent-browser.mjs` via `bun run test:e2e`. See `docs/testing/agent-browser.md`.
 - Keep `docs/README.md` aligned with this root `AGENTS.md`.

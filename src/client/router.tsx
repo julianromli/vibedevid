@@ -171,6 +171,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'project',
+        element: (
+          <S>
+            <NotFoundPage />
+          </S>
+        ),
+      },
+      {
         path: 'project/list',
         element: (
           <S>

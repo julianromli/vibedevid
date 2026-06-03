@@ -55,11 +55,17 @@ export async function tryServeProductionStatic(c: Context): Promise<Response | n
   const stat = statSync(filePath)
   if (!stat.isFile()) return null
 
-  const body = new Uint8Array(await readFile(filePath))
   const ext = filePath.slice(filePath.lastIndexOf('.'))
   const type = MIME[ext] ?? 'application/octet-stream'
+  const headers: Record<string, string> = {
+    'Content-Type': type,
+    'Content-Length': String(stat.size),
+  }
 
-  return new Response(body, {
-    headers: { 'Content-Type': type },
-  })
+  if (c.req.method === 'HEAD') {
+    return new Response(null, { status: 200, headers })
+  }
+
+  const body = new Uint8Array(await readFile(filePath))
+  return new Response(body, { headers })
 }

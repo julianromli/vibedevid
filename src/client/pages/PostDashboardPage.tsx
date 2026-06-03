@@ -1,15 +1,9 @@
-'use client'
-
 import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { useAuth } from '@/hooks/useAuth'
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +17,12 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/hooks/useAuth'
 import { deleteBlogPost, getAuthorPosts } from '@/lib/actions/blog'
+import { ClientErrorBoundary } from '@/src/client/components/ClientErrorBoundary'
 
 interface Post {
   id: string
@@ -66,7 +64,9 @@ export default function PostDashboardPage() {
         user={user ?? undefined}
       />
       <main className="container mx-auto max-w-5xl px-4 py-12 pt-24">
-        <PostDashboardClient />
+        <ClientErrorBoundary title="Could not load your posts">
+          <PostDashboardClient />
+        </ClientErrorBoundary>
       </main>
       <Footer />
     </div>
@@ -83,14 +83,26 @@ export function PostDashboardClient() {
     setLoading(true)
     try {
       const statusFilter = activeTab === 'all' ? 'all' : (activeTab as 'published' | 'draft' | 'archived')
-      const { success, data, error } = await getAuthorPosts(1, statusFilter)
-      if (success && data) {
-        setPosts(data as unknown as Post[])
+      const result = await getAuthorPosts(1, statusFilter)
+      if (result && typeof result === 'object' && 'success' in result) {
+        const { success, data, error } = result as {
+          success: boolean
+          data?: Post[]
+          error?: string
+        }
+        if (success && Array.isArray(data)) {
+          setPosts(data)
+        } else {
+          setPosts([])
+          toast.error(error || 'Failed to fetch posts')
+        }
       } else {
-        toast.error(error || 'Failed to fetch posts')
+        setPosts([])
+        toast.error('Failed to fetch posts')
       }
     } catch (_error) {
-      toast.error('An error occurred')
+      setPosts([])
+      toast.error('An error occurred while loading posts')
     } finally {
       setLoading(false)
     }
@@ -147,11 +159,11 @@ export function PostDashboardClient() {
           <h1 className="text-3xl font-bold tracking-tight">Your Posts</h1>
           <p className="text-muted-foreground">Manage your blog posts and track their performance.</p>
         </div>
-        <Link href="/blog/editor">
-          <Button>
+        <Button asChild>
+          <Link href="/blog/editor">
             <Plus className="mr-2 h-4 w-4" /> New Post
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <Tabs
@@ -188,9 +200,12 @@ export function PostDashboardClient() {
                 </Button>
               )}
               {activeTab === 'all' && (
-                <Link href="/blog/editor">
-                  <Button variant="outline">Create your first post</Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  asChild
+                >
+                  <Link href="/blog/editor">Create your first post</Link>
+                </Button>
               )}
             </div>
           ) : (
@@ -207,7 +222,7 @@ export function PostDashboardClient() {
                         href={`/blog/editor/${post.slug}`}
                         className="font-bold text-xl hover:text-primary transition-colors line-clamp-2"
                       >
-                        {post.title}
+                        {post.title || 'Untitled'}
                       </Link>
                       <Badge
                         variant={getStatusColor(post.status)}

@@ -62,7 +62,61 @@ You need to set these environment variables in your Vercel dashboard:
 2. Redeploy your application
 3. Check the deployment logs for any remaining errors
 
-### 6. Testing Your Deployment
+### 6. Preview deployments and CORS
+
+The Hono API uses `src/server/lib/request-security.ts` for CORS. Preview hosts must be allowed or the browser blocks `fetch('/api/...')`.
+
+| Variable | When to set | Purpose |
+| -------- | ----------- | ------- |
+| `VITE_SITE_URL` | Production + Preview | Canonical site URL; added to CORS allowlist |
+| `VERCEL_URL` | Preview (auto) | Deployment hostname; normalized to `https://…` |
+| `VERCEL_BRANCH_URL` | Preview (auto) | Branch deployment URL |
+| `CORS_ALLOWED_ORIGINS` | Optional | Comma-separated extra origins (e.g. `https://12345.sslip.io`) |
+
+**Built-in preview patterns** (when `VERCEL_ENV=preview` or non-production):
+
+- `*.vercel.app`
+- `*.sslip.io`
+
+**Example for a custom tunnel:**
+
+```bash
+CORS_ALLOWED_ORIGINS=https://myapp.12345.sslip.io
+```
+
+Redeploy after changing env vars. Verify with:
+
+```bash
+curl -sI -H "Origin: https://your-preview.vercel.app" https://your-preview.vercel.app/api/health
+```
+
+`Access-Control-Allow-Origin` should echo the preview origin, not only production.
+
+### 7. Smoke tests (agent-browser)
+
+Browser smoke checks use the [agent-browser](https://www.npmjs.com/package/agent-browser) CLI (`scripts/smoke-agent-browser.mjs`). Same as `bun run test:e2e`.
+
+```bash
+# Terminal 1
+bun run dev
+
+# One-time Chromium install
+npx agent-browser@latest install
+
+# Terminal 2
+bun run test:e2e
+# or: bun run test:smoke
+```
+
+Override base URL for preview:
+
+```bash
+SMOKE_BASE_URL=https://your-preview.vercel.app bun run test:e2e
+```
+
+See [agent-browser testing guide](../testing/agent-browser.md).
+
+### 8. Testing Your Deployment
 
 After deployment, test the following:
 

@@ -8,6 +8,14 @@ export interface SitemapUrl {
   priority?: number
 }
 
+/** Normalize DB timestamps to W3C datetime (UTC, second precision). */
+export function normalizeSitemapLastmod(value: string | null | undefined, fallback: string): string {
+  const raw = value ?? fallback
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return fallback
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
 function xmlEscape(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -32,15 +40,8 @@ export function renderSitemapXml(urls: SitemapUrl[]): string {
 }
 
 export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
-  const now = new Date().toISOString()
-  const staticPaths = [
-    '',
-    '/project/list',
-    '/blog',
-    '/event/list',
-    '/privacy-policy',
-    '/terms-of-service',
-  ]
+  const now = normalizeSitemapLastmod(new Date().toISOString(), new Date().toISOString())
+  const staticPaths = ['', '/project/list', '/blog', '/event/list', '/privacy-policy', '/terms-of-service']
 
   const urls: SitemapUrl[] = staticPaths.map((path) => ({
     loc: absoluteUrl(path),
@@ -73,7 +74,7 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
       if (!project.slug) continue
       urls.push({
         loc: absoluteUrl(`/project/${project.slug}`),
-        lastmod: project.updated_at ?? now,
+        lastmod: normalizeSitemapLastmod(project.updated_at, now),
         changefreq: 'weekly',
         priority: 0.8,
       })
@@ -83,7 +84,7 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
       if (!post.slug) continue
       urls.push({
         loc: absoluteUrl(`/blog/${post.slug}`),
-        lastmod: post.updated_at ?? now,
+        lastmod: normalizeSitemapLastmod(post.updated_at, now),
         changefreq: 'weekly',
         priority: 0.7,
       })
@@ -93,7 +94,7 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
       if (!event.slug) continue
       urls.push({
         loc: absoluteUrl(`/event/${event.slug}`),
-        lastmod: event.updated_at ?? now,
+        lastmod: normalizeSitemapLastmod(event.updated_at, now),
         changefreq: 'weekly',
         priority: 0.7,
       })
@@ -103,7 +104,7 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
       if (!user.username) continue
       urls.push({
         loc: absoluteUrl(`/${user.username}`),
-        lastmod: user.updated_at ?? now,
+        lastmod: normalizeSitemapLastmod(user.updated_at, now),
         changefreq: 'monthly',
         priority: 0.5,
       })
