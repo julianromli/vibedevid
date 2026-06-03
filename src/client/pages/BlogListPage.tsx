@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 import BlogPageClient from '@/src/client/features/blog/BlogPageClient'
 
 export default function BlogListPage() {
@@ -14,11 +15,7 @@ export default function BlogListPage() {
   })
 
   if (isLoading || !data) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    )
+    return <PageLoadingShell />
   }
 
   return (

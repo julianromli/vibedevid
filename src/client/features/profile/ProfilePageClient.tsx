@@ -16,6 +16,7 @@ import ProfileEditDialog, { type ProfileFormData } from '@/components/ui/profile
 import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { updateUserProfile } from '@/lib/actions/user'
+import { mapDbUserToAuthUser } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import type { User as AuthUser } from '@/types/homepage'
 
@@ -187,7 +188,6 @@ async function fetchUserProjectsFallback(username: string): Promise<UserProject[
 async function fetchUserProfileWithStats(username: string) {
   const supabase = createClient()
 
-  console.log('[v0] Fetching profile and stats for username:', username)
 
   const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
 
@@ -240,12 +240,6 @@ async function fetchUserProfileWithStats(username: string) {
     views: totalViews,
   }
 
-  console.log('[v0] Loaded profile and stats:', {
-    username: user.username,
-    stats,
-    projectViews,
-    blogViews,
-  })
   return { user, stats }
 }
 
@@ -323,7 +317,6 @@ export default function ProfilePage() {
       setLoading(true)
 
       try {
-        console.log('[v0] Loading profile data for username:', username)
         const supabase = createClient()
 
         const [sessionResult, profileWithStatsResult] = await Promise.all([
@@ -349,25 +342,21 @@ export default function ProfilePage() {
         }
 
         if (!profileUser) {
-          console.log('[v0] Profile user not found')
           setLoading(false)
           return
         }
-
-        console.log('[v0] Profile user loaded:', profileUser.username)
-        console.log('[v0] Loaded stats:', stats)
 
         const projectsPromise = fetchUserProjects(username)
         const postsPromise = fetchUserBlogPosts(profileUser.id)
 
         setIsLoggedIn(!!session?.user)
-        if (authUser) setCurrentUser(authUser)
+        if (authUser) {
+          setCurrentUser(mapDbUserToAuthUser(authUser, session?.user?.email || ''))
+        }
         setIsOwner(isOwnerCheck)
         setUser(profileUser)
 
         const [projects, posts] = await Promise.all([projectsPromise, postsPromise])
-        console.log('[v0] Loaded projects count:', projects.length)
-        console.log('[v0] Loaded blog posts count:', posts.length)
         setUserProjects(projects)
         setUserPosts(posts)
         setUserStats({ ...stats, posts: posts.length })

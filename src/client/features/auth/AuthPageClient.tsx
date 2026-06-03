@@ -135,27 +135,18 @@ function AuthPageContent() {
       formData.append('redirectTo', redirectTo)
     }
 
-    console.log('[Frontend] Calling server action signIn with:', { email })
-
     try {
       const result = await signIn(null, formData)
-      console.log('[Frontend] Server action result:', result)
 
       if (result?.error) {
-        console.log('[Frontend] Sign in error:', result.error, 'emailNotConfirmed:', result.emailNotConfirmed)
         setError(result.error)
         if (result.emailNotConfirmed) {
-          // Redirect to email confirmation page if email not confirmed
-          console.log('[Frontend] Redirecting to confirm email page')
           router.push(`/user/auth/confirm-email?email=${encodeURIComponent(email)}`)
         }
       } else if (result?.success) {
-        console.log('[Frontend] Sign in success, redirecting to:', result.redirect || '/')
         toast.success(t('success.signIn'))
         router.replace(getSafeAuthRedirectPath(result.redirect || redirectTo))
         router.refresh()
-      } else {
-        console.log('[Frontend] Unexpected result structure:', result)
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An unexpected error occurred')
@@ -373,7 +364,7 @@ function AuthPageContent() {
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="Username"
+                    placeholder={t('usernamePlaceholder')}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="h-12 rounded-xl border-border bg-muted/30 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
@@ -387,7 +378,7 @@ function AuthPageContent() {
                   <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                   <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('emailPlaceholder')}
                     value={email}
                     onChange={(e) => {
                       const val = e.target.value
@@ -398,9 +389,7 @@ function AuthPageContent() {
                         } else if (!isEmailDomainAllowed(val)) {
                           const domain = getEmailDomain(val)
                           setEmailDomainError(
-                            domain
-                              ? `Domain ${domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook ya cuy.`
-                              : "Format email nggak valid. Pastikan ada '@' dan domainnya ya.",
+                            domain ? t('emailDomainError', { domain }) : t('emailFormatError'),
                           )
                         } else {
                           setEmailDomainError(null)
@@ -429,7 +418,7 @@ function AuthPageContent() {
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder={t('passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -463,7 +452,7 @@ function AuthPageContent() {
                     htmlFor="remember"
                     className="text-muted-foreground text-sm transition-all duration-200"
                   >
-                    Remember me
+                    {t('rememberMe')}
                   </label>
                 </div>
                 <button
@@ -471,7 +460,7 @@ function AuthPageContent() {
                   onClick={handleForgotPasswordClick}
                   className="text-muted-foreground text-sm transition-all duration-200 hover:cursor-pointer hover:text-foreground hover:underline"
                 >
-                  Forgot password?
+                  {t('forgotPassword')}
                 </button>
               </div>
 
@@ -485,12 +474,12 @@ function AuthPageContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isSignUp ? 'Creating account...' : 'Signing in...'}
+                    {isSignUp ? t('creatingAccount') : t('signingIn')}
                   </>
                 ) : isSignUp ? (
-                  'Create an account'
+                  t('createAccount')
                 ) : (
-                  'Sign in'
+                  t('signIn')
                 )}
               </Button>
 
@@ -501,7 +490,7 @@ function AuthPageContent() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="bg-background px-4 text-muted-foreground transition-all duration-200">
-                    {isSignUp ? 'OR SIGN UP WITH' : 'OR CONTINUE WITH'}
+                    {isSignUp ? t('orSignUpWith') : t('orContinueWith')}
                   </span>
                 </div>
               </div>
@@ -522,7 +511,7 @@ function AuthPageContent() {
                     width={24}
                     height={24}
                   />
-                  Google
+                  {t('google')}
                 </Button>
                 <Button
                   type="button"
@@ -537,7 +526,7 @@ function AuthPageContent() {
                     width={24}
                     height={24}
                   />
-                  GitHub
+                  {t('github')}
                 </Button>
               </div>
             </form>
@@ -550,7 +539,7 @@ function AuthPageContent() {
                 <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                 <Input
                   type="email"
-                  placeholder="Enter your email address"
+                  placeholder={t('resetEmailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -567,10 +556,10 @@ function AuthPageContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending reset link...
+                    {t('sendingReset')}
                   </>
                 ) : (
-                  'Send reset link'
+                  t('sendResetLink')
                 )}
               </Button>
             </form>
@@ -581,23 +570,25 @@ function AuthPageContent() {
             <p className="text-muted-foreground text-xs">
               {!isForgotPassword ? (
                 <>
-                  By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
+                  {t('termsAgreement', {
+                    action: isSignUp ? t('termsActionSignUp') : t('termsActionSignIn'),
+                  })}{' '}
                   <Link
                     href="/terms-of-service"
                     className="text-foreground underline hover:text-primary"
                   >
-                    Terms & Service
+                    {t('termsLink')}
                   </Link>
                 </>
               ) : (
                 <>
-                  Remember your password?{' '}
+                  {t('rememberPassword')}{' '}
                   <button
                     type="button"
                     onClick={handleBackToSignIn}
                     className="text-foreground underline hover:text-primary"
                   >
-                    Back to sign in
+                    {t('backToSignIn')}
                   </button>
                 </>
               )}

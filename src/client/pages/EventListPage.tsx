@@ -1,37 +1,31 @@
 'use client'
+
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
+import EventListClient from '@/src/client/features/event/EventListClient'
+import type { AIEvent } from '@/types/events'
 
 export default function EventListPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['events'],
-    queryFn: () => fetch('/api/pages/events').then((r) => r.json()),
+    queryFn: async (): Promise<{ events: AIEvent[] }> => {
+      const res = await fetch('/api/pages/events')
+      if (!res.ok) throw new Error('Failed to load events')
+      return res.json()
+    },
   })
-  return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="container mx-auto px-4 py-10">
-        <h1 className="mb-6 text-3xl font-bold">Events</h1>
-        {isLoading ? (
-          <p>Loading…</p>
-        ) : (
-          <ul className="space-y-4">
-            {(data?.events ?? []).map((e: { id: string; slug: string; title: string }) => (
-              <li key={e.id}>
-                <Link
-                  className="text-primary hover:underline"
-                  to={`/event/${e.slug}`}
-                >
-                  {e.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
-      <Footer />
-    </div>
-  )
+
+  if (isLoading) {
+    return <PageLoadingShell />
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+        <p className="text-muted-foreground">Gagal memuat daftar event.</p>
+      </div>
+    )
+  }
+
+  return <EventListClient initialEvents={data.events ?? []} />
 }

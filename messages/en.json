@@ -194,9 +194,10 @@
       "newest": "Newest"
     },
     "submitButton": "Submit Project",
+    "loadMoreButton": "Load More Projects",
     "noProjects": "No projects found with the selected filter",
     "beFirst": "Be the First to Submit a Project",
-    "showingProjects": "Showing {count} projects from the Indonesian developer community"
+    "showingProjects": "Showing {{count}} projects from the Indonesian developer community"
   },
   "projectSubmit": {
     "title": "Submit Your Project",
@@ -215,7 +216,7 @@
       "taglineHelper": "A short tagline that describes your project in one sentence! ✨",
       "description": "Description",
       "descriptionPlaceholder": "Describe your project, its features, and what makes it special",
-      "descriptionHelper": "Maximum {max} characters for consistency!",
+      "descriptionHelper": "Maximum {{max}} characters for consistency!",
       "category": "Category",
       "selectCategory": "Select a category",
       "loadingCategories": "Loading categories...",
@@ -234,7 +235,7 @@
       "uploading": "Uploading...",
       "uploadButton": "Choose File",
       "uploadReady": "Getting ready...",
-      "uploadAllowed": "Image ({fileTypes})",
+      "uploadAllowed": "Image ({{fileTypes}})",
       "uploadHelper": "Upload a screenshot of your project (max 4MB)",
       "uploadSuccess": "Image uploaded successfully!",
       "cancel": "Cancel",
@@ -255,6 +256,7 @@
     "usernamePlaceholder": "Username",
     "email": "Email",
     "emailPlaceholder": "Enter your email",
+    "resetEmailPlaceholder": "Enter your email address",
     "password": "Password",
     "passwordPlaceholder": "Enter your password",
     "rememberMe": "Remember me",
@@ -270,10 +272,12 @@
     "orSignUpWith": "OR SIGN UP WITH",
     "google": "Google",
     "github": "GitHub",
-    "termsAgreement": "By {action}, you agree to our",
+    "termsAgreement": "By {{action}}, you agree to our",
+    "termsActionSignUp": "creating an account",
+    "termsActionSignIn": "signing in",
     "termsLink": "Terms & Service",
     "rememberPassword": "Remember your password?",
-    "emailDomainError": "Email domain {domain} is not allowed. Please use Gmail, Yahoo, or Outlook.",
+    "emailDomainError": "Email domain {{domain}} is not allowed. Please use Gmail, Yahoo, or Outlook.",
     "emailFormatError": "Invalid email format. Make sure there's an '@' and a domain.",
     "success": {
       "signIn": "Successfully signed in! 🎉 Welcome back!"

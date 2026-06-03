@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 import BlogDetailClient from '@/components/blog/blog-detail-client'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
@@ -19,11 +20,7 @@ export default function BlogDetailPage() {
   })
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    )
+    return <PageLoadingShell />
   }
 
   const post = data?.post

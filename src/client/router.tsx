@@ -16,17 +16,13 @@ const PrivacyPage = lazy(() =>
     default: m.PrivacyPolicyClient,
   })),
 )
-const TermsPage = lazy(() => import('@/src/client/pages/TermsPage'))
 const TermsServicePage = lazy(() =>
   import('@/src/client/pages/TermsOfServicePage').then((m) => ({
     default: m.TermsOfServiceClient,
   })),
 )
-const CalendarPage = lazy(() => import('@/src/client/pages/CalendarPage'))
 const AdminVideoPage = lazy(() => import('@/src/client/pages/AdminVideoPage'))
-const PostDashboardPage = lazy(() =>
-  import('@/src/client/pages/PostDashboardPage').then((m) => ({ default: m.PostDashboardClient })),
-)
+const PostDashboardPage = lazy(() => import('@/src/client/pages/PostDashboardPage'))
 const BlogEditorClient = lazy(() => import('@/src/client/features/blog/BlogEditorClient'))
 const BlogSlugPage = lazy(() => import('./pages/BlogDetailPage'))
 const EventListPage = lazy(() => import('./pages/EventListPage'))
@@ -58,7 +54,6 @@ const RESERVED = new Set([
   'dashboard',
   'api',
   'en',
-  'calendar',
   'terms',
   'privacy-policy',
   'terms-of-service',
@@ -167,6 +162,15 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'projects',
+        element: (
+          <Navigate
+            to="/project/list"
+            replace
+          />
+        ),
+      },
+      {
         path: 'project/list',
         element: (
           <S>
@@ -206,6 +210,15 @@ export const router = createBrowserRouter([
           <S>
             <BlogSlugPage />
           </S>
+        ),
+      },
+      {
+        path: 'events',
+        element: (
+          <Navigate
+            to="/event/list"
+            replace
+          />
         ),
       },
       {
@@ -274,14 +287,6 @@ export const router = createBrowserRouter([
       { path: 'admin/dashboard/boards/events-approval', element: <RedirectToDashboardTab tab="events-approval" /> },
       { path: 'admin/dashboard/boards/admin-management', element: <RedirectToDashboardTab tab="admin-management" /> },
       {
-        path: 'calendar',
-        element: (
-          <S>
-            <CalendarPage />
-          </S>
-        ),
-      },
-      {
         path: 'privacy-policy',
         element: (
           <S>
@@ -292,9 +297,10 @@ export const router = createBrowserRouter([
       {
         path: 'terms',
         element: (
-          <S>
-            <TermsPage />
-          </S>
+          <Navigate
+            to="/terms-of-service"
+            replace
+          />
         ),
       },
       {

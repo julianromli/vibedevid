@@ -8,10 +8,13 @@ import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
+import { Footer } from '@/components/ui/footer'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
+import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import { useAuth } from '@/hooks/useAuth'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import type { ProjectFilterOption, SortBy } from '@/types/homepage'
 
@@ -47,6 +50,7 @@ export function ProjectListClient({
 }: ProjectListClientProps) {
   const t = useTranslations('projectList')
   const tCommon = useTranslations('common')
+  const { isLoggedIn, user } = useAuth()
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   const {
@@ -76,7 +80,23 @@ export function ProjectListClient({
   ]
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
+      <div className="relative min-h-screen bg-grid-pattern">
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80" />
+
+        <Navbar
+          showNavigation={true}
+          isLoggedIn={isLoggedIn}
+          user={user ?? undefined}
+        />
+
+        <section className="relative bg-transparent py-12 pt-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 text-center">
+              <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">{t('title')}</h1>
+              <p className="mx-auto max-w-2xl text-muted-foreground text-xl">{t('description')}</p>
+            </div>
+
       <div className="mb-8">
         <div className="space-y-4 md:hidden">
           <div className="flex justify-center">
@@ -266,6 +286,11 @@ export function ProjectListClient({
           <p className="text-muted-foreground">{t('showingProjects', { count: visibleProjectCount })}</p>
         </div>
       )}
-    </>
+          </div>
+        </section>
+
+        <Footer />
+      </div>
+    </div>
   )
 }

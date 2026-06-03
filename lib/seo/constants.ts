@@ -16,7 +16,6 @@ export const RESERVED_PROFILE_SEGMENTS = new Set([
   'dashboard',
   'api',
   'en',
-  'calendar',
   'terms',
   'privacy-policy',
   'terms-of-service',

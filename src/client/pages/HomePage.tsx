@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
+import { PageLoadingShell } from '@/src/client/components/PageLoadingShell'
 import HomePageClient from '@/src/client/features/home/HomePageClient'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 
@@ -31,11 +32,7 @@ export default function HomePage() {
   })
 
   if (isLoading || !data) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    )
+    return <PageLoadingShell />
   }
 
   return (

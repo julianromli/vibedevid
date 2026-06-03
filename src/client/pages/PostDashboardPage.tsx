@@ -3,9 +3,12 @@
 import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import { useAuth } from '@/hooks/useAuth'
 
 import {
   AlertDialog,
@@ -35,8 +38,42 @@ interface Post {
   cover_image?: string
 }
 
+export default function PostDashboardPage() {
+  const { isLoggedIn, user, authReady } = useAuth()
+
+  if (!authReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <Navigate
+        to="/user/auth?redirectTo=/dashboard/posts"
+        replace
+      />
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar
+        showNavigation={true}
+        isLoggedIn={isLoggedIn}
+        user={user ?? undefined}
+      />
+      <main className="container mx-auto max-w-5xl px-4 py-12 pt-24">
+        <PostDashboardClient />
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
 export function PostDashboardClient() {
-  const _router = useRouter()
   const [activeTab, setActiveTab] = useState<string>('all')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)

@@ -222,8 +222,12 @@ export async function resolvePageMeta(pathname: string, locale: SeoLocale): Prom
     return staticPageMeta(locale, path, 'Privacy Policy', 'Privacy policy for VibeDev ID.')
   }
 
-  if (path === '/terms-of-service' || path === '/terms') {
+  if (path === '/terms-of-service') {
     return staticPageMeta(locale, path, 'Terms of Service', 'Terms of service for VibeDev ID.')
+  }
+
+  if (path === '/terms') {
+    return staticPageMeta(locale, '/terms-of-service', 'Terms of Service', 'Terms of service for VibeDev ID.')
   }
 
   if (

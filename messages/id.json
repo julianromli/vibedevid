@@ -194,9 +194,10 @@
       "newest": "Terbaru"
     },
     "submitButton": "Submit Project",
+    "loadMoreButton": "Muat Project Lainnya",
     "noProjects": "Belum ada project dengan filter yang dipilih",
     "beFirst": "Jadi yang Pertama Submit Project",
-    "showingProjects": "Menampilkan {count} project dari komunitas developer Indonesia"
+    "showingProjects": "Menampilkan {{count}} project dari komunitas developer Indonesia"
   },
   "projectSubmit": {
     "title": "Submit Project Anda",
@@ -215,7 +216,7 @@
       "taglineHelper": "Tagline singkat yang menjelaskan project Anda dalam satu kalimat! ✨",
       "description": "Deskripsi",
       "descriptionPlaceholder": "Jelaskan project Anda, fitur-fiturnya, dan apa yang membuatnya spesial",
-      "descriptionHelper": "Maksimal {max} karakter untuk konsistensi!",
+      "descriptionHelper": "Maksimal {{max}} karakter untuk konsistensi!",
       "category": "Kategori",
       "selectCategory": "Pilih kategori",
       "loadingCategories": "Memuat kategori...",
@@ -234,7 +235,7 @@
       "uploading": "Mengupload...",
       "uploadButton": "Pilih File",
       "uploadReady": "Mempersiapkan...",
-      "uploadAllowed": "Gambar ({fileTypes})",
+      "uploadAllowed": "Gambar ({{fileTypes}})",
       "uploadHelper": "Upload screenshot project Anda (maks 4MB)",
       "uploadSuccess": "Gambar berhasil diupload!",
       "cancel": "Batal",
@@ -255,6 +256,7 @@
     "usernamePlaceholder": "Username",
     "email": "Email",
     "emailPlaceholder": "Masukkan email Anda",
+    "resetEmailPlaceholder": "Masukkan alamat email Anda",
     "password": "Password",
     "passwordPlaceholder": "Masukkan password Anda",
     "rememberMe": "Ingat saya",
@@ -270,10 +272,12 @@
     "orSignUpWith": "ATAU DAFTAR DENGAN",
     "google": "Google",
     "github": "GitHub",
-    "termsAgreement": "Dengan {action}, Anda setuju dengan",
+    "termsAgreement": "Dengan {{action}}, Anda setuju dengan",
+    "termsActionSignUp": "membuat akun",
+    "termsActionSignIn": "masuk",
     "termsLink": "Syarat & Ketentuan",
     "rememberPassword": "Ingat password Anda?",
-    "emailDomainError": "Domain email {domain} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook.",
+    "emailDomainError": "Domain email {{domain}} tidak diizinkan. Gunakan Gmail, Yahoo, atau Outlook.",
     "emailFormatError": "Format email tidak valid. Pastikan ada '@' dan domain.",
     "success": {
       "signIn": "Berhasil masuk! 🎉 Selamat datang kembali!"

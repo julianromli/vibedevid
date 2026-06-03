@@ -9,6 +9,26 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@/types/homepage'
 
+interface DbUserProfile {
+  id: string
+  display_name?: string | null
+  username?: string | null
+  avatar_url?: string | null
+  role?: number | null
+}
+
+/** Maps a Supabase `users` row to the shape expected by Navbar and other UI. */
+export function mapDbUserToAuthUser(profile: DbUserProfile, email = ''): User {
+  return {
+    id: profile.id,
+    name: profile.display_name || profile.username || email.split('@')[0] || 'User',
+    email,
+    avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
+    username: profile.username ?? undefined,
+    role: profile.role ?? null,
+  }
+}
+
 export function useAuth() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<User | null>(null)
@@ -47,15 +67,7 @@ export function useAuth() {
         if (!isMounted) return
 
         if (profile) {
-          const userData = {
-            id: profile.id,
-            name: profile.display_name,
-            email,
-            avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
-            username: profile.username,
-            role: profile.role ?? null,
-          }
-          setUser(userData)
+          setUser(mapDbUserToAuthUser(profile, email))
           return
         }
 

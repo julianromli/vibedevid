@@ -38,10 +38,8 @@ export async function buildSitemapUrls(): Promise<SitemapUrl[]> {
     '/project/list',
     '/blog',
     '/event/list',
-    '/terms',
     '/privacy-policy',
     '/terms-of-service',
-    '/calendar',
   ]
 
   const urls: SitemapUrl[] = staticPaths.map((path) => ({
