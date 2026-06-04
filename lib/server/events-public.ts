@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { getSupabaseConfig } from '@/lib/env-config'
-import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
+import type { AIEvent, EventCategory, EventLocationType, EventStatus } from '@/types/events'
+
+function computeEventStatus(date: string): EventStatus {
+  const eventDate = new Date(date)
+  eventDate.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  if (eventDate < today) return 'past'
+  if (eventDate.getTime() === today.getTime()) return 'ongoing'
+  return 'upcoming'
+}
 
 interface EventRow {
   id: string
@@ -18,7 +29,7 @@ interface EventRow {
   registration_url: string
   cover_image: string
   category: EventCategory
-  status: AIEvent['status']
+  created_at: string | null
 }
 
 function mapEventFromDB(data: EventRow): AIEvent {
@@ -37,7 +48,8 @@ function mapEventFromDB(data: EventRow): AIEvent {
     registrationUrl: data.registration_url,
     coverImage: data.cover_image,
     category: data.category,
-    status: data.status,
+    status: computeEventStatus(data.date),
+    createdAt: data.created_at ?? undefined,
   }
 }
 

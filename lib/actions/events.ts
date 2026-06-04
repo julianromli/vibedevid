@@ -5,7 +5,18 @@ import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
+import type { AIEvent, EventCategory, EventFormData, EventLocationType, EventStatus } from '@/types/events'
+
+function computeEventStatus(date: string): EventStatus {
+  const eventDate = new Date(date)
+  eventDate.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  if (eventDate < today) return 'past'
+  if (eventDate.getTime() === today.getTime()) return 'ongoing'
+  return 'upcoming'
+}
 
 // Helper to map DB result (snake_case) to AIEvent (camelCase)
 function mapEventFromDB(data: any): AIEvent {
@@ -24,7 +35,8 @@ function mapEventFromDB(data: any): AIEvent {
     registrationUrl: data.registration_url,
     coverImage: data.cover_image,
     category: data.category as EventCategory,
-    status: data.status,
+    status: computeEventStatus(data.date),
+    createdAt: data.created_at,
   }
 }
 
@@ -100,7 +112,12 @@ export async function getEventBySlug(slug: string) {
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('events').select('*').eq('slug', sanitizedSlug).single()
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('slug', sanitizedSlug)
+    .eq('approved', true)
+    .single()
 
   if (error) {
     console.error('Error fetching event by slug:', error)
@@ -155,7 +172,8 @@ export async function submitEvent(formData: EventFormData) {
       name: formData.name,
       date: formData.date,
       time: formData.time,
-      // end_date and end_time are omitted from EventFormData
+      end_date: formData.endDate || null,
+      end_time: formData.endTime || null,
       location_type: formData.locationType,
       location_detail: formData.locationDetail,
       description: formData.description,
@@ -168,10 +186,28 @@ export async function submitEvent(formData: EventFormData) {
       submitted_by: user.id, // Use authenticated user ID
     }
 
-    const { error } = await supabase.from('events').insert(dbData)
+    // Insert with unique slug handling (auto-suffix on collision)
+    let currentSlug = dbData.slug
+    let insertError: any = null
+    const maxRetries = 5
 
-    if (error) {
-      console.error('Error submitting event:', error)
+    for (let i = 0; i < maxRetries; i++) {
+      const { error } = await supabase.from('events').insert({ ...dbData, slug: currentSlug })
+      if (!error) {
+        insertError = null
+        break
+      }
+      insertError = error
+      // 23505 = unique violation (assume slug collision)
+      if (error.code === '23505') {
+        currentSlug = `${dbData.slug}-${i + 2}`
+        continue
+      }
+      break
+    }
+
+    if (insertError) {
+      console.error('Error submitting event:', insertError)
       return { success: false, error: 'Failed to submit event' }
     }
 
@@ -288,5 +324,35 @@ export async function rejectEvent(eventId: string) {
   } catch (error) {
     console.error('Unexpected error rejecting event:', error)
     return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+// Get events submitted by the current user
+export async function getMyEvents() {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { events: [], error: 'Unauthorized' }
+    }
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('submitted_by', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching my events:', error)
+      return { events: [], error: 'Failed to fetch events' }
+    }
+
+    return { events: data?.map(mapEventFromDB) || [] }
+  } catch (error) {
+    console.error('Unexpected error fetching my events:', error)
+    return { events: [], error: 'An unexpected error occurred' }
   }
 }

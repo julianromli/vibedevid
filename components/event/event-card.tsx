@@ -271,18 +271,31 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
         </p>
 
         {/* CTA */}
-        <Link
-          href={`/event/${event.slug}`}
-          className={cn(
-            'mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium text-sm',
-            'bg-primary text-primary-foreground transition-all',
-            'hover:bg-primary/90 hover:shadow-md',
-            'dark:hover:shadow-primary/20',
-          )}
-        >
-          Register Now
-          <ExternalLink className="size-4" />
-        </Link>
+        <div className="mt-2 space-y-2">
+          <a
+            href={event.registrationUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium text-sm',
+              'bg-primary text-primary-foreground transition-all',
+              'hover:bg-primary/90 hover:shadow-md',
+              'dark:hover:shadow-primary/20',
+            )}
+          >
+            Register Now
+            <ExternalLink className="size-4" />
+          </a>
+          <Link
+            href={`/event/${event.slug}`}
+            className={cn(
+              'flex w-full items-center justify-center gap-1 rounded-lg px-4 py-2 text-xs font-medium',
+              'text-muted-foreground transition-colors hover:text-foreground',
+            )}
+          >
+            Detail Event
+          </Link>
+        </div>
       </div>
     </Card>
   )

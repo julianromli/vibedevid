@@ -1,6 +1,6 @@
 'use client'
 import { format } from 'date-fns'
-import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
+import { ArrowLeft, Calendar, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { BlogTab } from '@/components/profile/blog-tab'
 import { EmptyState } from '@/components/profile/empty-state'
+import { EventTab } from '@/components/profile/event-tab'
 // New Components
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileStats } from '@/components/profile/profile-stats'
@@ -21,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { updateUserProfile } from '@/lib/actions/user'
 import { createClient } from '@/lib/supabase/client'
 import type { User as AuthUser } from '@/types/homepage'
+import type { AIEvent } from '@/types/events'
 
 interface ProfileUser {
   id: string
@@ -311,9 +313,11 @@ export default function ProfilePage() {
   const [user, setUser] = useState<ProfileUser | null>(null)
   const [userProjects, setUserProjects] = useState<UserProject[]>([])
   const [userPosts, setUserPosts] = useState<UserBlogPost[]>([])
+  const [userEvents, setUserEvents] = useState<AIEvent[]>([])
   const [userStats, setUserStats] = useState({
     projects: 0,
     posts: 0,
+    events: 0,
     likes: 0,
     views: 0,
   })
@@ -366,18 +370,47 @@ export default function ProfilePage() {
 
         const projectsPromise = fetchUserProjects(username)
         const postsPromise = fetchUserBlogPosts(profileUser.id)
+        const eventsPromise = isOwnerCheck
+          ? supabase
+              .from('events')
+              .select('*')
+              .eq('submitted_by', profileUser.id)
+              .order('created_at', { ascending: false })
+          : Promise.resolve({ data: [], error: null })
 
         setIsLoggedIn(!!session?.user)
         if (authUser) setCurrentUser(authUser)
         setIsOwner(isOwnerCheck)
         setUser(profileUser)
 
-        const [projects, posts] = await Promise.all([projectsPromise, postsPromise])
+        const [projects, posts, eventsResult] = await Promise.all([projectsPromise, postsPromise, eventsPromise])
         console.log('[v0] Loaded projects count:', projects.length)
         console.log('[v0] Loaded blog posts count:', posts.length)
         setUserProjects(projects)
         setUserPosts(posts)
-        setUserStats({ ...stats, posts: posts.length })
+
+        const eventsData = eventsResult.data || []
+        setUserEvents(
+          eventsData.map((e: any) => ({
+            id: e.id,
+            slug: e.slug,
+            name: e.name,
+            date: e.date,
+            time: e.time,
+            endDate: e.end_date,
+            endTime: e.end_time,
+            locationType: e.location_type,
+            locationDetail: e.location_detail,
+            description: e.description,
+            organizer: e.organizer,
+            registrationUrl: e.registration_url,
+            coverImage: e.cover_image,
+            category: e.category,
+            status: e.status,
+            approved: e.approved,
+          })),
+        )
+        setUserStats({ ...stats, posts: posts.length, events: eventsData.length })
       } catch (error) {
         console.error('[v0] Error loading profile data:', error)
       } finally {
@@ -534,6 +567,18 @@ export default function ProfilePage() {
                 Blog Posts
                 <span className="ml-1 rounded-full bg-muted-foreground/20 px-2 py-0.5 text-xs">{userStats.posts}</span>
               </TabsTrigger>
+              {isOwner && (
+                <TabsTrigger
+                  value="events"
+                  className="px-4 py-2 gap-2 data-[state=active]:bg-background"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Events
+                  <span className="ml-1 rounded-full bg-muted-foreground/20 px-2 py-0.5 text-xs">
+                    {userStats.events}
+                  </span>
+                </TabsTrigger>
+              )}
               <TabsTrigger
                 value="about"
                 className="px-4 py-2 gap-2 data-[state=active]:bg-background"
@@ -583,6 +628,24 @@ export default function ProfilePage() {
                 }
                 actionLabel="Write First Post"
                 actionLink="/blog/editor"
+                isOwner={isOwner}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent
+            value="events"
+            className="mt-0 focus-visible:outline-none"
+          >
+            {userEvents.length > 0 ? (
+              <EventTab events={userEvents} />
+            ) : (
+              <EmptyState
+                icon={Calendar}
+                title="Belum Ada Event"
+                description="Kamu belum submit event apa pun. Yuk, bagikan event AI yang kamu tahu!"
+                actionLabel="Submit Event"
+                actionLink="/event/list"
                 isOwner={isOwner}
               />
             )}
