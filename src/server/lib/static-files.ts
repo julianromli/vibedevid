@@ -44,7 +44,7 @@ export function isContentHashedAsset(pathname: string): boolean {
   if (!pathname.startsWith('/assets/')) return false
   const segment = pathname.split('/').pop() ?? ''
   // Vite/Rollup default: name-HASH.ext (hash is exactly 8 alphanumeric chars, no dashes)
-  return /^[a-zA-Z0-9_.-]+-[A-Za-z0-9]{8}\.[a-z0-9]+$/i.test(segment)
+  return /^[a-zA-Z0-9_.-]+-[A-Za-z0-9]{6,}\.[a-z0-9]+$/i.test(segment)
 }
 
 export function cacheControlForAsset(pathname: string): string {
