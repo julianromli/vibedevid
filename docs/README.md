@@ -42,7 +42,9 @@ Dokumentasi migrasi database dan breaking changes.
 
 Dated implementation and design plans.
 
+- [TanStack Start Migration Plan](./plans/2026-06-07-tanstack-start-migration.md) - Next.js 16 to TanStack Start + Cloudflare Workers migration
 - [Landing Page UI Guidelines Fix Plan](./plans/2026-04-02-landing-page-ui-guidelines-fixes.md) - Homepage accessibility, motion, and URL-state fix plan
+- [Admin Dashboard Migration](./plans/admin-analytics-real-data.md) - Admin dashboard real data integration
 
 ### Testing
 
