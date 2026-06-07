@@ -45,7 +45,7 @@ export async function documentHandler(c: import('hono').Context): Promise<Respon
 
   const locale = resolveLocaleFromPath(pathname, getCookieLocale(c))
   const meta = await runWithHonoRequestContext(c, () => resolvePageMeta(pathname, locale))
-  const html = await renderDocumentHtml(meta)
+  const html = await renderDocumentHtml(meta, { cspNonce: c.get('cspNonce') })
 
   if (c.req.method === 'HEAD') {
     return c.body(null, 200, { 'Content-Type': 'text/html; charset=utf-8' })

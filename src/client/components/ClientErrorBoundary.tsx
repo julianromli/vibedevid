@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { reportClientError } from '@/lib/client-error-reporting'
 
 interface Props {
   children: ReactNode
@@ -19,10 +20,10 @@ export class ClientErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
-      // biome-ignore lint/suspicious/noConsole: dev-only error boundary diagnostics
-      console.error('[ClientErrorBoundary]', error, info.componentStack)
-    }
+    reportClientError(error, {
+      boundary: 'ClientErrorBoundary',
+      componentStack: info.componentStack ?? undefined,
+    })
   }
 
   render() {

@@ -29,7 +29,18 @@ export async function loadIndexHtmlTemplate(): Promise<string> {
   throw new Error('index.html template not found')
 }
 
-export async function renderDocumentHtml(meta: PageMeta): Promise<string> {
+function escapeHtmlAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
+
+export async function renderDocumentHtml(meta: PageMeta, options?: { cspNonce?: string }): Promise<string> {
   const template = await loadIndexHtmlTemplate()
-  return injectPageMetaIntoHtml(template, meta)
+  let html = injectPageMetaIntoHtml(template, meta, options)
+
+  if (options?.cspNonce) {
+    const nonceMeta = `<meta name="csp-nonce" content="${escapeHtmlAttribute(options.cspNonce)}" />`
+    html = html.replace('</head>', `    ${nonceMeta}\n  </head>`)
+  }
+
+  return html
 }

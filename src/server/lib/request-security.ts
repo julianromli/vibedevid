@@ -27,14 +27,8 @@ function readCsvOrigins(key: string): string[] {
     .filter(Boolean)
 }
 
-function isPreviewOrDevelopment(): boolean {
-  const vercelEnv = readEnv('VERCEL_ENV')
-  if (vercelEnv === 'preview' || vercelEnv === 'development') return true
-  return readEnv('NODE_ENV') !== 'production'
-}
-
-function isPreviewHostname(hostname: string): boolean {
-  return hostname.endsWith('.sslip.io') || hostname.endsWith('.vercel.app')
+function isLocalDevelopment(): boolean {
+  return readEnv('NODE_ENV') !== 'production' && readEnv('VERCEL') !== '1'
 }
 
 export function getAllowedOrigins(): Set<string> {
@@ -56,7 +50,7 @@ export function getAllowedOrigins(): Set<string> {
     if (origin) origins.add(origin)
   }
 
-  if (readEnv('NODE_ENV') !== 'production') {
+  if (isLocalDevelopment()) {
     origins.add('http://localhost:5173')
     origins.add('http://127.0.0.1:5173')
   }
@@ -67,18 +61,7 @@ export function getAllowedOrigins(): Set<string> {
 export function isAllowedOrigin(origin: string | null | undefined): boolean {
   const normalized = normalizeOrigin(origin)
   if (!normalized) return false
-  if (getAllowedOrigins().has(normalized)) return true
-
-  if (isPreviewOrDevelopment()) {
-    try {
-      const hostname = new URL(normalized).hostname
-      if (isPreviewHostname(hostname)) return true
-    } catch {
-      return false
-    }
-  }
-
-  return false
+  return getAllowedOrigins().has(normalized)
 }
 
 export function resolveCorsOrigin(origin: string): string {

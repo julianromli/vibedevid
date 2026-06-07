@@ -39,6 +39,19 @@ export function shouldHandleAsDocument(pathname: string): boolean {
   return true
 }
 
+export function isContentHashedAsset(pathname: string): boolean {
+  const segment = pathname.split('/').pop() ?? ''
+  // Vite/Rollup output: name-HASH.ext (hash is 8+ base64url chars)
+  return /-[a-zA-Z0-9_-]{8,}\.[a-z0-9]+$/i.test(segment)
+}
+
+export function cacheControlForAsset(pathname: string): string {
+  if (isContentHashedAsset(pathname)) {
+    return 'public, max-age=31536000, immutable'
+  }
+  return 'public, max-age=3600'
+}
+
 export async function tryServeProductionStatic(c: Context): Promise<Response | null> {
   if (process.env.NODE_ENV !== 'production') return null
 
@@ -60,6 +73,7 @@ export async function tryServeProductionStatic(c: Context): Promise<Response | n
   const headers: Record<string, string> = {
     'Content-Type': type,
     'Content-Length': String(stat.size),
+    'Cache-Control': cacheControlForAsset(pathname),
   }
 
   if (c.req.method === 'HEAD') {

@@ -10,26 +10,26 @@ const BASE = process.env.SMOKE_BASE_URL ?? 'http://127.0.0.1:5173'
 const HEADED =
   process.argv.includes('--headed') || process.env.AGENT_BROWSER_HEADED === '1'
 
-function runShell(command) {
-  const result = spawnSync(command, {
+function runCommand(command, args) {
+  const result = spawnSync(command, args, {
     encoding: 'utf8',
-    shell: true,
+    shell: false,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   const out = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim()
   if (result.status !== 0) {
-    throw new Error(out || `Command failed: ${command}`)
+    throw new Error(out || `Command failed: ${command} ${args.join(' ')}`)
   }
   return out
 }
 
-function shellQuote(value) {
-  return /[\s"]/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value
+function abArgs(...args) {
+  const prefix = HEADED ? ['--headed'] : []
+  return ['agent-browser@latest', ...prefix, ...args]
 }
 
-function abCmd(...args) {
-  const prefix = HEADED ? ['--headed'] : []
-  return `npx agent-browser@latest ${[...prefix, ...args].map(shellQuote).join(' ')}`
+function runAb(...args) {
+  return runCommand('npx', abArgs(...args))
 }
 
 function lastLine(output) {
@@ -47,9 +47,9 @@ function assertIncludes(haystack, needle, label) {
 }
 
 function checkHealth() {
-  const res = spawnSync(`curl -fsS "${BASE}/api/health"`, {
+  const res = spawnSync('curl', ['-fsS', `${BASE}/api/health`], {
     encoding: 'utf8',
-    shell: true,
+    shell: false,
   })
   if (res.status !== 0) {
     throw new Error(`API health failed. Is the dev server running at ${BASE}?`)
@@ -59,28 +59,28 @@ function checkHealth() {
 }
 
 function runBrowserChecks() {
-  const homeOut = runShell(
-    `${abCmd('open', `${BASE}/`)} && ${abCmd('wait', '--load', 'networkidle')} && ${abCmd('get', 'title')}`,
-  )
+  runAb('open', `${BASE}/`)
+  runAb('wait', '--load', 'networkidle')
+  const homeOut = runAb('get', 'title')
   assertIncludes(lastLine(homeOut), 'VibeDev', 'Homepage title')
   console.log('✓ Homepage loads')
 
-  const adminOut = runShell(
-    `${abCmd('open', `${BASE}/admin`)} && ${abCmd('wait', '5000')} && ${abCmd('eval', 'window.location.href')}`,
-  )
+  runAb('open', `${BASE}/admin`)
+  runAb('wait', '5000')
+  const adminOut = runAb('eval', 'window.location.href')
   const adminUrl = lastLine(adminOut).replace(/^"|"$/g, '')
   assertIncludes(adminUrl, '/user/auth', 'Anon /admin → auth redirect')
   console.log('✓ /admin gates anonymous users (redirect to auth)')
 
-  runShell(
-    `${abCmd('open', `${BASE}/zz-no-such-user-smoke`)} && ${abCmd('wait', '--text', 'Page not found')}`,
-  )
+  runAb('open', `${BASE}/zz-no-such-user-smoke`)
+  runAb('wait', '--text', 'Page not found')
   console.log('✓ Unknown username shows 404 page')
 
-  runShell(`${abCmd('open', `${BASE}/project`)} && ${abCmd('wait', '--text', 'Page not found')}`)
+  runAb('open', `${BASE}/project`)
+  runAb('wait', '--text', 'Page not found')
   console.log('✓ Reserved /project shows 404 page')
 
-  runShell(abCmd('close'))
+  runAb('close')
 }
 
 console.log(`Smoke (agent-browser) → ${BASE}\n`)

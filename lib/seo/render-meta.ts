@@ -15,7 +15,7 @@ function toAbsoluteImage(url: string): string {
   return absoluteUrl(url.startsWith('/') ? url : `/${url}`)
 }
 
-export function renderPageMetaTags(meta: PageMeta): string {
+export function renderPageMetaTags(meta: PageMeta, options?: { cspNonce?: string }): string {
   const description = escapeHtml(meta.description)
   const canonical = escapeHtml(meta.canonical)
   const ogTitle = escapeHtml(meta.ogTitle ?? meta.title)
@@ -63,16 +63,17 @@ export function renderPageMetaTags(meta: PageMeta): string {
 
   if (meta.jsonLd) {
     const blocks = Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]
+    const nonceAttr = options?.cspNonce ? ` nonce="${escapeHtml(options.cspNonce)}"` : ''
     for (const block of blocks) {
-      lines.push(`<script type="application/ld+json">${serializeJsonLd(block)}</script>`)
+      lines.push(`<script type="application/ld+json"${nonceAttr}>${serializeJsonLd(block)}</script>`)
     }
   }
 
   return lines.join('\n    ')
 }
 
-export function injectPageMetaIntoHtml(html: string, meta: PageMeta): string {
-  const tags = renderPageMetaTags(meta)
+export function injectPageMetaIntoHtml(html: string, meta: PageMeta, options?: { cspNonce?: string }): string {
+  const tags = renderPageMetaTags(meta, options)
   const title = escapeHtml(meta.title)
 
   let out = html.replace(/<title>[^<]*<\/title>/i, `<title>${title}</title>`)

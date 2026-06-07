@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { ServerEnv } from '@/src/server/types'
 import { cors } from 'hono/cors'
 import { resolveCorsOrigin } from '@/src/server/lib/request-security'
 import { localeMiddleware } from '@/src/server/middleware/locale'
@@ -10,7 +11,7 @@ import { authCallbackHandler } from '@/src/server/routes/auth-callback'
 import { rpcRoutes } from '@/src/server/routes/rpc'
 import { documentHandler, seoRoutes } from '@/src/server/routes/seo'
 
-const app = new Hono()
+const app = new Hono<ServerEnv>()
 
 app.use('*', securityHeadersMiddleware())
 
@@ -32,6 +33,16 @@ app.route('/api', apiRoutes)
 app.route('/api/admin', adminPageRoutes)
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
+app.post('/api/client-errors', async (c) => {
+  try {
+    const body = await c.req.json()
+    // biome-ignore lint/suspicious/noConsole: server-side client error ingest for production diagnostics
+    console.error('[client-error]', body)
+  } catch {
+    // Ignore malformed payloads.
+  }
+  return c.body(null, 204)
+})
 app.get('/auth/callback', authCallbackHandler)
 
 app.all('*', async (c, next) => {
