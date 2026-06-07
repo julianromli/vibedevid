@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { injectPageMetaIntoHtml } from '@/lib/seo/render-meta'
 import type { PageMeta } from '@/lib/seo/types'
 
@@ -11,21 +12,41 @@ export async function loadIndexHtmlTemplate(): Promise<string> {
     return cachedTemplate
   }
 
-  const candidates =
-    process.env.NODE_ENV === 'production'
-      ? [join(process.cwd(), 'dist/client/index.html'), join(process.cwd(), 'index.html')]
-      : [join(process.cwd(), 'index.html'), join(process.cwd(), 'dist/client/index.html')]
+  const isProd = process.env.NODE_ENV === 'production'
+
+  // In production the server is bundled into dist/index.js by hono/vite-build.
+  // import.meta.url points at that file, so dirname(import.meta.url) == dist/.
+  // Walking up one level from dist/ gives us the project root.
+  let root = process.cwd()
+  if (isProd) {
+    try {
+      const bundledFileDir = dirname(fileURLToPath(import.meta.url))
+      root = join(bundledFileDir, '..')
+    } catch {
+      // Keep process.cwd() as fallback.
+    }
+  }
+
+  const candidates = isProd
+    ? [join(root, 'dist/client/index.html'), join(process.cwd(), 'dist/client/index.html')]
+    : [join(root, 'index.html'), join(root, 'dist/client/index.html')]
 
   for (const file of candidates) {
     if (existsSync(file)) {
       const html = await readFile(file, 'utf-8')
-      if (process.env.NODE_ENV === 'production') {
+      if (isProd) {
         cachedTemplate = html
       }
       return html
     }
   }
 
+  // biome-ignore lint/suspicious/noConsole: critical production diagnostics
+  console.error('[index-html] NODE_ENV:', process.env.NODE_ENV)
+  // biome-ignore lint/suspicious/noConsole: critical production diagnostics
+  console.error('[index-html] Resolved root:', root)
+  // biome-ignore lint/suspicious/noConsole: critical production diagnostics
+  console.error('[index-html] Checked candidates:', candidates)
   throw new Error('index.html template not found')
 }
 
