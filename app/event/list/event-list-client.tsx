@@ -67,10 +67,11 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
     persistViewMode(mode)
   }
 
-  // Apply filters and sort to mock data
+  // Apply filters and sort to server-fetched data
   const filteredEvents = applyFilters(initialEvents, {
     category: selectedCategory,
     locationType: selectedLocation,
+    sort: selectedSort,
   })
 
   return (
