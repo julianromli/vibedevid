@@ -16,6 +16,8 @@ export default function Script({ src, id, type, children, dangerouslySetInnerHTM
     const script = document.createElement('script')
     script.src = src
     if (id) script.id = id
+    const nonce = getClientCspNonce()
+    if (nonce) script.nonce = nonce
     script.async = true
     document.body.appendChild(script)
     return () => {

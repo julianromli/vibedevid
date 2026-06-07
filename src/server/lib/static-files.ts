@@ -40,9 +40,11 @@ export function shouldHandleAsDocument(pathname: string): boolean {
 }
 
 export function isContentHashedAsset(pathname: string): boolean {
+  // Vite emits content-hashed bundles under /assets/ only; public/ files stay at the root.
+  if (!pathname.startsWith('/assets/')) return false
   const segment = pathname.split('/').pop() ?? ''
-  // Vite/Rollup output: name-HASH.ext (hash is 8+ base64url chars)
-  return /-[a-zA-Z0-9_-]{8,}\.[a-z0-9]+$/i.test(segment)
+  // Vite/Rollup default: name-HASH.ext (hash is exactly 8 alphanumeric chars, no dashes)
+  return /^[a-zA-Z0-9_.-]+-[A-Za-z0-9]{8}\.[a-z0-9]+$/i.test(segment)
 }
 
 export function cacheControlForAsset(pathname: string): string {

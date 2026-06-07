@@ -3,6 +3,11 @@ type ClientErrorContext = {
   componentStack?: string
 }
 
+function clientErrorPath(): string | undefined {
+  if (typeof window === 'undefined') return undefined
+  return window.location.pathname
+}
+
 function serializeError(error: unknown): { message: string; stack?: string } {
   if (error instanceof Error) {
     return { message: error.message, stack: error.stack }
@@ -17,7 +22,7 @@ export function reportClientError(error: unknown, context: ClientErrorContext = 
     stack,
     boundary: context.boundary,
     componentStack: context.componentStack,
-    url: typeof window !== 'undefined' ? window.location.href : undefined,
+    path: clientErrorPath(),
     timestamp: new Date().toISOString(),
   }
 

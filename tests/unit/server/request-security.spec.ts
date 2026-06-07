@@ -65,6 +65,23 @@ describe('request-security', () => {
     )
   })
 
+  it('allows localhost during vercel dev', () => {
+    withEnv(
+      {
+        NODE_ENV: 'development',
+        VERCEL: '1',
+        VERCEL_ENV: 'development',
+        VITE_SITE_URL: '',
+        SITE_URL: '',
+      },
+      () => {
+        const origins = getAllowedOrigins()
+        expect(origins.has('http://localhost:5173')).toBe(true)
+        expect(origins.has('http://127.0.0.1:5173')).toBe(true)
+      },
+    )
+  })
+
   it('does not add localhost on Vercel preview', () => {
     withEnv(
       {

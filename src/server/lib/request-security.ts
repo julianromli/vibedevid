@@ -28,7 +28,9 @@ function readCsvOrigins(key: string): string[] {
 }
 
 function isLocalDevelopment(): boolean {
-  return readEnv('NODE_ENV') !== 'production' && readEnv('VERCEL') !== '1'
+  const vercelEnv = readEnv('VERCEL_ENV')
+  if (vercelEnv === 'preview' || vercelEnv === 'production') return false
+  return readEnv('NODE_ENV') !== 'production'
 }
 
 export function getAllowedOrigins(): Set<string> {

@@ -11,4 +11,14 @@ describe('static-files cache headers', () => {
     expect(cacheControlForAsset('/favicon.ico')).toBe('public, max-age=3600')
     expect(cacheControlForAsset('/robots.txt')).toBe('public, max-age=3600')
   })
+
+  it('does not treat dashed filenames outside /assets/ as content-hashed', () => {
+    expect(cacheControlForAsset('/images/my-long-filename-here.png')).toBe('public, max-age=3600')
+    expect(cacheControlForAsset('/opengraph-image-abcdefgh.png')).toBe('public, max-age=3600')
+  })
+
+  it('does not treat /assets/ files with non-Vite hash lengths as immutable', () => {
+    expect(cacheControlForAsset('/assets/legacy-file-abc.js')).toBe('public, max-age=3600')
+    expect(cacheControlForAsset('/assets/index-a1b2c3d4e5.js')).toBe('public, max-age=3600')
+  })
 })
