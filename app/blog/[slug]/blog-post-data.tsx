@@ -11,6 +11,7 @@ import { Navbar } from '@/components/ui/navbar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { getComments } from '@/lib/actions/comments'
 import { contentToHtml } from '@/lib/blog-utils'
+import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 
 interface Props {
@@ -65,26 +66,40 @@ export default async function BlogPostData({ params }: Props) {
     .select(
       `
       *,
-      author:users!posts_author_id_fkey(id, display_name, avatar_url, bio, role),
+      author:users!posts_author_id_fkey(id, display_name, username, avatar_url, bio, role),
       tags:blog_post_tags(post_tags(name))
     `,
     )
     .eq('slug', slug)
     .single()
 
+  if (error || !post || post.status !== 'published') {
+    notFound()
+  }
+
   // Fetch view count for this post
   const [{ count: viewCount }, { comments: initialComments }] = await Promise.all([
-    supabase.from('views').select('*', { count: 'exact', head: true }).eq('post_id', post?.id),
-    getComments('post', post?.id ?? ''),
+    supabase.from('views').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+    getComments('post', post.id),
   ])
 
   // Flatten tags from nested structure
   const postTags: string[] =
     post?.tags?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name).filter(Boolean) ?? []
-
-  if (error || !post || post.status !== 'published') {
-    notFound()
-  }
+  const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null
+  const authorContent = (
+    <>
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={post.author?.avatar_url ?? undefined} />
+        <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
+      </Avatar>
+      <UserDisplayName
+        name={post.author?.display_name ?? 'Anonymous'}
+        role={post.author?.role ?? null}
+        className="font-medium text-foreground"
+      />
+    </>
+  )
 
   return (
     <article className="min-h-screen bg-background">
@@ -126,20 +141,16 @@ export default async function BlogPostData({ params }: Props) {
             <h1 className="mb-6 font-bold text-3xl tracking-tight md:text-5xl">{post.title}</h1>
 
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
-              <Link
-                href={`/${post.author?.display_name?.toLowerCase().replace(/\s+/g, '')}`}
-                className="flex items-center gap-2 transition-colors hover:text-foreground"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={post.author?.avatar_url ?? undefined} />
-                  <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
-                </Avatar>
-                <UserDisplayName
-                  name={post.author?.display_name ?? 'Anonymous'}
-                  role={post.author?.role ?? null}
-                  className="font-medium text-foreground"
-                />
-              </Link>
+              {authorSlug ? (
+                <Link
+                  href={`/${authorSlug}`}
+                  className="flex items-center gap-2 transition-colors hover:text-foreground"
+                >
+                  {authorContent}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-2">{authorContent}</span>
+              )}
 
               {post.published_at && (
                 <span className="flex items-center gap-1">

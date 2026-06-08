@@ -6,20 +6,37 @@ import { getCategories } from '@/lib/categories'
 import { getCurrentUser } from '@/lib/server/auth'
 import { ProjectListClient } from './project-list-client'
 
-type SearchParams = Promise<{ sort?: string; filter?: string }>
+type SearchParams = Promise<{ sort?: string | string[]; filter?: string | string[] }>
+type ProjectSort = 'top' | 'newest' | 'trending'
+
+const PROJECT_SORTS = ['top', 'newest', 'trending'] as const
+
+function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function normalizeSortParam(value: string | undefined): ProjectSort {
+  return PROJECT_SORTS.includes(value as ProjectSort) ? (value as ProjectSort) : 'trending'
+}
 
 export default async function ProjectListData({ searchParams }: { searchParams: SearchParams }) {
   const { sort, filter } = await searchParams
-  const t = await getTranslations('projectList')
-
-  const initialSort = sort === 'top' || sort === 'newest' ? sort : 'trending'
-  const initialFilter = filter || 'all'
-
-  const [currentUser, { projects: initialProjects }, categories] = await Promise.all([
+  const [t, currentUser, categories] = await Promise.all([
+    getTranslations('projectList'),
     getCurrentUser(),
-    fetchProjectsWithSorting(initialSort, initialFilter === 'all' ? undefined : initialFilter, 100),
     getCategories(),
   ])
+
+  const initialSort = normalizeSortParam(getSingleSearchParam(sort))
+  const requestedFilter = getSingleSearchParam(filter)
+  const initialFilter =
+    requestedFilter && categories.some((category) => category.name === requestedFilter) ? requestedFilter : 'all'
+
+  const { projects: initialProjects } = await fetchProjectsWithSorting(
+    initialSort,
+    initialFilter === 'all' ? undefined : initialFilter,
+    100,
+  )
 
   const filterOptions = categories.map((cat) => ({
     value: cat.name,
