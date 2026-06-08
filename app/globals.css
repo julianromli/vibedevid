@@ -327,6 +327,55 @@ body {
   animation: glow 3s ease-in-out infinite;
 }
 
+/* Skeleton shimmer sweep using primary theme color */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--primary) / 0.04) 40%,
+    hsl(var(--primary) / 0.06) 50%,
+    hsl(var(--primary) / 0.04) 60%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--primary) / 0.06) 40%,
+    hsl(var(--primary) / 0.1) 50%,
+    hsl(var(--primary) / 0.06) 60%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+    display: none;
+  }
+}
+
 /* Added minimalist grid background pattern for hero section */
 .bg-grid-pattern {
   background-image: radial-gradient(
