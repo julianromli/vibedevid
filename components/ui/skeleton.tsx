@@ -11,6 +11,10 @@ function Skeleton({ className, ...props }: SkeletonProps) {
   )
 }
 
+function getSkeletonKeys(prefix: string, count: number) {
+  return Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`)
+}
+
 function ProjectImageSkeleton() {
   return (
     <div className="bg-muted relative overflow-hidden rounded-xl">
@@ -83,9 +87,9 @@ function CommentsSkeleton() {
       </div>
 
       <div className="space-y-4">
-        {[...Array(2)].map((_, i) => (
+        {getSkeletonKeys('comment', 2).map((key) => (
           <div
-            key={i}
+            key={key}
             className="rounded-lg border p-4"
           >
             <div className="flex items-start gap-3">
@@ -123,9 +127,9 @@ function BlogHeaderSkeleton() {
 function BlogGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {[...Array(count)].map((_, i) => (
+      {getSkeletonKeys('blog-card', count).map((key) => (
         <div
-          key={i}
+          key={key}
           className="space-y-4"
         >
           <div className="bg-muted relative overflow-hidden rounded-lg">
@@ -227,9 +231,9 @@ function ProjectStatsSkeleton() {
       <div className="rounded-lg border p-6">
         <Skeleton className="mb-4 h-5 w-24" />
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
+          {getSkeletonKeys('stat-row', 3).map((key) => (
             <div
-              key={i}
+              key={key}
               className="flex items-center justify-between"
             >
               <Skeleton className="h-4 w-16" />
@@ -281,9 +285,9 @@ function ProfileHeaderSkeleton() {
         </div>
 
         <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
-          {[...Array(3)].map((_, i) => (
+          {getSkeletonKeys('profile-stat', 3).map((key) => (
             <div
-              key={i}
+              key={key}
               className="bg-muted/30 min-w-[80px] rounded-xl p-4 text-center"
             >
               <Skeleton className="mx-auto mb-1 h-8 w-8" />
@@ -309,9 +313,9 @@ function ProjectGridSkeleton({
 
   return (
     <div className={className ?? `grid ${gridCols} gap-6`}>
-      {[...Array(count)].map((_, i) => (
+      {getSkeletonKeys('project-card', count).map((key) => (
         <div
-          key={i}
+          key={key}
           className="space-y-4"
         >
           <div className="bg-muted relative overflow-hidden rounded-lg">
