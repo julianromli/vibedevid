@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { IconCheck, IconCopy } from '@tabler/icons-react'
-import { Button, ButtonProps } from '@/components/ui/button'
+import { useState } from 'react'
+import { Button, type ButtonProps } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Props extends ButtonProps {

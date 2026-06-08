@@ -1,8 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { Comment, CommentEntityType, CommentResult, CreateCommentInput, GetCommentsResult } from '@/types/comments'
 import { createClient } from '@/lib/supabase/server'
+import type { Comment, CommentEntityType, CommentResult, CreateCommentInput, GetCommentsResult } from '@/types/comments'
 
 /**
  * Raw user data from Supabase join

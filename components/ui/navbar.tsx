@@ -32,35 +32,64 @@ const springTransition = {
   damping: 30,
 }
 
-interface NavbarProps {
-  showBackButton?: boolean
-  showNavigation?: boolean
-  isLoggedIn?: boolean
-  user?: {
-    id?: string
-    name: string
-    email: string
-    avatar?: string
-    avatar_url?: string
-    username?: string
-    role?: number | null
-  }
-  onSignIn?: () => void
-  onSignOut?: () => void
-  onProfile?: () => void
+interface UserInfo {
+  id?: string
+  name: string
+  email: string
+  avatar?: string
+  avatar_url?: string
+  username?: string
+  role?: number | null
 }
 
 type NavItem = { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
 
-interface DesktopNavItemProps {
-  item: NavItem
+function MobileMenuPortal({ open, children, className }: { children: React.ReactNode; className?: string; open: boolean }) {
+  const menuTransition = {
+    duration: 0.5,
+    ease: [0.16, 1, 0.3, 1] as const,
+  }
+
+  const content = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={cn(
+            'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
+            className,
+          )}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={menuTransition}
+        >
+          <motion.div
+            className="h-full"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -16, opacity: 0 }}
+            transition={menuTransition}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  return createPortal(content, document.body)
 }
 
-function DesktopNavItem({ item }: DesktopNavItemProps) {
+function NavItem({ item, closeMenu }: { item: NavItem; closeMenu?: () => void }) {
   if (item.type === 'link') {
     return (
       <Link
         href={item.href}
+        onClick={closeMenu}
         className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground hover:text-foreground')}
       >
         {item.label}
@@ -71,7 +100,10 @@ function DesktopNavItem({ item }: DesktopNavItemProps) {
   return (
     <button
       type="button"
-      onClick={item.action}
+      onClick={() => {
+        item.action()
+        closeMenu?.()
+      }}
       className={cn(
         buttonVariants({ variant: 'ghost', size: 'sm' }),
         'cursor-pointer text-muted-foreground hover:text-foreground',
@@ -82,12 +114,7 @@ function DesktopNavItem({ item }: DesktopNavItemProps) {
   )
 }
 
-interface MobileNavItemProps {
-  item: NavItem
-  closeMenu: () => void
-}
-
-function MobileNavItem({ item, closeMenu }: MobileNavItemProps) {
+function MobileNavItem({ item, closeMenu }: { item: NavItem; closeMenu: () => void }) {
   if (item.type === 'link') {
     return (
       <Link
@@ -112,6 +139,112 @@ function MobileNavItem({ item, closeMenu }: MobileNavItemProps) {
       {item.label}
     </button>
   )
+}
+
+function UserMenu({
+  user,
+  userIsLoggedIn,
+  onSignIn,
+  onSignOut,
+  onProfile,
+  size = 'desktop',
+  onClose,
+}: {
+  user: UserInfo
+  userIsLoggedIn: boolean
+  onSignIn: () => void
+  onSignOut: () => void
+  onProfile: () => void
+  size?: 'desktop' | 'mobile'
+  onClose?: () => void
+}) {
+  const t = useTranslations()
+  const safeUser = {
+    ...user,
+    avatar: user.avatar_url || user.avatar || '/placeholder.svg',
+  }
+
+  if (!userIsLoggedIn) {
+    return (
+      <Button
+        onClick={() => {
+          onSignIn()
+          onClose?.()
+        }}
+        size={size === 'mobile' ? 'lg' : 'sm'}
+        className={size === 'mobile' ? 'h-11 min-w-[44px] w-full' : ''}
+      >
+        {t('common.signIn')}
+      </Button>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={size === 'mobile' ? 'h-11 w-11 rounded-full' : 'h-9 w-9 rounded-full'}
+          aria-label={t('common.profile')}
+        >
+          <UserAvatar user={safeUser} size="md" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end">
+        <div className="flex items-center justify-start gap-2 p-2">
+          <div className="flex flex-col space-y-1 leading-none">
+            <UserDisplayName name={safeUser.name} role={safeUser.role} className="font-medium" />
+            <p className="w-[200px] truncate text-muted-foreground text-sm">{safeUser.email}</p>
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+        {size === 'mobile' && (
+          <DropdownMenuItem asChild>
+            <Link href="/project/submit" className="flex items-center">
+              <Upload className="mr-2 h-4 w-4" />
+              <span>{t('common.submitProject')}</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          onClick={() => {
+            onProfile()
+            onClose?.()
+          }}
+        >
+          <User className="mr-2 h-4 w-4" />
+          <span>{t('common.profile')}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/posts" className="flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            <span>{t('common.myPosts')}</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            onSignOut()
+            onClose?.()
+          }}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>{t('common.signOut')}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+export interface NavbarProps {
+  showBackButton?: boolean
+  showNavigation?: boolean
+  isLoggedIn?: boolean
+  user?: UserInfo
+  onSignIn?: () => void
+  onSignOut?: () => void
+  onProfile?: () => void
 }
 
 export function Navbar({
@@ -210,13 +343,10 @@ export function Navbar({
           borderRadius: scrolled ? 16 : 0,
         }}
         transition={springTransition}
-        style={{
-          marginLeft: 'auto',
-          marginRight: 'auto',
-        }}
+        style={{ marginLeft: 'auto', marginRight: 'auto' }}
       >
         <nav className="relative flex h-16 items-center justify-between px-4 md:px-6">
-          {/* Left Side - Logo */}
+          {/* Brand */}
           <motion.div
             className="flex items-center justify-start gap-3"
             initial={false}
@@ -228,45 +358,32 @@ export function Navbar({
           >
             {showBackButton ? (
               <Link href="/">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hover:shadow-none"
-                >
+                <Button variant="ghost" size="sm" className="hover:shadow-none">
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
             ) : (
-              <Link
-                href="/"
-                className="flex items-center gap-2"
-              >
+              <Link href="/" className="flex items-center gap-2">
                 <AdaptiveLogo className="h-7 w-auto md:h-8" />
               </Link>
             )}
           </motion.div>
 
-          {/* Desktop Navigation - Center */}
+          {/* Desktop Navigation */}
           {showNavigation && (
             <motion.div
               className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-1 md:flex lg:gap-2"
               initial={false}
-              animate={{
-                y: scrolled ? 0 : 0,
-                opacity: 1,
-              }}
+              animate={{ y: 0, opacity: 1 }}
               transition={springTransition}
             >
               {navItems.map((item) => (
-                <DesktopNavItem
-                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
-                  item={item}
-                />
+                <NavItem key={item.type === 'link' ? item.href : `nav-${item.label}`} item={item} />
               ))}
             </motion.div>
           )}
 
-          {/* Right Side */}
+          {/* Desktop Actions */}
           <motion.div
             className="hidden items-center justify-end gap-2 md:flex"
             initial={false}
@@ -279,175 +396,55 @@ export function Navbar({
             <LanguageSwitcher />
             <ThemeToggle />
             {!userIsLoggedIn ? (
-              <Button
-                onClick={handleSignIn}
-                size="sm"
-              >
+              <Button onClick={handleSignIn} size="sm">
                 {t('common.signIn')}
               </Button>
             ) : (
               <>
-                {/* Submit Project Button - prominent CTA for logged-in users */}
                 <Link href="/project/submit">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                  >
+                  <Button size="sm" variant="outline" className="gap-1.5">
                     <Upload className="h-4 w-4" />
                     {t('common.submitProject')}
                   </Button>
                 </Link>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 rounded-full"
-                      aria-label={t('common.profile')}
-                    >
-                      <UserAvatar
-                        user={safeUser}
-                        size="md"
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-56"
-                    align="end"
-                  >
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        <UserDisplayName
-                          name={safeUser.name}
-                          role={safeUser.role}
-                          className="font-medium"
-                        />
-                        <p className="w-[200px] truncate text-muted-foreground text-sm">{safeUser.email}</p>
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleProfile}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>{t('common.profile')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/dashboard/posts"
-                        className="flex items-center"
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>{t('common.myPosts')}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>{t('common.signOut')}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserMenu
+                  user={safeUser}
+                  userIsLoggedIn={userIsLoggedIn}
+                  onSignIn={handleSignIn}
+                  onSignOut={handleSignOut}
+                  onProfile={handleProfile}
+                />
               </>
             )}
           </motion.div>
 
-          {/* Mobile Right Controls */}
+          {/* Mobile Actions */}
           <div className="flex items-center justify-end gap-3 md:hidden">
-            {/* Mobile Sign In / User Menu - always visible regardless of showNavigation */}
-            {!userIsLoggedIn ? (
-              <Button
-                onClick={handleSignIn}
-                size="sm"
-                className="h-11 min-w-[44px]"
-              >
-                {t('common.signIn')}
-              </Button>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 rounded-full"
-                    aria-label={t('common.profile')}
-                  >
-                    <UserAvatar
-                      user={safeUser}
-                      size="md"
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56"
-                  align="end"
-                >
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <UserDisplayName
-                        name={safeUser.name}
-                        role={safeUser.role}
-                        className="font-medium"
-                      />
-                      <p className="w-[200px] truncate text-muted-foreground text-sm">{safeUser.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/project/submit"
-                      className="flex items-center"
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      <span>{t('common.submitProject')}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleProfile}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>{t('common.profile')}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/dashboard/posts"
-                      className="flex items-center"
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      <span>{t('common.myPosts')}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t('common.signOut')}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {/* Menu Toggle - only show with navigation */}
-            {showNavigation && (
-              <Button
-                className="relative z-50 h-11 w-11"
-                onClick={() => setOpen(!open)}
-                size="icon"
-                variant="ghost"
-                aria-label={open ? 'Close menu' : 'Open menu'}
-              >
-                <MenuToggleIcon
-                  className="size-6"
-                  duration={300}
-                  open={open}
-                />
-              </Button>
-            )}
+            <UserMenu
+              user={safeUser}
+              userIsLoggedIn={userIsLoggedIn}
+              onSignIn={handleSignIn}
+              onSignOut={handleSignOut}
+              onProfile={handleProfile}
+              size="mobile"
+            />
+            <Button
+              className="relative z-50 h-11 w-11"
+              onClick={() => setOpen(!open)}
+              size="icon"
+              variant="ghost"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+            >
+              <MenuToggleIcon className="size-6" duration={300} open={open} />
+            </Button>
           </div>
         </nav>
       </motion.div>
 
-      {/* Mobile Menu Portal */}
+      {/* Mobile Menu */}
       {showNavigation && (
-        <MobileMenu open={open}>
+        <MobileMenuPortal open={open}>
           <div className="flex h-full flex-col justify-between p-6 pt-24 pb-10">
-            {/* Navigation Links */}
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <MobileNavItem
@@ -458,7 +455,6 @@ export function Navbar({
               ))}
             </div>
 
-            {/* Settings Section */}
             <div className="flex flex-col gap-3 border-t pt-4">
               <div className="flex items-center justify-between px-4">
                 <span className="text-sm font-medium text-muted-foreground">{t('settings.language')}</span>
@@ -470,7 +466,6 @@ export function Navbar({
               </div>
             </div>
 
-            {/* Auth Section */}
             <div className="flex flex-col gap-4">
               {!userIsLoggedIn ? (
                 <Button
@@ -485,31 +480,17 @@ export function Navbar({
                 </Button>
               ) : (
                 <div className="flex flex-col gap-4 border-t pt-6">
-                  {/* Submit Project Button for mobile */}
-                  <Link
-                    href="/project/submit"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Button
-                      className="w-full gap-2"
-                      size="lg"
-                    >
+                  <Link href="/project/submit" onClick={() => setOpen(false)}>
+                    <Button className="w-full gap-2" size="lg">
                       <Upload className="h-4 w-4" />
                       {t('common.submitProject')}
                     </Button>
                   </Link>
 
                   <div className="flex items-center gap-3">
-                    <UserAvatar
-                      user={safeUser}
-                      size="md"
-                    />
+                    <UserAvatar user={safeUser} size="md" />
                     <div>
-                      <UserDisplayName
-                        name={safeUser.name}
-                        role={safeUser.role}
-                        className="font-medium"
-                      />
+                      <UserDisplayName name={safeUser.name} role={safeUser.role} className="font-medium" />
                       <p className="text-muted-foreground text-sm">{safeUser.email}</p>
                     </div>
                   </div>
@@ -524,15 +505,8 @@ export function Navbar({
                     >
                       <User className="mr-2 h-4 w-4" /> {t('common.profile')}
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      asChild
-                    >
-                      <Link
-                        href="/dashboard/posts"
-                        onClick={() => setOpen(false)}
-                      >
+                    <Button variant="outline" className="w-full justify-start" asChild>
+                      <Link href="/dashboard/posts" onClick={() => setOpen(false)}>
                         <FileText className="mr-2 h-4 w-4" /> {t('common.myPosts')}
                       </Link>
                     </Button>
@@ -551,54 +525,8 @@ export function Navbar({
               )}
             </div>
           </div>
-        </MobileMenu>
+        </MobileMenuPortal>
       )}
     </header>
   )
-}
-
-type MobileMenuProps = {
-  children: React.ReactNode
-  className?: string
-  open: boolean
-}
-
-function MobileMenu({ open, children, className }: MobileMenuProps) {
-  const menuTransition = {
-    duration: 0.5,
-    ease: [0.16, 1, 0.3, 1] as const,
-  }
-
-  const content = (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className={cn(
-            'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
-            className,
-          )}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={menuTransition}
-        >
-          <motion.div
-            className="h-full"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -16, opacity: 0 }}
-            transition={menuTransition}
-          >
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-
-  if (typeof document === 'undefined') {
-    return null
-  }
-
-  return createPortal(content, document.body)
 }

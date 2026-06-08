@@ -155,7 +155,9 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
             <CardDescription>Moderators</CardDescription>
             <CardTitle className="text-3xl">{moderatorCount}</CardTitle>
           </CardHeader>
-          <CardContent className="text-muted-foreground text-xs">Can moderate events; no full admin dashboard</CardContent>
+          <CardContent className="text-muted-foreground text-xs">
+            Can moderate events; no full admin dashboard
+          </CardContent>
         </Card>
       </div>
 

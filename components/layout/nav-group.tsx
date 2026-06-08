@@ -1,9 +1,9 @@
 'use client'
 
-import { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Badge } from '../ui/badge'
-import { NavItem, type NavGroup } from './types'
+import type { NavGroup, NavItem } from './types'
 
 export function NavGroup({ title, items }: NavGroup) {
   const { setOpenMobile } = useSidebar()

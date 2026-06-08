@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { Heart, MessageCircle } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Badge } from '@/components/ui/badge'
 
