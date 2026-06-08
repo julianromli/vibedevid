@@ -93,9 +93,7 @@ export function AvatarUploader({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      drawerProps={{
-        dismissible: photo?.file ? false : true,
-      }}
+      drawerDismissible={!photo?.file}
     >
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent className="h-max md:max-w-md">

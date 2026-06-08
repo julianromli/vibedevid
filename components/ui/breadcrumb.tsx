@@ -1,24 +1,24 @@
-import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
+import type * as React from 'react'
 import { cn } from '@/lib/utils'
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<'nav'> & {
-    separator?: React.ReactNode
-  }
->(({ ...props }, ref) => (
-  <nav
-    ref={ref}
-    aria-label="breadcrumb"
-    {...props}
-  />
-))
-Breadcrumb.displayName = 'Breadcrumb'
+function Breadcrumb({ ref, ...props }: React.ComponentPropsWithoutRef<'nav'> & { ref?: React.Ref<HTMLElement> }) {
+  return (
+    <nav
+      ref={ref}
+      aria-label="breadcrumb"
+      {...props}
+    />
+  )
+}
 
-const BreadcrumbList = React.forwardRef<HTMLOListElement, React.ComponentPropsWithoutRef<'ol'>>(
-  ({ className, ...props }, ref) => (
+function BreadcrumbList({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'ol'> & { ref?: React.Ref<HTMLOListElement> }) {
+  return (
     <ol
       ref={ref}
       className={cn(
@@ -27,27 +27,29 @@ const BreadcrumbList = React.forwardRef<HTMLOListElement, React.ComponentPropsWi
       )}
       {...props}
     />
-  ),
-)
-BreadcrumbList.displayName = 'BreadcrumbList'
+  )
+}
 
-const BreadcrumbItem = React.forwardRef<HTMLLIElement, React.ComponentPropsWithoutRef<'li'>>(
-  ({ className, ...props }, ref) => (
+function BreadcrumbItem({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'li'> & { ref?: React.Ref<HTMLLIElement> }) {
+  return (
     <li
       ref={ref}
       className={cn('inline-flex items-center gap-1.5', className)}
       {...props}
     />
-  ),
-)
-BreadcrumbItem.displayName = 'BreadcrumbItem'
+  )
+}
 
-const BreadcrumbLink = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentPropsWithoutRef<'a'> & {
-    asChild?: boolean
-  }
->(({ asChild, className, ...props }, ref) => {
+function BreadcrumbLink({
+  ref,
+  asChild,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'a'> & { asChild?: boolean; ref?: React.Ref<HTMLAnchorElement> }) {
   const Comp = asChild ? Slot : 'a'
 
   return (
@@ -57,11 +59,14 @@ const BreadcrumbLink = React.forwardRef<
       {...props}
     />
   )
-})
-BreadcrumbLink.displayName = 'BreadcrumbLink'
+}
 
-const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<'span'>>(
-  ({ className, ...props }, ref) => (
+function BreadcrumbPage({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'span'> & { ref?: React.Ref<HTMLSpanElement> }) {
+  return (
     <span
       ref={ref}
       role="link"
@@ -70,34 +75,35 @@ const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWit
       className={cn('text-foreground font-normal', className)}
       {...props}
     />
-  ),
-)
-BreadcrumbPage.displayName = 'BreadcrumbPage'
+  )
+}
 
-const BreadcrumbSeparator = ({ children, className, ...props }: React.ComponentProps<'li'>) => (
-  <li
-    role="presentation"
-    aria-hidden="true"
-    className={cn('[&>svg]:h-3.5 [&>svg]:w-3.5', className)}
-    {...props}
-  >
-    {children ?? <ChevronRight />}
-  </li>
-)
-BreadcrumbSeparator.displayName = 'BreadcrumbSeparator'
+function BreadcrumbSeparator({ children, className, ...props }: React.ComponentProps<'li'>) {
+  return (
+    <li
+      role="presentation"
+      aria-hidden="true"
+      className={cn('[&>svg]:h-3.5 [&>svg]:w-3.5', className)}
+      {...props}
+    >
+      {children ?? <ChevronRight />}
+    </li>
+  )
+}
 
-const BreadcrumbEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => (
-  <span
-    role="presentation"
-    aria-hidden="true"
-    className={cn('flex h-9 w-9 items-center justify-center', className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
-  </span>
-)
-BreadcrumbEllipsis.displayName = 'BreadcrumbElipssis'
+function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<'span'>) {
+  return (
+    <span
+      role="presentation"
+      aria-hidden="true"
+      className={cn('flex h-9 w-9 items-center justify-center', className)}
+      {...props}
+    >
+      <MoreHorizontal className="h-4 w-4" />
+      <span className="sr-only">More</span>
+    </span>
+  )
+}
 
 export {
   Breadcrumb,

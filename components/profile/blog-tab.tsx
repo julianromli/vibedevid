@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { format } from 'date-fns'
-import { Calendar, Clock, ArrowRight } from 'lucide-react'
+import { ArrowRight, Calendar, Clock } from 'lucide-react'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
 interface BlogPostTag {

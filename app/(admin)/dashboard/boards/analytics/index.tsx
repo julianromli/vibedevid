@@ -10,13 +10,16 @@ import {
   IconUsers,
 } from '@tabler/icons-react'
 import Link from 'next/link'
-import { useEffect, useState, type ElementType, type ReactNode } from 'react'
+import { type ElementType, type ReactNode, useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
+  type CategoryCount,
+  type CommunityHealthCounts,
+  type ContentGrowthPoint,
   getAnalyticsTimeSeries,
   getCommunityHealthCounts,
   getContentGrowthTimeSeries,
@@ -24,9 +27,6 @@ import {
   getPostsByStatus,
   getProjectsByCategory,
   getUsersByRole,
-  type CategoryCount,
-  type CommunityHealthCounts,
-  type ContentGrowthPoint,
   type RoleCount,
   type StatusCount,
 } from '@/lib/actions/analytics'
@@ -81,23 +81,16 @@ export default function Analytics() {
       setError(null)
 
       try {
-        const [
-          periodResult,
-          growthResult,
-          engagementResult,
-          categoryResult,
-          roleResult,
-          statusResult,
-          healthResult,
-        ] = await Promise.all([
-          getPeriodSignupStats(days),
-          getContentGrowthTimeSeries(days),
-          getAnalyticsTimeSeries(days),
-          getProjectsByCategory(8),
-          getUsersByRole(),
-          getPostsByStatus(),
-          getCommunityHealthCounts(),
-        ])
+        const [periodResult, growthResult, engagementResult, categoryResult, roleResult, statusResult, healthResult] =
+          await Promise.all([
+            getPeriodSignupStats(days),
+            getContentGrowthTimeSeries(days),
+            getAnalyticsTimeSeries(days),
+            getProjectsByCategory(8),
+            getUsersByRole(),
+            getPostsByStatus(),
+            getCommunityHealthCounts(),
+          ])
 
         if (!periodResult.success) throw new Error(periodResult.error)
         if (!growthResult.success) throw new Error(growthResult.error)
@@ -474,7 +467,11 @@ function PeriodStatCard({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        {loading ? <Skeleton className="h-8 w-16" /> : <div className="font-bold text-2xl">{value.toLocaleString()}</div>}
+        {loading ? (
+          <Skeleton className="h-8 w-16" />
+        ) : (
+          <div className="font-bold text-2xl">{value.toLocaleString()}</div>
+        )}
       </CardContent>
     </Card>
   )
@@ -519,7 +516,13 @@ function HealthCard({
 }) {
   return (
     <Link href={href}>
-      <Card className={highlight ? 'border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10' : 'transition-colors hover:bg-muted/50'}>
+      <Card
+        className={
+          highlight
+            ? 'border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10'
+            : 'transition-colors hover:bg-muted/50'
+        }
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="font-medium text-sm">{title}</CardTitle>
           <Icon className="h-4 w-4 text-muted-foreground" />

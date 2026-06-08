@@ -1,8 +1,8 @@
 'use client'
 
-import React, { type FC, useState, useEffect, useRef, useCallback, JSX } from 'react'
-import { ChevronUpIcon, ChevronDownIcon, CheckIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons'
 import { IconCalendar } from '@tabler/icons-react'
+import React, { type FC, type JSX, useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { DateInput } from './date-input'
 import { Button } from './ui/button'

@@ -8,7 +8,6 @@ import { Bold, Code, Image as ImageIcon, Italic, List, ListOrdered } from 'lucid
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { EditorImageUploader } from '@/components/blog/editor-image-uploader'
-import { useUploadThing } from '@/lib/uploadthing-client'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Toggle } from '@/components/ui/toggle'
+import { useUploadThing } from '@/lib/uploadthing-client'
 
 interface RichTextEditorProps {
   content: Record<string, any>

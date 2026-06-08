@@ -1,12 +1,12 @@
 'use client'
 
-import type { User } from '@/types/homepage'
-import { Logo } from '@/components/logo'
 import { NavGroup } from '@/components/admin-panel/nav-group'
 import { NavUser } from '@/components/admin-panel/nav-user'
 import { TeamSwitcher } from '@/components/admin-panel/team-switcher'
+import { Logo } from '@/components/logo'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
+import type { User } from '@/types/homepage'
 import { sidebarData } from './data/sidebar-data'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

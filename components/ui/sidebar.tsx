@@ -33,7 +33,7 @@ type SidebarContext = {
 const SidebarContext = React.createContext<SidebarContext | null>(null)
 
 function useSidebar() {
-  const context = React.useContext(SidebarContext)
+  const context = React.use(SidebarContext)
   if (!context) {
     throw new Error('useSidebar must be used within a SidebarProvider.')
   }
@@ -41,14 +41,20 @@ function useSidebar() {
   return context
 }
 
-const SidebarProvider = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<'div'> & {
-    defaultOpen?: boolean
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
-  }
->(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
+function SidebarProvider({
+  defaultOpen = true,
+  open: openProp,
+  onOpenChange: setOpenProp,
+  className,
+  style,
+  children,
+  ref,
+  ...props
+}: React.ComponentProps<'div'> & {
+  defaultOpen?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+} & { ref?: React.Ref<HTMLDivElement> }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
@@ -127,8 +133,7 @@ const SidebarProvider = React.forwardRef<
       </TooltipProvider>
     </SidebarContext.Provider>
   )
-})
-SidebarProvider.displayName = 'SidebarProvider'
+}
 
 function Sidebar({
   side = 'left',

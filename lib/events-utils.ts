@@ -1,5 +1,5 @@
-import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 import { mockEvents } from '@/lib/data/mock-events'
+import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 
 /**
  * Get event by slug from mock data

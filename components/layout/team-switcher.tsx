@@ -1,8 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { ChevronsUpDown, Plus } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import * as React from 'react'
 // import Image from "next/image"
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface Props {
   teams: {

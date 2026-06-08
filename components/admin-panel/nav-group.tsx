@@ -16,8 +16,8 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Badge } from '../ui/badge'
 import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
+import { Badge } from '../ui/badge'
 import type { NavGroup, NavItem } from './types'
 
 export function NavGroup({ title, items }: NavGroup) {

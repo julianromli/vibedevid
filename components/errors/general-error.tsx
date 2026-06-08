@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/back-button'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   minimal?: boolean

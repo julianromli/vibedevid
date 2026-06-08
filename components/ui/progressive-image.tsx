@@ -3,41 +3,24 @@
 import type { ImageProps, StaticImageData } from 'next/image'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
-import { generatePlaceholderColor, generateSizes, validateImageProps } from '@/lib/image-utils'
+import { generateSizes, validateImageProps } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
 
-// Extended props interface for ProgressiveImage
+export type ImageLoadingState = 'loading' | 'loaded' | 'error'
+
 export interface ProgressiveImageProps extends Omit<ImageProps, 'placeholder' | 'blurDataURL'> {
   src: string | StaticImageData
-  // Progressive loading options
-  enableBlurPlaceholder?: boolean
-  customBlurDataURL?: string
-  placeholderColor?: string
-
-  // Loading states
-  showSkeleton?: boolean
-  fadeTransition?: boolean
-  transitionDuration?: number
-
-  // Error handling
   fallbackSrc?: string
-  onLoadingStateChange?: (state: 'loading' | 'loaded' | 'error') => void
-
-  // Responsive options
+  onLoadingStateChange?: (state: ImageLoadingState) => void
   responsiveSizes?: {
     mobile?: string
     tablet?: string
     desktop?: string
     default?: string
   }
-
-  // Performance
   preloadStrategy?: 'none' | 'hover' | 'viewport'
-  loadingThreshold?: number // Intersection observer threshold
-
-  // Accessibility
+  loadingThreshold?: number
   ariaLabel?: string
-  decorative?: boolean // If true, sets alt="" and aria-hidden="true"
 }
 
 export function ProgressiveImage({
@@ -56,91 +39,25 @@ export function ProgressiveImage({
   onLoad,
   onError,
   unoptimized = false,
-
-  // Progressive loading props
-  enableBlurPlaceholder = true,
-  customBlurDataURL,
-  placeholderColor,
-  showSkeleton = true,
-  fadeTransition = true,
-  transitionDuration = 300,
-
-  // Error handling
   fallbackSrc = '/placeholder.svg',
   onLoadingStateChange,
-
-  // Responsive
   responsiveSizes,
-
-  // Performance
-  preloadStrategy = 'none',
-  loadingThreshold = 0.1,
-
-  // Accessibility
   ariaLabel,
-  decorative = false,
-
   ...restProps
 }: ProgressiveImageProps) {
-  // State management
-  const [loadingState, setLoadingState] = useState<'loading' | 'loaded' | 'error'>('loading')
+  const [loadingState, setLoadingState] = useState<ImageLoadingState>('loading')
   const [currentSrc, setCurrentSrc] = useState<string>(typeof src === 'string' ? src : src.src)
-  const [blurDataURL, setBlurDataURL] = useState<string | undefined>(customBlurDataURL)
 
-  // Generate responsive sizes
   const responsiveSize = useMemo(() => {
     if (propSizes) return propSizes
     if (responsiveSizes) return generateSizes(responsiveSizes)
     return fill ? '100vw' : undefined
   }, [propSizes, responsiveSizes, fill])
 
-  // Generate placeholder color if needed
-  const autoPlaceholderColor = useMemo(() => {
-    const srcString = typeof src === 'string' ? src : src.src || '/placeholder.svg'
-    return placeholderColor || generatePlaceholderColor(srcString)
-  }, [placeholderColor, src])
-
-  // Validate props (development only)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      const validation = validateImageProps({
-        src: currentSrc,
-        alt: decorative ? '' : alt,
-        width,
-        height,
-        fill,
-        priority,
-        loading: loading as any,
-        placeholder: enableBlurPlaceholder ? 'blur' : 'empty',
-        blurDataURL,
-      })
-
-      if (!validation.isValid) {
-        console.error('ProgressiveImage validation errors:', validation.errors)
-      }
-
-      if (validation.warnings.length > 0) {
-        console.warn('ProgressiveImage warnings:', validation.warnings)
-      }
-    }
-  }, [currentSrc, alt, width, height, fill, priority, loading, enableBlurPlaceholder, blurDataURL, decorative])
-
-  // Generate simple blur placeholder
-  useEffect(() => {
-    if (enableBlurPlaceholder && !customBlurDataURL) {
-      // Simple colored placeholder using URL encoding instead of base64
-      const canvas = `<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${autoPlaceholderColor}"/></svg>`
-      const fallbackBlur = `data:image/svg+xml,${encodeURIComponent(canvas)}`
-      setBlurDataURL(fallbackBlur)
-    }
-  }, [src, enableBlurPlaceholder, customBlurDataURL, autoPlaceholderColor])
-
-  // Handle loading state changes
   useEffect(() => {
     onLoadingStateChange?.(loadingState)
   }, [loadingState, onLoadingStateChange])
 
-  // Image load handlers
   const handleLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
     setLoadingState('loaded')
     onLoad?.(event)
@@ -148,60 +65,30 @@ export function ProgressiveImage({
 
   const handleError = (event: React.SyntheticEvent<HTMLImageElement>) => {
     setLoadingState('error')
-
-    // Try fallback if current src is not already the fallback
     if (currentSrc !== fallbackSrc) {
       setCurrentSrc(fallbackSrc)
-      setLoadingState('loading') // Reset to loading for fallback
+      setLoadingState('loading')
     }
-
     onError?.(event)
   }
 
-  // Determine placeholder strategy
-  const placeholderStrategy: 'blur' | 'empty' = useMemo(() => {
-    if (!enableBlurPlaceholder || unoptimized) return 'empty'
-    return blurDataURL ? 'blur' : 'empty'
-  }, [enableBlurPlaceholder, unoptimized, blurDataURL])
-
-  // Compute class names with transitions
   const imageClasses = cn(
-    // Base classes
     'transition-opacity ease-in-out',
-
-    // Transition duration
-    fadeTransition && `duration-${transitionDuration}`,
-
-    // Loading state classes
     {
-      'opacity-0': loadingState === 'loading' && showSkeleton,
-      'opacity-100': loadingState === 'loaded' || (loadingState === 'loading' && !showSkeleton),
-      'opacity-80': loadingState === 'error', // Slightly faded for error state
+      'opacity-0': loadingState === 'loading',
+      'opacity-100': loadingState === 'loaded',
+      'opacity-80': loadingState === 'error',
     },
-
     className,
   )
 
-  // Container classes for layout and skeleton
-  const containerClasses = cn('relative overflow-hidden', {
-    'w-full h-full': fill,
-    [`w-[${width}px] h-[${height}px]`]: width && height && !fill,
-  })
-
   return (
-    <div className={fill ? 'relative' : containerClasses}>
-      {/* Skeleton/Loading placeholder */}
-      {showSkeleton && loadingState === 'loading' && (
+    <div className={cn('relative overflow-hidden', fill ? 'relative' : 'w-full h-full')}>
+      {loadingState === 'loading' && (
         <div
-          className={cn(
-            'absolute inset-0 animate-pulse transition-opacity duration-300',
-            'flex items-center justify-center',
-            fill ? 'h-full w-full' : `w-[${width}px] h-[${height}px]`,
-          )}
-          style={{ backgroundColor: autoPlaceholderColor }}
+          className="absolute inset-0 animate-pulse transition-opacity duration-300 flex items-center justify-center"
           aria-hidden="true"
         >
-          {/* Optional loading icon */}
           <div className="h-8 w-8 opacity-20">
             <svg
               className="animate-spin"
@@ -227,10 +114,9 @@ export function ProgressiveImage({
         </div>
       )}
 
-      {/* Main Image */}
       <Image
         src={currentSrc}
-        alt={decorative ? '' : ariaLabel || alt}
+        alt={ariaLabel || (typeof alt === 'string' ? alt : '')}
         width={width}
         height={height}
         fill={fill}
@@ -239,29 +125,20 @@ export function ProgressiveImage({
         sizes={responsiveSize}
         loading={priority ? undefined : loading || 'lazy'}
         decoding={decoding}
-        placeholder={placeholderStrategy}
-        blurDataURL={blurDataURL}
         unoptimized={unoptimized}
         className={imageClasses}
         style={{
           ...style,
-          // Prevent layout shift
           ...(width && height && !fill ? { aspectRatio: `${width} / ${height}` } : {}),
         }}
         onLoad={handleLoad}
         onError={handleError}
-        aria-hidden={decorative}
         {...restProps}
       />
 
-      {/* Error State Overlay */}
       {loadingState === 'error' && currentSrc === fallbackSrc && (
         <div
-          className={cn(
-            'absolute inset-0 bg-gray-100 dark:bg-gray-800',
-            'flex flex-col items-center justify-center',
-            'text-sm text-gray-400 dark:text-gray-500',
-          )}
+          className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col items-center justify-center text-sm text-gray-400 dark:text-gray-500"
           aria-label="Image failed to load"
         >
           <svg
@@ -283,5 +160,4 @@ export function ProgressiveImage({
   )
 }
 
-// Named export for specific use cases
-export { ProgressiveImage as default }
+export default ProgressiveImage
