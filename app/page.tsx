@@ -1,148 +1,91 @@
-import { fetchProjectsWithSorting } from '@/lib/actions'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
-import { getVideoIconKey } from '@/lib/video-icon-key'
-import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
-import HomePageClient from './home-page-client'
+import { Suspense } from 'react'
+import { ProjectGridSkeleton, Skeleton } from '@/components/ui/skeleton'
+import HomePageData, { type HomePageSearchParams } from './home-page-data'
 
-interface HomePageSearchParams {
-  filter?: string | string[]
-  sort?: string | string[]
-}
+function HomeLoadingFallback() {
+  return (
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="space-y-8 py-16 text-center md:py-24">
+          <div className="mx-auto max-w-4xl space-y-6">
+            <Skeleton className="mx-auto h-12 w-3/4 md:h-16" />
+            <Skeleton className="mx-auto h-12 w-2/3 md:h-16" />
+            <div className="space-y-2">
+              <Skeleton className="mx-auto h-5 w-full max-w-2xl" />
+              <Skeleton className="mx-auto h-5 w-5/6 max-w-xl" />
+            </div>
+          </div>
+          <div className="flex justify-center gap-4">
+            <Skeleton className="h-11 w-36 rounded-full" />
+            <Skeleton className="h-11 w-36 rounded-full" />
+          </div>
+        </div>
+      </div>
 
-function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value
-}
+      <section
+        id="projects"
+        className="py-12 sm:py-16 lg:py-20"
+      >
+        <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
+          <div className="mb-8 space-y-4 text-center">
+            <Skeleton className="mx-auto h-8 w-64" />
+            <Skeleton className="mx-auto h-5 w-full max-w-xl" />
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-3 md:hidden">
+              <Skeleton className="mx-auto h-10 w-full max-w-sm rounded-full" />
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            </div>
+            <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+              <div className="justify-self-start">
+                <Skeleton className="h-10 w-48 rounded-lg" />
+              </div>
+              <div className="justify-self-center">
+                <Skeleton className="h-10 w-40 rounded-full" />
+              </div>
+              <div className="justify-self-end">
+                <Skeleton className="h-10 w-44 rounded-lg" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-8">
+            <ProjectGridSkeleton count={9} />
+          </div>
+        </div>
+      </section>
 
-function normalizeSortParam(value: string | undefined): SortBy {
-  return value === 'top' || value === 'newest' || value === 'trending' ? value : 'trending'
-}
-
-async function getUserData(userId: string, email: string): Promise<User | null> {
-  const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('users')
-    .select('id, display_name, avatar_url, username, role')
-    .eq('id', userId)
-    .single()
-
-  if (!profile) {
-    return null
-  }
-
-  return {
-    id: profile.id,
-    name: profile.display_name,
-    email,
-    avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
-    username: profile.username,
-    role: profile.role ?? null,
-  }
-}
-
-interface VibeVideoRow {
-  id: string
-  title: string
-  description: string
-  thumbnail: string
-  video_id: string
-  published_at: string
-  view_count: string
-  position: number
-}
-
-async function getVibeVideos(): Promise<VibeVideo[]> {
-  const fallbackVideos: VibeVideo[] = [
-    {
-      title: 'Next.js Tutorial: Full Stack App Development',
-      description:
-        'Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.',
-      thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-      videoId: 'dQw4w9WgXcQ',
-      publishedAt: '2024-12-20',
-      viewCount: '12.5K',
-      iconKey: 'code',
-    },
-    {
-      title: 'Live Coding: Building Modern Dashboard',
-      description: 'Live coding session to build a modern admin dashboard with React and Tailwind CSS.',
-      thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
-      videoId: '9bZkp7q19f0',
-      publishedAt: '2024-12-15',
-      viewCount: '8.3K',
-      iconKey: 'play',
-    },
-  ]
-
-  try {
-    const supabase = createAdminClient()
-    const { data, error } = await supabase.from('vibe_videos').select('*').order('position', { ascending: true })
-
-    if (error || !data || data.length === 0) {
-      return fallbackVideos
-    }
-
-    return (data as VibeVideoRow[]).map((video) => ({
-      id: video.id,
-      title: video.title,
-      description: video.description,
-      thumbnail: video.thumbnail,
-      videoId: video.video_id,
-      publishedAt: video.published_at,
-      viewCount: video.view_count,
-      position: video.position,
-      iconKey: getVideoIconKey(video.title, video.description),
-    }))
-  } catch {
-    return fallbackVideos
-  }
+      <section className="py-12 sm:py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
+          <div className="mb-8 space-y-4 text-center">
+            <Skeleton className="mx-auto h-8 w-64" />
+            <Skeleton className="mx-auto h-5 w-full max-w-xl" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="space-y-3"
+              >
+                <Skeleton className="aspect-video w-full rounded-lg" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  )
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<HomePageSearchParams> }) {
-  const params = await searchParams
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const [{ data: categories }, initialVibeVideos] = await Promise.all([
-    supabase
-      .from('categories')
-      .select('name, display_name')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true }),
-    getVibeVideos(),
-  ])
-
-  const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
-    value: category.name,
-    label: category.display_name,
-  }))
-
-  const requestedFilter = getSingleSearchParam(params.filter)
-  const initialFilter = categoryOptions.some((category) => category.value === requestedFilter)
-    ? (requestedFilter ?? 'all')
-    : 'all'
-  const initialSort = normalizeSortParam(getSingleSearchParam(params.sort))
-
-  const [{ projects: initialProjects }] = await Promise.all([
-    fetchProjectsWithSorting(initialSort, initialFilter === 'all' ? undefined : initialFilter, 20),
-  ])
-
-  let userData: User | null = null
-  if (user) {
-    userData = await getUserData(user.id, user.email || '')
-  }
-
   return (
-    <HomePageClient
-      initialIsLoggedIn={!!user}
-      initialUser={userData}
-      initialProjects={(initialProjects ?? []) as Project[]}
-      initialCategories={categoryOptions}
-      initialFilter={initialFilter}
-      initialSort={initialSort}
-      initialVibeVideos={initialVibeVideos}
-    />
+    <Suspense fallback={<HomeLoadingFallback />}>
+      <HomePageData searchParams={searchParams} />
+    </Suspense>
   )
 }

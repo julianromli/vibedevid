@@ -1,7 +1,39 @@
-export function contentToHtml(content: Record<string, any>): string {
-  return contentToHtmlRecursive(content)
+import DOMPurify from 'isomorphic-dompurify'
+
+export function contentToHtml(content: Record<string, unknown>): string {
+  // biome-ignore lint/suspicious/noExplicitAny: TipTap node types are dynamic and recursive by design
+  const rawHtml = contentToHtmlRecursive(content as any)
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: [
+      'div',
+      'img',
+      'p',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'ul',
+      'ol',
+      'li',
+      'pre',
+      'code',
+      'blockquote',
+      'a',
+      'strong',
+      'em',
+      's',
+      'br',
+      'hr',
+      'span',
+    ],
+    ALLOWED_ATTR: ['src', 'alt', 'title', 'class', 'loading', 'href', 'target', 'rel'],
+  })
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: TipTap node types are dynamic and recursive by design
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: legacy recursive JSON-to-HTML serializer
 export function contentToHtmlRecursive(node: any): string {
   if (typeof node === 'string') return node
   if (!node || !node.type) return ''
@@ -49,6 +81,7 @@ export function contentToHtmlRecursive(node: any): string {
       const title = attrs.title || node.title || ''
 
       if (!src) {
+        // biome-ignore lint/suspicious/noConsole: intentional production diagnostic for malformed image nodes
         console.warn('[BlogUtils] Image node missing src. Node:', JSON.stringify(node))
         return ''
       }
@@ -77,6 +110,7 @@ export function contentToHtmlRecursive(node: any): string {
     case 'text': {
       let html = node.text ?? ''
       if (node.marks) {
+        // biome-ignore lint/suspicious/noExplicitAny: recursive TipTap mark types are dynamic
         node.marks.forEach((mark: any) => {
           switch (mark.type) {
             case 'bold':

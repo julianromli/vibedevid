@@ -1,45 +1,28 @@
-import { getCachedPublishedPosts } from '@/lib/server/blog-public'
-import { createClient } from '@/lib/supabase/server'
-import type { User } from '@/types/homepage'
-import BlogPageClient from './blog-page-client'
+import { Suspense } from 'react'
+import { BlogGridSkeleton, BlogHeaderSkeleton } from '@/components/ui/skeleton'
+import BlogPageData from './blog-page-data'
 
 export const revalidate = 60
 
-export default async function BlogPage() {
-  const supabase = await createClient()
-  const postsDataPromise = getCachedPublishedPosts()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  let userData: User | null = null
-  if (user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('id, display_name, avatar_url, username, role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile) {
-      userData = {
-        id: profile.id,
-        name: profile.display_name,
-        email: user.email || '',
-        avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
-        username: profile.username,
-        role: profile.role ?? null,
-      }
-    }
-  }
-
-  const postsData = await postsDataPromise
-
+function BlogLoadingFallback() {
   return (
-    <BlogPageClient
-      isLoggedIn={!!user}
-      user={userData}
-      posts={postsData || []}
-    />
+    <div className="min-h-screen bg-background">
+      <nav className="h-16 w-full border-b bg-background/80 backdrop-blur-md" />
+
+      <main className="py-20 lg:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <BlogHeaderSkeleton />
+          <BlogGridSkeleton />
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<BlogLoadingFallback />}>
+      <BlogPageData />
+    </Suspense>
   )
 }
