@@ -25,9 +25,16 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
     notFound()
   }
 
-  const { events: relatedEvents, error: relatedError } = await getRelatedEvents(event.category, event.id)
+  const { events, error: relatedError } = await getRelatedEvents(event.category, event.id)
   if (relatedError) {
+    // biome-ignore lint/suspicious/noConsole: production error logging with event context for related-event failures
+    console.error('[EventDetailData] Failed to fetch related events', {
+      eventId: event.id,
+      category: event.category,
+      error: relatedError,
+    })
   }
+  const relatedEvents = relatedError ? [] : (events ?? [])
   const currentUser = await getCurrentUser()
 
   const isPastEvent = event.status === 'past'

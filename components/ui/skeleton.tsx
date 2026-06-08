@@ -107,6 +107,108 @@ function CommentsSkeleton() {
   )
 }
 
+function BlogHeaderSkeleton() {
+  return (
+    <div className="mb-16">
+      <div className="flex flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
+        <div>
+          <Skeleton className="mb-4 h-12 w-48 md:h-16" />
+          <Skeleton className="h-6 w-full max-w-2xl" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BlogGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {[...Array(count)].map((_, i) => (
+        <div
+          key={i}
+          className="space-y-4"
+        >
+          <div className="bg-muted relative overflow-hidden rounded-lg">
+            <div className="aspect-video">
+              <Skeleton className="h-full w-full" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <div className="flex items-center gap-3 pt-1">
+              <Skeleton className="h-6 w-6 rounded-full" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-14 rounded-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ArticleHeaderSkeleton() {
+  return (
+    <header className="relative min-h-[60vh] overflow-hidden pt-16">
+      <Skeleton className="absolute inset-0 h-full w-full" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+
+      <div className="absolute top-20 left-4 md:left-8 lg:left-16">
+        <Skeleton className="h-5 w-32" />
+      </div>
+
+      <div className="absolute right-0 bottom-0 left-0 pb-12 md:pb-20">
+        <div className="mx-auto max-w-4xl px-4 md:px-8">
+          <Skeleton className="mb-6 h-10 w-3/4 md:h-12" />
+
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-28" />
+            </div>
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-7 w-16 rounded-full" />
+            <Skeleton className="h-7 w-24 rounded-full" />
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function ArticleContentSkeleton() {
+  return (
+    <>
+      <Skeleton className="mb-8 h-7 w-full max-w-3xl" />
+
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+      </div>
+    </>
+  )
+}
+
 function ProjectStatsSkeleton() {
   return (
     <div className="space-y-6">
@@ -194,11 +296,19 @@ function ProfileHeaderSkeleton() {
   )
 }
 
-function ProjectGridSkeleton({ count = 6, columns = 3 }: { count?: number; columns?: number }) {
+function ProjectGridSkeleton({
+  count = 6,
+  columns = 3,
+  className,
+}: {
+  count?: number
+  columns?: number
+  className?: string
+}) {
   const gridCols = columns === 2 ? 'md:grid-cols-2' : columns === 3 ? 'md:grid-cols-3' : `md:grid-cols-${columns}`
 
   return (
-    <div className={`grid ${gridCols} gap-6`}>
+    <div className={className ?? `grid ${gridCols} gap-6`}>
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
@@ -246,6 +356,10 @@ function ProfileProjectsSkeleton() {
 
 export {
   Skeleton,
+  ArticleContentSkeleton,
+  ArticleHeaderSkeleton,
+  BlogGridSkeleton,
+  BlogHeaderSkeleton,
   ProjectImageSkeleton,
   ProjectInfoSkeleton,
   CommentsSkeleton,

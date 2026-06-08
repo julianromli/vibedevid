@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ArticleContentSkeleton, ArticleHeaderSkeleton, CommentsSkeleton, Skeleton } from '@/components/ui/skeleton'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { createClient } from '@/lib/supabase/server'
 import BlogPostData from './blog-post-data'
@@ -87,90 +87,14 @@ function BlogPostLoadingFallback() {
     <article className="min-h-screen bg-background">
       <nav className="h-16 w-full border-b bg-background/80 backdrop-blur-md" />
 
-      <header className="relative min-h-[60vh] overflow-hidden pt-16">
-        <Skeleton className="absolute inset-0 h-full w-full" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-
-        <div className="absolute top-20 left-4 md:left-8 lg:left-16">
-          <Skeleton className="h-5 w-32" />
-        </div>
-
-        <div className="absolute right-0 bottom-0 left-0 pb-12 md:pb-20">
-          <div className="mx-auto max-w-4xl px-4 md:px-8">
-            <Skeleton className="mb-6 h-10 w-3/4 md:h-12" />
-
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <Skeleton className="h-4 w-28" />
-              </div>
-              <Skeleton className="h-4 w-36" />
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Skeleton className="h-7 w-20 rounded-full" />
-              <Skeleton className="h-7 w-16 rounded-full" />
-              <Skeleton className="h-7 w-24 rounded-full" />
-            </div>
-          </div>
-        </div>
-      </header>
+      <ArticleHeaderSkeleton />
 
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
-        <Skeleton className="mb-8 h-7 w-full max-w-3xl" />
-
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-        </div>
+        <ArticleContentSkeleton />
 
         <hr className="border-border my-12" />
 
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-5" />
-            <Skeleton className="h-6 w-32" />
-          </div>
-
-          <div className="space-y-4 rounded-lg border p-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-20 w-full" />
-            <div className="flex justify-end">
-              <Skeleton className="h-9 w-28" />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="rounded-lg border p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-16" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <CommentsSkeleton />
       </div>
 
       <footer className="border-t bg-background py-12">

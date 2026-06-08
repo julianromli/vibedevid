@@ -349,9 +349,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    hsl(var(--primary) / 0.04) 40%,
-    hsl(var(--primary) / 0.06) 50%,
-    hsl(var(--primary) / 0.04) 60%,
+    color-mix(in oklch, var(--primary) 4%, transparent) 40%,
+    color-mix(in oklch, var(--primary) 6%, transparent) 50%,
+    color-mix(in oklch, var(--primary) 4%, transparent) 60%,
     transparent 100%
   );
   transform: translateX(-100%);
@@ -362,9 +362,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    hsl(var(--primary) / 0.06) 40%,
-    hsl(var(--primary) / 0.1) 50%,
-    hsl(var(--primary) / 0.06) 60%,
+    color-mix(in oklch, var(--primary) 6%, transparent) 40%,
+    color-mix(in oklch, var(--primary) 10%, transparent) 50%,
+    color-mix(in oklch, var(--primary) 6%, transparent) 60%,
     transparent 100%
   );
 }

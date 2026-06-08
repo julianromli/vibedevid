@@ -1,4 +1,5 @@
 import { fetchProjectsWithSorting } from '@/lib/actions'
+import { getCategories } from '@/lib/categories'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { getVideoIconKey } from '@/lib/video-icon-key'
@@ -85,7 +86,10 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
 
   try {
     const supabase = createAdminClient()
-    const { data, error } = await supabase.from('vibe_videos').select('*').order('position', { ascending: true })
+    const { data, error } = await supabase
+      .from('vibe_videos')
+      .select('id, title, description, thumbnail, video_id, published_at, view_count, position')
+      .order('position', { ascending: true })
 
     if (error || !data || data.length === 0) {
       return fallbackVideos
@@ -114,14 +118,7 @@ export default async function HomePageData({ searchParams }: { searchParams: Pro
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ data: categories }, initialVibeVideos] = await Promise.all([
-    supabase
-      .from('categories')
-      .select('name, display_name')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true }),
-    getVibeVideos(),
-  ])
+  const [categories, initialVibeVideos] = await Promise.all([getCategories(), getVibeVideos()])
 
   const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
     value: category.name,
