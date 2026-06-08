@@ -5,7 +5,7 @@ import { getVideoIconKey } from '@/lib/video-icon-key'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
 import HomePageClient from './home-page-client'
 
-interface HomePageSearchParams {
+export interface HomePageSearchParams {
   filter?: string | string[]
   sort?: string | string[]
 }
@@ -20,11 +20,20 @@ function normalizeSortParam(value: string | undefined): SortBy {
 
 async function getUserData(userId: string, email: string): Promise<User | null> {
   const supabase = await createClient()
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('users')
     .select('id, display_name, avatar_url, username, role')
     .eq('id', userId)
     .single()
+
+  if (error) {
+    // PGRST116 = no rows returned (expected when user profile is missing)
+    if (error.code !== 'PGRST116') {
+      // biome-ignore lint/suspicious/noConsole: production error logging for debugging non-missing-profile failures
+      console.error('[getUserData] Supabase error fetching profile:', error)
+    }
+    return null
+  }
 
   if (!profile) {
     return null

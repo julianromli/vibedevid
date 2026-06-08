@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -181,18 +179,10 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
                     </div>
                   )}
 
-                  {!isPastEvent && (
-                    <EventShareButton
-                      eventTitle={event.name}
-                      eventSlug={event.slug}
-                    />
-                  )}
-                  {isPastEvent && (
-                    <EventShareButton
-                      eventTitle={event.name}
-                      eventSlug={event.slug}
-                    />
-                  )}
+                  <EventShareButton
+                    eventTitle={event.name}
+                    eventSlug={event.slug}
+                  />
                 </CardContent>
               </Card>
             </div>

@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import BlogPageData from './blog-page-data'
 
+export const revalidate = 60
+
 function BlogLoadingFallback() {
   return (
     <div className="min-h-screen bg-background">

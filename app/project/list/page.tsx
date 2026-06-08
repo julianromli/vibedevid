@@ -1,5 +1,3 @@
-'use client'
-
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import ProjectListData from './project-list-data'
