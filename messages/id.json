@@ -191,7 +191,12 @@
     "submitButton": "Submit Project",
     "noProjects": "Belum ada project dengan filter yang dipilih",
     "beFirst": "Jadi yang Pertama Submit Project",
-    "showingProjects": "Menampilkan {count} project dari komunitas developer Indonesia"
+    "showingProjects": "Menampilkan {count} project dari komunitas developer Indonesia",
+    "trendingOptions": {
+      "trending": "Trending",
+      "top": "Top",
+      "newest": "Terbaru"
+    }
   },
   "projectSubmit": {
     "title": "Submit Project Anda",
