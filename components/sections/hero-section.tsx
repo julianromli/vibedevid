@@ -127,7 +127,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
               </AnimatedGradientText>
             </Link>
 
-            <h1 className="text-foreground text-3xl leading-[1.1] font-bold tracking-tight sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
+            <h1 className="text-foreground text-4xl leading-[1.08] font-bold tracking-tight sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
               {titleLine1Items.map((item, index) => (
                 <Fragment key={item.key}>
                   <span
