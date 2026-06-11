@@ -7,8 +7,8 @@
 
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
@@ -48,7 +48,13 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   const [subtitleVisible, setSubtitleVisible] = useState(false)
   const lastAnimationKey = useRef<string | null>(null)
   const t = useTranslations('hero')
+  const locale = useLocale()
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+
+  // On mobile the Indonesian heading reads best as three balanced lines:
+  // "Komunitas" / "Vibe Coding No. 1" / "di Indonesia". This regroups words
+  // across the desktop line break, so it needs explicit mobile-only breaks.
+  const useIdMobileLayout = locale === 'id'
 
   const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
   const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
@@ -121,33 +127,37 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
               </AnimatedGradientText>
             </Link>
 
-            <h1 className="text-foreground text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              {titleLine1Items.map((item) => (
-                <span
-                  key={item.key}
-                  className={cn(
-                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
-                    animatedWords.includes(item.index)
-                      ? 'blur-0 translate-y-0 opacity-100'
-                      : 'translate-y-8 opacity-0 blur-sm',
-                  )}
-                >
-                  {item.word}
-                </span>
+            <h1 className="text-foreground text-3xl leading-[1.1] font-bold tracking-tight sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
+              {titleLine1Items.map((item, index) => (
+                <Fragment key={item.key}>
+                  <span
+                    className={cn(
+                      'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                      animatedWords.includes(item.index)
+                        ? 'blur-0 translate-y-0 opacity-100'
+                        : 'translate-y-8 opacity-0 blur-sm',
+                    )}
+                  >
+                    {item.word}
+                  </span>
+                  {useIdMobileLayout && index === 0 && <br aria-hidden="true" className="sm:hidden" />}
+                </Fragment>
               ))}
-              <br />
-              {titleLine2Items.map((item) => (
-                <span
-                  key={item.key}
-                  className={cn(
-                    'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
-                    animatedWords.includes(item.index + titleLine1.length)
-                      ? 'blur-0 translate-y-0 opacity-100'
-                      : 'translate-y-8 opacity-0 blur-sm',
-                  )}
-                >
-                  {item.word}
-                </span>
+              <br aria-hidden="true" className={cn(useIdMobileLayout && 'hidden sm:block')} />
+              {titleLine2Items.map((item, index) => (
+                <Fragment key={item.key}>
+                  <span
+                    className={cn(
+                      'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                      animatedWords.includes(item.index + titleLine1.length)
+                        ? 'blur-0 translate-y-0 opacity-100'
+                        : 'translate-y-8 opacity-0 blur-sm',
+                    )}
+                  >
+                    {item.word}
+                  </span>
+                  {useIdMobileLayout && index === 1 && <br aria-hidden="true" className="sm:hidden" />}
+                </Fragment>
               ))}
             </h1>
 
