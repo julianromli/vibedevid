@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, FileText, LogOut, Upload, User } from 'lucide-react'
+import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -165,14 +165,30 @@ function UserMenu({
   }
 
   if (!userIsLoggedIn) {
+    if (size === 'mobile') {
+      return (
+        <Button
+          onClick={() => {
+            onSignIn()
+            onClose?.()
+          }}
+          size="icon"
+          variant="ghost"
+          className="h-11 w-11"
+          aria-label={t('common.signIn')}
+        >
+          <LogIn className="size-6" />
+        </Button>
+      )
+    }
+
     return (
       <Button
         onClick={() => {
           onSignIn()
           onClose?.()
         }}
-        size={size === 'mobile' ? 'lg' : 'sm'}
-        className={size === 'mobile' ? 'h-11 min-w-[44px] w-full' : ''}
+        size="sm"
       >
         {t('common.signIn')}
       </Button>
