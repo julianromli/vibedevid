@@ -17,6 +17,8 @@ import { SafariMockup } from '@/components/ui/safari-mockup'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
+const ANNOUNCEMENT_HREF = 'https://wa.vibedevid.com'
+
 interface HeroSectionProps {
   joinHref: string
   handleViewShowcase: () => void
@@ -112,7 +114,9 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
         <div className="space-y-10 sm:space-y-12">
           <div className="space-y-6 text-center sm:space-y-8">
             <Link
-              href="/blog"
+              href={ANNOUNCEMENT_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
             >
               <AnimatedGradientText className="transition-all duration-300 hover:shadow-[inset_0_-5px_10px_hsl(var(--foreground)/0.15)]">

@@ -36,6 +36,7 @@ function resetMessages() {
 }
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'en',
   useTranslations: () => translatorRef.current,
 }))
 
@@ -104,5 +105,16 @@ describe('HeroSection', () => {
     })
 
     expect(screen.getByText('Today')).toHaveClass('opacity-100')
+  })
+
+  it('links the announcement banner to the WhatsApp community', () => {
+    render(
+      React.createElement(HeroSection, {
+        joinHref: 'https://example.com/join',
+        handleViewShowcase: vi.fn(),
+      }),
+    )
+
+    expect(screen.getByText('Announcement').closest('a')).toHaveAttribute('href', 'https://wa.vibedevid.com')
   })
 })
