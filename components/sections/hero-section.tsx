@@ -144,10 +144,18 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                   >
                     {item.word}
                   </span>
-                  {useIdMobileLayout && index === 0 && <br aria-hidden="true" className="sm:hidden" />}
+                  {useIdMobileLayout && index === 0 && (
+                    <br
+                      aria-hidden="true"
+                      className="sm:hidden"
+                    />
+                  )}
                 </Fragment>
               ))}
-              <br aria-hidden="true" className={cn(useIdMobileLayout && 'hidden sm:block')} />
+              <br
+                aria-hidden="true"
+                className={cn(useIdMobileLayout && 'hidden sm:block')}
+              />
               {titleLine2Items.map((item, index) => (
                 <Fragment key={item.key}>
                   <span
@@ -160,7 +168,12 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                   >
                     {item.word}
                   </span>
-                  {useIdMobileLayout && index === 1 && <br aria-hidden="true" className="sm:hidden" />}
+                  {useIdMobileLayout && index === 1 && (
+                    <br
+                      aria-hidden="true"
+                      className="sm:hidden"
+                    />
+                  )}
                 </Fragment>
               ))}
             </h1>
