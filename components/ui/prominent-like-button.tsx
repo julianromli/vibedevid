@@ -41,25 +41,30 @@ export function ProminentLikeButton({
 
   // Sync with database on mount and when logged in status changes
   React.useEffect(() => {
-    const syncLikeStatus = async () => {
-      if (!projectId) return
+    if (!projectId) return
 
-      setIsLoading(true)
-      try {
-        const { totalLikes, isLiked: dbIsLiked, error } = await getLikeStatusClient(projectId)
+    let isCurrentRequest = true
 
-        if (!error) {
+    setIsLoading(true)
+    void getLikeStatusClient(projectId)
+      .then(({ totalLikes, isLiked: dbIsLiked, error }) => {
+        if (!error && isCurrentRequest) {
           setLikes(totalLikes)
           setIsLiked(isLoggedIn ? dbIsLiked : initialIsLiked)
         }
-      } catch {
+      })
+      .catch(() => {
         // Keep the optimistic initial state if the status refresh fails.
-      } finally {
-        setIsLoading(false)
-      }
-    }
+      })
+      .finally(() => {
+        if (isCurrentRequest) {
+          setIsLoading(false)
+        }
+      })
 
-    syncLikeStatus()
+    return () => {
+      isCurrentRequest = false
+    }
   }, [projectId, isLoggedIn, initialIsLiked])
 
   // Fallback to initial props if database sync fails
