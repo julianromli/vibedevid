@@ -31,6 +31,9 @@ interface ProfileUser {
   location: string | null
   website: string | null
   github_url: string | null
+  x_url: string | null
+  instagram_url: string | null
+  threads_url: string | null
   twitter_url: string | null
   joined_at: string
   role?: number | null
@@ -399,7 +402,9 @@ export default function ProfilePage() {
     location: string
     website: string
     github_url: string
-    twitter_url: string
+    x_url: string
+    instagram_url: string
+    threads_url: string
     avatar_url: string
   }) => {
     setSaving(true)
@@ -407,17 +412,21 @@ export default function ProfilePage() {
       const result = await updateUserProfile(username, profileData)
       if (result.success) {
         setShowEditDialog(false)
+        const savedProfileData = result.data || profileData
 
         const updatedUser: ProfileUser = {
           ...user!,
-          username: profileData.username,
-          display_name: profileData.displayName,
-          bio: profileData.bio,
-          location: profileData.location,
-          website: profileData.website,
-          github_url: profileData.github_url,
-          twitter_url: profileData.twitter_url,
-          avatar_url: profileData.avatar_url,
+          username: savedProfileData.username,
+          display_name: savedProfileData.displayName,
+          bio: savedProfileData.bio,
+          location: savedProfileData.location,
+          website: savedProfileData.website,
+          github_url: savedProfileData.github_url,
+          x_url: savedProfileData.x_url,
+          instagram_url: savedProfileData.instagram_url,
+          threads_url: savedProfileData.threads_url,
+          twitter_url: null,
+          avatar_url: savedProfileData.avatar_url,
         }
 
         setUser(updatedUser)
@@ -631,6 +640,9 @@ export default function ProfilePage() {
           location: user?.location || '',
           website: user?.website || '',
           github_url: user?.github_url || '',
+          x_url: user?.x_url || user?.twitter_url || '',
+          instagram_url: user?.instagram_url || '',
+          threads_url: user?.threads_url || '',
           twitter_url: user?.twitter_url || '',
         }}
         onSave={handleSaveProfile}

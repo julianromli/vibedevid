@@ -1,6 +1,13 @@
 'use client'
 
-import { Calendar, Edit, Github, Globe, MapPin, Twitter } from 'lucide-react'
+import {
+  IconBrandGithub,
+  IconBrandInstagram,
+  IconBrandThreads,
+  IconBrandX,
+  IconWorld,
+} from '@tabler/icons-react'
+import { Calendar, Edit, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
@@ -13,6 +20,14 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ user, isOwner, onEdit }: ProfileHeaderProps) {
   if (!user) return null
+
+  const socialLinks = [
+    { label: 'Website', href: user.website, Icon: IconWorld },
+    { label: 'GitHub', href: user.github_url, Icon: IconBrandGithub },
+    { label: 'X', href: user.x_url || user.twitter_url, Icon: IconBrandX },
+    { label: 'Instagram', href: user.instagram_url, Icon: IconBrandInstagram },
+    { label: 'Threads', href: user.threads_url, Icon: IconBrandThreads },
+  ].filter((link) => Boolean(link.href))
 
   return (
     <div className="bg-card border-border mb-6 rounded-xl border p-6 sm:p-8">
@@ -69,57 +84,26 @@ export function ProfileHeader({ user, isOwner, onEdit }: ProfileHeaderProps) {
           </div>
 
           <div className="flex flex-wrap justify-center gap-3 md:justify-start">
-            {user.website && (
+            {socialLinks.map(({ label, href, Icon }) => (
               <Button
+                key={label}
                 variant="outline"
-                size="sm"
-                className="h-9 px-4"
+                size="icon"
+                className="h-9 w-9"
                 asChild
               >
                 <a
-                  href={user.website}
+                  href={href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={label}
+                  title={label}
                 >
-                  <Globe className="mr-2 h-4 w-4" />
-                  Website
+                  <Icon className="h-4 w-4" />
+                  <span className="sr-only">{label}</span>
                 </a>
               </Button>
-            )}
-            {user.github_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4"
-                asChild
-              >
-                <a
-                  href={user.github_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </a>
-              </Button>
-            )}
-            {user.twitter_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4"
-                asChild
-              >
-                <a
-                  href={user.twitter_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Twitter className="mr-2 h-4 w-4" />
-                  Twitter
-                </a>
-              </Button>
-            )}
+            ))}
           </div>
         </div>
       </div>

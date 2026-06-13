@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from '@/lib/profile-social-links'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
 
@@ -12,7 +13,10 @@ interface UpdateProfileData {
   location: string
   website: string
   github_url: string
-  twitter_url: string
+  x_url: string
+  instagram_url: string
+  threads_url: string
+  twitter_url?: string
 }
 
 interface UpdateProfileResult {
@@ -104,18 +108,30 @@ export async function updateUserProfile(
       }
     }
 
+    const normalizedProfileData = {
+      ...profileData,
+      website: normalizeProfileWebsiteUrl(profileData.website),
+      github_url: normalizeProfileSocialUrl('github', profileData.github_url),
+      x_url: normalizeProfileSocialUrl('x', profileData.x_url || profileData.twitter_url),
+      instagram_url: normalizeProfileSocialUrl('instagram', profileData.instagram_url),
+      threads_url: normalizeProfileSocialUrl('threads', profileData.threads_url),
+    }
+
     // Perform the update
     const { data, error } = await supabase
       .from('users')
       .update({
-        username: profileData.username,
-        display_name: profileData.displayName,
-        bio: profileData.bio,
-        avatar_url: profileData.avatar_url,
-        location: profileData.location,
-        website: profileData.website,
-        github_url: profileData.github_url,
-        twitter_url: profileData.twitter_url,
+        username: normalizedProfileData.username,
+        display_name: normalizedProfileData.displayName,
+        bio: normalizedProfileData.bio,
+        avatar_url: normalizedProfileData.avatar_url,
+        location: normalizedProfileData.location,
+        website: normalizedProfileData.website,
+        github_url: normalizedProfileData.github_url,
+        x_url: normalizedProfileData.x_url,
+        instagram_url: normalizedProfileData.instagram_url,
+        threads_url: normalizedProfileData.threads_url,
+        twitter_url: null,
         updated_at: new Date().toISOString(),
       })
       .eq('username', currentUsername)
@@ -134,9 +150,9 @@ export async function updateUserProfile(
 
     return {
       success: true,
-      data: profileData,
+      data: normalizedProfileData,
       usernameChanged,
-      newUsername: usernameChanged ? profileData.username : undefined,
+      newUsername: usernameChanged ? normalizedProfileData.username : undefined,
     }
   } catch (error) {
     console.error('Error updating profile:', error)
