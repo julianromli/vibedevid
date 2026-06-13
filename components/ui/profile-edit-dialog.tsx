@@ -1,7 +1,6 @@
 'use client'
 
 import { Loader2, Sparkles, Upload } from 'lucide-react'
-import type React from 'react'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AvatarUploader } from '@/components/ui/avatar-uploader'
@@ -12,6 +11,19 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { isOurStorageUrl, scheduleOldAvatarDeletion } from '@/lib/avatar-utils'
 import { createClient } from '@/lib/supabase/client'
+
+interface ProfileEditFormData {
+  displayName: string
+  username: string
+  bio: string
+  location: string
+  website: string
+  github_url: string
+  x_url: string
+  instagram_url: string
+  threads_url: string
+  avatar_url: string
+}
 
 interface ProfileEditDialogProps {
   open: boolean
@@ -24,9 +36,12 @@ interface ProfileEditDialogProps {
     location?: string
     website?: string
     github_url?: string
+    x_url?: string
+    instagram_url?: string
+    threads_url?: string
     twitter_url?: string
   }
-  onSave: (data: any) => Promise<void>
+  onSave: (data: ProfileEditFormData) => Promise<void>
   saving?: boolean
 }
 
@@ -45,7 +60,9 @@ export default function ProfileEditDialog({
     location: defaultValues?.location || '',
     website: defaultValues?.website || '',
     github_url: defaultValues?.github_url || '',
-    twitter_url: defaultValues?.twitter_url || '',
+    x_url: defaultValues?.x_url || defaultValues?.twitter_url || '',
+    instagram_url: defaultValues?.instagram_url || '',
+    threads_url: defaultValues?.threads_url || '',
   })
 
   const [loadingAvatar, setLoadingAvatar] = useState(false)
@@ -74,7 +91,7 @@ export default function ProfileEditDialog({
       const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`
       console.log('[v0] Uploading to path:', fileName)
 
-      const { data, error } = await supabase.storage.from('avatars').upload(fileName, file, {
+      const { error } = await supabase.storage.from('avatars').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
       })
@@ -144,7 +161,9 @@ export default function ProfileEditDialog({
       location: formData.location,
       website: formData.website,
       github_url: formData.github_url,
-      twitter_url: formData.twitter_url,
+      x_url: formData.x_url,
+      instagram_url: formData.instagram_url,
+      threads_url: formData.threads_url,
       avatar_url: formData.avatar, // Ensure avatar is included
     }
 
@@ -285,12 +304,12 @@ export default function ProfileEditDialog({
             <Label className="text-sm text-zinc-700 dark:text-zinc-300">Social Links</Label>
             <div className="grid gap-3">
               <Input
-                placeholder="Website (https://)"
+                placeholder="Website or domain"
                 value={formData.website}
                 onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
               />
               <Input
-                placeholder="GitHub URL"
+                placeholder="GitHub URL or @username"
                 value={formData.github_url}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -300,12 +319,32 @@ export default function ProfileEditDialog({
                 }
               />
               <Input
-                placeholder="Twitter URL"
-                value={formData.twitter_url}
+                placeholder="X URL or @username"
+                value={formData.x_url}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    twitter_url: e.target.value,
+                    x_url: e.target.value,
+                  }))
+                }
+              />
+              <Input
+                placeholder="Instagram URL or @username"
+                value={formData.instagram_url}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    instagram_url: e.target.value,
+                  }))
+                }
+              />
+              <Input
+                placeholder="Threads URL or @username"
+                value={formData.threads_url}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    threads_url: e.target.value,
                   }))
                 }
               />
