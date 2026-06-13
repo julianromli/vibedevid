@@ -118,7 +118,7 @@ export async function updateUserProfile(
     }
 
     // Perform the update
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .update({
         username: normalizedProfileData.username,

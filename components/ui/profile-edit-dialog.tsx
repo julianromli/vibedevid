@@ -1,7 +1,6 @@
 'use client'
 
 import { Loader2, Sparkles, Upload } from 'lucide-react'
-import type React from 'react'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AvatarUploader } from '@/components/ui/avatar-uploader'
@@ -12,6 +11,19 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { isOurStorageUrl, scheduleOldAvatarDeletion } from '@/lib/avatar-utils'
 import { createClient } from '@/lib/supabase/client'
+
+interface ProfileEditFormData {
+  displayName: string
+  username: string
+  bio: string
+  location: string
+  website: string
+  github_url: string
+  x_url: string
+  instagram_url: string
+  threads_url: string
+  avatar_url: string
+}
 
 interface ProfileEditDialogProps {
   open: boolean
@@ -29,7 +41,7 @@ interface ProfileEditDialogProps {
     threads_url?: string
     twitter_url?: string
   }
-  onSave: (data: any) => Promise<void>
+  onSave: (data: ProfileEditFormData) => Promise<void>
   saving?: boolean
 }
 
@@ -79,7 +91,7 @@ export default function ProfileEditDialog({
       const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`
       console.log('[v0] Uploading to path:', fileName)
 
-      const { data, error } = await supabase.storage.from('avatars').upload(fileName, file, {
+      const { error } = await supabase.storage.from('avatars').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
       })

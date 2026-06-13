@@ -49,10 +49,7 @@ export function normalizeProfileWebsiteUrl(input: string | null | undefined): st
   return url?.toString() || value
 }
 
-export function normalizeProfileSocialUrl(
-  platform: SocialPlatform,
-  input: string | null | undefined,
-): string {
+export function normalizeProfileSocialUrl(platform: SocialPlatform, input: string | null | undefined): string {
   const value = input?.trim()
   if (!value) return ''
 

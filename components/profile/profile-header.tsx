@@ -1,19 +1,32 @@
 'use client'
 
-import {
-  IconBrandGithub,
-  IconBrandInstagram,
-  IconBrandThreads,
-  IconBrandX,
-  IconWorld,
-} from '@tabler/icons-react'
+import { IconBrandGithub, IconBrandInstagram, IconBrandThreads, IconBrandX, IconWorld } from '@tabler/icons-react'
 import { Calendar, Edit, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 
+interface ProfileHeaderUser {
+  id?: string
+  username?: string | null
+  display_name?: string | null
+  name?: string | null
+  bio?: string | null
+  avatar?: string | null
+  avatar_url?: string | null
+  location?: string | null
+  website?: string | null
+  github_url?: string | null
+  x_url?: string | null
+  twitter_url?: string | null
+  instagram_url?: string | null
+  threads_url?: string | null
+  joined_at: string | number | Date
+  role?: number | null
+}
+
 interface ProfileHeaderProps {
-  user: any
+  user: ProfileHeaderUser | null
   isOwner: boolean
   onEdit: () => void
 }
@@ -27,14 +40,23 @@ export function ProfileHeader({ user, isOwner, onEdit }: ProfileHeaderProps) {
     { label: 'X', href: user.x_url || user.twitter_url, Icon: IconBrandX },
     { label: 'Instagram', href: user.instagram_url, Icon: IconBrandInstagram },
     { label: 'Threads', href: user.threads_url, Icon: IconBrandThreads },
-  ].filter((link) => Boolean(link.href))
+  ].flatMap((link) => (link.href ? [{ ...link, href: link.href }] : []))
+  const displayName = user.display_name || user.username || 'User'
+  const avatarUser = {
+    id: user.id,
+    username: user.username || undefined,
+    display_name: user.display_name || undefined,
+    name: user.name || undefined,
+    avatar_url: user.avatar_url || undefined,
+    avatar: user.avatar || undefined,
+  }
 
   return (
     <div className="bg-card border-border mb-6 rounded-xl border p-6 sm:p-8">
       <div className="flex flex-col gap-6 md:flex-row">
         <div className="flex flex-col items-center gap-4 md:items-start">
           <UserAvatar
-            user={user}
+            user={avatarUser}
             size="xl"
             className="h-32 w-32 border-4 border-background shadow-xl"
           />
@@ -55,7 +77,7 @@ export function ProfileHeader({ user, isOwner, onEdit }: ProfileHeaderProps) {
           <div className="mb-2">
             <h1 className="text-3xl font-bold leading-tight">
               <UserDisplayName
-                name={user.display_name || user.username}
+                name={displayName}
                 role={user.role}
               />
             </h1>
