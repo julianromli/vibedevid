@@ -1,10 +1,11 @@
 'use client'
 
-import { Code, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import type * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 export interface Tool {
@@ -22,17 +23,26 @@ interface ToolsColumnsProps {
 }
 
 export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsProps) {
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const renderedTools = prefersReducedMotion
+    ? tools.map((tool) => ({ key: tool.title, tool }))
+    : ['first', 'second'].flatMap((loopKey) => tools.map((tool) => ({ key: `${loopKey}-${tool.title}`, tool })))
+
   return (
     <div className={cn('flex flex-col space-y-4 overflow-hidden', className)}>
       <div
-        className="animate-scroll-up flex flex-col space-y-4"
+        className={cn(
+          'flex flex-col space-y-4',
+          !prefersReducedMotion &&
+            'animate-scroll-up hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]',
+        )}
         style={{
-          animation: `scrollUp ${duration}s linear infinite`,
+          animationDuration: prefersReducedMotion ? undefined : `${duration}s`,
         }}
       >
-        {[...tools, ...tools].map((tool, index) => (
+        {renderedTools.map(({ key, tool }) => (
           <Card
-            key={index}
+            key={key}
             className="w-80 flex-shrink-0 p-6"
           >
             <div className="relative">

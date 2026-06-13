@@ -1,7 +1,9 @@
 'use client'
 
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
-import React, { useRef, useState } from 'react'
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
+import Image from 'next/image'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const AnimatedTooltip = ({
   items,
@@ -14,51 +16,67 @@ export const AnimatedTooltip = ({
   }[]
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const springConfig = { stiffness: 100, damping: 15 }
+  const prefersReducedMotion = useReducedMotion()
+  const springConfig = { stiffness: 300, damping: 24 }
   const x = useMotionValue(0)
   const animationFrameRef = useRef<number | null>(null)
 
-  const rotate = useSpring(useTransform(x, [-100, 100], [-45, 45]), springConfig)
-  const translateX = useSpring(useTransform(x, [-100, 100], [-50, 50]), springConfig)
+  const rotate = useSpring(useTransform(x, [-100, 100], [-8, 8]), springConfig)
+  const translateX = useSpring(useTransform(x, [-100, 100], [-12, 12]), springConfig)
 
-  const handleMouseMove = (event: any) => {
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [])
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLImageElement>) => {
+    if (prefersReducedMotion) return
+
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current)
     }
 
+    const halfWidth = event.currentTarget.offsetWidth / 2
+    const offsetX = event.nativeEvent.offsetX
+
     animationFrameRef.current = requestAnimationFrame(() => {
-      const halfWidth = event.target.offsetWidth / 2
-      x.set(event.nativeEvent.offsetX - halfWidth)
+      x.set(offsetX - halfWidth)
     })
   }
 
   return (
     <>
-      {items.map((item, idx) => (
-        <div
-          className="group relative mr-2"
+      {items.map((item) => (
+        <button
+          type="button"
+          className="group relative mr-2 border-0 bg-transparent p-0"
           key={item.name}
           onMouseEnter={() => setHoveredIndex(item.id)}
           onMouseLeave={() => setHoveredIndex(null)}
+          onFocus={() => setHoveredIndex(item.id)}
+          onBlur={() => setHoveredIndex(null)}
         >
           <AnimatePresence>
             {hoveredIndex === item.id && (
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.6 }}
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.96 }}
                 animate={{
                   opacity: 1,
                   y: 0,
                   scale: 1,
                   transition: {
-                    type: 'spring',
-                    stiffness: 260,
-                    damping: 10,
+                    duration: prefersReducedMotion ? 0.08 : 0.12,
+                    ease: [0.2, 0, 0, 1],
                   },
                 }}
-                exit={{ opacity: 0, y: 20, scale: 0.6 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.98 }}
+                transition={{ duration: 0.08, ease: [0.3, 0, 1, 1] }}
                 style={{
-                  translateX: translateX,
-                  rotate: rotate,
+                  translateX: prefersReducedMotion ? 0 : translateX,
+                  rotate: prefersReducedMotion ? 0 : rotate,
                   whiteSpace: 'nowrap',
                 }}
                 className="absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs shadow-xl"
@@ -70,15 +88,15 @@ export const AnimatedTooltip = ({
               </motion.div>
             )}
           </AnimatePresence>
-          <img
+          <Image
             onMouseMove={handleMouseMove}
             height={100}
             width={100}
             src={item.image}
             alt={item.name}
-            className="relative !m-0 h-14 w-14 object-contain !p-0 transition duration-500 group-hover:z-30 group-hover:scale-105"
+            className="relative !m-0 h-14 w-14 object-contain !p-0 transition duration-150 ease-out group-hover:z-30 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
-        </div>
+        </button>
       ))}
     </>
   )

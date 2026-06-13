@@ -73,17 +73,16 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
                   </button>
                 </h3>
 
-                <div
+                <section
                   id={`faq-panel-${index}`}
-                  role="region"
                   aria-labelledby={`faq-trigger-${index}`}
                   aria-hidden={openFAQ !== index}
-                  className={`overflow-hidden ${prefersReducedMotion ? '' : 'transition-all duration-500 ease-in-out'} ${
-                    openFAQ === index ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  className={`overflow-hidden ${prefersReducedMotion ? '' : 'transition-opacity duration-200 ease-out'} ${
+                    openFAQ === index ? 'mt-4 h-auto opacity-100' : 'pointer-events-none h-0 opacity-0'
                   }`}
                 >
                   <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
-                </div>
+                </section>
               </CardContent>
             </Card>
           ))}
