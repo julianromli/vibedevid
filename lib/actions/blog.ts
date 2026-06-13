@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { ROLES } from '@/lib/actions/admin/schemas'
 import { slugifyTitle } from '@/lib/slug'
 import { createClient } from '@/lib/supabase/server'
 
@@ -286,8 +287,10 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: 'Post not found' }
   }
 
+  const { data: userData } = await supabase.from('users').select('role').eq('id', authData.user.id).single()
+
   const isAuthor = post.author_id === authData.user.id
-  const isAdmin = authData.user.user_metadata.role === 0
+  const isAdmin = userData?.role === ROLES.ADMIN
 
   if (!isAuthor && !isAdmin) {
     return { success: false, error: 'Not authorized' }

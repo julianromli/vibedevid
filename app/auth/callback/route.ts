@@ -1,10 +1,36 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
+function getSafeCallbackNextPath(value: string | null): string | null {
+  if (!value) return null
+
+  const trimmed = value.trim()
+  if (!trimmed.startsWith('/')) return null
+  if (trimmed.startsWith('//')) return null
+
+  return trimmed
+}
+
+function redirectToPath(request: NextRequest, origin: string, path: string): NextResponse {
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const isLocalEnv = process.env.NODE_ENV === 'development'
+
+  if (isLocalEnv) {
+    return NextResponse.redirect(`${origin}${path}`)
+  }
+
+  if (forwardedHost) {
+    return NextResponse.redirect(`https://${forwardedHost}${path}`)
+  }
+
+  return NextResponse.redirect(`${origin}${path}`)
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = '/user/auth'
+  const nextPath = getSafeCallbackNextPath(searchParams.get('next'))
+  const signInPath = '/user/auth'
 
   if (code) {
     const supabase = await createServerClient()
@@ -109,39 +135,27 @@ export async function GET(request: NextRequest) {
 
         console.log('[Callback] User authenticated successfully:', user.email)
 
+        if (nextPath === '/user/auth/reset-password') {
+          console.log('[Callback] Password recovery flow, redirecting to reset password page')
+          return redirectToPath(request, origin, nextPath)
+        }
+
         // Handle different flows based on auth method
         if (isOAuthUser) {
           // OAuth users: Keep them signed in and redirect to home
           console.log('[Callback] OAuth user login successful, redirecting to home')
-          const forwardedHost = request.headers.get('x-forwarded-host')
-          const isLocalEnv = process.env.NODE_ENV === 'development'
-
-          if (isLocalEnv) {
-            return NextResponse.redirect(`${origin}/`)
-          } else if (forwardedHost) {
-            return NextResponse.redirect(`https://${forwardedHost}/`)
-          } else {
-            return NextResponse.redirect(`${origin}/`)
-          }
-        } else {
-          // Email/password users: Sign out after email confirmation to force proper login
-          console.log('[Callback] Email confirmed user, signing out for security')
-          await supabase.auth.signOut()
-
-          // Redirect email/password users to auth page with success message
-          const forwardedHost = request.headers.get('x-forwarded-host')
-          const isLocalEnv = process.env.NODE_ENV === 'development'
-
-          if (isLocalEnv) {
-            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
-          } else if (forwardedHost) {
-            return NextResponse.redirect(
-              `https://${forwardedHost}${next}?success=Email confirmed successfully! You can now sign in.`,
-            )
-          } else {
-            return NextResponse.redirect(`${origin}${next}?success=Email confirmed successfully! You can now sign in.`)
-          }
+          return redirectToPath(request, origin, '/')
         }
+
+        // Email/password users: Sign out after email confirmation to force proper login
+        console.log('[Callback] Email confirmed user, signing out for security')
+        await supabase.auth.signOut()
+
+        return redirectToPath(
+          request,
+          origin,
+          `${signInPath}?success=${encodeURIComponent('Email confirmed successfully! You can now sign in.')}`,
+        )
       }
     } else {
       console.error('[Callback] Exchange code error:', error)
