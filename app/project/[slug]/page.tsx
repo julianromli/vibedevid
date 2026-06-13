@@ -4,6 +4,7 @@ import { Calendar, ExternalLink, Globe, Tag, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
 import { ProjectEditClient } from '@/components/project/ProjectEditClient'
 import { ShareButton } from '@/components/project/ShareButton'
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
+import { ScrollReveal } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProjectImageCarousel } from '@/components/ui/project-image-carousel'
@@ -23,70 +25,54 @@ import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
 /**
- * Format plain text description to HTML with proper line breaks and bullet points
+ * Render plain text description with proper line breaks and bullet points.
  */
-function formatDescription(text: string): string {
-  if (!text) return ''
+function renderDescription(text: string): ReactNode {
+  if (!text) return null
 
   // Normalize Windows line endings (CRLF) to Unix (LF)
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
-  // Escape HTML entities to prevent XSS
-  const escaped = normalized
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-
   // Split by double newlines for paragraphs, single newlines for line breaks
-  const paragraphs = escaped.split(/\n\n+/)
+  const paragraphs = normalized.split(/\n\n+/)
 
-  return paragraphs
-    .map((paragraph) => {
+  return paragraphs.map((paragraph) => {
+    const lines = paragraph.split('\n')
+    const hasBullets = lines.some((line) => /^[\s]*[•\-*]\s/.test(line))
+
+    if (hasBullets) {
       // Check if paragraph contains bullet points
-      const lines = paragraph.split('\n')
-      const hasBullets = lines.some((line) => /^[\s]*[•\-*]\s/.test(line))
+      const firstLine = lines[0]
+      const isHeader = firstLine && !/^[\s]*[•\-*]\s/.test(firstLine)
+      const bulletLines = isHeader ? lines.slice(1) : lines
 
-      if (hasBullets) {
-        // Format as list
-        const listItems = lines
-          .map((line) => {
-            const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
-            if (bulletMatch) {
-              return `<li>${bulletMatch[1]}</li>`
-            }
-            // Non-bullet line in a bullet section - treat as regular text
-            return line.trim() ? `<p>${line}</p>` : ''
-          })
-          .filter(Boolean)
-          .join('')
-
-        // Check if there's a header before the list (like "🚀 Fitur Utama:")
-        const firstLine = lines[0]
-        const isHeader = firstLine && !/^[\s]*[•\-*]\s/.test(firstLine)
-
-        if (isHeader) {
-          const headerLine = `<p class="font-semibold mt-4 mb-2">${firstLine}</p>`
-          const remainingItems = lines
-            .slice(1)
-            .map((line) => {
+      return (
+        <div key={paragraph}>
+          {isHeader && <p className="mt-4 mb-2 font-semibold">{firstLine}</p>}
+          <ul className="mb-4 list-inside list-disc space-y-1">
+            {bulletLines.map((line) => {
               const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
-              return bulletMatch ? `<li>${bulletMatch[1]}</li>` : ''
-            })
-            .filter(Boolean)
-            .join('')
-          return `${headerLine}<ul class="list-disc list-inside space-y-1 mb-4">${remainingItems}</ul>`
-        }
+              return bulletMatch ? <li key={bulletMatch[1]}>{bulletMatch[1]}</li> : null
+            })}
+          </ul>
+        </div>
+      )
+    }
 
-        return `<ul class="list-disc list-inside space-y-1 mb-4">${listItems}</ul>`
-      }
-
-      // Regular paragraph - convert single newlines to <br>
-      const formattedParagraph = paragraph.replace(/\n/g, '<br>')
-      return `<p class="mb-4">${formattedParagraph}</p>`
-    })
-    .join('')
+    return (
+      <p
+        key={paragraph}
+        className="mb-4"
+      >
+        {lines.map((line, lineIndex) => (
+          <span key={line}>
+            {line}
+            {lineIndex < lines.length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    )
+  })
 }
 
 // Server Component - async function
@@ -138,14 +124,20 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           {/* Main Content */}
           <div className="space-y-8 lg:col-span-2">
             {/* Project Image Carousel */}
-            <ProjectImageCarousel
-              images={project.imageUrls || (project.image ? [project.image] : [])}
-              alt={project.title}
-              className="w-full"
-            />
+            <ScrollReveal duration={0.36}>
+              <ProjectImageCarousel
+                images={project.imageUrls || (project.image ? [project.image] : [])}
+                alt={project.title}
+                className="w-full"
+              />
+            </ScrollReveal>
 
             {/* Project Info */}
-            <div className="space-y-6">
+            <ScrollReveal
+              delay={0.08}
+              duration={0.32}
+              className="space-y-6"
+            >
               {/* Header Info */}
               <div className="flex items-center gap-2">
                 <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs">{project.category}</span>
@@ -187,18 +179,17 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
               {/* Description */}
               <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <div
-                  className="text-muted-foreground text-base leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: formatDescription(project.description) }}
-                />
+                <div className="text-muted-foreground text-base leading-relaxed">
+                  {renderDescription(project.description)}
+                </div>
               </div>
 
               {/* Tech Stack Tags */}
               {project.tags && project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag: string, index: number) => (
+                  {project.tags.map((tag: string) => (
                     <span
-                      key={index}
+                      key={tag}
                       className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-3 py-1 text-sm"
                     >
                       <Tag className="h-3 w-3" />
@@ -259,115 +250,140 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                   isOwner={isOwner}
                 />
               )}
-            </div>
+            </ScrollReveal>
 
             {/* Comments Section - Unified Component */}
-            <CommentSection
-              entityType="project"
-              entityId={project.id}
-              initialComments={initialComments}
-              isLoggedIn={!!currentUser}
-              currentUser={
-                currentUser
-                  ? {
-                      id: currentUser.id,
-                      name: currentUser.name,
-                      avatar: currentUser.avatar,
-                    }
-                  : null
-              }
-              allowGuest={true}
-            />
+            <ScrollReveal
+              delay={0.12}
+              duration={0.32}
+            >
+              <CommentSection
+                entityType="project"
+                entityId={project.id}
+                initialComments={initialComments}
+                isLoggedIn={!!currentUser}
+                currentUser={
+                  currentUser
+                    ? {
+                        id: currentUser.id,
+                        name: currentUser.name,
+                        avatar: currentUser.avatar,
+                      }
+                    : null
+                }
+                allowGuest={true}
+              />
+            </ScrollReveal>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Author Card - Static */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4 text-center">
-                  <div className="flex justify-center">
-                    <OptimizedAvatar
-                      src={project.author.avatar}
-                      alt={project.author.name}
-                      size="xl"
-                      showSkeleton={false}
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">
-                      <UserDisplayName
-                        name={project.author.name}
-                        role={project.author.role}
-                      />
-                    </h3>
-                    <p className="text-muted-foreground text-sm">{project.author.bio}</p>
-                    <p className="text-muted-foreground mt-1 flex items-center justify-center gap-1 text-xs">
-                      <User className="h-3 w-3" />
-                      {project.author.location}
-                    </p>
-                  </div>
-                  <Link href={`/${project.author.username}`}>
-                    <Button
-                      variant="outline"
-                      className="w-full bg-transparent"
-                    >
-                      View Profile
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Stats - Static */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 font-semibold">Project Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Total Views</span>
-                    <span className="font-medium">{project.views.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Unique Visitors</span>
-                    <span className="font-medium">{project.uniqueViews.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Today's Views</span>
-                    <span className="font-medium">{project.todayViews}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Likes</span>
-                    <span className="font-medium">{project.likes}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Comments</span>
-                    <span className="font-medium">{initialComments.length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Actions - Client Component (Owner only) */}
-            {isOwner && (
+            <ScrollReveal
+              delay={0.1}
+              duration={0.32}
+            >
               <Card>
                 <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <ProjectActionsClient
-                      projectSlug={slug}
-                      projectTitle={project.title}
-                    />
+                  <div className="space-y-4 text-center">
+                    <div className="flex justify-center">
+                      <OptimizedAvatar
+                        src={project.author.avatar}
+                        alt={project.author.name}
+                        size="xl"
+                        showSkeleton={false}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">
+                        <UserDisplayName
+                          name={project.author.name}
+                          role={project.author.role}
+                        />
+                      </h3>
+                      <p className="text-muted-foreground text-sm">{project.author.bio}</p>
+                      <p className="text-muted-foreground mt-1 flex items-center justify-center gap-1 text-xs">
+                        <User className="h-3 w-3" />
+                        {project.author.location}
+                      </p>
+                    </div>
+                    <Link href={`/${project.author.username}`}>
+                      <Button
+                        variant="outline"
+                        className="w-full bg-transparent"
+                      >
+                        View Profile
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
+            </ScrollReveal>
+
+            {/* Project Stats - Static */}
+            <ScrollReveal
+              delay={0.16}
+              duration={0.32}
+            >
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="mb-4 font-semibold">Project Stats</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Total Views</span>
+                      <span className="font-medium">{project.views.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Unique Visitors</span>
+                      <span className="font-medium">{project.uniqueViews.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Today's Views</span>
+                      <span className="font-medium">{project.todayViews}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Likes</span>
+                      <span className="font-medium">{project.likes}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Comments</span>
+                      <span className="font-medium">{initialComments.length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </ScrollReveal>
+
+            {/* Project Actions - Client Component (Owner only) */}
+            {isOwner && (
+              <ScrollReveal
+                delay={0.22}
+                duration={0.32}
+              >
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <ProjectActionsClient
+                        projectSlug={slug}
+                        projectTitle={project.title}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
             )}
 
             {/* Share Button - Client Component */}
-            <Card>
-              <CardContent className="p-6">
-                <ShareButton projectTitle={project.title} />
-              </CardContent>
-            </Card>
+            <ScrollReveal
+              delay={isOwner ? 0.28 : 0.22}
+              duration={0.32}
+            >
+              <Card>
+                <CardContent className="p-6">
+                  <ShareButton projectTitle={project.title} />
+                </CardContent>
+              </Card>
+            </ScrollReveal>
           </div>
         </div>
       </div>

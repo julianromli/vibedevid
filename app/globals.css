@@ -577,6 +577,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-gradient,
+  .animate-heart-beat,
+  .animate-heart-pulse,
   .animate-glow::before,
   .animate-theme-toggle::after,
   .animate-spotlight,
