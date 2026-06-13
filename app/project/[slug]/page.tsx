@@ -36,7 +36,7 @@ function renderDescription(text: string): ReactNode {
   // Split by double newlines for paragraphs, single newlines for line breaks
   const paragraphs = normalized.split(/\n\n+/)
 
-  return paragraphs.map((paragraph) => {
+  return paragraphs.map((paragraph, paragraphIndex) => {
     const lines = paragraph.split('\n')
     const hasBullets = lines.some((line) => /^[\s]*[•\-*]\s/.test(line))
 
@@ -44,28 +44,70 @@ function renderDescription(text: string): ReactNode {
       // Check if paragraph contains bullet points
       const firstLine = lines[0]
       const isHeader = firstLine && !/^[\s]*[•\-*]\s/.test(firstLine)
-      const bulletLines = isHeader ? lines.slice(1) : lines
+      const contentLines = isHeader ? lines.slice(1) : lines
+      const contentNodes: ReactNode[] = []
+      let bulletItems: ReactNode[] = []
+      let bulletListStartIndex = 0
+
+      const flushBulletItems = () => {
+        if (bulletItems.length === 0) return
+
+        contentNodes.push(
+          <ul
+            key={`para-${paragraphIndex}-list-${bulletListStartIndex}`}
+            className="mb-4 list-inside list-disc space-y-1"
+          >
+            {bulletItems}
+          </ul>,
+        )
+        bulletItems = []
+      }
+
+      contentLines.forEach((line, lineIndex) => {
+        const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
+
+        if (bulletMatch) {
+          if (bulletItems.length === 0) {
+            bulletListStartIndex = lineIndex
+          }
+
+          bulletItems.push(
+            <li key={`para-${paragraphIndex}-bullet-${lineIndex}-${bulletMatch[1]}`}>{bulletMatch[1]}</li>,
+          )
+          return
+        }
+
+        flushBulletItems()
+
+        if (line.trim()) {
+          contentNodes.push(
+            <p
+              key={`para-${paragraphIndex}-line-${lineIndex}-${line}`}
+              className="mb-4"
+            >
+              {line}
+            </p>,
+          )
+        }
+      })
+
+      flushBulletItems()
 
       return (
-        <div key={paragraph}>
+        <div key={`para-${paragraphIndex}-${paragraph}`}>
           {isHeader && <p className="mt-4 mb-2 font-semibold">{firstLine}</p>}
-          <ul className="mb-4 list-inside list-disc space-y-1">
-            {bulletLines.map((line) => {
-              const bulletMatch = line.match(/^[\s]*[•\-*]\s*(.*)$/)
-              return bulletMatch ? <li key={bulletMatch[1]}>{bulletMatch[1]}</li> : null
-            })}
-          </ul>
+          {contentNodes}
         </div>
       )
     }
 
     return (
       <p
-        key={paragraph}
+        key={`para-${paragraphIndex}-${paragraph}`}
         className="mb-4"
       >
         {lines.map((line, lineIndex) => (
-          <span key={line}>
+          <span key={`para-${paragraphIndex}-line-${lineIndex}-${line}`}>
             {line}
             {lineIndex < lines.length - 1 && <br />}
           </span>

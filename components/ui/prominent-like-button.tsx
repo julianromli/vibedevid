@@ -60,7 +60,7 @@ export function ProminentLikeButton({
     }
 
     syncLikeStatus()
-  }, [projectId])
+  }, [projectId, isLoggedIn])
 
   // Fallback to initial props if database sync fails
   React.useEffect(() => {

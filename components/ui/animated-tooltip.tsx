@@ -53,7 +53,7 @@ export const AnimatedTooltip = ({
         <button
           type="button"
           className="group relative mr-2 border-0 bg-transparent p-0"
-          key={item.name}
+          key={item.id}
           onMouseEnter={() => setHoveredIndex(item.id)}
           onMouseLeave={() => setHoveredIndex(null)}
           onFocus={() => setHoveredIndex(item.id)}

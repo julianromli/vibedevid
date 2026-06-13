@@ -20,16 +20,27 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const goToNext = useCallback(() => {
+    if (images.length === 0) return
     setCurrentIndex((prev) => (prev + 1) % images.length)
   }, [images.length])
 
   const goToPrevious = useCallback(() => {
+    if (images.length === 0) return
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [images.length])
 
   const goToIndex = useCallback((index: number) => {
     setCurrentIndex(index)
   }, [])
+
+  useEffect(() => {
+    if (images.length === 0) {
+      setCurrentIndex(0)
+      return
+    }
+
+    setCurrentIndex((prev) => Math.min(prev, images.length - 1))
+  }, [images.length])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

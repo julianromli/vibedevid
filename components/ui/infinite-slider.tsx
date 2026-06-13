@@ -27,7 +27,6 @@ export function InfiniteSlider({
   const [currentSpeed, setCurrentSpeed] = useState(speed)
   const [ref, { width, height }] = useMeasure()
   const translation = useMotionValue(0)
-  const [key, setKey] = useState(0)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   useEffect(() => {
@@ -45,26 +44,35 @@ export function InfiniteSlider({
     if (!size) return
 
     let controls: ReturnType<typeof animate> | undefined
+    let isStopped = false
     const contentSize = size + gap
     const from = reverse ? -contentSize / 2 : 0
     const to = reverse ? 0 : -contentSize / 2
 
+    const startAnimation = (start: number) => {
+      const distanceToTravel = Math.abs(to - start)
+      const duration = distanceToTravel / Math.max(currentSpeed, 1)
+
+      controls = animate(translation, [start, to], {
+        ease: 'linear',
+        duration,
+        onComplete: () => {
+          if (isStopped) return
+          translation.set(from)
+          startAnimation(from)
+        },
+      })
+    }
+
     const current = translation.get()
-    const start = (key === 0 && current === 0) || Math.abs(current - to) < 1 ? from : current
-    const distanceToTravel = Math.abs(to - start)
-    const duration = distanceToTravel / Math.max(currentSpeed, 1)
+    const start = Math.abs(current - to) < 1 ? from : current
+    startAnimation(start)
 
-    controls = animate(translation, [start, to], {
-      ease: 'linear',
-      duration,
-      onComplete: () => {
-        translation.set(from)
-        setKey((prevKey) => prevKey + 1)
-      },
-    })
-
-    return () => controls?.stop()
-  }, [key, translation, currentSpeed, width, height, gap, direction, reverse, prefersReducedMotion])
+    return () => {
+      isStopped = true
+      controls?.stop()
+    }
+  }, [translation, currentSpeed, width, height, gap, direction, reverse, prefersReducedMotion])
 
   const hoverProps =
     speedOnHover && !prefersReducedMotion

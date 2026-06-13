@@ -30,7 +30,7 @@ export default function ProjectDetailsLoading() {
 
       <nav className="bg-background/80 h-16 w-full border-b backdrop-blur-md" />
 
-      <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-8 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <main className="space-y-8 lg:col-span-2">
             <section className={cn(loadingSections.hero, 'motion-reduce:animate-none')}>
