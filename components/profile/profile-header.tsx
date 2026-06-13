@@ -122,7 +122,6 @@ export function ProfileHeader({ user, isOwner, onEdit }: ProfileHeaderProps) {
                   title={label}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="sr-only">{label}</span>
                 </a>
               </Button>
             ))}

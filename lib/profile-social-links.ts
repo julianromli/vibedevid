@@ -25,20 +25,24 @@ function parseHttpUrl(value: string): URL | null {
   }
 }
 
-function looksLikeUrl(value: string, platform?: SocialPlatform): boolean {
+function looksLikeSocialUrl(value: string, platform: SocialPlatform): boolean {
   if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value) || value.startsWith('www.')) {
     return true
   }
 
-  if (platform) {
-    return SOCIAL_HOSTS[platform].some((host) => value === host || value.startsWith(`${host}/`))
-  }
+  return SOCIAL_HOSTS[platform].some((host) => value === host || value.startsWith(`${host}/`))
+}
 
-  return value.includes('.') && !value.startsWith('@')
+function isPlatformHost(platform: SocialPlatform, hostname: string): boolean {
+  return SOCIAL_HOSTS[platform].includes(hostname.toLowerCase())
 }
 
 function normalizeHandle(value: string): string {
   return value.trim().replace(/^@+/, '').replace(/^\/+/, '').split(/[/?#]/)[0]?.replace(/^@+/, '') || ''
+}
+
+function extractHandleFromUrl(url: URL): string {
+  return normalizeHandle(decodeURIComponent(url.pathname).replace(/^\/+/, ''))
 }
 
 export function normalizeProfileWebsiteUrl(input: string | null | undefined): string {
@@ -46,16 +50,23 @@ export function normalizeProfileWebsiteUrl(input: string | null | undefined): st
   if (!value) return ''
 
   const url = parseHttpUrl(value)
-  return url?.toString() || value
+  return url?.toString() || ''
 }
 
 export function normalizeProfileSocialUrl(platform: SocialPlatform, input: string | null | undefined): string {
   const value = input?.trim()
   if (!value) return ''
 
-  if (looksLikeUrl(value, platform)) {
+  if (looksLikeSocialUrl(value, platform)) {
     const url = parseHttpUrl(value)
-    if (url) return url.toString()
+    if (!url) return ''
+
+    if (isPlatformHost(platform, url.hostname)) {
+      const handle = extractHandleFromUrl(url)
+      return handle ? `${SOCIAL_BASE_URLS[platform]}${handle}` : ''
+    }
+
+    return url.toString()
   }
 
   const handle = normalizeHandle(value)
