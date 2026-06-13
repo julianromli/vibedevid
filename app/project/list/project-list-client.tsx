@@ -17,6 +17,8 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
+const EAGER_PROJECT_THUMBNAIL_COUNT = 3
+
 interface ProjectListClientProps {
   initialProjects: Project[]
   initialFilter: string
@@ -32,6 +34,8 @@ interface ProjectListCardProps {
 }
 
 function ProjectListCard({ project, index, isInView, prefersReducedMotion }: ProjectListCardProps) {
+  const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT
+
   return (
     <motion.div
       initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
@@ -55,7 +59,7 @@ function ProjectListCard({ project, index, isInView, prefersReducedMotion }: Pro
               alt={project.title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
+              loading={shouldEagerLoadThumbnail ? 'eager' : 'lazy'}
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
               onError={(e) => {
