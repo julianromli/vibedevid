@@ -78,7 +78,9 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
                   aria-labelledby={`faq-trigger-${index}`}
                   aria-hidden={openFAQ !== index}
                   className={`grid overflow-hidden ${prefersReducedMotion ? '' : 'transition-[grid-template-rows,opacity] duration-300 ease-out'} ${
-                    openFAQ === index ? 'mt-4 grid-rows-[1fr] opacity-100' : 'pointer-events-none grid-rows-[0fr] opacity-0'
+                    openFAQ === index
+                      ? 'mt-4 grid-rows-[1fr] opacity-100'
+                      : 'pointer-events-none grid-rows-[0fr] opacity-0'
                   }`}
                 >
                   <div className="overflow-hidden">

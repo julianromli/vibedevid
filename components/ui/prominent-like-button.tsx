@@ -50,7 +50,7 @@ export function ProminentLikeButton({
 
         if (!error) {
           setLikes(totalLikes)
-          setIsLiked(dbIsLiked)
+          setIsLiked(isLoggedIn ? dbIsLiked : initialIsLiked)
         }
       } catch {
         // Keep the optimistic initial state if the status refresh fails.
@@ -60,7 +60,7 @@ export function ProminentLikeButton({
     }
 
     syncLikeStatus()
-  }, [projectId, isLoggedIn])
+  }, [projectId, isLoggedIn, initialIsLiked])
 
   // Fallback to initial props if database sync fails
   React.useEffect(() => {
