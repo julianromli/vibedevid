@@ -308,22 +308,32 @@ body {
   animation: heart-pulse 0.6s ease-out;
 }
 
-/* Added glassmorphism glow animation keyframes for trust badge */
+/* Glassmorphism glow uses a pseudo-element so motion stays on transform + opacity. */
 @keyframes glow {
   0%,
   100% {
-    box-shadow:
-      0 0 20px rgba(255, 255, 255, 0.1),
-      0 0 40px rgba(255, 255, 255, 0.05);
+    opacity: 0.55;
+    transform: scale(0.98);
   }
   50% {
-    box-shadow:
-      0 0 30px rgba(255, 255, 255, 0.2),
-      0 0 60px rgba(255, 255, 255, 0.1);
+    opacity: 0.9;
+    transform: scale(1.03);
   }
 }
 
 .animate-glow {
+  isolation: isolate;
+  position: relative;
+}
+
+.animate-glow::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 65%);
+  pointer-events: none;
   animation: glow 3s ease-in-out infinite;
 }
 
@@ -334,6 +344,17 @@ body {
   }
   100% {
     transform: translateX(200%);
+  }
+}
+
+@keyframes detail-skeleton-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -358,6 +379,10 @@ body {
   animation: shimmer-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+.animate-detail-skeleton-enter {
+  animation: detail-skeleton-enter 320ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
 .dark .skeleton-shimmer::after {
   background: linear-gradient(
     90deg,
@@ -370,10 +395,56 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .animate-detail-skeleton-enter {
+    animation: none;
+  }
+
   .skeleton-shimmer::after {
     animation: none;
     display: none;
   }
+}
+
+@keyframes cta-card-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(6deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(4deg);
+  }
+}
+
+@keyframes cta-card-float-reverse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-6deg);
+  }
+  50% {
+    transform: translate3d(0, 8px, 0) rotate(-4deg);
+  }
+}
+
+@keyframes cta-card-float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-3deg);
+  }
+  50% {
+    transform: translate3d(0, -7px, 0) rotate(-5deg);
+  }
+}
+
+.animate-cta-card-float {
+  animation: cta-card-float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-cta-card-float-reverse {
+  animation: cta-card-float-reverse 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-cta-card-float-slow {
+  animation: cta-card-float-slow 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 /* Added minimalist grid background pattern for hero section */
@@ -395,32 +466,36 @@ body {
   background-size: 20px 20px;
 }
 
-/* Added theme toggle animation keyframes for smooth transitions */
 @keyframes theme-toggle-glow {
   0%,
   100% {
-    box-shadow: 0 0 10px rgba(var(--primary), 0.2);
+    opacity: 0.5;
+    transform: scale(0.96);
   }
   50% {
-    box-shadow: 0 0 20px rgba(var(--primary), 0.4);
+    opacity: 0.9;
+    transform: scale(1.04);
   }
 }
 
 .animate-theme-toggle {
+  isolation: isolate;
+  position: relative;
+}
+
+.animate-theme-toggle::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: inherit;
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
+  pointer-events: none;
   animation: theme-toggle-glow 0.3s ease-in-out;
 }
 
-/* Dark mode glassmorphism adjustments */
-.dark .animate-glow {
-  box-shadow:
-    0 0 20px rgba(255, 255, 255, 0.1),
-    0 0 40px rgba(255, 255, 255, 0.05);
-}
-
-.dark .animate-glow:hover {
-  box-shadow:
-    0 0 30px rgba(255, 255, 255, 0.2),
-    0 0 60px rgba(255, 255, 255, 0.1);
+.dark .animate-glow::before {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 65%);
 }
 
 /* Added theme-aware scrollbar styling for better dark mode integration */
@@ -517,4 +592,19 @@ body {
 
 .after\:animate-aurora::after {
   animation: aurora 60s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient,
+  .animate-heart-beat,
+  .animate-heart-pulse,
+  .animate-glow::before,
+  .animate-theme-toggle::after,
+  .animate-spotlight,
+  .after\:animate-aurora::after,
+  .animate-cta-card-float,
+  .animate-cta-card-float-reverse,
+  .animate-cta-card-float-slow {
+    animation: none;
+  }
 }

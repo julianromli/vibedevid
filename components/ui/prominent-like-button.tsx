@@ -13,7 +13,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getLikeStatusClient, toggleLikeClient } from '@/lib/client-likes'
+import { cn } from '@/lib/utils'
 
 export interface ProminentLikeButtonProps {
   projectId: string
@@ -35,29 +37,35 @@ export function ProminentLikeButton({
   const [isAnimating, setIsAnimating] = React.useState(false)
   const [showAuthDialog, setShowAuthDialog] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   // Sync with database on mount and when logged in status changes
   React.useEffect(() => {
-    const syncLikeStatus = async () => {
-      if (!projectId) return
+    if (!projectId) return
 
-      setIsLoading(true)
-      try {
-        const { totalLikes, isLiked: dbIsLiked, error } = await getLikeStatusClient(projectId)
+    let isCurrentRequest = true
 
-        if (!error) {
+    setIsLoading(true)
+    void getLikeStatusClient(projectId)
+      .then(({ totalLikes, isLiked: dbIsLiked, error }) => {
+        if (!error && isCurrentRequest) {
           setLikes(totalLikes)
-          setIsLiked(dbIsLiked)
+          setIsLiked(isLoggedIn ? dbIsLiked : initialIsLiked)
         }
-      } catch (error) {
-        console.error('Failed to sync like status:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+      })
+      .catch(() => {
+        // Keep the optimistic initial state if the status refresh fails.
+      })
+      .finally(() => {
+        if (isCurrentRequest) {
+          setIsLoading(false)
+        }
+      })
 
-    syncLikeStatus()
-  }, [projectId, isLoggedIn])
+    return () => {
+      isCurrentRequest = false
+    }
+  }, [projectId, isLoggedIn, initialIsLiked])
 
   // Fallback to initial props if database sync fails
   React.useEffect(() => {
@@ -90,7 +98,7 @@ export function ProminentLikeButton({
         setLikes(newIsLiked ? likes - 1 : likes + 1)
         onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)
       }
-    } catch (error) {
+    } catch {
       setIsLiked(!newIsLiked)
       setLikes(newIsLiked ? likes - 1 : likes + 1)
       onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)
@@ -102,13 +110,17 @@ export function ProminentLikeButton({
   return (
     <>
       <Button
-        className="py-0 pe-0"
+        className="py-0 pe-0 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
         variant="default"
         onClick={handleClick}
         title={!isLoggedIn ? 'Sign in to like projects' : isLiked ? 'Unlike this project' : 'Like this project'}
       >
         <Heart
-          className={`me-2 ${isLiked ? 'fill-red-500 text-red-500' : 'text-primary-foreground opacity-80'} transition-all duration-300 ${isAnimating ? 'scale-110 animate-pulse' : ''}`}
+          className={cn(
+            'me-2 transition-[color,fill,transform] duration-200 ease-out motion-reduce:transition-none',
+            isLiked ? 'fill-red-500 text-red-500' : 'text-primary-foreground opacity-80',
+            isAnimating && !prefersReducedMotion && 'scale-105 animate-heart-beat',
+          )}
           size={16}
           strokeWidth={2}
           aria-hidden="true"

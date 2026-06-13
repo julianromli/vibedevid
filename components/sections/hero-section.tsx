@@ -18,6 +18,9 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 const ANNOUNCEMENT_HREF = 'https://wa.vibedevid.com'
+const HERO_WORD_STAGGER_MS = 60
+const HERO_MAX_STAGGER_MS = 420
+const HERO_SUBTITLE_DELAY_MS = 300
 
 interface HeroSectionProps {
   joinHref: string
@@ -86,18 +89,17 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
     const timers: ReturnType<typeof setTimeout>[] = []
 
     words.forEach((_word, index) => {
+      const wordDelay = Math.min(index * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)
       const timer = setTimeout(() => {
         setAnimatedWords((prev) => [...prev, index])
-      }, index * 100)
+      }, wordDelay)
       timers.push(timer)
     })
 
-    const subtitleTimer = setTimeout(
-      () => {
-        setSubtitleVisible(true)
-      },
-      words.length * 100 + 200,
-    )
+    const lastWordDelay = Math.min(Math.max(words.length - 1, 0) * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)
+    const subtitleTimer = setTimeout(() => {
+      setSubtitleVisible(true)
+    }, lastWordDelay + HERO_SUBTITLE_DELAY_MS)
     timers.push(subtitleTimer)
 
     return () => {
@@ -136,7 +138,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 <Fragment key={item.key}>
                   <span
                     className={cn(
-                      'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                      'mr-2 inline-block transition-all duration-500 ease-out motion-reduce:transition-none sm:mr-3',
                       animatedWords.includes(item.index)
                         ? 'blur-0 translate-y-0 opacity-100'
                         : 'translate-y-8 opacity-0 blur-sm',
@@ -160,7 +162,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 <Fragment key={item.key}>
                   <span
                     className={cn(
-                      'mr-2 inline-block transition-all duration-700 ease-out sm:mr-3',
+                      'mr-2 inline-block transition-all duration-500 ease-out motion-reduce:transition-none sm:mr-3',
                       animatedWords.includes(item.index + titleLine1.length)
                         ? 'blur-0 translate-y-0 opacity-100'
                         : 'translate-y-8 opacity-0 blur-sm',
@@ -180,7 +182,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
 
             <p
               className={cn(
-                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-700 ease-out md:text-xl',
+                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-500 ease-out motion-reduce:transition-none md:text-xl',
                 subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm',
               )}
             >

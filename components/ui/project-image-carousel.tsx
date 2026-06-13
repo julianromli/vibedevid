@@ -1,10 +1,13 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import Image from 'next/image'
 import { useCallback, useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 interface ProjectImageCarouselProps {
   images: string[]
@@ -14,18 +17,30 @@ interface ProjectImageCarouselProps {
 
 export function ProjectImageCarousel({ images, alt, className }: ProjectImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const goToNext = useCallback(() => {
+    if (images.length === 0) return
     setCurrentIndex((prev) => (prev + 1) % images.length)
   }, [images.length])
 
   const goToPrevious = useCallback(() => {
+    if (images.length === 0) return
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [images.length])
 
   const goToIndex = useCallback((index: number) => {
     setCurrentIndex(index)
   }, [])
+
+  useEffect(() => {
+    if (images.length === 0) {
+      setCurrentIndex(0)
+      return
+    }
+
+    setCurrentIndex((prev) => Math.min(prev, images.length - 1))
+  }, [images.length])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,18 +71,33 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
   }
 
   const showNavigation = images.length > 1
+  const currentImage = images[currentIndex] ?? images[0]
 
   return (
-    <div className={`bg-muted relative overflow-hidden rounded-xl ${className || ''}`}>
+    <div className={cn('bg-muted relative overflow-hidden rounded-xl', className)}>
       <AspectRatio ratio={16 / 9}>
-        <Image
-          src={images[currentIndex]}
-          alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
-          fill
-          priority
-          className="h-full w-full object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-        />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${currentIndex}-${currentImage}`}
+            className="absolute inset-0"
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 1.01 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.995 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.22,
+              ease: [0.2, 0, 0, 1],
+            }}
+          >
+            <Image
+              src={currentImage}
+              alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
+              fill
+              priority
+              className="h-full w-full object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+            />
+          </motion.div>
+        </AnimatePresence>
       </AspectRatio>
 
       {showNavigation && (
@@ -75,7 +105,7 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
           <Button
             variant="secondary"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+            className="absolute top-1/2 left-2 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 transition-opacity hover:opacity-100 motion-reduce:transition-none"
             onClick={goToPrevious}
             aria-label="Previous image"
           >
@@ -85,7 +115,7 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
           <Button
             variant="secondary"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+            className="absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 transition-opacity hover:opacity-100 motion-reduce:transition-none"
             onClick={goToNext}
             aria-label="Next image"
           >
@@ -93,7 +123,7 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
           </Button>
 
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
-            <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+            <span className="rounded-full bg-black/60 px-2 py-1 text-white text-xs">
               {currentIndex + 1} / {images.length}
             </span>
           </div>
@@ -104,9 +134,10 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
                 key={imageUrl}
                 type="button"
                 onClick={() => goToIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/75'
-                }`}
+                className={cn(
+                  'h-2 w-2 origin-center rounded-full transition-[background-color,opacity,transform] duration-150 ease-out motion-reduce:transition-none',
+                  index === currentIndex ? 'scale-x-150 bg-white' : 'bg-white/50 hover:bg-white/75',
+                )}
                 aria-label={`Go to image ${index + 1}`}
               />
             ))}

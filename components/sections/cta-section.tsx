@@ -45,7 +45,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
         <div
           className={cn(
             'bg-card/20 border-border/20 absolute top-20 left-10 h-20 w-28 rotate-6 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-pulse',
+            !prefersReducedMotion && 'animate-cta-card-float',
           )}
         >
           <div className="p-3">
@@ -57,7 +57,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
         <div
           className={cn(
             'bg-card/20 border-border/20 absolute top-16 right-12 h-20 w-28 -rotate-6 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-pulse delay-300',
+            !prefersReducedMotion && 'animate-cta-card-float-reverse',
           )}
         >
           <div className="p-2">
@@ -69,7 +69,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
         <div
           className={cn(
             'bg-card/20 border-border/20 absolute right-1/4 bottom-16 h-20 w-28 -rotate-3 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-pulse delay-500',
+            !prefersReducedMotion && 'animate-cta-card-float-slow',
           )}
         >
           <div className="p-3">

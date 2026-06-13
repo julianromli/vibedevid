@@ -18,6 +18,7 @@ import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
@@ -97,6 +98,97 @@ function TrendingDropdown({
   )
 }
 
+interface ProjectCardProps {
+  project: Project
+  index: number
+  isInView: boolean
+  prefersReducedMotion: boolean
+}
+
+function ProjectCard({ project, index, isInView, prefersReducedMotion }: ProjectCardProps) {
+  return (
+    <MotionDiv
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.32,
+        delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
+        ease: [0.2, 0, 0, 1],
+      }}
+      whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+      className="[contain-intrinsic-size:0_500px] [content-visibility:auto]"
+    >
+      <div className="group my-4 cursor-pointer py-0">
+        <Link
+          href={`/project/${project.slug}`}
+          className="block"
+        >
+          {/* Thumbnail Preview Section */}
+          <div className="bg-background relative mb-4 overflow-hidden rounded-lg border border-border/60 shadow-sm transition-all duration-300 hover:shadow-md motion-reduce:transition-none">
+            <AspectRatio ratio={16 / 9}>
+              <Image
+                src={project.image || '/vibedev-guest-avatar.png'}
+                alt={project.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                onError={(e) => {
+                  e.currentTarget.src = '/vibedev-guest-avatar.png'
+                }}
+              />
+            </AspectRatio>
+
+            {/* Category Badge */}
+            <div className="absolute top-3 left-3">
+              <span className="text-foreground border-border/70 bg-background/85 rounded-full border px-2 py-1 text-xs backdrop-blur-sm">
+                {project.category}
+              </span>
+            </div>
+          </div>
+
+          {/* Project Details Section */}
+          <div className="space-y-3">
+            <h3 className="text-foreground group-hover:text-primary line-clamp-2 py-0 text-lg leading-tight font-semibold transition-colors duration-300">
+              {project.title}
+            </h3>
+          </div>
+        </Link>
+
+        {/* Author and Stats */}
+        <div className="mt-3 flex items-center justify-between py-0">
+          <div className="flex items-center gap-2.5">
+            <Link
+              href={`/${project.author.username}`}
+              className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
+            >
+              <OptimizedAvatar
+                src={project.author.avatar}
+                alt={project.author.name}
+                size="sm"
+                className="ring-muted ring-2"
+                showSkeleton={false}
+              />
+              <UserDisplayName
+                name={project.author.name}
+                role={project.author.role}
+                className="text-muted-foreground text-sm font-medium"
+              />
+            </Link>
+          </div>
+          <div className="relative z-20">
+            <HeartButtonDisplay
+              likes={project.likes || 0}
+              variant="default"
+            />
+          </div>
+        </div>
+      </div>
+    </MotionDiv>
+  )
+}
+
 export function ProjectShowcase({
   projects,
   loading,
@@ -121,6 +213,7 @@ export function ProjectShowcase({
   const gridRef = useRef<HTMLDivElement>(null)
   const mobileTrendingRef = useRef<HTMLDivElement>(null)
   const desktopTrendingRef = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const trendingRefs = useMemo(() => [mobileTrendingRef, desktopTrendingRef], [])
   const closeTrendingDropdown = useCallback(() => {
     setIsTrendingOpen(false)
@@ -253,86 +346,13 @@ export function ProjectShowcase({
                 </div>
               ))
             : projects.slice(0, visibleProjects).map((project, index) => (
-                <MotionDiv
+                <ProjectCard
                   key={project.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.08,
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                  whileHover={{ y: -2 }}
-                  className="[contain-intrinsic-size:0_500px] [content-visibility:auto]"
-                >
-                  <div className="group my-4 cursor-pointer py-0">
-                    <Link
-                      href={`/project/${project.slug}`}
-                      className="block"
-                    >
-                      {/* Thumbnail Preview Section */}
-                      <div className="bg-background relative mb-4 overflow-hidden rounded-lg border border-border/60 shadow-sm transition-all duration-300 hover:shadow-md">
-                        <AspectRatio ratio={16 / 9}>
-                          <Image
-                            src={project.image || '/vibedev-guest-avatar.png'}
-                            alt={project.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            loading="lazy"
-                            decoding="async"
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            onError={(e) => {
-                              e.currentTarget.src = '/vibedev-guest-avatar.png'
-                            }}
-                          />
-                        </AspectRatio>
-
-                        {/* Category Badge */}
-                        <div className="absolute top-3 left-3">
-                          <span className="text-foreground border-border/70 bg-background/85 rounded-full border px-2 py-1 text-xs backdrop-blur-sm">
-                            {project.category}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Project Details Section */}
-                      <div className="space-y-3">
-                        <h3 className="text-foreground group-hover:text-primary line-clamp-2 py-0 text-lg leading-tight font-semibold transition-colors duration-300">
-                          {project.title}
-                        </h3>
-                      </div>
-                    </Link>
-
-                    {/* Author and Stats */}
-                    <div className="mt-3 flex items-center justify-between py-0">
-                      <div className="flex items-center gap-2.5">
-                        <Link
-                          href={`/${project.author.username}`}
-                          className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
-                        >
-                          <OptimizedAvatar
-                            src={project.author.avatar}
-                            alt={project.author.name}
-                            size="sm"
-                            className="ring-muted ring-2"
-                            showSkeleton={false}
-                          />
-                          <UserDisplayName
-                            name={project.author.name}
-                            role={project.author.role}
-                            className="text-muted-foreground text-sm font-medium"
-                          />
-                        </Link>
-                      </div>
-                      <div className="relative z-20">
-                        <HeartButtonDisplay
-                          likes={project.likes || 0}
-                          variant="default"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </MotionDiv>
+                  project={project}
+                  index={index}
+                  isInView={isInView}
+                  prefersReducedMotion={prefersReducedMotion}
+                />
               ))}
         </div>
 

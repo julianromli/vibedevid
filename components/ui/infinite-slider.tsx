@@ -2,6 +2,7 @@
 import { animate, motion, useMotionValue } from 'motion/react'
 import { useEffect, useState } from 'react'
 import useMeasure from 'react-use-measure'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
 export type InfiniteSliderProps = {
@@ -26,66 +27,67 @@ export function InfiniteSlider({
   const [currentSpeed, setCurrentSpeed] = useState(speed)
   const [ref, { width, height }] = useMeasure()
   const translation = useMotionValue(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [key, setKey] = useState(0)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   useEffect(() => {
-    let controls
+    setCurrentSpeed(speed)
+  }, [speed])
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      translation.set(0)
+      return
+    }
+
     const size = direction === 'horizontal' ? width : height
+
+    if (!size) return
+
+    let controls: ReturnType<typeof animate> | undefined
+    let isStopped = false
     const contentSize = size + gap
     const from = reverse ? -contentSize / 2 : 0
     const to = reverse ? 0 : -contentSize / 2
 
-    const distanceToTravel = Math.abs(to - from)
-    const duration = distanceToTravel / currentSpeed
+    const startAnimation = (start: number) => {
+      const distanceToTravel = Math.abs(to - start)
+      const duration = distanceToTravel / Math.max(currentSpeed, 1)
 
-    if (isTransitioning) {
-      const remainingDistance = Math.abs(translation.get() - to)
-      const transitionDuration = remainingDistance / currentSpeed
-
-      controls = animate(translation, [translation.get(), to], {
+      controls = animate(translation, [start, to], {
         ease: 'linear',
-        duration: transitionDuration,
+        duration,
         onComplete: () => {
-          setIsTransitioning(false)
-          setKey((prevKey) => prevKey + 1)
-        },
-      })
-    } else {
-      controls = animate(translation, [from, to], {
-        ease: 'linear',
-        duration: duration,
-        repeat: Infinity,
-        repeatType: 'loop',
-        repeatDelay: 0,
-        onRepeat: () => {
+          if (isStopped) return
           translation.set(from)
+          startAnimation(from)
         },
       })
     }
 
-    return controls?.stop
-  }, [key, translation, currentSpeed, width, height, gap, isTransitioning, direction, reverse])
+    const current = translation.get()
+    const start = Math.abs(current - to) < 1 ? from : current
+    startAnimation(start)
 
-  const hoverProps = speedOnHover
-    ? {
-        onHoverStart: () => {
-          setIsTransitioning(true)
-          setCurrentSpeed(speedOnHover)
-        },
-        onHoverEnd: () => {
-          setIsTransitioning(true)
-          setCurrentSpeed(speed)
-        },
-      }
-    : {}
+    return () => {
+      isStopped = true
+      controls?.stop()
+    }
+  }, [translation, currentSpeed, width, height, gap, direction, reverse, prefersReducedMotion])
+
+  const hoverProps =
+    speedOnHover && !prefersReducedMotion
+      ? {
+          onHoverStart: () => setCurrentSpeed(speedOnHover),
+          onHoverEnd: () => setCurrentSpeed(speed),
+        }
+      : {}
 
   return (
     <div className={cn('overflow-hidden', className)}>
       <motion.div
-        className="flex w-max"
+        className={cn('flex w-max', prefersReducedMotion && 'w-full flex-wrap justify-center')}
         style={{
-          ...(direction === 'horizontal' ? { x: translation } : { y: translation }),
+          ...(prefersReducedMotion ? {} : direction === 'horizontal' ? { x: translation } : { y: translation }),
           gap: `${gap}px`,
           flexDirection: direction === 'horizontal' ? 'row' : 'column',
         }}
@@ -93,7 +95,7 @@ export function InfiniteSlider({
         {...hoverProps}
       >
         {children}
-        {children}
+        {!prefersReducedMotion && children}
       </motion.div>
     </div>
   )

@@ -1,10 +1,11 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { motion, useInView } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -12,31 +13,104 @@ import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { UserDisplayName } from '@/components/ui/user-display-name'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
-import type { ProjectFilterOption, SortBy } from '@/types/homepage'
+import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
+
+const EAGER_PROJECT_THUMBNAIL_COUNT = 3
 
 interface ProjectListClientProps {
-  initialProjects: Array<{
-    id: string
-    slug: string
-    title: string
-    description: string
-    image: string
-    author: {
-      name: string
-      username: string
-      role: number | null
-      avatar: string
-    }
-    url: string | undefined
-    category: string
-    likes: number
-    views: number
-    createdAt: string
-  }>
+  initialProjects: Project[]
   initialFilter: string
   initialSort: SortBy
   filterOptions: ProjectFilterOption[]
+}
+
+interface ProjectListCardProps {
+  project: Project
+  index: number
+  isInView: boolean
+  prefersReducedMotion: boolean
+}
+
+function ProjectListCard({ project, index, isInView, prefersReducedMotion }: ProjectListCardProps) {
+  const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{
+        duration: prefersReducedMotion ? 0 : 0.32,
+        delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
+        ease: [0.2, 0, 0, 1],
+      }}
+      whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+      className="group my-4 cursor-pointer py-0"
+    >
+      <Link
+        href={`/project/${project.slug}`}
+        className="block"
+      >
+        <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-shadow duration-300 hover:shadow-lg motion-reduce:transition-none">
+          <AspectRatio ratio={16 / 9}>
+            <Image
+              src={project.image || '/vibedev-guest-avatar.png'}
+              alt={project.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              loading={shouldEagerLoadThumbnail ? 'eager' : 'lazy'}
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              onError={(e) => {
+                e.currentTarget.src = '/vibedev-guest-avatar.png'
+              }}
+            />
+          </AspectRatio>
+
+          <div className="absolute top-3 left-3">
+            <span className="rounded-full bg-black/70 px-2 py-1 text-white text-xs backdrop-blur-sm">
+              {project.category}
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="line-clamp-2 py-0 font-semibold text-foreground text-lg leading-tight transition-colors duration-300 group-hover:text-primary">
+            {project.title}
+          </h3>
+        </div>
+      </Link>
+
+      <div className="mt-3 flex items-center justify-between py-0">
+        <div className="flex items-center gap-2.5">
+          <Link
+            href={`/${project.author.username}`}
+            className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
+          >
+            <OptimizedAvatar
+              src={project.author.avatar}
+              alt={project.author.name}
+              size="sm"
+              className="ring-2 ring-muted"
+              showSkeleton={false}
+            />
+            <UserDisplayName
+              name={project.author.name}
+              role={project.author.role}
+              className="font-medium text-muted-foreground text-sm"
+            />
+          </Link>
+        </div>
+        <div className="relative z-20">
+          <HeartButtonDisplay
+            likes={project.likes || 0}
+            variant="default"
+          />
+        </div>
+      </div>
+    </motion.div>
+  )
 }
 
 export function ProjectListClient({
@@ -48,6 +122,9 @@ export function ProjectListClient({
   const t = useTranslations('projectList')
   const tCommon = useTranslations('common')
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const isGridInView = useInView(gridRef, { once: true, margin: '-50px' })
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const {
     selectedFilter,
@@ -164,7 +241,10 @@ export function ProjectListClient({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div
+        ref={gridRef}
+        className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
         {loading ? (
           <ProjectGridSkeleton count={9} />
         ) : projects.length === 0 ? (
@@ -178,73 +258,14 @@ export function ProjectListClient({
             </Button>
           </div>
         ) : (
-          projects.slice(0, visibleProjects).map((project) => (
-            <div
+          projects.slice(0, visibleProjects).map((project, index) => (
+            <ProjectListCard
               key={project.id}
-              className="group my-4 cursor-pointer py-0"
-            >
-              <Link
-                href={`/project/${project.slug}`}
-                className="block"
-              >
-                <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-all duration-300 hover:shadow-xl">
-                  <AspectRatio ratio={16 / 9}>
-                    <Image
-                      src={project.image || '/vibedev-guest-avatar.png'}
-                      alt={project.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        e.currentTarget.src = '/vibedev-guest-avatar.png'
-                      }}
-                    />
-                  </AspectRatio>
-
-                  <div className="absolute top-3 left-3">
-                    <span className="rounded-full bg-black/70 px-2 py-1 text-white text-xs backdrop-blur-sm">
-                      {project.category}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="line-clamp-2 py-0 font-semibold text-foreground text-lg leading-tight transition-colors duration-300 group-hover:text-primary">
-                    {project.title}
-                  </h3>
-                </div>
-              </Link>
-
-              <div className="mt-3 flex items-center justify-between py-0">
-                <div className="flex items-center gap-2.5">
-                  <Link
-                    href={`/${project.author.username}`}
-                    className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
-                  >
-                    <OptimizedAvatar
-                      src={project.author.avatar}
-                      alt={project.author.name}
-                      size="sm"
-                      className="ring-2 ring-muted"
-                      showSkeleton={false}
-                    />
-                    <UserDisplayName
-                      name={project.author.name}
-                      role={project.author.role}
-                      className="font-medium text-muted-foreground text-sm"
-                    />
-                  </Link>
-                </div>
-                <div className="relative z-20">
-                  <HeartButtonDisplay
-                    likes={project.likes || 0}
-                    variant="default"
-                  />
-                </div>
-              </div>
-            </div>
+              project={project}
+              index={index}
+              isInView={isGridInView}
+              prefersReducedMotion={prefersReducedMotion}
+            />
           ))
         )}
       </div>

@@ -1,8 +1,7 @@
 'use client'
 
-import { motion, useInView } from 'motion/react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
 import { type ReactNode, useRef } from 'react'
-import { cn } from '@/lib/utils'
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -15,13 +14,16 @@ interface ScrollRevealProps {
 export function ScrollReveal({ children, delay = 0, duration = 0.5, className, once = true }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once, margin: '-100px' })
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={
+        prefersReducedMotion ? { duration: 0 } : { duration, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
+      }
       className={className}
     >
       {children}
@@ -38,16 +40,18 @@ interface StaggerContainerProps {
 export function StaggerContainer({ children, className, staggerDelay = 0.08 }: StaggerContainerProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
+      initial={prefersReducedMotion ? false : 'hidden'}
+      animate={prefersReducedMotion || isInView ? 'visible' : 'hidden'}
       variants={{
         visible: {
           transition: {
-            staggerChildren: staggerDelay,
+            staggerChildren: Math.min(staggerDelay, 0.06),
+            delayChildren: 0,
           },
         },
       }}
@@ -64,6 +68,12 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
+  const prefersReducedMotion = useReducedMotion()
+
+  if (prefersReducedMotion) {
+    return <div className={className}>{children}</div>
+  }
+
   return (
     <motion.div
       variants={{
@@ -71,7 +81,7 @@ export function StaggerItem({ children, className }: StaggerItemProps) {
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+          transition: { duration: 0.32, ease: [0.2, 0, 0, 1] },
         },
       }}
       className={className}
@@ -90,13 +100,16 @@ interface ScaleInProps {
 export function ScaleIn({ children, delay = 0, className }: ScaleInProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
-      animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-      transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.97, y: 16 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.97, y: 16 }}
+      transition={
+        prefersReducedMotion ? { duration: 0 } : { duration: 0.36, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
+      }
       className={className}
     >
       {children}
