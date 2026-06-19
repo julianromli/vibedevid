@@ -28,7 +28,8 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
       {/* Edit button for post owner - positioned top-right */}
       {isOwner && (
         <Link
-          to={`/blog/editor/${post.slug}`}
+          to="/blog/editor/$slug"
+          params={{ slug: post.slug }}
           className="absolute top-3 right-3 z-10"
           onClick={(e) => e.stopPropagation()}
         >
@@ -43,7 +44,7 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
         </Link>
       )}
 
-      <Link to={`/blog/${post.slug}`}>
+      <Link to="/blog/$slug" params={{ slug: post.slug }}>
         <div className="relative aspect-[16/9] overflow-hidden">
           {post.cover_image ? (
             <img

@@ -8,8 +8,16 @@ import { cn } from '@/lib/utils'
 
 export type ImageLoadingState = 'loading' | 'loaded' | 'error'
 
-export interface ProgressiveImageProps extends Omit<ImageProps, 'placeholder' | 'blurDataURL'> {
+export interface ProgressiveImageProps
+  extends Omit<ImageProps, 'placeholder' | 'blurDataURL' | 'layout' | 'width' | 'height' | 'aspectRatio'> {
   src: string | StaticImageData
+  /** Layout mode forwarded to the underlying @unpic Image. */
+  layout?: 'fixed' | 'constrained' | 'fullWidth'
+  width?: number
+  height?: number
+  aspectRatio?: number
+  /** Fill the parent container (maps to fullWidth layout + object-cover). */
+  fill?: boolean
   fallbackSrc?: string
   onLoadingStateChange?: (state: ImageLoadingState) => void
   responsiveSizes?: {
@@ -23,6 +31,18 @@ export interface ProgressiveImageProps extends Omit<ImageProps, 'placeholder' | 
   ariaLabel?: string
   /** @deprecated Ignored — kept for backward compatibility with callers */
   enableBlurPlaceholder?: boolean
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  customBlurDataURL?: string
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  placeholderColor?: string
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  showSkeleton?: boolean
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  fadeTransition?: boolean
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  transitionDuration?: number
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  unoptimized?: boolean
 }
 
 export function ProgressiveImage({
@@ -45,6 +65,8 @@ export function ProgressiveImage({
   responsiveSizes,
   ariaLabel,
   enableBlurPlaceholder: _enableBlurPlaceholder,
+  customBlurDataURL: _customBlurDataURL,
+  placeholderColor: _placeholderColor,
   ...restProps
 }: ProgressiveImageProps) {
   const [loadingState, setLoadingState] = useState<ImageLoadingState>('loading')
@@ -175,16 +197,15 @@ export function ProgressiveImage({
         ref={setImageRef}
         src={currentSrc}
         alt={ariaLabel || (typeof alt === 'string' ? alt : '')}
-        width={width}
-        height={height}
         className={cn(fill && 'h-full w-full object-cover', imageClasses)}
-        style={{
-          ...style,
-          ...(width && height && !fill ? { aspectRatio: `${width} / ${height}` } : {}),
-        }}
         onLoad={handleLoad}
         onError={handleError}
-        {...restProps}
+        {...(
+          fill || width === undefined || height === undefined
+            ? { layout: 'fullWidth' as const }
+            : { layout: 'constrained' as const, width, height }
+        )}
+        {...(restProps as Record<string, unknown>)}
       />
 
       {loadingState === 'error' && currentSrc === fallbackSrc && (

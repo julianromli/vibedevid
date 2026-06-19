@@ -12,7 +12,8 @@ import { LinksMediaStep } from '@/components/ui/submit-project-form/steps/links-
 import { ReviewStep } from '@/components/ui/submit-project-form/steps/review-step'
 import { SourceStep } from '@/components/ui/submit-project-form/steps/source-step'
 import type { UploadResult } from '@/components/ui/submit-project-form/types'
-import { cleanupProjectProvisionalUpload, submitProject } from '@/lib/actions/projects'
+import { cleanupProjectProvisionalUploadFn, submitProjectFn } from '@/lib/actions/projects.functions'
+import type { submitProject } from '@/lib/actions/projects'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import type { Option } from '@/components/ui/multiselect'
@@ -408,9 +409,10 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     setError(null)
 
     const formData = buildSubmitFormData(getCurrentDraftState())
+    formData.set('userId', userId)
 
     try {
-      const result = await submitProject(formData, userId)
+      const result = await submitProjectFn({ data: formData })
       if (result.success) {
         toast.success('Mantap! 🚀 Project lo berhasil di-submit!')
         router.navigate({ to: `/project/${result.slug}` })
@@ -519,7 +521,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       return true
     }
     try {
-      const result = await cleanupProjectProvisionalUpload(uploadedImageKeys[uploadedImageKeys.length - 1])
+      const result = await cleanupProjectProvisionalUploadFn({
+        data: { imageKey: uploadedImageKeys[uploadedImageKeys.length - 1] },
+      })
       if (result.success) {
         setUploadedImageUrls([])
         setUploadedImageKeys([])

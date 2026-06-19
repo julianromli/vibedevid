@@ -8,7 +8,7 @@ import { Navbar } from '@/components/ui/navbar'
 import { ProjectListClient } from '@/app/project/list/project-list-client'
 
 export const Route = createFileRoute('/project/list')({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
     filter: typeof search.filter === 'string' ? search.filter : undefined,
     sort: typeof search.sort === 'string' ? search.sort : undefined,
   }),

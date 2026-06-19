@@ -1,399 +1,34 @@
 'use client'
-import { format } from 'date-fns'
-import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
-import { Image } from '@unpic/react'
-import { Link } from '@tanstack/react-router'
-import { useParams, useRouter } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+
+import { FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
+import { useRouter } from '@tanstack/react-router'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { BlogTab } from '@/components/profile/blog-tab'
 import { EmptyState } from '@/components/profile/empty-state'
-// New Components
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileStats } from '@/components/profile/profile-stats'
 import { ProjectTab } from '@/components/profile/project-tab'
-import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
+import { SiteNavbar } from '@/components/ui/site-navbar'
 import ProfileEditDialog from '@/components/ui/profile-edit-dialog'
-import { ProfileHeaderSkeleton, ProjectGridSkeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { updateUserProfile } from '@/lib/actions/user'
-import { createClient } from '@/lib/supabase/client'
-import type { User as AuthUser } from '@/types/homepage'
+import { updateUserProfileFn } from '@/lib/actions/user.functions'
+import type { ProfilePageData, ProfileUser } from '@/app/[username]/profile-data'
 
-interface ProfileUser {
-  id: string
-  username: string
-  display_name: string | null
-  bio: string | null
-  avatar_url: string | null
-  location: string | null
-  website: string | null
-  github_url: string | null
-  x_url: string | null
-  instagram_url: string | null
-  threads_url: string | null
-  twitter_url: string | null
-  joined_at: string
-  role?: number | null
-}
-
-interface UserProject {
-  id: string
-  slug: string
-  title: string
-  description: string | null
-  category: string | null
-  website_url: string | null
-  image_url: string | null
-  thumbnail_url: string | null
-  url: string | null
-  author_id: string
-  created_at: string
-  updated_at: string | null
-  likes: number
-  views_count: number
-  comments_count: number
-}
-
-function getPrimaryProjectImage(imageUrls: unknown, imageUrl: string | null | undefined): string | null {
-  if (Array.isArray(imageUrls)) {
-    const firstImageUrl = imageUrls.find((url): url is string => typeof url === 'string' && url.trim().length > 0)
-    if (firstImageUrl) {
-      return firstImageUrl
-    }
-  }
-
-  return imageUrl || null
-}
-
-async function fetchUserProjects(username: string): Promise<UserProject[]> {
-  const supabase = createClient()
-
-  // Single optimized query dengan JOIN dan aggregation
-  const { data: projectsData, error } = await supabase.rpc('get_user_projects_with_stats', {
-    username_param: username,
-  })
-
-  if (error) {
-    console.warn('RPC not available, falling back to regular queries:', error)
-    return await fetchUserProjectsFallback(username)
-  }
-
-  const projectIds = (projectsData || [])
-    .map((project: Record<string, unknown>) => project.id as string)
-    .filter(Boolean)
-  const { data: projectImages } = projectIds.length
-    ? await supabase.from('projects').select('id, image_url, image_urls').in('id', projectIds)
-    : { data: [] }
-
-  const projectImageMap = new Map(
-    (projectImages || []).map((project) => [project.id, getPrimaryProjectImage(project.image_urls, project.image_url)]),
-  )
-
-  return (projectsData || []).map((project: Record<string, unknown>) => ({
-    id: project.id as string,
-    slug: project.slug as string,
-    title: project.title as string,
-    description: (project.description as string) || null,
-    category: (project.category as string) || null,
-    website_url: (project.website_url as string) || null,
-    image_url: projectImageMap.get(project.id as string) || (project.image_url as string) || null,
-    thumbnail_url: projectImageMap.get(project.id as string) || (project.image_url as string) || null,
-    url: (project.website_url as string) || null,
-    author_id: project.author_id as string,
-    created_at: project.created_at as string,
-    updated_at: (project.updated_at as string) || null,
-    likes: (project.likes_count as number) || (project.likes as number) || 0,
-    views_count: (project.views_count as number) || 0,
-    comments_count: (project.comments_count as number) || 0,
-  }))
-}
-
-async function fetchUserProjectsFallback(username: string): Promise<UserProject[]> {
-  const supabase = createClient()
-
-  const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single()
-
-  if (userError || !user) {
-    console.error('Error fetching user for projects:', userError)
-    return []
-  }
-
-  const { data: projects, error } = await supabase
-    .from('projects')
-    .select(
-      `
-      id,
-      slug,
-      title,
-      description,
-      category,
-      website_url,
-      image_url,
-      image_urls,
-      author_id,
-      created_at,
-      updated_at
-    `,
-    )
-    .eq('author_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  if (error || !projects?.length) {
-    return []
-  }
-
-  const projectIds = projects.map((p) => p.id)
-
-  const [likesData, viewsData, commentsData] = await Promise.all([
-    supabase.from('likes').select('project_id').in('project_id', projectIds),
-    supabase.from('views').select('project_id').in('project_id', projectIds),
-    supabase.from('comments').select('project_id').in('project_id', projectIds),
-  ])
-
-  const likeCounts =
-    likesData.data?.reduce(
-      (acc, like) => {
-        acc[like.project_id] = (acc[like.project_id] || 0) + 1
-        return acc
-      },
-      {} as Record<number, number>,
-    ) || {}
-
-  const viewCounts =
-    viewsData.data?.reduce(
-      (acc, view) => {
-        acc[view.project_id] = (acc[view.project_id] || 0) + 1
-        return acc
-      },
-      {} as Record<number, number>,
-    ) || {}
-
-  const commentCounts =
-    commentsData.data?.reduce(
-      (acc, comment) => {
-        acc[comment.project_id] = (acc[comment.project_id] || 0) + 1
-        return acc
-      },
-      {} as Record<number, number>,
-    ) || {}
-
-  return projects.map((project) => ({
-    ...project,
-    image_url: getPrimaryProjectImage(project.image_urls, project.image_url),
-    likes: likeCounts[project.id] || 0,
-    views_count: viewCounts[project.id] || 0,
-    comments_count: commentCounts[project.id] || 0,
-    thumbnail_url: getPrimaryProjectImage(project.image_urls, project.image_url),
-    url: project.website_url,
-  }))
-}
-
-async function fetchUserProfileWithStats(username: string) {
-  const supabase = createClient()
-
-  console.log('[v0] Fetching profile and stats for username:', username)
-
-  const { data: user, error: userError } = await supabase.from('users').select('*').eq('username', username).single()
-
-  if (userError || !user) {
-    console.error('[v0] Error fetching user:', userError)
-    return { user: null, stats: { projects: 0, likes: 0, views: 0 } }
-  }
-
-  // Fetch projects and posts in parallel
-  const [projectsResult, projectsListResult, postsListResult] = await Promise.all([
-    supabase.from('projects').select('id', { count: 'exact' }).eq('author_id', user.id),
-    supabase.from('projects').select('id').eq('author_id', user.id),
-    supabase.from('posts').select('id').eq('author_id', user.id).eq('status', 'published'),
-  ])
-
-  const projectCount = projectsResult.count || 0
-  const projectIds = projectsListResult.data?.map((p) => p.id) || []
-  const postIds = postsListResult.data?.map((p) => p.id) || []
-
-  // No projects and no posts - return early with zeros
-  if (projectIds.length === 0 && postIds.length === 0) {
-    return {
-      user,
-      stats: { projects: projectCount, likes: 0, views: 0 },
-    }
-  }
-
-  // Fetch counts in parallel based on available data
-  const [likesResult, projectViewsResult, blogViewsResult] = await Promise.all([
-    // Likes from projects
-    projectIds.length > 0
-      ? supabase.from('likes').select('id', { count: 'exact' }).in('project_id', projectIds)
-      : Promise.resolve({ count: 0, data: null, error: null }),
-    // Views from projects
-    projectIds.length > 0
-      ? supabase.from('views').select('id', { count: 'exact' }).in('project_id', projectIds)
-      : Promise.resolve({ count: 0, data: null, error: null }),
-    // Views from blog posts
-    postIds.length > 0
-      ? supabase.from('views').select('id', { count: 'exact' }).in('post_id', postIds)
-      : Promise.resolve({ count: 0, data: null, error: null }),
-  ])
-
-  const projectViews = projectViewsResult.count || 0
-  const blogViews = blogViewsResult.count || 0
-  const totalViews = projectViews + blogViews
-
-  const stats = {
-    projects: projectCount,
-    likes: likesResult.count || 0,
-    views: totalViews,
-  }
-
-  console.log('[v0] Loaded profile and stats:', {
-    username: user.username,
-    stats,
-    projectViews,
-    blogViews,
-  })
-  return { user, stats }
-}
-
-interface BlogPostTag {
-  post_tags: { name: string } | null
-}
-
-interface UserBlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  cover_image: string | null
-  published_at: string | null
-  read_time_minutes: number | null
-  tags?: BlogPostTag[]
-}
-
-async function fetchUserBlogPosts(userId: string): Promise<UserBlogPost[]> {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from('posts')
-    .select(
-      `
-      id,
-      title,
-      slug,
-      excerpt,
-      cover_image,
-      published_at,
-      read_time_minutes,
-      tags:blog_post_tags(post_tags(name))
-    `,
-    )
-    .eq('author_id', userId)
-    .eq('status', 'published')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .limit(10) // Increased limit since we have a dedicated tab
-    .returns<UserBlogPost[]>()
-
-  if (error) {
-    console.error('[v0] Error fetching user blog posts:', error)
-    return []
-  }
-
-  return data || []
-}
-
-export default function ProfilePage() {
-  const params = useParams()
+export default function ProfilePage({ data }: { data: ProfilePageData }) {
   const router = useRouter()
-  const username = params.username as string
+  const { currentUser, isLoggedIn, isOwner } = data
 
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
-  const [user, setUser] = useState<ProfileUser | null>(null)
-  const [userProjects, setUserProjects] = useState<UserProject[]>([])
-  const [userPosts, setUserPosts] = useState<UserBlogPost[]>([])
-  const [userStats, setUserStats] = useState({
-    projects: 0,
-    posts: 0,
-    likes: 0,
-    views: 0,
-  })
-  const [isOwner, setIsOwner] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<ProfileUser | null>(data.user)
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
+  const userProjects = data.projects
+  const userPosts = data.posts
+  const userStats = data.stats
 
-    const loadProfileDataOptimized = async () => {
-      setLoading(true)
-
-      try {
-        console.log('[v0] Loading profile data for username:', username)
-        const supabase = createClient()
-
-        const [sessionResult, profileWithStatsResult] = await Promise.all([
-          supabase.auth.getSession(),
-          fetchUserProfileWithStats(username),
-        ])
-
-        const {
-          data: { session },
-        } = sessionResult
-        const { user: profileUser, stats } = profileWithStatsResult
-
-        let authUser = null
-        let isOwnerCheck = false
-
-        if (session?.user) {
-          const { data: profile } = await supabase.from('users').select('*').eq('id', session.user.id).single()
-
-          if (profile) {
-            authUser = profile
-            isOwnerCheck = profile.username === username
-          }
-        }
-
-        if (!profileUser) {
-          console.log('[v0] Profile user not found')
-          setLoading(false)
-          return
-        }
-
-        console.log('[v0] Profile user loaded:', profileUser.username)
-        console.log('[v0] Loaded stats:', stats)
-
-        const projectsPromise = fetchUserProjects(username)
-        const postsPromise = fetchUserBlogPosts(profileUser.id)
-
-        setIsLoggedIn(!!session?.user)
-        if (authUser) setCurrentUser(authUser)
-        setIsOwner(isOwnerCheck)
-        setUser(profileUser)
-
-        const [projects, posts] = await Promise.all([projectsPromise, postsPromise])
-        console.log('[v0] Loaded projects count:', projects.length)
-        console.log('[v0] Loaded blog posts count:', posts.length)
-        setUserProjects(projects)
-        setUserPosts(posts)
-        setUserStats({ ...stats, posts: posts.length })
-      } catch (error) {
-        console.error('[v0] Error loading profile data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadProfileDataOptimized()
-  }, [username])
-
-  const handleEdit = () => {
-    setShowEditDialog(true)
-  }
+  const handleEdit = () => setShowEditDialog(true)
 
   const handleSaveProfile = async (profileData: {
     displayName: string
@@ -407,15 +42,33 @@ export default function ProfilePage() {
     threads_url: string
     avatar_url: string
   }) => {
+    if (!user) return
     setSaving(true)
     try {
-      const result = await updateUserProfile(username, profileData)
+      const result = await updateUserProfileFn({
+        data: {
+          currentUsername: user.username,
+          profileData: {
+            username: profileData.username,
+            displayName: profileData.displayName,
+            bio: profileData.bio,
+            avatar_url: profileData.avatar_url,
+            location: profileData.location,
+            website: profileData.website,
+            github_url: profileData.github_url,
+            x_url: profileData.x_url,
+            instagram_url: profileData.instagram_url,
+            threads_url: profileData.threads_url,
+          },
+        },
+      })
+
       if (result.success) {
         setShowEditDialog(false)
         const savedProfileData = result.data || profileData
 
         const updatedUser: ProfileUser = {
-          ...user!,
+          ...user,
           username: savedProfileData.username,
           display_name: savedProfileData.displayName,
           bio: savedProfileData.bio,
@@ -431,9 +84,10 @@ export default function ProfilePage() {
 
         setUser(updatedUser)
         toast.success('Profile updated successfully')
+        await router.invalidate()
 
         if (result.usernameChanged && result.newUsername) {
-          router.navigate({ to: `/${result.newUsername}` })
+          router.navigate({ to: '/$username', params: { username: result.newUsername } })
         }
       } else {
         toast.error(result.error || 'Failed to update profile')
@@ -446,50 +100,15 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="bg-grid-pattern relative min-h-screen">
-        <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
-
-        <Navbar
-          showNavigation={true}
-          isLoggedIn={isLoggedIn}
-          user={currentUser || undefined}
-        />
-        <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
-          <div className="space-y-8">
-            <ProfileHeaderSkeleton />
-            <div className="bg-card border-border rounded-xl border p-6">
-              <div className="bg-muted mb-6 h-7 w-32 animate-pulse rounded"></div>
-              <ProjectGridSkeleton
-                count={6}
-                columns={2}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   if (!user) {
     return (
       <div className="bg-grid-pattern relative min-h-screen">
         <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
-
-        <Navbar
-          showNavigation={true}
-          isLoggedIn={isLoggedIn}
-          user={currentUser || undefined}
-        />
+        <SiteNavbar showNavigation={true} />
         <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="mb-4 text-2xl font-bold">User Not Found</h1>
             <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
-            <Button onClick={() => router.navigate({ to: '/' })}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
           </div>
         </div>
       </div>
@@ -500,14 +119,13 @@ export default function ProfilePage() {
     <div className="bg-grid-pattern relative min-h-screen">
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
-      <Navbar
+      <SiteNavbar
         showNavigation={true}
         isLoggedIn={isLoggedIn}
-        user={currentUser || undefined}
+        user={currentUser ?? undefined}
       />
 
       <div className="relative mx-auto max-w-6xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
-        {/* Header & Stats */}
         <ProfileHeader
           user={user}
           isOwner={isOwner}
@@ -518,7 +136,6 @@ export default function ProfilePage() {
           <ProfileStats stats={userStats} />
         </div>
 
-        {/* Content Tabs */}
         <Tabs
           defaultValue="projects"
           className="w-full"

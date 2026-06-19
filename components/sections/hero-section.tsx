@@ -80,8 +80,8 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-10 sm:space-y-12">
           <div className="space-y-6 text-center sm:space-y-8">
-            <Link
-              to={ANNOUNCEMENT_HREF}
+            <a
+              href={ANNOUNCEMENT_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
@@ -96,7 +96,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 </span>
                 <span className="text-primary ml-2 font-semibold">{t('readLatest')}</span>
               </AnimatedGradientText>
-            </Link>
+            </a>
 
             <h1 className="text-foreground text-4xl leading-[1.08] font-bold tracking-tight sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
               {titleLine1Items.map((item, index) => (

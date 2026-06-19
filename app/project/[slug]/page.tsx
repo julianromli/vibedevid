@@ -1,9 +1,8 @@
-// Server Component - No 'use client' directive!
+// Presentational project detail page — rendered by app/routes/project.$slug.tsx
 
 import { Calendar, ExternalLink, Globe, Tag, User } from 'lucide-react'
 import { Image } from '@unpic/react'
 import { Link } from '@tanstack/react-router'
-import { notFound, redirect } from '@/lib/navigation'
 import type { ReactNode } from 'react'
 import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
 import { ProjectEditClient } from '@/components/project/ProjectEditClient'
@@ -18,11 +17,6 @@ import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { ProjectImageCarousel } from '@/components/ui/project-image-carousel'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { getProjectBySlug } from '@/lib/actions'
-import { getComments } from '@/lib/actions/comments'
-import { getCategories } from '@/lib/categories'
-import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
-import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
 /**
  * Render plain text description with proper line breaks and bullet points.
@@ -117,37 +111,28 @@ function renderDescription(text: string): ReactNode {
   })
 }
 
-// Server Component - async function
-export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+// Presentational component — data is fetched in the route loader (app/routes/project.$slug.tsx)
+import type { getCurrentUser } from '@/lib/server/auth'
+import type { getProjectBySlug } from '@/lib/actions'
+import type { getCategories } from '@/lib/categories'
+import type { getComments } from '@/lib/actions/comments'
 
-  // Handle legacy UUID redirect on server
-  if (isUUID(slug)) {
-    const legacyProject = await getProjectByUUID(slug)
-    if (legacyProject?.slug) {
-      redirect(`/project/${legacyProject.slug}`)
-    }
-    throw notFound()
-  }
+type ProjectData = NonNullable<Awaited<ReturnType<typeof getProjectBySlug>>['project']>
+type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
+type Categories = Awaited<ReturnType<typeof getCategories>>
+type InitialComments = Awaited<ReturnType<typeof getComments>>['comments']
 
-  // Parallel data fetching on server
-  const [currentUser, { project, error: projectError }, categories] = await Promise.all([
-    getCurrentUser(),
-    getProjectBySlug(slug),
-    getCategories(),
-  ])
+export interface ProjectDetailsData {
+  slug: string
+  project: ProjectData
+  currentUser: CurrentUser
+  categories: Categories
+  initialComments: InitialComments
+  isOwner: boolean
+}
 
-  // Handle errors with Next.js throw notFound()
-  if (projectError || !project) {
-    throw notFound()
-  }
-
-  // Fetch comments using project.id (UUID)
-  const { comments: initialComments } = await getComments('project', project.id)
-
-  // Check ownership on server
-  const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
-
+export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData }) {
+  const { slug, project, currentUser, categories, initialComments, isOwner } = data
   return (
     <div className="bg-grid-pattern relative min-h-screen">
       {/* Background Gradient Overlay */}
@@ -349,7 +334,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                         {project.author.location}
                       </p>
                     </div>
-                    <Link to={`/${project.author.username}`}>
+                    <Link to="/$username" params={{ username: project.author.username }}>
                       <Button
                         variant="outline"
                         className="w-full bg-transparent"

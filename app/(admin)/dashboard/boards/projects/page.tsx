@@ -1,30 +1,19 @@
-import { getAllProjects, getProjectCategories } from '@/lib/actions/admin/projects'
+import type { getAllProjects, getProjectCategories } from '@/lib/actions/admin/projects'
 import { ProjectFilters } from './components/project-filters'
 import { ProjectsTable } from './components/projects-table'
 
-interface SearchParams {
-  status?: string
-  category?: string
-  search?: string
-  page?: string
+type ProjectsResult = Awaited<ReturnType<typeof getAllProjects>>
+type CategoriesResult = Awaited<ReturnType<typeof getProjectCategories>>
+
+export interface ProjectsBoardProps {
+  projects: ProjectsResult['projects']
+  totalCount: ProjectsResult['totalCount']
+  error?: ProjectsResult['error']
+  categories: CategoriesResult['categories']
+  page: number
 }
 
-export default async function ProjectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const params = await searchParams
-
-  const filters = {
-    status: params.status as 'all' | 'featured' | 'regular' | undefined,
-    category: params.category,
-    search: params.search,
-  }
-
-  const page = params.page ? parseInt(params.page, 10) : 1
-
-  const [{ projects, totalCount, error }, { categories }] = await Promise.all([
-    getAllProjects(filters, page, 20),
-    getProjectCategories(),
-  ])
-
+export default function ProjectsPage({ projects, totalCount, error, categories, page }: ProjectsBoardProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">

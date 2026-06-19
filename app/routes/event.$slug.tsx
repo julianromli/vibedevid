@@ -1,13 +1,36 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { getEventBySlug } from '@/lib/actions/events'
+import { createFileRoute, notFound } from '@tanstack/react-router'
+import { getEventBySlug, getRelatedEvents } from '@/lib/actions/events'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { getServerLocale } from '@/lib/routes/helpers'
+import { getCurrentUser } from '@/lib/server/auth'
 import EventDetailData from '@/app/event/[slug]/event-detail-data'
 
 export const Route = createFileRoute('/event/$slug')({
   loader: async ({ params }) => {
     const { event } = await getEventBySlug(params.slug)
-    return { event, slug: params.slug }
+    if (!event) {
+      throw notFound()
+    }
+
+    const [{ events, error: relatedError }, currentUser] = await Promise.all([
+      getRelatedEvents(event.category, event.id),
+      getCurrentUser(),
+    ])
+
+    if (relatedError) {
+      console.error('[event.$slug] Failed to fetch related events', {
+        eventId: event.id,
+        category: event.category,
+        error: relatedError,
+      })
+    }
+
+    return {
+      event,
+      relatedEvents: relatedError ? [] : (events ?? []),
+      currentUser,
+      slug: params.slug,
+    }
   },
   head: ({ loaderData }) => {
     const event = loaderData?.event
@@ -48,7 +71,7 @@ export const Route = createFileRoute('/event/$slug')({
 })
 
 function EventDetailRoute() {
-  const { slug } = Route.useParams()
+  const { event, relatedEvents, currentUser } = Route.useLoaderData()
 
-  return <EventDetailData params={Promise.resolve({ slug })} />
+  return <EventDetailData event={event} relatedEvents={relatedEvents} currentUser={currentUser} />
 }

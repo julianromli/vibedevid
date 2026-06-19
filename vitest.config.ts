@@ -4,7 +4,8 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
+  // biome-ignore lint/suspicious/noExplicitAny: vite/vitest nested-version Plugin type mismatch
+  plugins: [react(), tsconfigPaths()] as any,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

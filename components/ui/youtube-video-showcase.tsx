@@ -172,8 +172,8 @@ function DesktopVideoOption({
         <Image
           src={video.thumbnail}
           alt={video.title}
+          layout="fullWidth"
           className={`h-full w-full rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? 'scale-100' : 'scale-105'}`}
-          quality={85}
           onError={(e) => {
             applyThumbnailFallback(e.currentTarget as HTMLImageElement)
           }}
@@ -258,8 +258,8 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
               <Image
                 src={video.thumbnail}
                 alt={video.title}
+                layout="fullWidth"
                 className="h-full w-full object-cover"
-                quality={80}
                 onError={(e) => {
                   applyThumbnailFallback(e.currentTarget as HTMLImageElement)
                 }}
@@ -342,7 +342,10 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
       </div>
 
       {/* Custom animations */}
-      <style jsx>{`
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static responsive CSS string
+        dangerouslySetInnerHTML={{
+          __html: `
         @media (min-width: 768px) and (max-width: 1023px) {
           .videos-container {
             aspect-ratio: 2.8/1 !important;
@@ -375,7 +378,9 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
           height: 100% !important;
           min-height: auto !important;
         }
-      `}</style>
+      `,
+        }}
+      />
     </div>
   )
 }

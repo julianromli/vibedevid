@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HeroSection } from '@/components/sections/hero-section'
@@ -35,14 +35,20 @@ function resetMessages() {
   translatorRef.current = (key: keyof typeof messages) => messages[key]
 }
 
-vi.mock('next-intl', () => ({
-  useLocale: () => 'en',
-  useTranslations: () => translatorRef.current,
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: keyof typeof messages) => translatorRef.current(key),
+    i18n: { language: 'en' },
+  }),
 }))
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
-    React.createElement('a', { href, ...props }, children),
+vi.mock('@/hooks/use-locale', () => ({
+  useLocale: () => 'en',
+}))
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string }) =>
+    React.createElement('a', { href: to, ...props }, children),
 }))
 
 vi.mock('@/components/ui/animated-gradient-text', () => ({
@@ -78,7 +84,7 @@ describe('HeroSection', () => {
     vi.useRealTimers()
   })
 
-  it('restarts the title animation when the translated title changes', () => {
+  it('renders the animated title words with the hero-word animation class', () => {
     const props = {
       joinHref: 'https://example.com/join',
       handleViewShowcase: vi.fn(),
@@ -86,9 +92,10 @@ describe('HeroSection', () => {
 
     const { rerender } = render(React.createElement(HeroSection, props))
 
-    act(() => {
-      vi.advanceTimersByTime(400)
-    })
+    // Title words render as CSS-animated spans (animation is handled by the
+    // .hero-word keyframe in globals.css, not JS opacity state).
+    expect(screen.getByText('Build')).toHaveClass('hero-word')
+    expect(screen.getByText('Products')).toHaveClass('hero-word')
 
     Object.assign(messages, {
       titleLine1: 'Build Better',
@@ -98,13 +105,9 @@ describe('HeroSection', () => {
 
     rerender(React.createElement(HeroSection, props))
 
-    expect(screen.getByText('Today')).toHaveClass('opacity-0')
-
-    act(() => {
-      vi.advanceTimersByTime(600)
-    })
-
-    expect(screen.getByText('Today')).toHaveClass('opacity-100')
+    // After the translated title changes, the new words are rendered and
+    // animated via the same class.
+    expect(screen.getByText('Today')).toHaveClass('hero-word')
   })
 
   it('links the announcement banner to the WhatsApp community', () => {

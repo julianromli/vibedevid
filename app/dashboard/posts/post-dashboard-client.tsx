@@ -166,7 +166,8 @@ export function PostDashboardClient() {
                   <div className="flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        to={`/blog/editor/${post.slug}`}
+                        to="/blog/editor/$slug"
+                        params={{ slug: post.slug }}
                         className="font-bold text-xl hover:text-primary transition-colors line-clamp-2"
                       >
                         {post.title}
@@ -208,7 +209,8 @@ export function PostDashboardClient() {
                     <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-muted sm:w-48 border">
                       <Image
                         src={post.cover_image}
-                        alt={post.title} className="w-full h-full object-cover"
+                        alt={post.title}
+                        layout="fullWidth"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
@@ -222,7 +224,7 @@ export function PostDashboardClient() {
                       asChild
                       className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     >
-                      <Link to={`/blog/editor/${post.slug}`}>
+                      <Link to="/blog/editor/$slug" params={{ slug: post.slug }}>
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit</span>
                       </Link>
@@ -243,7 +245,8 @@ export function PostDashboardClient() {
                         {post.status === 'published' && (
                           <DropdownMenuItem asChild>
                             <Link
-                              to={`/blog/${post.slug}`}
+                              to="/blog/$slug"
+                              params={{ slug: post.slug }}
                               target="_blank"
                             >
                               <Eye className="mr-2 h-4 w-4" /> View Live

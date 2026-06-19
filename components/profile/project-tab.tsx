@@ -16,14 +16,16 @@ export function ProjectTab({ projects }: ProjectTabProps) {
       {projects.map((project) => (
         <Link
           key={project.id}
-          to={`/project/${project.slug}`}
+          to="/project/$slug"
+          params={{ slug: project.slug }}
           className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
         >
           <div className="bg-muted relative overflow-hidden">
             <AspectRatio ratio={16 / 9}>
               <Image
                 src={project.thumbnail_url || '/placeholder.svg'}
-                alt={project.title} className="w-full h-full object-cover"
+                alt={project.title}
+                layout="fullWidth"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg'

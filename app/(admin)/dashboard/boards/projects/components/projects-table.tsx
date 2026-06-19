@@ -57,7 +57,8 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                     </Avatar>
                     <div>
                       <Link
-                        to={`/project/${project.slug}`}
+                        to="/project/$slug"
+                        params={{ slug: project.slug }}
                         className="font-medium hover:underline"
                       >
                         {project.title}

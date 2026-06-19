@@ -1,9 +1,13 @@
-import { getPrivilegedUsers } from '@/lib/actions/admin/admins'
+import type { getPrivilegedUsers } from '@/lib/actions/admin/admins'
 import { AdminManagementBoard } from './components/admin-management-board'
 
-export default async function AdminManagementPage() {
-  const result = await getPrivilegedUsers()
+type PrivilegedUsersResult = Awaited<ReturnType<typeof getPrivilegedUsers>>
 
+export interface AdminManagementBoardProps {
+  result: PrivilegedUsersResult
+}
+
+export default function AdminManagementPage({ result }: AdminManagementBoardProps) {
   if (!result.success) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">

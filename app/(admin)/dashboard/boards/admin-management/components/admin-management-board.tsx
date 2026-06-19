@@ -292,7 +292,8 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <Link
-                                to={`/${user.username}`}
+                                to="/$username"
+                                params={{ username: user.username }}
                                 className="font-medium hover:underline"
                                 target="_blank"
                               >

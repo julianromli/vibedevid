@@ -10,10 +10,16 @@ import { AgentationProvider } from '@/components/agentation-provider'
 import { ClientThemeProvider } from '@/components/client-theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import i18n from '@/i18n'
+import { getCurrentUserFn } from '@/lib/actions/user.functions'
 import { getSiteUrl } from '@/lib/seo/site-url'
 import appCss from '../globals.css?url'
 
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    // Single source of truth for the authenticated user across all routes.
+    const currentUser = await getCurrentUserFn()
+    return { currentUser }
+  },
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

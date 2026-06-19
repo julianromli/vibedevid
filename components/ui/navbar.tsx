@@ -309,10 +309,8 @@ export function Navbar({
           return
         }
         toast.success(t('toast.signOutSuccess'))
-        setTimeout(() => {
-          router.refresh()
-          router.navigate({ to: '/' })
-        }, 100)
+        await router.refresh()
+        router.navigate({ to: '/' })
       } catch (_error) {
         toast.error(t('toast.generalError'))
       }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { incrementBlogPostViews } from '@/lib/actions'
+import { incrementBlogPostViewsFn } from '@/lib/actions/projects.functions'
 
 interface BlogViewTrackerProps {
   postId: string
@@ -39,7 +39,7 @@ export function BlogViewTracker({ postId }: BlogViewTrackerProps) {
     const trackView = async () => {
       try {
         const sessionId = getOrCreateSessionId()
-        await incrementBlogPostViews(postId, sessionId)
+        await incrementBlogPostViewsFn({ data: { postId, sessionId } })
       } catch (error) {
         console.error('[BlogViewTracker] Failed to track view:', error)
       }

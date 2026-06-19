@@ -33,7 +33,8 @@ export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserAc
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
           <Link
-            to={`/${user.username}`}
+            to="/$username"
+            params={{ username: user.username }}
             target="_blank"
             className="flex items-center"
           >

@@ -20,16 +20,18 @@ import {
   type CategoryCount,
   type CommunityHealthCounts,
   type ContentGrowthPoint,
-  getAnalyticsTimeSeries,
-  getCommunityHealthCounts,
-  getContentGrowthTimeSeries,
-  getPeriodSignupStats,
-  getPostsByStatus,
-  getProjectsByCategory,
-  getUsersByRole,
   type RoleCount,
   type StatusCount,
 } from '@/lib/actions/analytics'
+import {
+  getAnalyticsTimeSeriesFn,
+  getCommunityHealthCountsFn,
+  getContentGrowthTimeSeriesFn,
+  getPeriodSignupStatsFn,
+  getPostsByStatusFn,
+  getProjectsByCategoryFn,
+  getUsersByRoleFn,
+} from '@/lib/actions/analytics.functions'
 
 interface EngagementPoint {
   date: string
@@ -83,13 +85,13 @@ export default function Analytics() {
       try {
         const [periodResult, growthResult, engagementResult, categoryResult, roleResult, statusResult, healthResult] =
           await Promise.all([
-            getPeriodSignupStats(days),
-            getContentGrowthTimeSeries(days),
-            getAnalyticsTimeSeries(days),
-            getProjectsByCategory(8),
-            getUsersByRole(),
-            getPostsByStatus(),
-            getCommunityHealthCounts(),
+            getPeriodSignupStatsFn({ data: { days } }),
+            getContentGrowthTimeSeriesFn({ data: { days } }),
+            getAnalyticsTimeSeriesFn({ data: { days } }),
+            getProjectsByCategoryFn({ data: { limit: 8 } }),
+            getUsersByRoleFn(),
+            getPostsByStatusFn(),
+            getCommunityHealthCountsFn(),
           ])
 
         if (!periodResult.success) throw new Error(periodResult.error)

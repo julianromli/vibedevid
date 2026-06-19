@@ -99,7 +99,7 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
 }
 
 export const Route = createFileRoute('/')({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
     filter: typeof search.filter === 'string' ? search.filter : undefined,
     sort: typeof search.sort === 'string' ? search.sort : undefined,
   }),

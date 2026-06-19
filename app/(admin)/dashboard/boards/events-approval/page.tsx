@@ -1,9 +1,14 @@
-import { getPendingEvents } from '@/lib/actions/events'
+import type { getPendingEvents } from '@/lib/actions/events'
 import { PendingEventsTable } from './components/pending-events-table'
 
-export default async function EventsApprovalPage() {
-  const { events, error } = await getPendingEvents()
+type PendingEventsResult = Awaited<ReturnType<typeof getPendingEvents>>
 
+export interface EventsApprovalBoardProps {
+  events: PendingEventsResult['events']
+  error?: PendingEventsResult['error']
+}
+
+export default function EventsApprovalPage({ events, error }: EventsApprovalBoardProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">

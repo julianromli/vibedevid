@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import MultipleSelector, { type Option } from '@/components/ui/multiselect'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { editProject } from '@/lib/actions'
+import { editProjectFn } from '@/lib/actions/projects.functions'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from '@/lib/project-url'
@@ -130,8 +130,9 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
 
       const tagsValues = selectedEditTags.map((tag) => tag.value)
       formData.append('tags', JSON.stringify(tagsValues))
+      formData.append('projectSlug', projectSlug)
 
-      const result = await editProject(projectSlug, formData)
+      const result = await editProjectFn({ data: formData })
 
       if (result.success) {
         toast.success('Project updated successfully')
@@ -425,7 +426,8 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                             <AspectRatio ratio={16 / 9}>
                               <Image
                                 src={url}
-                                alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover"
+                                alt={`Screenshot ${index + 1}`}
+                                layout="fullWidth"
                                 className="rounded-lg object-cover"
                               />
                             </AspectRatio>

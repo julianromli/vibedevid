@@ -78,7 +78,10 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
         ))}
       </div>
 
-      <style jsx>{`
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS string for scroll animation
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes scrollUp {
           0% {
             transform: translateY(0);
@@ -90,7 +93,9 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
         .animate-scroll-up {
           animation: scrollUp ${duration}s linear infinite;
         }
-      `}</style>
+      `,
+        }}
+      />
     </div>
   )
 }

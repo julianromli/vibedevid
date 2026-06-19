@@ -1,7 +1,6 @@
 'use client'
 
 import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import { useRouter } from '@/lib/navigation'
 import { useEffect, useState } from 'react'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -474,22 +473,24 @@ export default function TermsPage() {
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">Contact Us</h4>
                       <div className="space-y-2">
-                        <Link
-                          to="mailto:support@vibedev.id"
+                        <a
+                          href="mailto:support@vibedev.id"
                           className="flex items-center gap-2 hover:underline"
                           target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <Mail className="h-4 w-4" />
                           support@vibedev.id
-                        </Link>
-                        <Link
-                          to="https://s.id/vibedev"
+                        </a>
+                        <a
+                          href="https://s.id/vibedev"
                           className="flex items-center gap-2 hover:underline"
                           target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <Globe className="h-4 w-4" />
                           Contact Us
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   </div>

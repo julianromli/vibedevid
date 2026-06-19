@@ -100,7 +100,7 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
 )
 
-function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false) {
+function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false): boolean {
   if (item.items?.length) {
     return item.items.some((subItem) => checkIsActive(pathname, dashboardTab, subItem))
   }

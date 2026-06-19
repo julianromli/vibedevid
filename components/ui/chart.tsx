@@ -120,6 +120,10 @@ function ChartTooltipContent({
     indicator?: 'line' | 'dot' | 'dashed'
     nameKey?: string
     labelKey?: string
+    // biome-ignore lint/suspicious/noExplicitAny: recharts tooltip payload is loosely typed
+    payload?: any[]
+    // biome-ignore lint/suspicious/noExplicitAny: recharts tooltip label is loosely typed
+    label?: any
   } & { ref?: React.Ref<HTMLDivElement> }) {
   const { config } = useChart()
 

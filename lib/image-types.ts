@@ -8,7 +8,7 @@ export interface StaticImageData {
   blurDataURL?: string
 }
 
-export interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading' | 'src'> {
   src: string | StaticImageData
   alt: string
   width?: number

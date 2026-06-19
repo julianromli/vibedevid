@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useEventForm } from '@/hooks/useEventForm'
-import { submitEvent } from '@/lib/actions/events'
+import { submitEventFn } from '@/lib/actions/events.functions'
 import type { EventFormData } from '@/types/events'
 
 interface SubmitEventModalProps {
@@ -39,7 +39,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
     setIsSubmitting(true)
 
     try {
-      const result = await submitEvent(formData as EventFormData)
+      const result = await submitEventFn({ data: formData as EventFormData })
 
       if (result.success) {
         toast.success('Event berhasil disubmit! 🎉 Menunggu persetujuan admin.')

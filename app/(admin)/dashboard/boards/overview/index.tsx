@@ -17,13 +17,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
-  getAnalyticsTimeSeries,
-  getMostViewedPosts,
-  getMostViewedProjects,
-  getPlatformStats,
-  type PlatformStats,
-  type TrendingItem,
-} from '@/lib/actions/analytics'
+  getAnalyticsTimeSeriesFn,
+  getMostViewedPostsFn,
+  getMostViewedProjectsFn,
+  getPlatformStatsFn,
+} from '@/lib/actions/analytics.functions'
+import type { PlatformStats, TrendingItem } from '@/lib/actions/analytics'
 
 interface TimeSeriesPoint {
   date: string
@@ -227,10 +226,10 @@ export default function Overview() {
 
 async function fetchAnalyticsData(days: number): Promise<AnalyticsData> {
   const [statsResult, timeSeriesResult, projectsResult, postsResult] = await Promise.all([
-    getPlatformStats(),
-    getAnalyticsTimeSeries(days),
-    getMostViewedProjects(10),
-    getMostViewedPosts(10),
+    getPlatformStatsFn(),
+    getAnalyticsTimeSeriesFn({ data: { days } }),
+    getMostViewedProjectsFn({ data: { limit: 10 } }),
+    getMostViewedPostsFn({ data: { limit: 10 } }),
   ])
 
   let stats: PlatformStats | null = null

@@ -61,7 +61,8 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
         <AspectRatio ratio={16 / 9}>
           <Image
             src="/placeholder.svg"
-            alt="No images" className="w-full h-full object-cover"
+            alt="No images"
+            layout="fullWidth"
             className="h-full w-full object-cover"
           />
         </AspectRatio>
@@ -89,7 +90,8 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
           >
             <Image
               src={currentImage}
-              alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`} className="w-full h-full object-cover"
+              alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
+              layout="fullWidth"
               className="h-full w-full object-cover"
             />
           </motion.div>

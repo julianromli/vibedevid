@@ -83,7 +83,8 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link
-              to={`/project/${project.slug}`}
+              to="/project/$slug"
+              params={{ slug: project.slug }}
               target="_blank"
               className="flex items-center"
             >

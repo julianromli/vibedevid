@@ -70,7 +70,8 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                     </Avatar>
                     <div>
                       <Link
-                        to={`/blog/${post.slug}`}
+                        to="/blog/$slug"
+                        params={{ slug: post.slug }}
                         className="font-medium hover:underline"
                       >
                         {post.title}

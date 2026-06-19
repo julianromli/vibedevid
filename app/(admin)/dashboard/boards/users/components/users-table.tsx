@@ -73,7 +73,8 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                     </Avatar>
                     <div>
                       <Link
-                        to={`/${user.username}`}
+                        to="/$username"
+                        params={{ username: user.username }}
                         className="font-medium hover:underline"
                       >
                         {user.display_name}

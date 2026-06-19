@@ -33,7 +33,8 @@ export function BlogTab({ posts }: BlogTabProps) {
         return (
           <Link
             key={post.id}
-            to={`/blog/${post.slug}`}
+            to="/blog/$slug"
+            params={{ slug: post.slug }}
             className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
           >
             <div className="relative aspect-[16/9] overflow-hidden bg-muted">

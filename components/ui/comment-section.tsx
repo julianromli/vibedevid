@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { createComment, getComments, reportComment } from '@/lib/actions/comments'
+import { createCommentFn, getCommentsFn, reportCommentFn } from '@/lib/actions/comments.functions'
 import type { Comment, CommentSectionProps } from '@/types/comments'
 
 /**
@@ -49,11 +49,13 @@ export function CommentSection({
 
     setIsSubmitting(true)
 
-    const result = await createComment({
-      entityType,
-      entityId,
-      content: newComment.trim(),
-      guestName: !isLoggedIn ? guestName.trim() : undefined,
+    const result = await createCommentFn({
+      data: {
+        entityType,
+        entityId,
+        content: newComment.trim(),
+        guestName: !isLoggedIn ? guestName.trim() : undefined,
+      },
     })
 
     if (result.success) {
@@ -62,7 +64,7 @@ export function CommentSection({
       toast.success('Comment posted successfully')
 
       // Refresh comments
-      const { comments: updatedComments } = await getComments(entityType, entityId)
+      const { comments: updatedComments } = await getCommentsFn({ data: { entityType, entityId } })
       setComments(updatedComments)
     } else {
       toast.error(result.error ?? 'Failed to post comment')
@@ -79,7 +81,7 @@ export function CommentSection({
 
     setReportingId(commentId)
 
-    const result = await reportComment(commentId, 'inappropriate')
+    const result = await reportCommentFn({ data: { commentId, reason: 'inappropriate' } })
 
     if (result.success) {
       toast.success('Comment reported for review')

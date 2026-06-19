@@ -1,22 +1,16 @@
-import { getReportedComments } from '@/lib/actions/admin/comments'
+import type { getReportedComments } from '@/lib/actions/admin/comments'
 import { ReportsTable } from './components/reports-table'
 
-interface SearchParams {
-  status?: string
-  page?: string
+type ReportsResult = Awaited<ReturnType<typeof getReportedComments>>
+
+export interface CommentsBoardProps {
+  reports: ReportsResult['reports']
+  totalCount: ReportsResult['totalCount']
+  error?: ReportsResult['error']
+  page: number
 }
 
-export default async function CommentsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const params = await searchParams
-
-  const filters = {
-    status: params.status as 'all' | 'pending' | 'reviewed' | 'dismissed' | undefined,
-  }
-
-  const page = params.page ? parseInt(params.page, 10) : 1
-
-  const { reports, totalCount, error } = await getReportedComments(filters, page, 20)
-
+export default function CommentsPage({ reports, totalCount, error, page }: CommentsBoardProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">

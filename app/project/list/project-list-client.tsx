@@ -48,7 +48,8 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
       className="group my-4 cursor-pointer py-0"
     >
       <Link
-        to={`/project/${project.slug}`}
+        to="/project/$slug"
+        params={{ slug: project.slug }}
         className="block"
       >
         <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-shadow duration-300 hover:shadow-lg motion-reduce:transition-none">
@@ -56,6 +57,7 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
             <Image
               src={project.image || '/vibedev-guest-avatar.png'}
               alt={project.title}
+              layout="fullWidth"
               loading={shouldEagerLoadThumbnail ? 'eager' : 'lazy'}
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -82,7 +84,8 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
       <div className="mt-3 flex items-center justify-between py-0">
         <div className="flex items-center gap-2.5">
           <Link
-            to={`/${project.author.username}`}
+            to="/$username"
+            params={{ username: project.author.username }}
             className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <OptimizedAvatar

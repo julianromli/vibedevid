@@ -11,15 +11,7 @@ import Overview from '@/app/(admin)/dashboard/boards/overview'
 import ProjectsPage from '@/app/(admin)/dashboard/boards/projects/page'
 import UsersPage from '@/app/(admin)/dashboard/boards/users/page'
 import { DashboardContent, DashboardContentFallback } from '@/app/(admin)/dashboard/components/dashboard-tabs'
-
-interface DashboardSearchParams {
-  search?: string
-  role?: string
-  status?: string
-  page?: string
-  tab?: string
-  category?: string
-}
+import { loadDashboardBoardData } from '@/app/(admin)/dashboard/dashboard-data'
 
 const TAB_TITLES: Record<DashboardTabValue, string> = {
   overview: 'Overview',
@@ -32,33 +24,41 @@ const TAB_TITLES: Record<DashboardTabValue, string> = {
   comments: 'Comments',
 }
 
-function DashboardTabPanel({ tab, searchParams }: { tab: DashboardTabValue; searchParams: DashboardSearchParams }) {
-  const searchParamsPromise = Promise.resolve(searchParams)
-
+// biome-ignore lint/suspicious/noExplicitAny: board payloads are heterogeneous per tab
+function DashboardTabPanel({ tab, boardData }: { tab: DashboardTabValue; boardData: any }) {
   switch (tab) {
     case 'overview':
       return <Overview />
     case 'analytics':
       return <Analytics />
     case 'events-approval':
-      return <EventsApproval />
+      return <EventsApproval {...boardData} />
     case 'projects':
-      return <ProjectsPage searchParams={searchParamsPromise} />
+      return <ProjectsPage {...boardData} />
     case 'blog':
-      return <BlogPage searchParams={searchParamsPromise} />
+      return <BlogPage {...boardData} />
     case 'users':
-      return <UsersPage searchParams={searchParamsPromise} />
+      return <UsersPage {...boardData} />
     case 'admin-management':
-      return <AdminManagementPage />
+      return <AdminManagementPage {...boardData} />
     case 'comments':
-      return <CommentsPage searchParams={searchParamsPromise} />
+      return <CommentsPage {...boardData} />
     default:
       return <Overview />
   }
 }
 
 export const Route = createFileRoute('/_admin/dashboard')({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    tab?: string
+    search?: string
+    role?: string
+    status?: string
+    page?: string
+    category?: string
+  } => ({
     tab: typeof search.tab === 'string' ? search.tab : undefined,
     search: typeof search.search === 'string' ? search.search : undefined,
     role: typeof search.role === 'string' ? search.role : undefined,
@@ -67,15 +67,16 @@ export const Route = createFileRoute('/_admin/dashboard')({
     category: typeof search.category === 'string' ? search.category : undefined,
   }),
   loaderDeps: ({ search }) => ({ search }),
-  loader: ({ deps }) => {
+  loader: async ({ deps }) => {
     const activeTab = resolveDashboardTab(deps.search.tab)
-    return { activeTab, search: deps.search }
+    const boardData = await loadDashboardBoardData(activeTab, deps.search)
+    return { activeTab, boardData }
   },
   component: AdminDashboardRoute,
 })
 
 function AdminDashboardRoute() {
-  const { activeTab, search } = Route.useLoaderData()
+  const { activeTab, boardData } = Route.useLoaderData()
 
   return (
     <>
@@ -92,7 +93,7 @@ function AdminDashboardRoute() {
           <DashboardContent>
             <DashboardTabPanel
               tab={activeTab}
-              searchParams={search}
+              boardData={boardData}
             />
           </DashboardContent>
         </Suspense>

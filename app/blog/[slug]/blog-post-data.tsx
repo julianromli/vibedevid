@@ -1,7 +1,6 @@
 import { format } from 'date-fns'
 import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { notFound } from '@/lib/navigation'
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -9,80 +8,40 @@ import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
-import { getComments } from '@/lib/actions/comments'
+import type { getComments } from '@/lib/actions/comments'
 import { contentToHtml } from '@/lib/blog-utils'
 import { slugifyTitle } from '@/lib/slug'
-import { createClient } from '@/lib/supabase/server'
 
-interface Props {
-  params: Promise<{ slug: string }>
+type InitialComments = Awaited<ReturnType<typeof getComments>>['comments']
+
+interface BlogUserData {
+  id: string
+  name: string
+  email: string
+  avatar: string
+  username: string
+  role: number | null
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: legacy page with lots of UI + data fetching
-export default async function BlogPostData({ params }: Props) {
-  const { slug } = await params
-  const supabase = await createClient()
+export interface BlogPostDataProps {
+  // biome-ignore lint/suspicious/noExplicitAny: post shape comes from a wide Supabase select
+  post: any
+  viewCount: number
+  initialComments: InitialComments
+  isLoggedIn: boolean
+  userData: BlogUserData | null
+  commentUser: { id: string; name: string; avatar?: string } | null
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[BlogPostPage auth]', {
-      slug,
-      hasUser: Boolean(user),
-      userId: user?.id ?? null,
-    })
-  }
-
-  let userData = null
-  let commentUser: { id: string; name: string; avatar?: string } | null = null
-  if (user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('id, display_name, avatar_url, username, role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile) {
-      userData = {
-        id: profile.id,
-        name: profile.display_name,
-        email: user.email || '',
-        avatar: profile.avatar_url || '/vibedev-guest-avatar.png',
-        username: profile.username,
-        role: profile.role ?? null,
-      }
-      commentUser = {
-        id: profile.id,
-        name: profile.display_name,
-        avatar: profile.avatar_url || undefined,
-      }
-    }
-  }
-
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select(
-      `
-      *,
-      author:users!posts_author_id_fkey(id, display_name, username, avatar_url, bio, role),
-      tags:blog_post_tags(post_tags(name))
-    `,
-    )
-    .eq('slug', slug)
-    .single()
-
-  if (error || !post || post.status !== 'published') {
-    throw notFound()
-  }
-
-  // Fetch view count for this post
-  const [{ count: viewCount }, { comments: initialComments }] = await Promise.all([
-    supabase.from('views').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
-    getComments('post', post.id),
-  ])
-
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: legacy page with lots of UI
+export default function BlogPostData({
+  post,
+  viewCount,
+  initialComments,
+  isLoggedIn,
+  userData,
+  commentUser,
+}: BlogPostDataProps) {
   // Flatten tags from nested structure
   const postTags: string[] =
     post?.tags?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name).filter(Boolean) ?? []
@@ -107,7 +66,7 @@ export default async function BlogPostData({ params }: Props) {
       <Navbar
         showBackButton={true}
         showNavigation={true}
-        isLoggedIn={!!user}
+        isLoggedIn={isLoggedIn}
         user={userData ?? undefined}
       />
 
@@ -143,7 +102,8 @@ export default async function BlogPostData({ params }: Props) {
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
               {authorSlug ? (
                 <Link
-                  to={`/${authorSlug}`}
+                  to="/$username"
+                  params={{ username: authorSlug }}
                   className="flex items-center gap-2 transition-colors hover:text-foreground"
                 >
                   {authorContent}
@@ -209,7 +169,7 @@ export default async function BlogPostData({ params }: Props) {
           entityType="post"
           entityId={post.id}
           initialComments={initialComments}
-          isLoggedIn={!!user}
+          isLoggedIn={isLoggedIn}
           currentUser={commentUser}
           allowGuest={false}
         />

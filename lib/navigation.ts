@@ -20,6 +20,7 @@ export function useRouter() {
       refresh: () => router.invalidate(),
       push: (href: string) => router.navigate({ to: href }),
       replace: (href: string) => router.navigate({ to: href, replace: true }),
+      back: () => router.history.back(),
     }),
     [router],
   )

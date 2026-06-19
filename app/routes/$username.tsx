@@ -1,11 +1,47 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
+import { absoluteUrl } from '@/lib/seo/site-url'
+import { loadProfilePageData } from '@/app/[username]/profile-data'
 import ProfilePage from '@/app/[username]/page'
 
 export const Route = createFileRoute('/$username')({
+  loader: async ({ params }) => {
+    const data = await loadProfilePageData(params.username)
+    if (!data.user) {
+      throw notFound()
+    }
+    return data
+  },
+  head: ({ loaderData }) => {
+    const user = loaderData?.user
+    if (!user) {
+      return { meta: [{ title: 'User Not Found | VibeDev ID' }] }
+    }
+
+    const name = user.display_name || user.username
+    const description = (user.bio || `Profil ${name} di VibeDev ID`).slice(0, 160)
+    const url = absoluteUrl(`/${user.username}`)
+    const image = user.avatar_url || undefined
+
+    return {
+      meta: [
+        { title: `${name} (@${user.username}) | VibeDev ID` },
+        { name: 'description', content: description },
+        { property: 'og:title', content: name },
+        { property: 'og:description', content: description },
+        { property: 'og:url', content: url },
+        { property: 'og:type', content: 'profile' },
+        ...(image ? [{ property: 'og:image', content: image }] : []),
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:title', content: name },
+        { name: 'twitter:description', content: description },
+      ],
+      links: [{ rel: 'canonical', href: url }],
+    }
+  },
   component: UsernameRoute,
 })
 
 function UsernameRoute() {
-  const { username } = Route.useParams()
-  return <ProfilePage key={username} />
+  const data = Route.useLoaderData()
+  return <ProfilePage key={data.user?.username} data={data} />
 }

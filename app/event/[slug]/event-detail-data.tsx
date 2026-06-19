@@ -1,7 +1,6 @@
 import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from 'lucide-react'
 import { Image } from '@unpic/react'
 import { Link } from '@tanstack/react-router'
-import { notFound } from '@/lib/navigation'
 import { EventCard } from '@/components/event/event-card'
 import { EventShareButton } from '@/components/event/event-share-button'
 import { Badge } from '@/components/ui/badge'
@@ -9,34 +8,21 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import { getEventBySlug, getRelatedEvents } from '@/lib/actions/events'
+import type { getEventBySlug, getRelatedEvents } from '@/lib/actions/events'
 import { formatEventDateRange } from '@/lib/events-utils'
-import { getCurrentUser } from '@/lib/server/auth'
+import type { getCurrentUser } from '@/lib/server/auth'
 
-interface EventDetailPageProps {
-  params: Promise<{ slug: string }>
+type EventData = NonNullable<Awaited<ReturnType<typeof getEventBySlug>>['event']>
+type RelatedEvents = NonNullable<Awaited<ReturnType<typeof getRelatedEvents>>['events']>
+type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
+
+export interface EventDetailDataProps {
+  event: EventData
+  relatedEvents: RelatedEvents
+  currentUser: CurrentUser
 }
 
-export default async function EventDetailData({ params }: EventDetailPageProps) {
-  const { slug } = await params
-  const { event } = await getEventBySlug(slug)
-
-  if (!event) {
-    throw notFound()
-  }
-
-  const { events, error: relatedError } = await getRelatedEvents(event.category, event.id)
-  if (relatedError) {
-    // biome-ignore lint/suspicious/noConsole: production error logging with event context for related-event failures
-    console.error('[EventDetailData] Failed to fetch related events', {
-      eventId: event.id,
-      category: event.category,
-      error: relatedError,
-    })
-  }
-  const relatedEvents = relatedError ? [] : (events ?? [])
-  const currentUser = await getCurrentUser()
-
+export default function EventDetailData({ event, relatedEvents, currentUser }: EventDetailDataProps) {
   const isPastEvent = event.status === 'past'
   const formattedDate = formatEventDateRange(event.date, event.time, event.endDate, event.endTime)
 

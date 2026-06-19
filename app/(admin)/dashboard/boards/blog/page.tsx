@@ -1,30 +1,21 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getAllPosts, getAllTags } from '@/lib/actions/admin/posts'
+import type { getAllPosts, getAllTags } from '@/lib/actions/admin/posts'
 import { PostFilters } from './components/post-filters'
 import { PostsTable } from './components/posts-table'
 import { TagsManager } from './components/tags-manager'
 
-interface SearchParams {
-  status?: string
-  search?: string
-  page?: string
+type PostsResult = Awaited<ReturnType<typeof getAllPosts>>
+type TagsResult = Awaited<ReturnType<typeof getAllTags>>
+
+export interface BlogBoardProps {
+  posts: PostsResult['posts']
+  totalCount: PostsResult['totalCount']
+  error?: PostsResult['error']
+  tags: TagsResult['tags']
+  page: number
 }
 
-export default async function BlogPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const params = await searchParams
-
-  const filters = {
-    status: params.status as 'all' | 'draft' | 'published' | 'archived' | undefined,
-    search: params.search,
-  }
-
-  const page = params.page ? parseInt(params.page, 10) : 1
-
-  const [{ posts, totalCount, error }, { tags, error: tagsError }] = await Promise.all([
-    getAllPosts(filters, page, 20),
-    getAllTags(),
-  ])
-
+export default function BlogPage({ posts, totalCount, error, tags, page }: BlogBoardProps) {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">

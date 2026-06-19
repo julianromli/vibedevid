@@ -135,7 +135,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                   </Button>
                 </Link>
               ) : (
-                <Link to="/user/auth?redirectTo=/blog/editor">
+                <Link to="/user/auth" search={{ redirectTo: '/blog/editor' }}>
                   <Button className="gap-2">Sign in to write</Button>
                 </Link>
               )}

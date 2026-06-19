@@ -115,7 +115,8 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
     >
       <div className="group my-4 cursor-pointer py-0">
         <Link
-          to={`/project/${project.slug}`}
+          to="/project/$slug"
+          params={{ slug: project.slug }}
           className="block"
         >
           {/* Thumbnail Preview Section */}
@@ -124,6 +125,7 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
               <Image
                 src={project.image || '/vibedev-guest-avatar.png'}
                 alt={project.title}
+                layout="fullWidth"
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -153,7 +155,8 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
         <div className="mt-3 flex items-center justify-between py-0">
           <div className="flex items-center gap-2.5">
             <Link
-              to={`/${project.author.username}`}
+              to="/$username"
+              params={{ username: project.author.username }}
               className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
             >
               <OptimizedAvatar

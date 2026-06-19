@@ -58,7 +58,8 @@ export function ProgressiveHeroImage({
   mobileSrc,
   tabletSrc,
   desktopSrc,
-  alt, = true, // Hero images are typically above the fold
+  alt,
+  priority = true, // Hero images are typically above the fold
 
   className,
   imageClassName,
@@ -370,13 +371,18 @@ export function ProgressiveBackgroundImage({
       }}
     >
       {/* Mobile background via CSS media query */}
-      <style jsx>{`
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS string for art-direction background
+        dangerouslySetInnerHTML={{
+          __html: `
         @media (max-width: 767px) {
           .mobile-bg {
             background-image: ${backgroundImageSet.mobile || `url(${src})`};
           }
         }
-      `}</style>
+      `,
+        }}
+      />
 
       {/* Loading placeholder */}
       {enableBlurPlaceholder && (

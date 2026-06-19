@@ -78,15 +78,12 @@ export function OptimizedAvatar({
       <Image
         src={finalSrc}
         alt={alt}
+        layout="constrained"
         loading="lazy"
         decoding="async"
         className={avatarClasses}
         onLoad={handleLoad}
         onError={handleError}
-        style={{
-          // Prevent layout shift
-          aspectRatio: '1 / 1',
-        }}
         width={32}
         height={32}
       />

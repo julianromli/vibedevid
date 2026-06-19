@@ -16,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { deleteProject } from '@/lib/actions'
+import { deleteProjectFn } from '@/lib/actions/projects.functions'
 
 interface ProjectActionsClientProps {
   projectSlug: string
@@ -29,7 +29,7 @@ export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActio
 
   const handleDelete = async () => {
     setIsDeleting(true)
-    const result = await deleteProject(projectSlug)
+    const result = await deleteProjectFn({ data: { projectSlug } })
 
     if (result.success) {
       router.navigate({ to: '/' })

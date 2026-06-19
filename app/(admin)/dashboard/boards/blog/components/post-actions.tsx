@@ -92,7 +92,8 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link
-              to={`/blog/${post.slug}`}
+              to="/blog/$slug"
+              params={{ slug: post.slug }}
               target="_blank"
               className="flex items-center"
             >
