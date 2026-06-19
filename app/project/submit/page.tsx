@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { redirect } from '@/lib/navigation'
+import { useTranslation } from 'react-i18next'
 import { SubmitProjectForm } from '@/components/ui/submit-project-form'
 import type { Category } from '@/lib/categories'
 import { createClient } from '@/lib/supabase/server'
@@ -37,7 +37,7 @@ function SubmitProjectPageContent({
   categories: Category[]
   redirectTo: string
 }) {
-  const t = useTranslations('projectSubmit')
+  const { t } = useTranslation('projectSubmit')
 
   return (
     <div className="relative min-h-screen bg-grid-pattern">

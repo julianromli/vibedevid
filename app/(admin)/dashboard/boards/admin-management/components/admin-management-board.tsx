@@ -1,8 +1,8 @@
 'use client'
 
 import { IconSearch, IconShield, IconShieldOff, IconUserPlus } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Link } from '@tanstack/react-router'
+import { useRouter } from '@/lib/navigation'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -292,7 +292,7 @@ export function AdminManagementBoard({ initialUsers, adminCount, moderatorCount 
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <Link
-                                href={`/${user.username}`}
+                                to={`/${user.username}`}
                                 className="font-medium hover:underline"
                                 target="_blank"
                               >

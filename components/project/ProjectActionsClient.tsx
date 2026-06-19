@@ -1,7 +1,7 @@
 'use client'
 
 import { Loader2, Trash2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -32,7 +32,7 @@ export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActio
     const result = await deleteProject(projectSlug)
 
     if (result.success) {
-      router.push('/')
+      router.navigate({ to: '/' })
     } else {
       toast.error(result.error || 'Failed to delete project')
       setIsDeleting(false)

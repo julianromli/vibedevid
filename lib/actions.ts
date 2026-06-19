@@ -1,15 +1,11 @@
-'use server'
-
-import { createServerClient } from '@supabase/ssr'
-import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from '@/lib/revalidation'
+import { redirect } from '@/lib/navigation'
 import { getCategories, getCategoryDisplayName } from './categories'
-import { getSupabaseConfig } from './env-config'
 import { fetchFavicon } from './favicon-utils'
 import { normalizeProjectWebsiteUrl } from './project-url'
 import { getProjectIdBySlug } from './slug'
 import { createAdminClient } from './supabase/admin'
+import { createClient } from './supabase/server'
 import { deleteUploadthingFiles } from './uploadthing'
 
 function toLoggableError(error: unknown): string | Record<string, string | number> {
@@ -60,30 +56,6 @@ function isAuthSessionMissingError(error: unknown): boolean {
 
   return name === 'AuthSessionMissingError' || message.toLowerCase().includes('auth session missing')
 }
-
-async function createClient() {
-  const cookieStore = await cookies()
-  const { url, anonKey } = getSupabaseConfig()
-  return createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
-}
-
 function getSafeRedirectPath(value: FormDataEntryValue | null): string {
   if (typeof value !== 'string') return '/'
 

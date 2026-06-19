@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import { useCallback, useState } from 'react'
 import { cn } from '@/lib/utils'
 

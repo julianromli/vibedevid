@@ -1,9 +1,9 @@
 'use client'
 
 import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { useRouter } from '@/lib/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -109,7 +109,7 @@ export function PostDashboardClient() {
           <h1 className="text-3xl font-bold tracking-tight">Your Posts</h1>
           <p className="text-muted-foreground">Manage your blog posts and track their performance.</p>
         </div>
-        <Link href="/blog/editor">
+        <Link to="/blog/editor">
           <Button>
             <Plus className="mr-2 h-4 w-4" /> New Post
           </Button>
@@ -150,7 +150,7 @@ export function PostDashboardClient() {
                 </Button>
               )}
               {activeTab === 'all' && (
-                <Link href="/blog/editor">
+                <Link to="/blog/editor">
                   <Button variant="outline">Create your first post</Button>
                 </Link>
               )}
@@ -166,7 +166,7 @@ export function PostDashboardClient() {
                   <div className="flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        href={`/blog/editor/${post.slug}`}
+                        to={`/blog/editor/${post.slug}`}
                         className="font-bold text-xl hover:text-primary transition-colors line-clamp-2"
                       >
                         {post.title}
@@ -208,10 +208,8 @@ export function PostDashboardClient() {
                     <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-muted sm:w-48 border">
                       <Image
                         src={post.cover_image}
-                        alt={post.title}
-                        fill
+                        alt={post.title} className="w-full h-full object-cover"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 100vw, 200px"
                       />
                     </div>
                   )}
@@ -224,7 +222,7 @@ export function PostDashboardClient() {
                       asChild
                       className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     >
-                      <Link href={`/blog/editor/${post.slug}`}>
+                      <Link to={`/blog/editor/${post.slug}`}>
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit</span>
                       </Link>
@@ -245,7 +243,7 @@ export function PostDashboardClient() {
                         {post.status === 'published' && (
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/blog/${post.slug}`}
+                              to={`/blog/${post.slug}`}
                               target="_blank"
                             >
                               <Eye className="mr-2 h-4 w-4" /> View Live

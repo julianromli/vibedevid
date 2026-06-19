@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from '@/lib/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
 import BlogEditorClient from './blog-editor-client'

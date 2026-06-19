@@ -1,8 +1,8 @@
 'use client'
 
 import { Calendar, Clock, ExternalLink, MapPin, Users } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -79,9 +79,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
           <div className="relative w-32 shrink-0 overflow-hidden sm:w-40">
             <Image
               src={event.coverImage}
-              alt={event.name}
-              fill
-              sizes="160px"
+              alt={event.name} className="w-full h-full object-cover"
               loading="lazy"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               data-testid="event-cover-image"
@@ -146,7 +144,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
 
               {/* CTA */}
               <Link
-                href={`/event/${event.slug}`}
+                to={`/event/${event.slug}`}
                 className={cn(
                   'hidden items-center gap-1 rounded-md px-3 py-1.5 font-medium text-xs sm:flex',
                   'bg-primary/10 text-primary transition-colors hover:bg-primary/20',
@@ -177,9 +175,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
         <AspectRatio ratio={16 / 9}>
           <Image
             src={event.coverImage}
-            alt={event.name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            alt={event.name} className="w-full h-full object-cover"
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             data-testid="event-cover-image"
@@ -272,7 +268,7 @@ export function EventCard({ event, variant = 'grid' }: EventCardProps) {
 
         {/* CTA */}
         <Link
-          href={`/event/${event.slug}`}
+          to={`/event/${event.slug}`}
           className={cn(
             'mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium text-sm',
             'bg-primary text-primary-foreground transition-all',

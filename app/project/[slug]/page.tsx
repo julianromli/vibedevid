@@ -1,9 +1,9 @@
 // Server Component - No 'use client' directive!
 
 import { Calendar, ExternalLink, Globe, Tag, User } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { notFound, redirect } from '@/lib/navigation'
 import type { ReactNode } from 'react'
 import { ProjectActionsClient } from '@/components/project/ProjectActionsClient'
 import { ProjectEditClient } from '@/components/project/ProjectEditClient'
@@ -127,7 +127,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
     if (legacyProject?.slug) {
       redirect(`/project/${legacyProject.slug}`)
     }
-    notFound()
+    throw notFound()
   }
 
   // Parallel data fetching on server
@@ -137,9 +137,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
     getCategories(),
   ])
 
-  // Handle errors with Next.js notFound()
+  // Handle errors with Next.js throw notFound()
   if (projectError || !project) {
-    notFound()
+    throw notFound()
   }
 
   // Fetch comments using project.id (UUID)
@@ -349,7 +349,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                         {project.author.location}
                       </p>
                     </div>
-                    <Link href={`/${project.author.username}`}>
+                    <Link to={`/${project.author.username}`}>
                       <Button
                         variant="outline"
                         className="w-full bg-transparent"

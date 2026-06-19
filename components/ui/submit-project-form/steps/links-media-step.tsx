@@ -1,6 +1,6 @@
 import { UploadButton } from '@uploadthing/react'
 import { CheckCircle, Loader2, X } from 'lucide-react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

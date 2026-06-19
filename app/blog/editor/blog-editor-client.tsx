@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { BlogGuideModal } from '@/components/blog/blog-guide-modal'
@@ -145,13 +145,13 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
 
           if (mode === 'create') {
             if (status === 'published') {
-              router.push(`/blog/${finalSlug}`)
+              router.navigate({ to: `/blog/${finalSlug}` })
             } else {
-              router.push('/dashboard/posts')
+              router.navigate({ to: '/dashboard/posts' })
             }
           } else {
             if (status === 'published') {
-              router.push(`/blog/${finalSlug}`)
+              router.navigate({ to: `/blog/${finalSlug}` })
             }
           }
         } else {

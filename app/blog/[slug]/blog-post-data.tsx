@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { Link } from '@tanstack/react-router'
+import { notFound } from '@/lib/navigation'
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -74,7 +74,7 @@ export default async function BlogPostData({ params }: Props) {
     .single()
 
   if (error || !post || post.status !== 'published') {
-    notFound()
+    throw notFound()
   }
 
   // Fetch view count for this post
@@ -128,7 +128,7 @@ export default async function BlogPostData({ params }: Props) {
 
         <div className="absolute top-20 left-4 md:left-8 lg:left-16">
           <Link
-            href="/blog"
+            to="/blog"
             className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -143,7 +143,7 @@ export default async function BlogPostData({ params }: Props) {
             <div className="flex flex-wrap items-center gap-6 text-muted-foreground text-sm">
               {authorSlug ? (
                 <Link
-                  href={`/${authorSlug}`}
+                  to={`/${authorSlug}`}
                   className="flex items-center gap-2 transition-colors hover:text-foreground"
                 >
                   {authorContent}

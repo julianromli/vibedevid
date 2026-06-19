@@ -1,6 +1,4 @@
-'use server'
-
-import { revalidatePath } from 'next/cache'
+import { revalidatePath } from '@/lib/revalidation'
 import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from '@/lib/profile-social-links'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'

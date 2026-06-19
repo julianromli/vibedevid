@@ -1,8 +1,8 @@
 'use client'
 
 import { Heart, MessageCircle } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Badge } from '@/components/ui/badge'
 
@@ -16,20 +16,18 @@ export function ProjectTab({ projects }: ProjectTabProps) {
       {projects.map((project) => (
         <Link
           key={project.id}
-          href={`/project/${project.slug}`}
+          to={`/project/${project.slug}`}
           className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
         >
           <div className="bg-muted relative overflow-hidden">
             <AspectRatio ratio={16 / 9}>
               <Image
                 src={project.thumbnail_url || '/placeholder.svg'}
-                alt={project.title}
-                fill
+                alt={project.title} className="w-full h-full object-cover"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg'
                 }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </AspectRatio>
             {project.category && (

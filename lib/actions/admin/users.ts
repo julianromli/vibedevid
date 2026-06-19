@@ -1,6 +1,4 @@
-'use server'
-
-import { revalidatePath } from 'next/cache'
+import { revalidatePath } from '@/lib/revalidation'
 import { createClient } from '@/lib/supabase/server'
 
 // IMPORTANT-5: Role constants for maintainability

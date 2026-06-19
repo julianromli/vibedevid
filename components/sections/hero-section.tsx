@@ -6,9 +6,10 @@
 'use client'
 
 import { ArrowRight } from 'lucide-react'
-import Link from 'next/link'
-import { useLocale, useTranslations } from 'next-intl'
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { useLocale } from '@/hooks/use-locale'
+import { Fragment, Suspense, useMemo } from 'react'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
@@ -48,11 +49,12 @@ function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordIt
   })
 }
 
+function getWordAnimationDelay(index: number): string {
+  return `${Math.min(index * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)}ms`
+}
+
 export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) {
-  const [animatedWords, setAnimatedWords] = useState<number[]>([])
-  const [subtitleVisible, setSubtitleVisible] = useState(false)
-  const lastAnimationKey = useRef<string | null>(null)
-  const t = useTranslations('hero')
+  const { t } = useTranslation('hero')
   const locale = useLocale()
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
@@ -61,53 +63,16 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   // across the desktop line break, so it needs explicit mobile-only breaks.
   const useIdMobileLayout = locale === 'id'
 
-  const titleLine1 = useMemo(() => t('titleLine1').split(' '), [t])
-  const titleLine2 = useMemo(() => t('titleLine2').split(' '), [t])
+  const titleLine1Text = t('titleLine1')
+  const titleLine2Text = t('titleLine2')
+  const titleLine1 = useMemo(() => titleLine1Text.split(' '), [titleLine1Text])
+  const titleLine2 = useMemo(() => titleLine2Text.split(' '), [titleLine2Text])
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
-  const titleKey = useMemo(() => `${titleLine1.join(' ')}\n${titleLine2.join(' ')}`, [titleLine1, titleLine2])
-  const animationKey = useMemo(
-    () => `${prefersReducedMotion ? 'reduce' : 'animate'}\n${titleKey}`,
-    [prefersReducedMotion, titleKey],
-  )
-
-  useEffect(() => {
-    const words = [...titleLine1, ...titleLine2]
-
-    if (lastAnimationKey.current === animationKey) return
-    lastAnimationKey.current = animationKey
-
-    if (prefersReducedMotion) {
-      setAnimatedWords(words.map((_, index) => index))
-      setSubtitleVisible(true)
-      return
-    }
-
-    setAnimatedWords([])
-    setSubtitleVisible(false)
-
-    const timers: ReturnType<typeof setTimeout>[] = []
-
-    words.forEach((_word, index) => {
-      const wordDelay = Math.min(index * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)
-      const timer = setTimeout(() => {
-        setAnimatedWords((prev) => [...prev, index])
-      }, wordDelay)
-      timers.push(timer)
-    })
-
-    const lastWordDelay = Math.min(Math.max(words.length - 1, 0) * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)
-    const subtitleTimer = setTimeout(() => {
-      setSubtitleVisible(true)
-    }, lastWordDelay + HERO_SUBTITLE_DELAY_MS)
-    timers.push(subtitleTimer)
-
-    return () => {
-      timers.forEach((timer) => {
-        clearTimeout(timer)
-      })
-    }
-  }, [animationKey, prefersReducedMotion, titleLine1, titleLine2])
+  const totalWords = titleLine1.length + titleLine2.length
+  const subtitleDelay = `${
+    Math.min(Math.max(totalWords - 1, 0) * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS) + HERO_SUBTITLE_DELAY_MS
+  }ms`
 
   return (
     <section className="bg-grid-pattern relative mt-0 py-16 sm:py-20 lg:py-28">
@@ -116,7 +81,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
         <div className="space-y-10 sm:space-y-12">
           <div className="space-y-6 text-center sm:space-y-8">
             <Link
-              href={ANNOUNCEMENT_HREF}
+              to={ANNOUNCEMENT_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block cursor-pointer transition-transform duration-200 hover:scale-105"
@@ -138,11 +103,14 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 <Fragment key={item.key}>
                   <span
                     className={cn(
-                      'mr-2 inline-block transition-all duration-500 ease-out motion-reduce:transition-none sm:mr-3',
-                      animatedWords.includes(item.index)
-                        ? 'blur-0 translate-y-0 opacity-100'
-                        : 'translate-y-8 opacity-0 blur-sm',
+                      'hero-word mr-2 inline-block sm:mr-3',
+                      prefersReducedMotion && 'opacity-100',
                     )}
+                    style={
+                      prefersReducedMotion
+                        ? undefined
+                        : { animationDelay: getWordAnimationDelay(item.index) }
+                    }
                   >
                     {item.word}
                   </span>
@@ -162,11 +130,14 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 <Fragment key={item.key}>
                   <span
                     className={cn(
-                      'mr-2 inline-block transition-all duration-500 ease-out motion-reduce:transition-none sm:mr-3',
-                      animatedWords.includes(item.index + titleLine1.length)
-                        ? 'blur-0 translate-y-0 opacity-100'
-                        : 'translate-y-8 opacity-0 blur-sm',
+                      'hero-word mr-2 inline-block sm:mr-3',
+                      prefersReducedMotion && 'opacity-100',
                     )}
+                    style={
+                      prefersReducedMotion
+                        ? undefined
+                        : { animationDelay: getWordAnimationDelay(item.index + titleLine1.length) }
+                    }
                   >
                     {item.word}
                   </span>
@@ -182,9 +153,10 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
 
             <p
               className={cn(
-                'text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed transition-all duration-500 ease-out motion-reduce:transition-none md:text-xl',
-                subtitleVisible ? 'blur-0 translate-y-0 opacity-100' : 'translate-y-8 opacity-0 blur-sm',
+                'hero-subtitle text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed md:text-xl',
+                prefersReducedMotion && 'opacity-100',
               )}
+              style={prefersReducedMotion ? undefined : { animationDelay: subtitleDelay }}
             >
               {t('subtitle')}
             </p>
@@ -196,7 +168,7 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 className="bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
               >
                 <Link
-                  href={joinHref}
+                  to={joinHref}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -223,15 +195,12 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 width={1200}
                 height={675}
                 className="h-auto w-full object-cover"
-                priority={true}
-                enableBlurPlaceholder={true}
                 quality={75}
                 responsiveSizes={{
                   mobile: '100vw',
                   tablet: '100vw',
                   desktop: '1200px',
                 }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
               />
             </SafariMockup>
           </div>

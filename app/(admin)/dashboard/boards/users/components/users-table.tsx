@@ -1,7 +1,7 @@
 'use client'
 
 import { IconFolder, IconHeart, IconMessageCircle, IconNews } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -73,7 +73,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                     </Avatar>
                     <div>
                       <Link
-                        href={`/${user.username}`}
+                        to={`/${user.username}`}
                         className="font-medium hover:underline"
                       >
                         {user.display_name}

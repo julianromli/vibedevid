@@ -10,7 +10,7 @@ import {
   IconStarOff,
   IconTrash,
 } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -92,7 +92,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link
-              href={`/blog/${post.slug}`}
+              to={`/blog/${post.slug}`}
               target="_blank"
               className="flex items-center"
             >

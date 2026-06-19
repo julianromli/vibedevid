@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { useAuth } from '@/hooks/useAuth'
@@ -155,13 +155,13 @@ export function TermsOfServiceClient() {
 
           <div className="mb-10 grid gap-3 sm:grid-cols-2">
             <Link
-              href="/privacy-policy"
+              to="/privacy-policy"
               className="border-border/70 hover:bg-accent/40 rounded-xl border p-4 text-sm transition-colors"
             >
               Lihat juga Privacy Policy
             </Link>
             <Link
-              href="/"
+              to="/"
               className="border-border/70 hover:bg-accent/40 rounded-xl border p-4 text-sm transition-colors"
             >
               Kembali ke beranda VibeDev ID

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 
 interface AdaptiveLogoProps {
   className?: string
@@ -15,7 +15,6 @@ export function AdaptiveLogo({ className = 'h-7 w-auto md:h-8', alt = 'VibeDev I
         className={`${className} block transition-opacity duration-300 dark:hidden`}
         width={704}
         height={120}
-        priority={true}
       />
 
       {/* Dark mode logo - hidden in light mode, visible in dark mode */}
@@ -26,7 +25,6 @@ export function AdaptiveLogo({ className = 'h-7 w-auto md:h-8', alt = 'VibeDev I
         aria-hidden="true"
         width={704}
         height={120}
-        priority={true}
       />
     </div>
   )

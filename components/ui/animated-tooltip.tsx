@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 

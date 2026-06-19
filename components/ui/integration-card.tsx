@@ -4,7 +4,7 @@
  */
 
 import { ExternalLink } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
@@ -35,7 +35,7 @@ export function IntegrationCard({ title, description, buttonLabel, children, lin
             className="gap-1 pr-2 shadow-none"
           >
             <Link
-              href={link}
+              to={link}
               target="_blank"
               rel="noopener noreferrer"
             >

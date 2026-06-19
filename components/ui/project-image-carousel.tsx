@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import { useCallback, useEffect, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -61,8 +61,7 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
         <AspectRatio ratio={16 / 9}>
           <Image
             src="/placeholder.svg"
-            alt="No images"
-            fill
+            alt="No images" className="w-full h-full object-cover"
             className="h-full w-full object-cover"
           />
         </AspectRatio>
@@ -90,11 +89,8 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
           >
             <Image
               src={currentImage}
-              alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
-              fill
-              priority
+              alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`} className="w-full h-full object-cover"
               className="h-full w-full object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
             />
           </motion.div>
         </AnimatePresence>

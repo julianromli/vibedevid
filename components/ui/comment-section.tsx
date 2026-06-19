@@ -1,7 +1,7 @@
 'use client'
 
 import { Flag, Loader2, MessageCircle, Send } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -160,7 +160,7 @@ export function CommentSection({
               {!isLoggedIn && !allowGuest ? (
                 <p className="text-muted-foreground text-sm">
                   <Link
-                    href="/user/auth"
+                    to="/user/auth"
                     className="text-primary hover:underline"
                   >
                     Sign in

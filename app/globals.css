@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+@import '@fontsource-variable/geist';
+@import '@fontsource/instrument-serif';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -195,6 +197,75 @@ body {
   100% {
     transform: translateX(-50%);
   }
+}
+
+/* Hero word reveal animation */
+@keyframes hero-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.hero-word {
+  animation: hero-word-in 0.5s ease-out both;
+}
+
+.hero-subtitle {
+  animation: hero-word-in 0.5s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word,
+  .hero-subtitle {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .video-option-enter,
+  .faq-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes video-option-in {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.video-option-enter {
+  animation: video-option-in 0.7s ease-out both;
+}
+
+@keyframes faq-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.faq-card {
+  animation: faq-card-in 0.7s ease-out both;
 }
 
 /* Gradient Animation for Animated Text Component */

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { Button, type ButtonProps } from './ui/button'
 
 export function BackButton({ variant = 'outline', children = 'Go Back', ...props }: ButtonProps) {

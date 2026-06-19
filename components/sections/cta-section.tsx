@@ -5,8 +5,8 @@
 
 'use client'
 
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
@@ -16,7 +16,7 @@ interface CTASectionProps {
 }
 
 export function CTASection({ joinHref }: CTASectionProps) {
-  const t = useTranslations('cta')
+  const { t } = useTranslation('cta')
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   return (
@@ -101,7 +101,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Link
-              href={joinHref}
+              to={joinHref}
               target="_blank"
               rel="noopener noreferrer"
             >

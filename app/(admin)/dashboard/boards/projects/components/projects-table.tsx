@@ -1,7 +1,7 @@
 'use client'
 
 import { IconEye, IconHeart, IconMessageCircle } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -57,7 +57,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                     </Avatar>
                     <div>
                       <Link
-                        href={`/project/${project.slug}`}
+                        to={`/project/${project.slug}`}
                         className="font-medium hover:underline"
                       >
                         {project.title}

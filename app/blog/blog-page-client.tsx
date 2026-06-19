@@ -1,7 +1,7 @@
 'use client'
 
 import { FileText, PenSquare } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { BlogCard } from '@/components/blog/blog-card'
 import { FloatingWriteButton } from '@/components/blog/floating-write-button'
 import { Button } from '@/components/ui/button'
@@ -77,7 +77,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
               {/* Quick Actions for logged-in users */}
               {isLoggedIn && (
                 <div className="flex flex-wrap items-center gap-3">
-                  <Link href="/dashboard/posts">
+                  <Link to="/dashboard/posts">
                     <Button
                       variant="outline"
                       className="gap-2"
@@ -86,7 +86,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                       My Posts
                     </Button>
                   </Link>
-                  <Link href="/blog/editor">
+                  <Link to="/blog/editor">
                     <Button className="gap-2">
                       <PenSquare className="h-4 w-4" />
                       Write a Post
@@ -128,14 +128,14 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
               <p className="mb-2 font-medium text-lg">No blog posts yet</p>
               <p className="mb-6 text-muted-foreground">Be the first to share your knowledge with the community!</p>
               {isLoggedIn ? (
-                <Link href="/blog/editor">
+                <Link to="/blog/editor">
                   <Button className="gap-2">
                     <PenSquare className="h-4 w-4" />
                     Write your first post
                   </Button>
                 </Link>
               ) : (
-                <Link href="/user/auth?redirectTo=/blog/editor">
+                <Link to="/user/auth?redirectTo=/blog/editor">
                   <Button className="gap-2">Sign in to write</Button>
                 </Link>
               )}

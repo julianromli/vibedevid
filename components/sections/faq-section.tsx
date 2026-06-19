@@ -6,27 +6,20 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from 'react-i18next'
 import { useMediaQuery } from '@/hooks/use-media-query'
-
-interface FAQSectionProps {
-  openFAQ: number | null
-  toggleFAQ: (index: number) => void
-  isVisible: boolean
-}
+import { cn } from '@/lib/utils'
 
 interface FAQItem {
   question: string
   answer: string
 }
 
-export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
-  const t = useTranslations('faq')
+export function FAQSection() {
+  const { t } = useTranslation('faq')
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
-  // Get FAQ items from translations
-  const faqItems = t.raw('items') as Record<string, FAQItem>
+  const faqItems = t('items', { returnObjects: true }) as Record<string, FAQItem>
   const faqArray = Object.values(faqItems)
 
   return (
@@ -43,52 +36,31 @@ export function FAQSection({ openFAQ, toggleFAQ, isVisible }: FAQSectionProps) {
 
         <div className="space-y-4">
           {faqArray.map((faq, index) => (
-            <Card
+            <details
               key={faq.question}
-              className={`hover:shadow-md ${prefersReducedMotion ? '' : 'transition-all duration-700'} ${
-                isVisible || prefersReducedMotion ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-              }`}
-              style={prefersReducedMotion ? undefined : { transitionDelay: `${index * 100}ms` }}
+              className={cn(
+                'faq-card bg-card text-card-foreground group rounded-xl border shadow-sm hover:shadow-md',
+                !prefersReducedMotion && 'transition-shadow duration-300',
+              )}
+              style={prefersReducedMotion ? undefined : { animationDelay: `${index * 100}ms` }}
             >
-              <CardContent className="p-6">
-                <h3>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between text-left"
-                    onClick={() => toggleFAQ(index)}
-                    aria-expanded={openFAQ === index}
-                    aria-controls={`faq-panel-${index}`}
-                    id={`faq-trigger-${index}`}
-                  >
-                    <span className="font-semibold">{faq.question}</span>
-                    <div
-                      className={`ml-4 flex-shrink-0 ${prefersReducedMotion ? '' : 'transition-transform duration-300'}`}
-                    >
-                      {openFAQ === index ? (
-                        <Minus className="text-muted-foreground h-5 w-5" />
-                      ) : (
-                        <Plus className="text-muted-foreground h-5 w-5" />
-                      )}
-                    </div>
-                  </button>
-                </h3>
+              <summary
+                className={cn(
+                  'flex cursor-pointer list-none items-center justify-between p-6 text-left font-semibold [&::-webkit-details-marker]:hidden',
+                  !prefersReducedMotion && 'transition-colors duration-200',
+                )}
+              >
+                <span className="pr-4">{faq.question}</span>
+                <span className="ml-4 flex-shrink-0" aria-hidden="true">
+                  <Plus className="text-muted-foreground h-5 w-5 group-open:hidden" />
+                  <Minus className="text-muted-foreground hidden h-5 w-5 group-open:block" />
+                </span>
+              </summary>
 
-                <section
-                  id={`faq-panel-${index}`}
-                  aria-labelledby={`faq-trigger-${index}`}
-                  aria-hidden={openFAQ !== index}
-                  className={`grid overflow-hidden ${prefersReducedMotion ? '' : 'transition-[grid-template-rows,opacity] duration-300 ease-out'} ${
-                    openFAQ === index
-                      ? 'mt-4 grid-rows-[1fr] opacity-100'
-                      : 'pointer-events-none grid-rows-[0fr] opacity-0'
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
-                  </div>
-                </section>
-              </CardContent>
-            </Card>
+              <div className="px-6 pb-6">
+                <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
+              </div>
+            </details>
           ))}
         </div>
       </div>

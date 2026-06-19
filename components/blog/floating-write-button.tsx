@@ -2,7 +2,7 @@
 
 import { Upload } from 'lucide-react'
 import { motion } from 'motion/react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 
 interface FloatingWriteButtonProps {
@@ -34,7 +34,7 @@ export function FloatingWriteButton({ isLoggedIn }: FloatingWriteButtonProps) {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
-      <Link href="/project/submit">
+      <Link to="/project/submit">
         <Button
           size="lg"
           className="h-14 w-14 rounded-full shadow-lg transition-shadow hover:shadow-xl"

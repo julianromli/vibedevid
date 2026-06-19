@@ -1,9 +1,16 @@
-import { createUploadthing, type FileRouter } from 'uploadthing/next'
-import { UTApi } from 'uploadthing/server'
+import { createUploadthing, type FileRouter, UTApi } from 'uploadthing/server'
 import { createClient } from './supabase/server'
 
 const f = createUploadthing()
-const utapi = new UTApi()
+
+let utapiInstance: UTApi | null = null
+
+function getUtApi() {
+  if (!utapiInstance) {
+    utapiInstance = new UTApi()
+  }
+  return utapiInstance
+}
 
 export type UploadedFileMetadata = {
   key: string
@@ -47,7 +54,7 @@ export async function deleteUploadthingFiles(fileKeys: string | string[]): Promi
     }
   }
 
-  return utapi.deleteFiles(normalizedKeys)
+  return getUtApi().deleteFiles(normalizedKeys)
 }
 
 export const ourFileRouter = {

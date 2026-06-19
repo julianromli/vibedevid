@@ -6,11 +6,10 @@
 'use client'
 
 import { ChevronDown, Plus } from 'lucide-react'
-import { useInView } from 'motion/react'
-import dynamic from 'next/dynamic'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { motion } from 'motion/react'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -22,10 +21,7 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
-const MotionDiv = dynamic(() => import('motion/react').then((mod) => mod.motion.div), {
-  ssr: false,
-  loading: () => <div className="group my-4 cursor-pointer py-0" />,
-})
+const MotionDiv = motion.div
 
 interface ProjectShowcaseProps {
   projects: Project[]
@@ -101,15 +97,14 @@ function TrendingDropdown({
 interface ProjectCardProps {
   project: Project
   index: number
-  isInView: boolean
   prefersReducedMotion: boolean
 }
 
-function ProjectCard({ project, index, isInView, prefersReducedMotion }: ProjectCardProps) {
+function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps) {
   return (
     <MotionDiv
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      initial={false}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
         duration: prefersReducedMotion ? 0 : 0.32,
         delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
@@ -120,7 +115,7 @@ function ProjectCard({ project, index, isInView, prefersReducedMotion }: Project
     >
       <div className="group my-4 cursor-pointer py-0">
         <Link
-          href={`/project/${project.slug}`}
+          to={`/project/${project.slug}`}
           className="block"
         >
           {/* Thumbnail Preview Section */}
@@ -129,8 +124,6 @@ function ProjectCard({ project, index, isInView, prefersReducedMotion }: Project
               <Image
                 src={project.image || '/vibedev-guest-avatar.png'}
                 alt={project.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -160,7 +153,7 @@ function ProjectCard({ project, index, isInView, prefersReducedMotion }: Project
         <div className="mt-3 flex items-center justify-between py-0">
           <div className="flex items-center gap-2.5">
             <Link
-              href={`/${project.author.username}`}
+              to={`/${project.author.username}`}
               className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
             >
               <OptimizedAvatar
@@ -198,8 +191,8 @@ export function ProjectShowcase({
   setSelectedTrending,
   filterOptions,
 }: ProjectShowcaseProps) {
-  const t = useTranslations('projectShowcase')
-  const tCommon = useTranslations('common')
+  const { t } = useTranslation('projectShowcase')
+  const { t: tCommon } = useTranslation('common')
 
   const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
   const trendingOptions: Array<{ value: SortBy; label: string }> = [
@@ -210,7 +203,6 @@ export function ProjectShowcase({
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)
-  const gridRef = useRef<HTMLDivElement>(null)
   const mobileTrendingRef = useRef<HTMLDivElement>(null)
   const desktopTrendingRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
@@ -218,7 +210,6 @@ export function ProjectShowcase({
   const closeTrendingDropdown = useCallback(() => {
     setIsTrendingOpen(false)
   }, [])
-  const isInView = useInView(gridRef, { once: true, margin: '-50px' })
 
   useClickOutside(trendingRefs, closeTrendingDropdown, isTrendingOpen)
 
@@ -244,7 +235,7 @@ export function ProjectShowcase({
                 asChild
                 className="bg-primary hover:bg-primary/90 w-full max-w-sm"
               >
-                <Link href="/project/submit">
+                <Link to="/project/submit">
                   <Plus className="mr-2 h-4 w-4" />
                   {t('submitButton')}
                 </Link>
@@ -295,7 +286,7 @@ export function ProjectShowcase({
                 asChild
                 className="bg-primary hover:bg-primary/90"
               >
-                <Link href="/project/submit">
+                <Link to="/project/submit">
                   <Plus className="mr-2 h-4 w-4" />
                   {t('submitButton')}
                 </Link>
@@ -320,10 +311,7 @@ export function ProjectShowcase({
         </div>
 
         {/* Project Grid */}
-        <div
-          ref={gridRef}
-          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-        >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {loading
             ? skeletonKeys.map((skeletonKey) => (
                 <div
@@ -350,7 +338,6 @@ export function ProjectShowcase({
                   key={project.id}
                   project={project}
                   index={index}
-                  isInView={isInView}
                   prefersReducedMotion={prefersReducedMotion}
                 />
               ))}

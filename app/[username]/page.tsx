@@ -1,9 +1,9 @@
 'use client'
 import { format } from 'date-fns'
 import { ArrowLeft, FilePenLine, FileText, FolderOpen, LayoutGrid, User } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { useParams, useRouter } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { BlogTab } from '@/components/profile/blog-tab'
@@ -433,7 +433,7 @@ export default function ProfilePage() {
         toast.success('Profile updated successfully')
 
         if (result.usernameChanged && result.newUsername) {
-          router.push(`/${result.newUsername}`)
+          router.navigate({ to: `/${result.newUsername}` })
         }
       } else {
         toast.error(result.error || 'Failed to update profile')
@@ -486,7 +486,7 @@ export default function ProfilePage() {
           <div className="text-center">
             <h1 className="mb-4 text-2xl font-bold">User Not Found</h1>
             <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
-            <Button onClick={() => router.push('/')}>
+            <Button onClick={() => router.navigate({ to: '/' })}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>

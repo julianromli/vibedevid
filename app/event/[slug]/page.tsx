@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getLocale } from 'next-intl/server'
+import { getLocale } from '@/lib/i18n-server'
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getEventBySlug } from '@/lib/actions/events'

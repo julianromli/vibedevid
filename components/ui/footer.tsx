@@ -1,10 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 export function Footer() {
-  const t = useTranslations('footer')
+  const { t } = useTranslation('footer')
 
   return (
     <footer className="bg-muted/50 border-border relative border-t py-12">
@@ -13,13 +13,13 @@ export function Footer() {
           <div className="text-muted-foreground mb-4 text-sm md:mb-0">{t('copyright')}</div>
           <div className="flex space-x-6 text-sm">
             <Link
-              href="/privacy-policy"
+              to="/privacy-policy"
               className="text-muted-foreground hover:text-foreground"
             >
               {t('privacy')}
             </Link>
             <Link
-              href="/terms-of-service"
+              to="/terms-of-service"
               className="text-muted-foreground hover:text-foreground"
             >
               {t('terms')}

@@ -1,6 +1,6 @@
 'use client'
 
-import { getImageProps } from 'next/image'
+import { getImageProps } from '@/lib/image-types'
 import { useMemo } from 'react'
 import { getBackgroundImageSet, getOptimalImageProps } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
@@ -58,8 +58,7 @@ export function ProgressiveHeroImage({
   mobileSrc,
   tabletSrc,
   desktopSrc,
-  alt,
-  priority = true, // Hero images are typically above the fold
+  alt, = true, // Hero images are typically above the fold
 
   className,
   imageClassName,
@@ -202,9 +201,7 @@ export function ProgressiveHeroImage({
             src={src}
             alt={alt}
             fill
-            priority={priority}
             quality={quality}
-            sizes="100vw"
             enableBlurPlaceholder={enableBlurPlaceholder}
             customBlurDataURL={customBlurDataURL}
             placeholderColor={placeholderColor}
@@ -243,9 +240,7 @@ export function ProgressiveHeroImage({
         src={src}
         alt={alt}
         fill
-        priority={priority}
         quality={quality}
-        sizes="100vw"
         enableBlurPlaceholder={enableBlurPlaceholder}
         customBlurDataURL={customBlurDataURL}
         placeholderColor={placeholderColor}

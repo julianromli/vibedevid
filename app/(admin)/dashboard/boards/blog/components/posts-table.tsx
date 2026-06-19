@@ -1,7 +1,7 @@
 'use client'
 
 import { IconClock, IconEye } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -70,7 +70,7 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                     </Avatar>
                     <div>
                       <Link
-                        href={`/blog/${post.slug}`}
+                        to={`/blog/${post.slug}`}
                         className="font-medium hover:underline"
                       >
                         {post.title}

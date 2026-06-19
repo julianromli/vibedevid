@@ -1,8 +1,8 @@
 'use client'
 
 import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Link } from '@tanstack/react-router'
+import { useRouter } from '@/lib/navigation'
 import { useEffect, useState } from 'react'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Badge } from '@/components/ui/badge'
@@ -65,7 +65,7 @@ export default function TermsPage() {
 
     // For homepage sections, redirect
     if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.push(`/#${sectionId}`)
+      router.navigate({ to: `/#${sectionId}` })
     }
   }
 
@@ -475,7 +475,7 @@ export default function TermsPage() {
                       <h4 className="mb-3 text-lg font-semibold">Contact Us</h4>
                       <div className="space-y-2">
                         <Link
-                          href="mailto:support@vibedev.id"
+                          to="mailto:support@vibedev.id"
                           className="flex items-center gap-2 hover:underline"
                           target="_blank"
                         >
@@ -483,7 +483,7 @@ export default function TermsPage() {
                           support@vibedev.id
                         </Link>
                         <Link
-                          href="https://s.id/vibedev"
+                          to="https://s.id/vibedev"
                           className="flex items-center gap-2 hover:underline"
                           target="_blank"
                         >

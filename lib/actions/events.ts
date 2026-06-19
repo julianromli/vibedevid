@@ -1,6 +1,4 @@
-'use server'
-
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from '@/lib/revalidation'
 import { ROLES } from '@/lib/actions/admin/schemas'
 import { validateEventForm } from '@/lib/event-form-utils'
 import { createAdminClient } from '@/lib/supabase/admin'

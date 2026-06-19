@@ -9,7 +9,7 @@ import {
   IconStar,
   IconUsers,
 } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { type ElementType, type ReactNode, useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -515,7 +515,7 @@ function HealthCard({
   highlight?: boolean
 }) {
   return (
-    <Link href={href}>
+    <Link to={href}>
       <Card
         className={
           highlight

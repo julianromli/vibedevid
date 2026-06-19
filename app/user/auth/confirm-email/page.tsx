@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -99,7 +99,7 @@ function ConfirmEmailContent() {
 
           {/* Back Button */}
           <Link
-            href="/user/auth"
+            to="/user/auth"
             className="absolute top-6 right-6"
           >
             <Button
@@ -190,7 +190,7 @@ function ConfirmEmailContent() {
             </div>
 
             {/* Back to Sign In */}
-            <Link href="/user/auth">
+            <Link to="/user/auth">
               <Button
                 variant="outline"
                 className="bg-muted/30 border-border text-foreground hover:bg-muted h-12 w-full rounded-xl transition-all duration-300"
@@ -218,7 +218,7 @@ function ConfirmEmailContent() {
             <p className="text-muted-foreground text-xs">
               Masih ada masalah?{' '}
               <Link
-                href="/user/auth"
+                to="/user/auth"
                 className="text-foreground hover:text-primary underline"
               >
                 Coba daftar ulang

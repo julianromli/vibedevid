@@ -5,12 +5,12 @@
  * Displays grid of AI coding tools and integrations
  */
 
-import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { Image } from '@unpic/react'
+import { useTranslation } from 'react-i18next'
 import { IntegrationCard } from '@/components/ui/integration-card'
 
 export function AIToolsSection() {
-  const t = useTranslations('aiTools')
+  const { t } = useTranslation('aiTools')
   const buttonLabel = t('learnMore')
 
   return (

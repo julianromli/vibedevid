@@ -1,8 +1,8 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link } from '@tanstack/react-router'
+import { usePathname } from '@/lib/navigation'
 import type { ReactNode } from 'react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -36,7 +36,7 @@ export function NavGroup({ title, items }: NavGroup) {
                   tooltip={item.title}
                 >
                   <Link
-                    href={item.url}
+                    to={item.url}
                     onClick={() => setOpenMobile(false)}
                   >
                     {item.icon && <item.icon />}
@@ -71,7 +71,7 @@ export function NavGroup({ title, items }: NavGroup) {
                           isActive={checkIsActive(pathname, subItem)}
                         >
                           <Link
-                            href={subItem.url}
+                            to={subItem.url}
                             onClick={() => setOpenMobile(false)}
                           >
                             {subItem.icon && <subItem.icon />}

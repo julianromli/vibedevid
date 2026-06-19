@@ -1,7 +1,19 @@
 // Environment configuration with fallbacks for build-time safety
+function readPublicEnv(name: string): string {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    const viteKey = `VITE_${name.replace(/^NEXT_PUBLIC_/, '')}` as keyof ImportMetaEnv
+    const viteValue = import.meta.env[viteKey]
+    if (typeof viteValue === 'string' && viteValue.length > 0) {
+      return viteValue
+    }
+  }
+
+  return process.env[name] || ''
+}
+
 export const getSupabaseConfig = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  const url = readPublicEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const anonKey = readPublicEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
 
   // SIMPLE FIX: Always use fallback during build if URL is invalid
   // Check if URL is valid (must start with http)
@@ -32,7 +44,7 @@ export const getSupabaseConfig = () => {
 }
 
 export const getSupabaseServerConfig = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const url = readPublicEnv('NEXT_PUBLIC_SUPABASE_URL')
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
   // Check if URL is valid (must start with http)

@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarDays, Clock, Filter, MapPin, Plus, Search, Users } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

@@ -150,7 +150,7 @@ export function useAuth() {
 
     // SECURITY NOTE: This hook hydrates auth state with getUser(), then keeps it fresh
     // via onAuthStateChange (which provides the session directly for auth events).
-    // 1. Middleware refreshes sessions (lib/supabase/middleware.ts uses getUser())
+    // Session refresh runs in TanStack Start request middleware (app/start.ts).
     // 2. Real-time sync via onAuthStateChange catches updates
     // 3. Server-side validation uses getUser() (lib/server/auth.ts)
     // Reference: https://supabase.com/docs/guides/auth/server-side/creating-a-client

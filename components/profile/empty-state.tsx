@@ -1,7 +1,7 @@
 'use client'
 
 import type { LucideIcon } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 
 interface EmptyStateProps {
@@ -24,7 +24,7 @@ export function EmptyState({ icon: Icon, title, description, actionLabel, action
 
       {isOwner && actionLabel && actionLink && (
         <Button asChild>
-          <Link href={actionLink}>{actionLabel}</Link>
+          <Link to={actionLink}>{actionLabel}</Link>
         </Button>
       )}
     </div>

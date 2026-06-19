@@ -1,12 +1,12 @@
 'use client'
 
 import { Shield, Users } from 'lucide-react'
-import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { Image } from '@unpic/react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default function FeaturesSection() {
-  const t = useTranslations('features')
+  const { t } = useTranslation('features')
 
   return (
     <section className="bg-muted/20 py-16 md:py-32">
@@ -286,22 +286,18 @@ export default function FeaturesSection() {
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">Likeur</span>
                       <div className="ring-background relative size-7 ring-4">
                         <Image
-                          className="rounded-full object-cover"
+                          className="rounded-full object-cover w-full h-full object-cover"
                           src="https://avatars.githubusercontent.com/u/102558960?v=4"
                           alt="Likeur avatar"
-                          fill
-                          sizes="28px"
                         />
                       </div>
                     </div>
                     <div className="relative ml-[calc(50%-1rem)] flex items-center gap-2">
                       <div className="ring-background relative size-8 ring-4">
                         <Image
-                          className="rounded-full object-cover"
+                          className="rounded-full object-cover w-full h-full object-cover"
                           src="https://avatars.githubusercontent.com/u/47919550?v=4"
                           alt="M. Irung avatar"
-                          fill
-                          sizes="32px"
                         />
                       </div>
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">M. Irung</span>
@@ -310,11 +306,9 @@ export default function FeaturesSection() {
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">B. Ng</span>
                       <div className="ring-background relative size-7 ring-4">
                         <Image
-                          className="rounded-full object-cover"
+                          className="rounded-full object-cover w-full h-full object-cover"
                           src="https://avatars.githubusercontent.com/u/31113941?v=4"
                           alt="B. Ng avatar"
-                          fill
-                          sizes="28px"
                         />
                       </div>
                     </div>

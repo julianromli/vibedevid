@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertCircle, Calendar, Edit, ExternalLink, Eye, Loader2, RotateCcw, Trash2, Youtube } from 'lucide-react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'

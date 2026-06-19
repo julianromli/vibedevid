@@ -1,11 +1,11 @@
 'use client'
 
 import { Plus } from 'lucide-react'
-import { motion, useInView } from 'motion/react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { useRef, useState } from 'react'
+import { motion } from 'motion/react'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -29,17 +29,16 @@ interface ProjectListClientProps {
 interface ProjectListCardProps {
   project: Project
   index: number
-  isInView: boolean
   prefersReducedMotion: boolean
 }
 
-function ProjectListCard({ project, index, isInView, prefersReducedMotion }: ProjectListCardProps) {
+function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCardProps) {
   const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      initial={false}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
         duration: prefersReducedMotion ? 0 : 0.32,
         delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
@@ -49,7 +48,7 @@ function ProjectListCard({ project, index, isInView, prefersReducedMotion }: Pro
       className="group my-4 cursor-pointer py-0"
     >
       <Link
-        href={`/project/${project.slug}`}
+        to={`/project/${project.slug}`}
         className="block"
       >
         <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-shadow duration-300 hover:shadow-lg motion-reduce:transition-none">
@@ -57,8 +56,6 @@ function ProjectListCard({ project, index, isInView, prefersReducedMotion }: Pro
             <Image
               src={project.image || '/vibedev-guest-avatar.png'}
               alt={project.title}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading={shouldEagerLoadThumbnail ? 'eager' : 'lazy'}
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -85,7 +82,7 @@ function ProjectListCard({ project, index, isInView, prefersReducedMotion }: Pro
       <div className="mt-3 flex items-center justify-between py-0">
         <div className="flex items-center gap-2.5">
           <Link
-            href={`/${project.author.username}`}
+            to={`/${project.author.username}`}
             className="relative z-10 flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-80"
           >
             <OptimizedAvatar
@@ -119,11 +116,9 @@ export function ProjectListClient({
   initialSort,
   filterOptions,
 }: ProjectListClientProps) {
-  const t = useTranslations('projectList')
-  const tCommon = useTranslations('common')
+  const { t } = useTranslation('projectList')
+  const { t: tCommon } = useTranslation('common')
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
-  const gridRef = useRef<HTMLDivElement>(null)
-  const isGridInView = useInView(gridRef, { once: true, margin: '-50px' })
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const {
@@ -161,7 +156,7 @@ export function ProjectListClient({
               asChild
               className="bg-primary hover:bg-primary/90 w-full max-w-sm"
             >
-              <Link href="/project/submit">
+              <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('submitButton')}
               </Link>
@@ -214,7 +209,7 @@ export function ProjectListClient({
               asChild
               className="bg-primary hover:bg-primary/90"
             >
-              <Link href="/project/submit">
+              <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('submitButton')}
               </Link>
@@ -241,17 +236,14 @@ export function ProjectListClient({
         </div>
       </div>
 
-      <div
-        ref={gridRef}
-        className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-      >
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           <ProjectGridSkeleton count={9} />
         ) : projects.length === 0 ? (
           <div className="col-span-full py-12 text-center">
             <p className="mb-4 text-muted-foreground text-xl">{t('noProjects')}</p>
             <Button asChild>
-              <Link href="/project/submit">
+              <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('beFirst')}
               </Link>
@@ -263,7 +255,6 @@ export function ProjectListClient({
               key={project.id}
               project={project}
               index={index}
-              isInView={isGridInView}
               prefersReducedMotion={prefersReducedMotion}
             />
           ))

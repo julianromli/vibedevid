@@ -2,9 +2,9 @@
 
 import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { Link } from '@tanstack/react-router'
+import { useRouter } from '@/lib/navigation'
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
@@ -88,7 +88,7 @@ function NavItem({ item, closeMenu }: { item: NavItem; closeMenu?: () => void })
   if (item.type === 'link') {
     return (
       <Link
-        href={item.href}
+        to={item.href}
         onClick={closeMenu}
         className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground hover:text-foreground')}
       >
@@ -118,7 +118,7 @@ function MobileNavItem({ item, closeMenu }: { item: NavItem; closeMenu: () => vo
   if (item.type === 'link') {
     return (
       <Link
-        href={item.href}
+        to={item.href}
         onClick={closeMenu}
         className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
       >
@@ -144,7 +144,6 @@ function MobileNavItem({ item, closeMenu }: { item: NavItem; closeMenu: () => vo
 function UserMenu({
   user,
   userIsLoggedIn,
-  onSignIn,
   onSignOut,
   onProfile,
   size = 'desktop',
@@ -152,13 +151,12 @@ function UserMenu({
 }: {
   user: UserInfo
   userIsLoggedIn: boolean
-  onSignIn: () => void
   onSignOut: () => void
   onProfile: () => void
   size?: 'desktop' | 'mobile'
   onClose?: () => void
 }) {
-  const t = useTranslations()
+  const { t } = useTranslation()
   const safeUser = {
     ...user,
     avatar: user.avatar_url || user.avatar || '/placeholder.svg',
@@ -168,29 +166,33 @@ function UserMenu({
     if (size === 'mobile') {
       return (
         <Button
-          onClick={() => {
-            onSignIn()
-            onClose?.()
-          }}
+          asChild
           size="icon"
           variant="ghost"
           className="h-11 w-11"
-          aria-label={t('common.signIn')}
         >
-          <LogIn className="size-6" />
+          <Link
+            to="/user/auth"
+            onClick={onClose}
+            aria-label={t('common.signIn')}
+          >
+            <LogIn className="size-6" />
+          </Link>
         </Button>
       )
     }
 
     return (
       <Button
-        onClick={() => {
-          onSignIn()
-          onClose?.()
-        }}
+        asChild
         size="sm"
       >
-        {t('common.signIn')}
+        <Link
+          to="/user/auth"
+          onClick={onClose}
+        >
+          {t('common.signIn')}
+        </Link>
       </Button>
     )
   }
@@ -217,7 +219,7 @@ function UserMenu({
         <DropdownMenuSeparator />
         {size === 'mobile' && (
           <DropdownMenuItem asChild>
-            <Link href="/project/submit" className="flex items-center">
+            <Link to="/project/submit" className="flex items-center">
               <Upload className="mr-2 h-4 w-4" />
               <span>{t('common.submitProject')}</span>
             </Link>
@@ -233,7 +235,7 @@ function UserMenu({
           <span>{t('common.profile')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/posts" className="flex items-center">
+          <Link to="/dashboard/posts" className="flex items-center">
             <FileText className="mr-2 h-4 w-4" />
             <span>{t('common.myPosts')}</span>
           </Link>
@@ -258,7 +260,6 @@ export interface NavbarProps {
   showNavigation?: boolean
   isLoggedIn?: boolean
   user?: UserInfo
-  onSignIn?: () => void
   onSignOut?: () => void
   onProfile?: () => void
 }
@@ -268,14 +269,13 @@ export function Navbar({
   showNavigation = false,
   isLoggedIn,
   user,
-  onSignIn,
   onSignOut,
   onProfile,
 }: NavbarProps) {
   const [open, setOpen] = useState(false)
   const scrolled = useScroll(10)
   const router = useRouter()
-  const t = useTranslations()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (open) {
@@ -297,14 +297,6 @@ export function Navbar({
 
   const userIsLoggedIn = Boolean(isLoggedIn)
 
-  const handleSignIn = () => {
-    if (onSignIn) {
-      onSignIn()
-    } else {
-      router.push('/user/auth')
-    }
-  }
-
   const handleSignOut = async () => {
     if (onSignOut) {
       onSignOut()
@@ -319,7 +311,7 @@ export function Navbar({
         toast.success(t('toast.signOutSuccess'))
         setTimeout(() => {
           router.refresh()
-          router.push('/')
+          router.navigate({ to: '/' })
         }, 100)
       } catch (_error) {
         toast.error(t('toast.generalError'))
@@ -332,7 +324,7 @@ export function Navbar({
       onProfile()
     } else {
       if (safeUser.username) {
-        router.push(`/${safeUser.username}`)
+        router.navigate({ to: `/${safeUser.username}` })
       }
     }
   }
@@ -373,13 +365,13 @@ export function Navbar({
             transition={springTransition}
           >
             {showBackButton ? (
-              <Link href="/">
+              <Link to="/">
                 <Button variant="ghost" size="sm" className="hover:shadow-none">
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
             ) : (
-              <Link href="/" className="flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-2">
                 <AdaptiveLogo className="h-7 w-auto md:h-8" />
               </Link>
             )}
@@ -412,12 +404,15 @@ export function Navbar({
             <LanguageSwitcher />
             <ThemeToggle />
             {!userIsLoggedIn ? (
-              <Button onClick={handleSignIn} size="sm">
-                {t('common.signIn')}
+              <Button
+                asChild
+                size="sm"
+              >
+                <Link to="/user/auth">{t('common.signIn')}</Link>
               </Button>
             ) : (
               <>
-                <Link href="/project/submit">
+                <Link to="/project/submit">
                   <Button size="sm" variant="outline" className="gap-1.5">
                     <Upload className="h-4 w-4" />
                     {t('common.submitProject')}
@@ -426,7 +421,6 @@ export function Navbar({
                 <UserMenu
                   user={safeUser}
                   userIsLoggedIn={userIsLoggedIn}
-                  onSignIn={handleSignIn}
                   onSignOut={handleSignOut}
                   onProfile={handleProfile}
                 />
@@ -439,7 +433,6 @@ export function Navbar({
             <UserMenu
               user={safeUser}
               userIsLoggedIn={userIsLoggedIn}
-              onSignIn={handleSignIn}
               onSignOut={handleSignOut}
               onProfile={handleProfile}
               size="mobile"
@@ -485,18 +478,20 @@ export function Navbar({
             <div className="flex flex-col gap-4">
               {!userIsLoggedIn ? (
                 <Button
-                  onClick={() => {
-                    handleSignIn()
-                    setOpen(false)
-                  }}
+                  asChild
                   size="lg"
                   className="w-full"
                 >
-                  {t('common.signIn')}
+                  <Link
+                    to="/user/auth"
+                    onClick={() => setOpen(false)}
+                  >
+                    {t('common.signIn')}
+                  </Link>
                 </Button>
               ) : (
                 <div className="flex flex-col gap-4 border-t pt-6">
-                  <Link href="/project/submit" onClick={() => setOpen(false)}>
+                  <Link to="/project/submit" onClick={() => setOpen(false)}>
                     <Button className="w-full gap-2" size="lg">
                       <Upload className="h-4 w-4" />
                       {t('common.submitProject')}
@@ -522,7 +517,7 @@ export function Navbar({
                       <User className="mr-2 h-4 w-4" /> {t('common.profile')}
                     </Button>
                     <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link href="/dashboard/posts" onClick={() => setOpen(false)}>
+                      <Link to="/dashboard/posts" onClick={() => setOpen(false)}>
                         <FileText className="mr-2 h-4 w-4" /> {t('common.myPosts')}
                       </Link>
                     </Button>

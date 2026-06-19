@@ -3,7 +3,7 @@
  * Handles filter state, sorting, and data fetching
  */
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from '@/lib/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
@@ -132,7 +132,7 @@ export function useProjectFilters({
     const currentQuery = searchParams.toString()
 
     if (nextQuery !== currentQuery) {
-      router.replace(`${pathname}?${nextQuery}`, { scroll: false })
+      router.navigate({ to: `${pathname}?${nextQuery}`, replace: true })
     }
   }, [pathname, router, searchParams, selectedFilter, selectedTrending])
 

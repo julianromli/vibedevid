@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useTranslation } from 'react-i18next'
 import { lazy, Suspense } from 'react'
 import type { Testimonial } from '@/types/homepage'
 
@@ -17,8 +17,11 @@ const TestimonialsColumns = lazy(() =>
 )
 
 export function ReviewsSection() {
-  const t = useTranslations('reviews')
-  const testimonialsRaw = t.raw('testimonials') as Record<string, { text: string; name: string; role: string }>
+  const { t } = useTranslation('reviews')
+  const testimonialsRaw = t('testimonials', { returnObjects: true }) as Record<
+    string,
+    { text: string; name: string; role: string }
+  >
 
   // Convert translations to Testimonial array with images
   const images = [

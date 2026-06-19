@@ -1,7 +1,7 @@
 'use client'
 
 import { Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -413,7 +413,7 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       const result = await submitProject(formData, userId)
       if (result.success) {
         toast.success('Mantap! 🚀 Project lo berhasil di-submit!')
-        router.push(`/project/${result.slug}`)
+        router.navigate({ to: `/project/${result.slug}` })
       } else {
         handleSubmitResultError(result)
       }

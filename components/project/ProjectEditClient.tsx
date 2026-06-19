@@ -2,7 +2,7 @@
 
 import { UploadButton } from '@uploadthing/react'
 import { Edit, Loader2, X } from 'lucide-react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
@@ -425,10 +425,8 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                             <AspectRatio ratio={16 / 9}>
                               <Image
                                 src={url}
-                                alt={`Screenshot ${index + 1}`}
-                                fill
+                                alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover"
                                 className="rounded-lg object-cover"
-                                sizes="(max-width: 768px) 50vw, 33vw"
                               />
                             </AspectRatio>
                             <Button

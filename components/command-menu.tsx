@@ -1,7 +1,7 @@
 'use client'
 
 import { IconArrowRightDashed, IconDeviceLaptop, IconMoon, IconSun } from '@tabler/icons-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
 import {
@@ -55,7 +55,7 @@ export function CommandMenu() {
                       key={`${navItem.url}-${i}`}
                       value={navItem.title}
                       onSelect={() => {
-                        runCommand(() => router.push(navItem.url))
+                        runCommand(() => router.navigate({ to: navItem.url }))
                       }}
                     >
                       <div className="mr-2 flex h-4 w-4 items-center justify-center">
@@ -70,7 +70,7 @@ export function CommandMenu() {
                     key={`${subItem.url}-${i}`}
                     value={subItem.title}
                     onSelect={() => {
-                      runCommand(() => router.push(subItem.url))
+                      runCommand(() => router.navigate({ to: subItem.url }))
                     }}
                   >
                     <div className="mr-2 flex h-4 w-4 items-center justify-center">

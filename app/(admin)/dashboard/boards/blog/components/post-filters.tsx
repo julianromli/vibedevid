@@ -1,7 +1,7 @@
 'use client'
 
 import { IconFilter, IconSearch } from '@tabler/icons-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from '@/lib/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,13 +29,13 @@ export function PostFilters() {
 
     params.delete('page')
 
-    router.push(`?${params.toString()}`)
+    router.navigate({ to: `?${params.toString()}` })
   }
 
   const clearFilters = () => {
     setSearch('')
     setStatus('all')
-    router.push(buildDashboardBoardClearHref(BOARD_TAB))
+    router.navigate({ to: buildDashboardBoardClearHref(BOARD_TAB) })
   }
 
   const hasFilters = search || status !== 'all'

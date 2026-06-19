@@ -3,8 +3,8 @@
  * Provides functions for blur placeholder generation, optimal sizing, and responsive image handling
  */
 
-import type { ImageProps } from 'next/image'
-import { getImageProps } from 'next/image'
+import type { ImageProps, StaticImageData } from '@/lib/image-types'
+import { getImageProps } from '@/lib/image-types'
 
 // Type definitions
 export interface BlurPlaceholderResult {

@@ -1,7 +1,7 @@
 'use client'
 
 import { IconDotsVertical, IconEdit, IconExternalLink, IconStar, IconStarOff, IconTrash } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -83,7 +83,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link
-              href={`/project/${project.slug}`}
+              to={`/project/${project.slug}`}
               target="_blank"
               className="flex items-center"
             >

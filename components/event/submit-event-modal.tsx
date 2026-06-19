@@ -1,7 +1,7 @@
 'use client'
 
 import { Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { CoverImageUploader } from '@/components/event/cover-image-uploader'
@@ -45,7 +45,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
         toast.success('Event berhasil disubmit! 🎉 Menunggu persetujuan admin.')
         onOpenChange(false)
         resetForm()
-        router.push('/event/list')
+        router.navigate({ to: '/event/list' })
       } else {
         toast.error(result.error || 'Gagal submit event. Silakan coba lagi.')
       }

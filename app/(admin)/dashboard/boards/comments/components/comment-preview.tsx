@@ -1,7 +1,7 @@
 'use client'
 
 import { IconFileText, IconMessageCircle, IconTrash, IconX } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -90,7 +90,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
                 <div className="flex items-center gap-1">
                   <IconFileText className="h-3.5 w-3.5" />
                   <Link
-                    href={entityUrl}
+                    to={entityUrl}
                     target="_blank"
                     className="text-primary hover:underline truncate max-w-[150px]"
                   >

@@ -1,5 +1,5 @@
 'use client'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import React from 'react'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'

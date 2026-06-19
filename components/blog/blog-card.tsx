@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns'
 import { Calendar, Clock, Edit } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -28,7 +28,7 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
       {/* Edit button for post owner - positioned top-right */}
       {isOwner && (
         <Link
-          href={`/blog/editor/${post.slug}`}
+          to={`/blog/editor/${post.slug}`}
           className="absolute top-3 right-3 z-10"
           onClick={(e) => e.stopPropagation()}
         >
@@ -43,7 +43,7 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
         </Link>
       )}
 
-      <Link href={`/blog/${post.slug}`}>
+      <Link to={`/blog/${post.slug}`}>
         <div className="relative aspect-[16/9] overflow-hidden">
           {post.cover_image ? (
             <img

@@ -1,7 +1,7 @@
 import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { Image } from '@unpic/react'
+import { Link } from '@tanstack/react-router'
+import { notFound } from '@/lib/navigation'
 import { EventCard } from '@/components/event/event-card'
 import { EventShareButton } from '@/components/event/event-share-button'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +22,7 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
   const { event } = await getEventBySlug(slug)
 
   if (!event) {
-    notFound()
+    throw notFound()
   }
 
   const { events, error: relatedError } = await getRelatedEvents(event.category, event.id)
@@ -53,7 +53,7 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
         {/* Back Navigation */}
         <div className="mb-8">
           <Link
-            href="/event/list"
+            to="/event/list"
             className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -92,9 +92,7 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
                 alt={event.name}
                 width={1200}
                 height={675}
-                priority
                 className="h-auto w-full object-contain transition-transform duration-700 hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
               />
               <div className="absolute inset-0" />
             </div>
@@ -201,7 +199,7 @@ export default async function EventDetailData({ params }: EventDetailPageProps) 
           <div className="mt-20 border-t pt-10">
             <div className="mb-8 flex items-center justify-between">
               <h2 className="font-bold text-2xl tracking-tight">Related Events</h2>
-              <Link href="/event/list">
+              <Link to="/event/list">
                 <Button
                   variant="ghost"
                   className="gap-1"

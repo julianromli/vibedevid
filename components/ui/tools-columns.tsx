@@ -1,7 +1,7 @@
 'use client'
 
 import { ExternalLink } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import type * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -64,7 +64,7 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
                   className="gap-1 pr-2 text-xs shadow-none"
                 >
                   <Link
-                    href={tool.link}
+                    to={tool.link}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

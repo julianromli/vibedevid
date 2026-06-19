@@ -1,8 +1,8 @@
 'use client'
 
-import type { ImageProps, StaticImageData } from 'next/image'
-import Image from 'next/image'
-import { useEffect, useMemo, useState } from 'react'
+import type { ImageProps, StaticImageData } from '@/lib/image-types'
+import { Image } from '@unpic/react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { generateSizes, validateImageProps } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
 
@@ -21,6 +21,8 @@ export interface ProgressiveImageProps extends Omit<ImageProps, 'placeholder' | 
   preloadStrategy?: 'none' | 'hover' | 'viewport'
   loadingThreshold?: number
   ariaLabel?: string
+  /** @deprecated Ignored — kept for backward compatibility with callers */
+  enableBlurPlaceholder?: boolean
 }
 
 export function ProgressiveImage({
@@ -28,8 +30,7 @@ export function ProgressiveImage({
   alt,
   width,
   height,
-  fill,
-  priority = false,
+  fill = false,
   quality = 75,
   sizes: propSizes,
   className,
@@ -43,10 +44,13 @@ export function ProgressiveImage({
   onLoadingStateChange,
   responsiveSizes,
   ariaLabel,
+  enableBlurPlaceholder: _enableBlurPlaceholder,
   ...restProps
 }: ProgressiveImageProps) {
   const [loadingState, setLoadingState] = useState<ImageLoadingState>('loading')
   const [currentSrc, setCurrentSrc] = useState<string>(typeof src === 'string' ? src : src.src)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const responsiveSize = useMemo(() => {
     if (propSizes) return propSizes
@@ -54,9 +58,59 @@ export function ProgressiveImage({
     return fill ? '100vw' : undefined
   }, [propSizes, responsiveSizes, fill])
 
+  useLayoutEffect(() => {
+    const img = imgRef.current ?? containerRef.current?.querySelector('img')
+    if (img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0) {
+      setLoadingState('loaded')
+    }
+  }, [currentSrc])
+
   useEffect(() => {
     onLoadingStateChange?.(loadingState)
   }, [loadingState, onLoadingStateChange])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const syncLoadedState = () => {
+      if (cancelled) {
+        return
+      }
+
+      const img = imgRef.current ?? containerRef.current?.querySelector('img')
+      if (img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0) {
+        setLoadingState('loaded')
+        return true
+      }
+
+      return false
+    }
+
+    if (syncLoadedState()) {
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setLoadingState('loading')
+
+    const rafId = requestAnimationFrame(() => {
+      syncLoadedState()
+    })
+    const timeoutId = window.setTimeout(() => {
+      syncLoadedState()
+    }, 50)
+
+    const img = containerRef.current?.querySelector('img')
+    img?.addEventListener('load', syncLoadedState)
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(rafId)
+      window.clearTimeout(timeoutId)
+      img?.removeEventListener('load', syncLoadedState)
+    }
+  }, [currentSrc])
 
   const handleLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
     setLoadingState('loaded')
@@ -72,18 +126,21 @@ export function ProgressiveImage({
     onError?.(event)
   }
 
-  const imageClasses = cn(
-    'transition-opacity ease-in-out',
-    {
-      'opacity-0': loadingState === 'loading',
-      'opacity-100': loadingState === 'loaded',
-      'opacity-80': loadingState === 'error',
-    },
-    className,
-  )
+  const setImageRef = (node: HTMLImageElement | null) => {
+    imgRef.current = node
+
+    if (node?.complete && node.naturalWidth > 0) {
+      setLoadingState('loaded')
+    }
+  }
+
+  const imageClasses = cn('opacity-100 transition-opacity ease-in-out', className)
 
   return (
-    <div className={cn('relative overflow-hidden', fill ? 'relative' : 'w-full h-full')}>
+    <div
+      ref={containerRef}
+      className={cn('relative overflow-hidden', fill ? 'relative' : 'w-full h-full')}
+    >
       {loadingState === 'loading' && (
         <div
           className="absolute inset-0 animate-pulse transition-opacity duration-300 flex items-center justify-center"
@@ -115,18 +172,12 @@ export function ProgressiveImage({
       )}
 
       <Image
+        ref={setImageRef}
         src={currentSrc}
         alt={ariaLabel || (typeof alt === 'string' ? alt : '')}
         width={width}
         height={height}
-        fill={fill}
-        priority={priority}
-        quality={quality}
-        sizes={responsiveSize}
-        loading={priority ? undefined : loading || 'lazy'}
-        decoding={decoding}
-        unoptimized={unoptimized}
-        className={imageClasses}
+        className={cn(fill && 'h-full w-full object-cover', imageClasses)}
         style={{
           ...style,
           ...(width && height && !fill ? { aspectRatio: `${width} / ${height}` } : {}),

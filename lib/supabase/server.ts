@@ -1,27 +1,27 @@
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getCookie, getCookies, setCookie } from '@tanstack/react-start/server'
 import { getSupabaseConfig } from '../env-config'
 
 export async function createClient() {
-  const cookieStore = await cookies()
   const { url, anonKey } = getSupabaseConfig()
 
   return createServerClient(url, anonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll()
+        const cookies = getCookies()
+        return Object.entries(cookies).map(([name, value]) => ({ name, value }))
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          for (const { name, value, options } of cookiesToSet) {
+            setCookie(name, value, options)
+          }
         } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+          // Called from a context where response cookies cannot be set.
         }
       },
     },
   })
 }
 
-export { createClient as createServerClient }
+export { createClient as createServerClient, getCookie }

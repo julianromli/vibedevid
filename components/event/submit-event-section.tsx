@@ -1,7 +1,7 @@
 'use client'
 
 import { Loader2, Plus } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { SubmitEventModal } from '@/components/event/submit-event-modal'
 import { Button } from '@/components/ui/button'
@@ -69,7 +69,7 @@ export function SubmitEventSection({ isLoggedIn, user }: SubmitEventSectionProps
                 size="lg"
                 asChild
               >
-                <Link href="/user/auth">Login</Link>
+                <Link to="/user/auth">Login</Link>
               </Button>
             </div>
           )}

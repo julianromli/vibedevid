@@ -1,7 +1,7 @@
 'use client'
 
 import { IconBan, IconChartBar, IconDotsVertical, IconEdit, IconShield, IconUserCheck } from '@tabler/icons-react'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserAc
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
           <Link
-            href={`/${user.username}`}
+            to={`/${user.username}`}
             target="_blank"
             className="flex items-center"
           >

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '../back-button'
 
@@ -15,7 +15,7 @@ export default function ForbiddenError() {
         <div className="mt-6 flex gap-4">
           <BackButton />
           <Button asChild>
-            <Link href="/">Back to Home</Link>
+            <Link to="/">Back to Home</Link>
           </Button>
         </div>
       </div>

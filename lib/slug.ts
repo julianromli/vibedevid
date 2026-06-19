@@ -1,6 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { getSupabaseConfig } from './env-config'
+import type React from 'react'
+import { createClient } from './supabase/server'
 
 /**
  * Generate SEO-friendly slug dari title
@@ -37,23 +36,7 @@ export function slugifyTitle(input: string, maxLen: number = 80): string {
  * @returns Unique slug (dengan suffix -2, -3, dst jika diperlukan)
  */
 export async function ensureUniqueSlug(baseSlug: string, excludeProjectId?: string): Promise<string> {
-  const cookieStore = await cookies()
-  const { url, anonKey } = getSupabaseConfig()
-
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // Server Component context, can be ignored
-        }
-      },
-    },
-  })
+  const supabase = await createClient()
 
   let slug = baseSlug
   let i = 1
@@ -116,23 +99,7 @@ export async function getProjectIdBySlug(slug: string): Promise<string | null> {
     return null
   }
 
-  const cookieStore = await cookies()
-  const { url, anonKey } = getSupabaseConfig()
-
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // Server Component context, can be ignored
-        }
-      },
-    },
-  })
+  const supabase = await createClient()
 
   try {
     const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).single()

@@ -2,7 +2,7 @@
 
 import { UploadButton } from '@uploadthing/react'
 import { CheckCircle, Loader2, Upload, X } from 'lucide-react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'

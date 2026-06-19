@@ -1,9 +1,9 @@
 'use client'
 
 import { Calendar, Code, Play, Users, Video } from 'lucide-react'
-import Image from 'next/image'
-import { useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { Image } from '@unpic/react'
+import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import type { VibeVideo, VideoIconKey } from '@/types/homepage'
 
@@ -36,7 +36,6 @@ interface DesktopVideoOptionProps {
   video: VibeVideo
   index: number
   activeIndex: number
-  animatedVideos: number[]
   onVideoClick: (index: number) => void
   onPlayVideo: (videoId: string) => void
   formatDate: (dateString: string) => string
@@ -141,7 +140,6 @@ function DesktopVideoOption({
   video,
   index,
   activeIndex,
-  animatedVideos,
   onVideoClick,
   onPlayVideo,
   formatDate,
@@ -153,12 +151,11 @@ function DesktopVideoOption({
 
   return (
     <article
-      className={`video-option relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
+      className={`video-option video-option-enter relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
         isActive ? 'active border-primary border-2 shadow-2xl' : 'border-border border-2 shadow-lg'
       } `}
       style={{
-        opacity: animatedVideos.includes(index) ? 1 : 0,
-        transform: animatedVideos.includes(index) ? 'translateX(0)' : 'translateX(-60px)',
+        animationDelay: `${180 * index}ms`,
         boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.25)' : '0 10px 30px rgba(0,0,0,0.15)',
         flex: isActive ? '7 1 0%' : '1 1 0%',
         zIndex: isActive ? 10 : 1,
@@ -175,10 +172,7 @@ function DesktopVideoOption({
         <Image
           src={video.thumbnail}
           alt={video.title}
-          fill
-          className={`rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? 'scale-100' : 'scale-105'}`}
-          sizes="(max-width: 1200px) 50vw, 33vw"
-          priority={index === 0}
+          className={`h-full w-full rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? 'scale-100' : 'scale-105'}`}
           quality={85}
           onError={(e) => {
             applyThumbnailFallback(e.currentTarget as HTMLImageElement)
@@ -223,9 +217,8 @@ interface YouTubeVideoShowcaseProps {
 }
 
 export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) {
-  const t = useTranslations('youtubeShowcase')
+  const { t } = useTranslation('youtubeShowcase')
   const [activeIndex, setActiveIndex] = useState(0)
-  const [animatedVideos, setAnimatedVideos] = useState<number[]>([])
 
   const handleVideoClick = (index: number) => {
     if (index !== activeIndex) {
@@ -236,25 +229,6 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
   const handlePlayVideo = (videoId: string) => {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
   }
-
-  useEffect(() => {
-    if (vibeVideos.length === 0) return
-
-    const timers: NodeJS.Timeout[] = []
-
-    vibeVideos.forEach((_, i) => {
-      const timer = setTimeout(() => {
-        setAnimatedVideos((prev) => [...prev, i])
-      }, 180 * i)
-      timers.push(timer)
-    })
-
-    return () => {
-      timers.forEach((timer) => {
-        clearTimeout(timer)
-      })
-    }
-  }, [vibeVideos])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -284,10 +258,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
               <Image
                 src={video.thumbnail}
                 alt={video.title}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority={index === 0}
+                className="h-full w-full object-cover"
                 quality={80}
                 onError={(e) => {
                   applyThumbnailFallback(e.currentTarget as HTMLImageElement)
@@ -334,7 +305,6 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
             video={video}
             index={index}
             activeIndex={activeIndex}
-            animatedVideos={animatedVideos}
             onVideoClick={handleVideoClick}
             onPlayVideo={handlePlayVideo}
             formatDate={formatDate}
@@ -373,17 +343,6 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
 
       {/* Custom animations */}
       <style jsx>{`
-        @keyframes slideFadeIn {
-          0% {
-            opacity: 0;
-            transform: translateX(-60px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
         @media (min-width: 768px) and (max-width: 1023px) {
           .videos-container {
             aspect-ratio: 2.8/1 !important;

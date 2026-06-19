@@ -1,7 +1,5 @@
 'use client'
 
-import Script from 'next/script'
-import { useState } from 'react'
 import { AIToolsSection } from '@/components/sections/ai-tools-section'
 import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
 import { CTASection } from '@/components/sections/cta-section'
@@ -13,7 +11,6 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useProjectFilters } from '@/hooks/useProjectFilters'
 import { FAQ_DATA } from '@/lib/constants/faqs'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
@@ -44,13 +41,6 @@ export default function HomePageClient({
     initialFilter,
     initialSort,
   })
-  const isVisible = useIntersectionObserver()
-
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const toggleFAQ = (index: number) => {
-    setOpenFAQ(openFAQ === index ? null : index)
-  }
-
   const handleViewShowcase = () => {
     const element = document.getElementById('projects')
     if (element) {
@@ -66,7 +56,7 @@ export default function HomePageClient({
       id="main-content"
       className="bg-background min-h-screen"
     >
-      <Script
+      <script
         id="organization-schema"
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
@@ -119,7 +109,7 @@ export default function HomePageClient({
         }}
       />
 
-      <Script
+      <script
         id="faq-schema"
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
@@ -176,11 +166,7 @@ export default function HomePageClient({
 
       <ReviewsSection />
 
-      <FAQSection
-        openFAQ={openFAQ}
-        toggleFAQ={toggleFAQ}
-        isVisible={isVisible.faq}
-      />
+      <FAQSection />
 
       <CTASection joinHref="https://dub.sh/vibedevid-form" />
 
