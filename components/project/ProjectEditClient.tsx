@@ -6,6 +6,7 @@ import { UploadButton } from "@uploadthing/react";
 import { Edit, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { compressImageFiles } from "@/lib/image-compression";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -151,7 +152,7 @@ export function ProjectEditClient({
 
       if (result.success) {
         toast.success("Project updated successfully");
-        router.invalidate();
+        void router.invalidate();
       } else {
         toast.error(result.error || "Failed to update project");
       }
@@ -461,6 +462,7 @@ export function ProjectEditClient({
                   {editImageUrls.length < 10 && (
                     <UploadButton<OurFileRouter, "projectImageUploader">
                       endpoint="projectImageUploader"
+                      onBeforeUploadBegin={compressImageFiles}
                       onUploadBegin={handleUploadBegin}
                       onClientUploadComplete={handleUploadComplete}
                       onUploadError={handleUploadError}

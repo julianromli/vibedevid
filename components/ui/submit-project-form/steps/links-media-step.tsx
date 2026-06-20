@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MultipleSelector, { type Option } from "@/components/ui/multiselect";
 import { getFaviconUrl } from "@/lib/favicon-utils";
+import { compressImageFiles } from "@/lib/image-compression";
 import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
 import type { UploadResult } from "@/components/ui/submit-project-form/types";
@@ -304,6 +305,7 @@ export function LinksMediaStep({
                 <div className="space-y-3">
                   <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
+                    onBeforeUploadBegin={compressImageFiles}
                     onUploadBegin={onUploadBegin}
                     onClientUploadComplete={onUploadComplete}
                     onUploadError={onUploadError}

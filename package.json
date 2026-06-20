@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vp dev",
     "optimize:images": "node scripts/optimize-images.mjs",
+    "backfill:images": "bun run scripts/backfill-image-compression.ts",
     "build": "node scripts/optimize-images.mjs && vp build",
     "start": "node .output/server/index.mjs",
     "lint": "node scripts/lint-changed.mjs",

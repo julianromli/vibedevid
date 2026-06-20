@@ -159,6 +159,10 @@ bun run build
 # Regenerate optimized image variants only (public/optimized/)
 bun run optimize:images
 
+# Recompress existing UploadThing project/video images (dry run by default;
+# add --apply to write). Needs DATABASE_URL + UPLOADTHING_TOKEN.
+bun run backfill:images
+
 # Start the production server
 bun run start
 
@@ -402,6 +406,8 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
 - **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*` and `/fonts/*` (immutable). Only non-overlapping directory rules are used: Cloudflare `_headers` wildcards match across `/` and concatenate every matching rule's value, so broad extension rules like `/*.avif` are avoided (they would corrupt the `/optimized/*` header).
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
+- **Client-side upload compression** - User-uploaded project images go through `lib/image-compression.ts` (`onBeforeUploadBegin` on the UploadThing buttons), which downscales to 1600px and re-encodes to WebP in the browser before upload. UploadThing (`ufs.sh`) has no on-the-fly resizing and `sharp` cannot run on Cloudflare Workers, so compressing client-side is the only no-cost option — it typically turns a 380KB+ upload into ~80-120KB. Falls back to the original file if compression fails or does not reduce size.
+- **Backfill for existing images** - `scripts/backfill-image-compression.ts` (run with `bun run backfill:images`, or `--apply` to write) recompresses already-uploaded project/video images: download → WebP via sharp → re-upload to UploadThing → update the DB row → delete the old file. Runs on Node/Bun (needs `DATABASE_URL` + `UPLOADTHING_TOKEN`), defaults to a dry run. Use this once to fix images uploaded before client-side compression was added.
 
 ### SEO
 
