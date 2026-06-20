@@ -45,21 +45,21 @@ export default defineConfig({
       // generated `_headers` file (Cloudflare honours them). The hashed JS/CSS in
       // `/assets/**` is already handled by the framework; these cover images and
       // fonts that previously shipped with no cache-control (Lighthouse `cache-insight`).
+      //
+      // NOTE: Cloudflare applies *every* matching `_headers` rule and concatenates
+      // their values, so rules must not overlap. `/optimized/**` and `/fonts/**`
+      // are immutable; the generic image rules below only target root-level public
+      // images (e.g. /og-image.png) and deliberately do not use a `/**/` glob that
+      // would also match `/optimized/*` or `/assets/*`.
       routeRules: {
         "/optimized/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
         "/fonts/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
-        // Root-level public images (e.g. /og-image.png, /default-favicon.svg).
+        // Root-level public images only (e.g. /og-image.png, /default-favicon.svg).
         "/*.png": { headers: { "cache-control": "public, max-age=2592000" } },
         "/*.jpg": { headers: { "cache-control": "public, max-age=2592000" } },
         "/*.svg": { headers: { "cache-control": "public, max-age=2592000" } },
         "/*.webp": { headers: { "cache-control": "public, max-age=2592000" } },
         "/*.avif": { headers: { "cache-control": "public, max-age=2592000" } },
-        // Nested public images.
-        "/**/*.png": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/**/*.jpg": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/**/*.svg": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/**/*.webp": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/**/*.avif": { headers: { "cache-control": "public, max-age=2592000" } },
       },
     }),
   ],
