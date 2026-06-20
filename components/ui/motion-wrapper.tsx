@@ -1,20 +1,35 @@
-'use client'
+"use client";
 
-import { motion, useInView, useReducedMotion } from 'motion/react'
-import { type ReactNode, useRef } from 'react'
+import { motion, useInView, useReducedMotion } from "motion/react";
+import { type ReactNode, useRef } from "react";
+
+type MarginValue = `${number}${"px" | "%"}`;
+type RevealMargin =
+  | MarginValue
+  | `${MarginValue} ${MarginValue}`
+  | `${MarginValue} ${MarginValue} ${MarginValue} ${MarginValue}`;
 
 interface ScrollRevealProps {
-  children: ReactNode
-  delay?: number
-  duration?: number
-  className?: string
-  once?: boolean
+  children: ReactNode;
+  delay?: number;
+  duration?: number;
+  className?: string;
+  once?: boolean;
+  /** IntersectionObserver root margin. Defaults to '-100px'. Use a smaller value for short elements near the page bottom (e.g. footers) that may never reach the default trigger zone. */
+  margin?: RevealMargin;
 }
 
-export function ScrollReveal({ children, delay = 0, duration = 0.5, className, once = true }: ScrollRevealProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once, margin: '-100px' })
-  const prefersReducedMotion = useReducedMotion()
+export function ScrollReveal({
+  children,
+  delay = 0,
+  duration = 0.5,
+  className,
+  once = true,
+  margin = "-100px",
+}: ScrollRevealProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once, margin });
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
@@ -22,31 +37,37 @@ export function ScrollReveal({ children, delay = 0, duration = 0.5, className, o
       initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
       animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={
-        prefersReducedMotion ? { duration: 0 } : { duration, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { duration, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
       }
       className={className}
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 interface StaggerContainerProps {
-  children: ReactNode
-  className?: string
-  staggerDelay?: number
+  children: ReactNode;
+  className?: string;
+  staggerDelay?: number;
 }
 
-export function StaggerContainer({ children, className, staggerDelay = 0.08 }: StaggerContainerProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-50px' })
-  const prefersReducedMotion = useReducedMotion()
+export function StaggerContainer({
+  children,
+  className,
+  staggerDelay = 0.08,
+}: StaggerContainerProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
       ref={ref}
-      initial={prefersReducedMotion ? false : 'hidden'}
-      animate={prefersReducedMotion || isInView ? 'visible' : 'hidden'}
+      initial={prefersReducedMotion ? false : "hidden"}
+      animate={prefersReducedMotion || isInView ? "visible" : "hidden"}
       variants={{
         visible: {
           transition: {
@@ -59,19 +80,19 @@ export function StaggerContainer({ children, className, staggerDelay = 0.08 }: S
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 interface StaggerItemProps {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useReducedMotion();
 
   if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>
+    return <div className={className}>{children}</div>;
   }
 
   return (
@@ -88,31 +109,37 @@ export function StaggerItem({ children, className }: StaggerItemProps) {
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 interface ScaleInProps {
-  children: ReactNode
-  delay?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  className?: string;
 }
 
 export function ScaleIn({ children, delay = 0, className }: ScaleInProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const prefersReducedMotion = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
       ref={ref}
       initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.97, y: 16 }}
-      animate={prefersReducedMotion || isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.97, y: 16 }}
+      animate={
+        prefersReducedMotion || isInView
+          ? { opacity: 1, scale: 1, y: 0 }
+          : { opacity: 0, scale: 0.97, y: 16 }
+      }
       transition={
-        prefersReducedMotion ? { duration: 0 } : { duration: 0.36, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { duration: 0.36, delay: Math.min(delay, 0.5), ease: [0.2, 0, 0, 1] }
       }
       className={className}
     >
       {children}
     </motion.div>
-  )
+  );
 }

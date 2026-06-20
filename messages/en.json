@@ -180,7 +180,7 @@
     "button": "Join Community"
   },
   "footer": {
-    "copyright": "© 2025 VibeDev ID - The largest Indonesian vibe coding community for future developers.",
+    "copyright": "© {{year}} VibeDev ID - The largest Indonesian vibe coding community for future developers.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
   },
