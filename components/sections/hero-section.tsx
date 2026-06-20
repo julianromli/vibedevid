@@ -204,10 +204,10 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
           >
             <SafariMockup url="vibedevid.com">
               <ProgressiveImage
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SOLO-pic-EN.35a702ba-uLVDZsjReIz7K4Ecr3JBrYkLCl8cdm.png"
-                alt="Development environment showing SOLO Builder interface with movie website project documentation"
-                width={1200}
-                height={675}
+                src="/hero-vibedevid-showcase.png"
+                alt="VibeDevID showcase interface"
+                width={2880}
+                height={1800}
                 className="h-auto w-full object-cover"
                 quality={75}
                 responsiveSizes={{
