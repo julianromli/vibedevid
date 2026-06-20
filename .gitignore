@@ -35,3 +35,8 @@ nul
 
 # Editor settings
 .zed/
+
+.dev.vars
+
+# Cloudflare Wrangler local cache
+.wrangler/

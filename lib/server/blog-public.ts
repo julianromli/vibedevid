@@ -30,6 +30,9 @@ export async function fetchPublishedPosts(): Promise<BlogPostListItem[]> {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
+    },
   });
 
   const { data } = await supabase

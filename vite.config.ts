@@ -2,7 +2,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite-plus";
+
+const supabaseNodeFetchShim = fileURLToPath(
+  new URL("./lib/supabase/node-fetch-shim.mjs", import.meta.url),
+);
 
 export default defineConfig({
   staged: {
@@ -19,6 +24,11 @@ export default defineConfig({
   },
   resolve: {
     tsconfigPaths: true,
+    // `@supabase/node-fetch` imports `node:http`/`node:https`, unavailable on
+    // Cloudflare Workers. Alias it to a shim over the runtime-native fetch.
+    alias: {
+      "@supabase/node-fetch": supabaseNodeFetchShim,
+    },
   },
   plugins: [
     tailwindcss(),
@@ -30,6 +40,13 @@ export default defineConfig({
       },
     }),
     viteReact(),
-    nitro(),
+    nitro({
+      compatibilityDate: "2024-09-19",
+      preset: "cloudflare_module",
+      cloudflare: {
+        deployConfig: false,
+        nodeCompat: true,
+      },
+    }),
   ],
 });

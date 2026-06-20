@@ -4,12 +4,13 @@
  * Maintainable: Change model by updating AI_MODEL constant
  * Docs: https://openrouter.ai/docs
  */
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
 
 // ============================================
 // 🔧 CONFIGURABLE: Change model here
 // ============================================
-export const AI_MODEL = 'google/gemini-3-flash-preview'
+export const AI_MODEL = "google/gemini-3-flash-preview";
 
 // Alternative models (for future reference):
 // - 'google/gemini-2.5-flash-preview-09-2025' (cheaper)
@@ -17,16 +18,17 @@ export const AI_MODEL = 'google/gemini-3-flash-preview'
 // - 'openai/gpt-4o' (OpenAI alternative)
 
 export const createAIClient = () => {
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is not set')
+  const { openrouterApiKey } = getServerRuntimeSecrets();
+  if (!openrouterApiKey) {
+    throw new Error("OPENROUTER_API_KEY is not set");
   }
 
   return createOpenRouter({
-    apiKey: process.env.OPENROUTER_API_KEY,
-  })
-}
+    apiKey: openrouterApiKey,
+  });
+};
 
 export const getAIModel = () => {
-  const client = createAIClient()
-  return client.chat(AI_MODEL)
-}
+  const client = createAIClient();
+  return client.chat(AI_MODEL);
+};

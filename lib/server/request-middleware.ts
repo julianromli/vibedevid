@@ -143,6 +143,9 @@ export async function applyAuthMiddleware(
     const requestUrl = new URL(request.url);
 
     const supabase = createServerClient(url, anonKey, {
+      global: {
+        fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
+      },
       cookies: {
         getAll() {
           return parseRequestCookies(request).map(({ name, value }) => ({ name, value }));

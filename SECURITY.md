@@ -30,10 +30,13 @@
 2. Fill in your actual values
 3. Never commit `.env.local`
 
-#### Vercel Deployment
+#### Cloudflare Workers Deployment
 
-1. Go to Vercel Dashboard > Your Project > Settings > Environment Variables
-2. Add each variable from `VERCEL_ENV_TEMPLATE.txt`
+1. Set runtime secrets with Wrangler (never commit them):
+   `bunx wrangler secret put <NAME>` or `bunx wrangler secret bulk <file.json>`
+2. Required keys: `SUPABASE_SERVICE_ROLE_KEY`, `UPLOADTHING_TOKEN`,
+   `OPENROUTER_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`
 3. Use your actual values, not placeholders
 
 ### Security Checklist

@@ -55,7 +55,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Dates**: date-fns + date-fns-tz
 - **Testing**: Playwright (E2E) + Vitest (unit)
 - **Code Quality**: Biome (linter + formatter)
-- **Analytics**: Vercel Analytics + Speed Insights
+- **Hosting**: Cloudflare Workers (Nitro `cloudflare_module` preset)
 - **Toast**: Sonner
 
 > Note: this app was migrated from Next.js 16 App Router to TanStack Start. Some `app/` subfolders still use Next.js-style names but are now plain view/component modules imported by route files in `app/routes/`.
@@ -171,6 +171,49 @@ bunx playwright test -g "should track views when visiting project page"
 | `SUPABASE_SERVICE_ROLE_KEY`     | Your Supabase service role key (keep secret!) | Yes      |
 | `UPLOADTHING_TOKEN`             | Your UploadThing API token (keep secret!)     | Yes      |
 | `NEXT_PUBLIC_SITE_URL`          | Your site URL (for production)                | Yes      |
+
+## Deployment (Cloudflare Workers)
+
+The app deploys to Cloudflare Workers using the Nitro `cloudflare_module` preset
+(configured in `vite.config.ts`) plus `wrangler.jsonc` at the repo root.
+
+```bash
+# 1. Build the Worker output (.output/server + .output/public)
+bun run build
+
+# 2. Preview locally on Workers runtime (needs .dev.vars, see below)
+bunx wrangler dev
+
+# 3. Deploy
+bunx wrangler deploy
+```
+
+Notes:
+
+- `compatibility_flags: ["nodejs_compat"]` and a compatibility date of
+  `2024-09-19` (required for Workers Static Assets) are set in `wrangler.jsonc`.
+- `@supabase/node-fetch` imports `node:http`, which is unavailable on Workers.
+  It is aliased to `lib/supabase/node-fetch-shim.mjs` (runtime-native `fetch`)
+  in `vite.config.ts`.
+- Server-only secrets must be read via `getServerRuntimeSecrets()`
+  (`lib/server/runtime-secrets.ts`), not `process.env` directly. On Workers,
+  `process.env` does not reliably expose secrets; the helper reads the
+  per-request Cloudflare bindings from `globalThis.__env__` and falls back to
+  `process.env` for node-server/dev. Used by `createAdminClient()`, the
+  OpenRouter client, and the UploadThing route. Public client-side values
+  (`VITE_*`) are still inlined at build time.
+- Server secrets/vars are stored as Worker secrets, not in `wrangler.jsonc`.
+  Set them with `wrangler secret put <NAME>` or in bulk:
+
+  ```bash
+  # keys: SUPABASE_SERVICE_ROLE_KEY, UPLOADTHING_TOKEN, OPENROUTER_API_KEY,
+  #       NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SITE_URL
+  bunx wrangler secret bulk <secrets.json>
+  ```
+
+- For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
+- Add the deployed URL + `/auth/callback` to your Supabase
+  Authentication → URL Configuration redirect allowlist.
 
 ## Database Schema
 

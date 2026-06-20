@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
 /**
  * Lazily load the Uploadthing route handlers. The `uploadthing/server` import
@@ -8,41 +8,42 @@ import { createFileRoute } from '@tanstack/react-router'
  * deferred into the handlers so the module's top level stays client-safe.
  */
 async function getUploadthingHandlers() {
-  const uploadthingToken = process.env.UPLOADTHING_TOKEN?.trim()
+  const { getServerRuntimeSecrets } = await import("@/lib/server/runtime-secrets");
+  const uploadthingToken = getServerRuntimeSecrets().uploadthingToken?.trim();
   if (!uploadthingToken) {
-    return null
+    return null;
   }
 
   const [{ createRouteHandler }, { ourFileRouter }] = await Promise.all([
-    import('uploadthing/server'),
-    import('@/lib/uploadthing'),
-  ])
+    import("uploadthing/server"),
+    import("@/lib/uploadthing"),
+  ]);
 
   return createRouteHandler({
     router: ourFileRouter,
     config: {
       token: uploadthingToken,
     },
-  })
+  });
 }
 
-export const Route = createFileRoute('/api/uploadthing')({
+export const Route = createFileRoute("/api/uploadthing")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const handlers = await getUploadthingHandlers()
+        const handlers = await getUploadthingHandlers();
         if (!handlers) {
-          return Response.json({ error: 'Upload service not configured' }, { status: 503 })
+          return Response.json({ error: "Upload service not configured" }, { status: 503 });
         }
-        return handlers(request)
+        return handlers(request);
       },
       POST: async ({ request }) => {
-        const handlers = await getUploadthingHandlers()
+        const handlers = await getUploadthingHandlers();
         if (!handlers) {
-          return Response.json({ error: 'Upload service not configured' }, { status: 503 })
+          return Response.json({ error: "Upload service not configured" }, { status: 503 });
         }
-        return handlers(request)
+        return handlers(request);
       },
     },
   },
-})
+});

@@ -1,9 +1,9 @@
-import { revalidatePath, revalidateTag } from '@/lib/revalidation'
-import { ROLES } from '@/lib/actions/admin/schemas'
-import { validateEventForm } from '@/lib/event-form-utils'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
-import type { AIEvent, EventCategory, EventFormData, EventLocationType } from '@/types/events'
+import { revalidatePath, revalidateTag } from "@/lib/revalidation";
+import { ROLES } from "@/lib/actions/admin/schemas";
+import { validateEventForm } from "@/lib/event-form-utils";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import type { AIEvent, EventCategory, EventFormData, EventLocationType } from "@/types/events";
 
 // Helper to map DB result (snake_case) to AIEvent (camelCase)
 function mapEventFromDB(data: any): AIEvent {
@@ -23,128 +23,136 @@ function mapEventFromDB(data: any): AIEvent {
     coverImage: data.cover_image,
     category: data.category as EventCategory,
     status: data.status,
-  }
+  };
 }
 
 interface GetEventsFilters {
-  category?: string
-  locationType?: string
-  sort?: 'nearest' | 'latest'
+  category?: string;
+  locationType?: string;
+  sort?: "nearest" | "latest";
 }
 
 async function checkAdminAccess() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return { supabase, userId: null, error: 'Unauthorized' as const }
+    return { supabase, userId: null, error: "Unauthorized" as const };
   }
 
-  const { data: userData, error } = await supabase.from('users').select('role').eq('id', user.id).single()
+  const { data: userData, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
   if (error || !userData || (userData.role !== ROLES.ADMIN && userData.role !== ROLES.MODERATOR)) {
-    return { supabase, userId: user.id, error: 'Unauthorized' as const }
+    return { supabase, userId: user.id, error: "Unauthorized" as const };
   }
 
-  return { userId: user.id, error: null }
+  return { userId: user.id, error: null };
 }
 
 export async function getEvents(filters: GetEventsFilters = {}) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  let query = supabase.from('events').select('*').eq('approved', true)
+  let query = supabase.from("events").select("*").eq("approved", true);
 
   // Apply filters
-  if (filters.category && filters.category !== 'all') {
-    query = query.eq('category', filters.category)
+  if (filters.category && filters.category !== "all") {
+    query = query.eq("category", filters.category);
   }
 
-  if (filters.locationType && filters.locationType !== 'all') {
-    query = query.eq('location_type', filters.locationType)
+  if (filters.locationType && filters.locationType !== "all") {
+    query = query.eq("location_type", filters.locationType);
   }
 
   // Apply sorting
-  if (filters.sort === 'latest') {
-    query = query.order('created_at', { ascending: false })
+  if (filters.sort === "latest") {
+    query = query.order("created_at", { ascending: false });
   } else {
     // Default to 'nearest' (upcoming events sorted by date)
     // We might want to filter out past events here too, but for now just sort
-    query = query.order('date', { ascending: true })
+    query = query.order("date", { ascending: true });
   }
 
-  const { data, error } = await query
+  const { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching events:', error)
-    return { events: [], error: 'Failed to fetch events' }
+    console.error("Error fetching events:", error);
+    return { events: [], error: "Failed to fetch events" };
   }
 
-  const events = data?.map(mapEventFromDB) || []
-  return { events }
+  const events = data?.map(mapEventFromDB) || [];
+  return { events };
 }
 
 export async function getEventBySlug(slug: string) {
   // Validate slug parameter
-  if (!slug || typeof slug !== 'string') {
-    return { event: null, error: 'Invalid slug parameter' }
+  if (!slug || typeof slug !== "string") {
+    return { event: null, error: "Invalid slug parameter" };
   }
 
-  const sanitizedSlug = slug.trim().toLowerCase()
+  const sanitizedSlug = slug.trim().toLowerCase();
   if (sanitizedSlug.length === 0 || sanitizedSlug.length > 200) {
-    return { event: null, error: 'Invalid slug format' }
+    return { event: null, error: "Invalid slug format" };
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data, error } = await supabase.from('events').select('*').eq('slug', sanitizedSlug).single()
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("slug", sanitizedSlug)
+    .single();
 
   if (error) {
-    console.error('Error fetching event by slug:', error)
-    return { event: null, error: 'Failed to fetch event' }
+    console.error("Error fetching event by slug:", error);
+    return { event: null, error: "Failed to fetch event" };
   }
 
-  return { event: mapEventFromDB(data) }
+  return { event: mapEventFromDB(data) };
 }
 
 export async function getRelatedEvents(category: string, excludeId: string, limit: number = 3) {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('category', category)
-    .neq('id', excludeId)
-    .eq('approved', true)
-    .limit(limit)
+    .from("events")
+    .select("*")
+    .eq("category", category)
+    .neq("id", excludeId)
+    .eq("approved", true)
+    .limit(limit);
 
   if (error) {
-    console.error('Error fetching related events:', error)
-    return { events: [], error: 'Failed to fetch related events' }
+    console.error("Error fetching related events:", error);
+    return { events: [], error: "Failed to fetch related events" };
   }
 
-  return { events: data?.map(mapEventFromDB) || [] }
+  return { events: data?.map(mapEventFromDB) || [] };
 }
 
 export async function submitEvent(formData: EventFormData) {
   try {
     // Validate form data server-side
-    const validation = validateEventForm(formData)
+    const validation = validateEventForm(formData);
     if (!validation.isValid) {
-      const errorMessages = Object.values(validation.errors).join(', ')
-      return { success: false, error: `Validation failed: ${errorMessages}` }
+      const errorMessages = Object.values(validation.errors).join(", ");
+      return { success: false, error: `Validation failed: ${errorMessages}` };
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return {
         success: false,
-        error: 'You must be logged in to submit an event',
-      }
+        error: "You must be logged in to submit an event",
+      };
     }
 
     // Map camelCase to snake_case for DB insertion
@@ -161,57 +169,57 @@ export async function submitEvent(formData: EventFormData) {
       registration_url: formData.registrationUrl,
       cover_image: formData.coverImage,
       category: formData.category,
-      status: 'upcoming', // Default status
+      status: "upcoming", // Default status
       approved: false, // Default approved status
       submitted_by: user.id, // Use authenticated user ID
-    }
+    };
 
-    const { error } = await supabase.from('events').insert(dbData)
+    const { error } = await supabase.from("events").insert(dbData);
 
     if (error) {
-      console.error('Error submitting event:', error)
-      return { success: false, error: 'Failed to submit event' }
+      console.error("Error submitting event:", error);
+      return { success: false, error: "Failed to submit event" };
     }
 
-    revalidatePath('/event/list')
-    revalidateTag('event-list-events', 'max')
-    return { success: true }
+    revalidatePath("/event/list");
+    revalidateTag("event-list-events", "max");
+    return { success: true };
   } catch (error) {
-    console.error('Unexpected error submitting event:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    console.error("Unexpected error submitting event:", error);
+    return { success: false, error: "An unexpected error occurred" };
   }
 }
 
 // Helper to validate UUID format
 function isValidUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  return uuidRegex.test(str)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
 }
 
 // Admin: Get pending events awaiting approval
 export async function getPendingEvents() {
   try {
-    const { error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess();
     if (adminError) {
-      return { events: [], error: 'Unauthorized' }
+      return { events: [], error: "Unauthorized" };
     }
-    const adminSupabase = createAdminClient()
+    const adminSupabase = await createAdminClient();
 
     const { data, error } = await adminSupabase
-      .from('events')
-      .select('*')
-      .eq('approved', false)
-      .order('created_at', { ascending: false })
+      .from("events")
+      .select("*")
+      .eq("approved", false)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching pending events:', error)
-      return { events: [], error: 'Failed to fetch pending events' }
+      console.error("Error fetching pending events:", error);
+      return { events: [], error: "Failed to fetch pending events" };
     }
 
-    return { events: data?.map(mapEventFromDB) || [] }
+    return { events: data?.map(mapEventFromDB) || [] };
   } catch (error) {
-    console.error('Unexpected error fetching pending events:', error)
-    return { events: [], error: 'An unexpected error occurred' }
+    console.error("Unexpected error fetching pending events:", error);
+    return { events: [], error: "An unexpected error occurred" };
   }
 }
 
@@ -220,37 +228,37 @@ export async function approveEvent(eventId: string) {
   try {
     // Validate eventId format
     if (!isValidUUID(eventId)) {
-      return { success: false, error: 'Invalid event ID format' }
+      return { success: false, error: "Invalid event ID format" };
     }
 
-    const { error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess();
     if (adminError) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: "Unauthorized" };
     }
-    const adminSupabase = createAdminClient()
+    const adminSupabase = await createAdminClient();
 
     const { data: updatedRows, error } = await adminSupabase
-      .from('events')
+      .from("events")
       .update({ approved: true })
-      .eq('id', eventId)
-      .select('id')
+      .eq("id", eventId)
+      .select("id");
 
     if (error) {
-      console.error('Error approving event:', error)
-      return { success: false, error: 'Failed to approve event' }
+      console.error("Error approving event:", error);
+      return { success: false, error: "Failed to approve event" };
     }
 
     if (!updatedRows || updatedRows.length === 0) {
-      return { success: false, error: 'Event could not be approved' }
+      return { success: false, error: "Event could not be approved" };
     }
 
-    revalidatePath('/dashboard')
-    revalidatePath('/event/list')
-    revalidateTag('event-list-events', 'max')
-    return { success: true }
+    revalidatePath("/dashboard");
+    revalidatePath("/event/list");
+    revalidateTag("event-list-events", "max");
+    return { success: true };
   } catch (error) {
-    console.error('Unexpected error approving event:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    console.error("Unexpected error approving event:", error);
+    return { success: false, error: "An unexpected error occurred" };
   }
 }
 
@@ -259,32 +267,36 @@ export async function rejectEvent(eventId: string) {
   try {
     // Validate eventId format
     if (!isValidUUID(eventId)) {
-      return { success: false, error: 'Invalid event ID format' }
+      return { success: false, error: "Invalid event ID format" };
     }
 
-    const { error: adminError } = await checkAdminAccess()
+    const { error: adminError } = await checkAdminAccess();
     if (adminError) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: "Unauthorized" };
     }
-    const adminSupabase = createAdminClient()
+    const adminSupabase = await createAdminClient();
 
-    const { data: deletedRows, error } = await adminSupabase.from('events').delete().eq('id', eventId).select('id')
+    const { data: deletedRows, error } = await adminSupabase
+      .from("events")
+      .delete()
+      .eq("id", eventId)
+      .select("id");
 
     if (error) {
-      console.error('Error rejecting event:', error)
-      return { success: false, error: 'Failed to reject event' }
+      console.error("Error rejecting event:", error);
+      return { success: false, error: "Failed to reject event" };
     }
 
     if (!deletedRows || deletedRows.length === 0) {
-      return { success: false, error: 'Event could not be rejected' }
+      return { success: false, error: "Event could not be rejected" };
     }
 
-    revalidatePath('/dashboard')
-    revalidatePath('/event/list')
-    revalidateTag('event-list-events', 'max')
-    return { success: true }
+    revalidatePath("/dashboard");
+    revalidatePath("/event/list");
+    revalidateTag("event-list-events", "max");
+    return { success: true };
   } catch (error) {
-    console.error('Unexpected error rejecting event:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    console.error("Unexpected error rejecting event:", error);
+    return { success: false, error: "An unexpected error occurred" };
   }
 }

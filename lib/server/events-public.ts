@@ -47,6 +47,9 @@ export async function fetchApprovedEvents(): Promise<AIEvent[]> {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
+    },
   });
 
   const { data, error } = await supabase
