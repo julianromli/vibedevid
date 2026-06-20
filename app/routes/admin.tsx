@@ -1,39 +1,13 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { VideoVibeCodingManager } from '@/components/ui/video-vibe-coding-manager'
-import { getCurrentUser } from '@/lib/actions/user'
+import { createFileRoute } from "@tanstack/react-router";
+import { VideoVibeCodingManager } from "@/components/ui/video-vibe-coding-manager";
+import { resolveAdminUser } from "@/lib/auth/admin-gate";
 
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
-
-/**
- * Server-only admin gate. Wrapped in `createServerFn` so the server-only
- * Supabase client never executes (or gets bundled) on the client when
- * `beforeLoad` re-runs during client-side navigation.
- */
-const resolveAdminUser = createServerFn({ method: 'GET' }).handler(async () => {
-  const { user, error } = await getCurrentUser()
-
-  if (error || !user) {
-    throw redirect({ to: '/user/auth' })
-  }
-
-  if (user.role !== ROLES.ADMIN) {
-    throw redirect({ to: '/' })
-  }
-
-  return { user }
-})
-
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
-    return resolveAdminUser()
+    return resolveAdminUser();
   },
   component: AdminRoute,
-})
+});
 
 function AdminRoute() {
   return (
@@ -44,12 +18,14 @@ function AdminRoute() {
         <div className="space-y-8">
           <div className="space-y-2 text-center sm:space-y-4">
             <h1 className="text-foreground text-2xl font-bold sm:text-4xl">Admin Dashboard 🚀</h1>
-            <p className="text-muted-foreground text-base sm:text-xl">Manage Video Vibe Coding Section</p>
+            <p className="text-muted-foreground text-base sm:text-xl">
+              Manage Video Vibe Coding Section
+            </p>
           </div>
 
           <VideoVibeCodingManager />
         </div>
       </div>
     </div>
-  )
+  );
 }

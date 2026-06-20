@@ -1,51 +1,34 @@
-import { createServerClient } from '@supabase/ssr'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { getSafeRedirectPath } from "@/lib/auth/credentials";
+import { createClient } from "@/lib/supabase/server";
 
-export const Route = createFileRoute('/api/auth-check')({
+const DEFAULT_REDIRECT = "/blog/editor";
+
+export const Route = createFileRoute("/api/auth-check")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        // Lazily import the server-only cookie helpers to keep this route
-        // module's top level client-safe (it is referenced by the client route
-        // tree). `@tanstack/react-start/server` pulls in `react-dom/server`.
-        const { getCookies, setCookie } = await import('@tanstack/react-start/server')
+        const { searchParams } = new URL(request.url);
 
-        const { searchParams } = new URL(request.url)
-        const rawRedirectTo = searchParams.get('redirectTo') || '/blog/editor'
+        // Prevent open redirects via the canonical guard. Falls back to the
+        // editor when the requested path is missing or unsafe.
+        const safePath = getSafeRedirectPath(searchParams.get("redirectTo"));
+        const redirectTo = safePath === "/" ? DEFAULT_REDIRECT : safePath;
 
-        // Prevent open redirects: only allow local, single-leading-slash paths.
-        // Reject protocol-relative (`//host`), backslash, and absolute URLs.
-        const isSafeLocalPath =
-          rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//') && !rawRedirectTo.startsWith('/\\')
-        const redirectTo = isSafeLocalPath ? rawRedirectTo : '/blog/editor'
-
-        const supabase = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            cookies: {
-              getAll() {
-                return Object.entries(getCookies()).map(([name, value]) => ({ name, value }))
-              },
-              setAll(cookiesToSet) {
-                for (const { name, value, options } of cookiesToSet) {
-                  setCookie(name, value, options)
-                }
-              },
-            },
-          },
-        )
-
+        const supabase = await createClient();
         const {
           data: { user },
-        } = await supabase.auth.getUser()
+        } = await supabase.auth.getUser();
 
         if (!user) {
-          return Response.redirect(new URL(`/user/auth?redirectTo=${encodeURIComponent(redirectTo)}`, request.url), 302)
+          return Response.redirect(
+            new URL(`/user/auth?redirectTo=${encodeURIComponent(redirectTo)}`, request.url),
+            302,
+          );
         }
 
-        return Response.redirect(new URL(redirectTo, request.url), 302)
+        return Response.redirect(new URL(redirectTo, request.url), 302);
       },
     },
   },
-})
+});
