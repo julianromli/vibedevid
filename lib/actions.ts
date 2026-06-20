@@ -5,7 +5,6 @@ import { normalizeProjectWebsiteUrl } from './project-url'
 import { getProjectIdBySlug } from './slug'
 import { createAdminClient } from './supabase/admin'
 import { createClient } from './supabase/server'
-import { deleteUploadthingFiles } from './uploadthing'
 
 function toLoggableError(error: unknown): string | Record<string, string | number> {
   if (typeof error === 'string') {
@@ -768,6 +767,7 @@ export async function deleteProject(projectSlug: string) {
 
     if (projectWithImages?.image_keys?.length) {
       try {
+        const { deleteUploadthingFiles } = await import('./uploadthing')
         await deleteUploadthingFiles(projectWithImages.image_keys)
       } catch {
         console.warn('Failed to cleanup uploaded images for deleted project:', projectSlug)

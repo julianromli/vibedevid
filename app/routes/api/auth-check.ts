@@ -1,11 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getCookies, setCookie } from '@tanstack/react-start/server'
 import { createServerClient } from '@supabase/ssr'
 
 export const Route = createFileRoute('/api/auth-check')({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        // Lazily import the server-only cookie helpers to keep this route
+        // module's top level client-safe (it is referenced by the client route
+        // tree). `@tanstack/react-start/server` pulls in `react-dom/server`.
+        const { getCookies, setCookie } = await import('@tanstack/react-start/server')
+
         const { searchParams } = new URL(request.url)
         const redirectTo = searchParams.get('redirectTo') || '/blog/editor'
 

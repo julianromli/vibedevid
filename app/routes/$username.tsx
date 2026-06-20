@@ -1,11 +1,24 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { z } from 'zod'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { loadProfilePageData } from '@/app/[username]/profile-data'
 import ProfilePage from '@/app/[username]/page'
 
+/**
+ * Server-only profile data fetching. Wrapped in `createServerFn` so the
+ * server-only Supabase client never executes (or gets bundled) on the client
+ * when the loader re-runs during client-side navigation.
+ */
+const loadProfile = createServerFn({ method: 'GET' })
+  .validator(z.object({ username: z.string().min(1) }))
+  .handler(async ({ data: { username } }) => {
+    return loadProfilePageData(username)
+  })
+
 export const Route = createFileRoute('/$username')({
   loader: async ({ params }) => {
-    const data = await loadProfilePageData(params.username)
+    const data = await loadProfile({ data: { username: params.username } })
     if (!data.user) {
       throw notFound()
     }

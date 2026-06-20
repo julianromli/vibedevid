@@ -1,4 +1,6 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { z } from 'zod'
 import { getPostForEdit } from '@/lib/actions/blog'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
@@ -27,8 +29,18 @@ async function getUserData(userId: string, email: string): Promise<User | null> 
 }
 
 export const Route = createFileRoute('/blog/editor/$slug')({
-  loader: async ({ params }) => {
-    const { slug } = params
+  loader: async ({ params }) => loadBlogEditorEditData({ data: { slug: params.slug } }),
+  component: BlogEditorEditRoute,
+})
+
+/**
+ * Server-only data fetching for the blog edit page. Wrapped in `createServerFn`
+ * so the server-only Supabase client never executes (or gets bundled) on the
+ * client when the loader re-runs during client-side navigation.
+ */
+const loadBlogEditorEditData = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }) => {
     const supabase = await createClient()
     const {
       data: { user },
@@ -52,9 +64,7 @@ export const Route = createFileRoute('/blog/editor/$slug')({
       user: userData,
       initialData: postResult.data,
     }
-  },
-  component: BlogEditorEditRoute,
-})
+  })
 
 function BlogEditorEditRoute() {
   const { user, initialData } = Route.useLoaderData()

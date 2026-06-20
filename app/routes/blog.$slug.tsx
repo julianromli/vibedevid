@@ -1,4 +1,6 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { z } from 'zod'
 import { getComments } from '@/lib/actions/comments'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { createClient } from '@/lib/supabase/server'
@@ -6,8 +8,14 @@ import BlogPostData, { type BlogPostDataProps } from '@/app/blog/[slug]/blog-pos
 
 const DEFAULT_OG_IMAGE = 'https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0'
 
-export const Route = createFileRoute('/blog/$slug')({
-  loader: async ({ params }): Promise<BlogPostDataProps & { slug: string }> => {
+/**
+ * Server-only data fetching for a blog post. Wrapped in `createServerFn` so the
+ * cookie-aware Supabase server client never executes (or gets bundled) on the
+ * client when the loader re-runs during client-side navigation.
+ */
+const loadBlogPostData = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }): Promise<BlogPostDataProps & { slug: string }> => {
     const supabase = await createClient()
 
     const {
@@ -49,7 +57,7 @@ export const Route = createFileRoute('/blog/$slug')({
         tags:blog_post_tags(post_tags(name))
       `,
       )
-      .eq('slug', params.slug)
+      .eq('slug', slug)
       .single()
 
     if (error || !post || post.status !== 'published') {
@@ -68,8 +76,13 @@ export const Route = createFileRoute('/blog/$slug')({
       isLoggedIn: !!user,
       userData,
       commentUser,
-      slug: params.slug,
+      slug,
     }
+  })
+
+export const Route = createFileRoute('/blog/$slug')({
+  loader: async ({ params }): Promise<BlogPostDataProps & { slug: string }> => {
+    return loadBlogPostData({ data: { slug: params.slug } })
   },
   head: ({ loaderData }) => {
     const post = loaderData?.post

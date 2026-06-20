@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { deleteProject as deleteProjectAction, editProject as editProjectAction, incrementBlogPostViews as incrementBlogPostViewsAction } from '@/lib/actions'
+import { deleteProject as deleteProjectAction, editProject as editProjectAction, fetchProjectsWithSorting as fetchProjectsWithSortingAction, incrementBlogPostViews as incrementBlogPostViewsAction } from '@/lib/actions'
 import {
   cleanupProjectProvisionalUpload as cleanupProjectProvisionalUploadAction,
   submitProject as submitProjectAction,
@@ -55,4 +55,21 @@ export const incrementBlogPostViewsFn = createServerFn({ method: 'POST' })
   .validator(z.object({ postId: z.string().min(1), sessionId: z.string().optional() }))
   .handler(async ({ data }) => {
     return incrementBlogPostViewsAction(data.postId, data.sessionId)
+  })
+
+/**
+ * Fetch projects with sorting/filtering. Used by client-side filter UI, so it
+ * must be called through this server-function boundary rather than importing
+ * the raw server action (which pulls server-only modules into the client).
+ */
+export const fetchProjectsWithSortingFn = createServerFn({ method: 'GET' })
+  .validator(
+    z.object({
+      sortBy: z.enum(['trending', 'top', 'newest']).default('newest'),
+      category: z.string().optional(),
+      limit: z.number().int().positive().max(100).default(20),
+    }),
+  )
+  .handler(async ({ data }) => {
+    return fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit)
   })

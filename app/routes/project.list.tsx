@@ -1,4 +1,6 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
 import { getCurrentUser } from '@/lib/server/auth'
@@ -7,15 +9,20 @@ import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { ProjectListClient } from '@/app/project/list/project-list-client'
 
-export const Route = createFileRoute('/project/list')({
-  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
-    filter: typeof search.filter === 'string' ? search.filter : undefined,
-    sort: typeof search.sort === 'string' ? search.sort : undefined,
-  }),
-  loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
-  loader: async ({ deps }) => {
-    const search = deps
-    const t = getServerT('projectList')
+/**
+ * Server-only data fetching for the project list. Wrapped in `createServerFn`
+ * so the server-only Supabase clients / translations never execute (or get
+ * bundled) on the client when the loader re-runs during client-side navigation.
+ */
+const loadProjectListData = createServerFn({ method: 'GET' })
+  .validator(
+    z.object({
+      filter: z.string().optional(),
+      sort: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: search }) => {
+    const t = await getServerT('projectList')
     const [currentUser, categories] = await Promise.all([getCurrentUser(), getCategories()])
 
     const initialSort = normalizeSortParam(getSingleSearchParam(search.sort))
@@ -58,6 +65,16 @@ export const Route = createFileRoute('/project/list')({
       isLoggedIn: !!currentUser,
       user,
     }
+  })
+
+export const Route = createFileRoute('/project/list')({
+  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
+    filter: typeof search.filter === 'string' ? search.filter : undefined,
+    sort: typeof search.sort === 'string' ? search.sort : undefined,
+  }),
+  loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
+  loader: async ({ deps }) => {
+    return loadProjectListData({ data: { filter: deps.filter, sort: deps.sort } })
   },
   component: ProjectListRoute,
 })

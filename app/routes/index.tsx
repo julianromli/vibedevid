@@ -1,4 +1,6 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
 import { getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
@@ -98,14 +100,19 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
   }
 }
 
-export const Route = createFileRoute('/')({
-  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
-    filter: typeof search.filter === 'string' ? search.filter : undefined,
-    sort: typeof search.sort === 'string' ? search.sort : undefined,
-  }),
-  loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
-  loader: async ({ deps }) => {
-    const search = deps
+/**
+ * Server-only data fetching for the home route. Wrapped in `createServerFn` so
+ * the server-only Supabase clients never execute (or get bundled) on the
+ * client when the loader re-runs during client-side navigation.
+ */
+const loadHomeData = createServerFn({ method: 'GET' })
+  .validator(
+    z.object({
+      filter: z.string().optional(),
+      sort: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: search }) => {
     const supabase = await createClient()
     const {
       data: { user },
@@ -142,6 +149,16 @@ export const Route = createFileRoute('/')({
       initialSort,
       initialVibeVideos,
     }
+  })
+
+export const Route = createFileRoute('/')({
+  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
+    filter: typeof search.filter === 'string' ? search.filter : undefined,
+    sort: typeof search.sort === 'string' ? search.sort : undefined,
+  }),
+  loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
+  loader: async ({ deps }) => {
+    return loadHomeData({ data: { filter: deps.filter, sort: deps.sort } })
   },
   component: HomeRoute,
 })

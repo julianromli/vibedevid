@@ -1,20 +1,30 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { z } from 'zod'
 import { getEventBySlug, getRelatedEvents } from '@/lib/actions/events'
 import { absoluteUrl } from '@/lib/seo/site-url'
 import { getServerLocale } from '@/lib/routes/helpers'
 import { getCurrentUser } from '@/lib/server/auth'
 import EventDetailData from '@/app/event/[slug]/event-detail-data'
 
-export const Route = createFileRoute('/event/$slug')({
-  loader: async ({ params }) => {
-    const { event } = await getEventBySlug(params.slug)
+/**
+ * Server-only data fetching for an event detail page. Wrapped in
+ * `createServerFn` so the server-only Supabase clients / locale cookie reads
+ * never execute (or get bundled) on the client when the loader re-runs during
+ * client-side navigation.
+ */
+const loadEventData = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }) => {
+    const { event } = await getEventBySlug(slug)
     if (!event) {
       throw notFound()
     }
 
-    const [{ events, error: relatedError }, currentUser] = await Promise.all([
+    const [{ events, error: relatedError }, currentUser, locale] = await Promise.all([
       getRelatedEvents(event.category, event.id),
       getCurrentUser(),
+      getServerLocale(),
     ])
 
     if (relatedError) {
@@ -29,12 +39,18 @@ export const Route = createFileRoute('/event/$slug')({
       event,
       relatedEvents: relatedError ? [] : (events ?? []),
       currentUser,
-      slug: params.slug,
+      slug,
+      locale,
     }
+  })
+
+export const Route = createFileRoute('/event/$slug')({
+  loader: async ({ params }) => {
+    return loadEventData({ data: { slug: params.slug } })
   },
   head: ({ loaderData }) => {
     const event = loaderData?.event
-    const locale = getServerLocale()
+    const locale = loaderData?.locale ?? 'id'
 
     if (!event) {
       return {

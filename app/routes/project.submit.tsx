@@ -1,31 +1,39 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { SubmitProjectForm } from '@/components/ui/submit-project-form'
 import type { Category } from '@/lib/categories'
 import { createClient } from '@/lib/supabase/server'
 
+/**
+ * Server-only data fetching for the project submit page. Wrapped in
+ * `createServerFn` so the server-only Supabase client never executes (or gets
+ * bundled) on the client when the loader re-runs during client-side navigation.
+ */
+const loadSubmitData = createServerFn({ method: 'GET' }).handler(async () => {
+  const supabase = await createClient()
+  const redirectTo = '/project/submit'
+
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data?.user) {
+    throw redirect({ to: '/user/auth', search: { redirectTo } })
+  }
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  return {
+    userId: data.user.id,
+    categories: (categories ?? []) as Category[],
+    redirectTo,
+  }
+})
+
 export const Route = createFileRoute('/project/submit')({
-  loader: async () => {
-    const supabase = await createClient()
-    const redirectTo = '/project/submit'
-
-    const { data, error } = await supabase.auth.getUser()
-    if (error || !data?.user) {
-      throw redirect({ to: '/user/auth', search: { redirectTo } })
-    }
-
-    const { data: categories } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-
-    return {
-      userId: data.user.id,
-      categories: (categories ?? []) as Category[],
-      redirectTo,
-    }
-  },
+  loader: async () => loadSubmitData(),
   component: ProjectSubmitRoute,
 })
 

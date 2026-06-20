@@ -1,3 +1,4 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createClient } from '@/lib/supabase/server'
 import type { User } from '@/types/homepage'
@@ -26,26 +27,33 @@ async function getUserData(userId: string, email: string): Promise<User | null> 
 }
 
 export const Route = createFileRoute('/blog/editor')({
-  loader: async () => {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      throw redirect({ to: '/user/auth', search: { redirectTo: '/blog/editor' } })
-    }
-
-    const userData = await getUserData(user.id, user.email || '')
-
-    if (!userData) {
-      console.error('[BlogEditor] User profile not found for user:', user.id)
-      throw redirect({ to: '/user/auth', search: { redirectTo: '/blog/editor' } })
-    }
-
-    return { user: userData }
-  },
+  loader: async () => loadBlogEditorData(),
   component: BlogEditorRoute,
+})
+
+/**
+ * Server-only data fetching for the blog editor. Wrapped in `createServerFn` so
+ * the server-only Supabase client never executes (or gets bundled) on the
+ * client when the loader re-runs during client-side navigation.
+ */
+const loadBlogEditorData = createServerFn({ method: 'GET' }).handler(async () => {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw redirect({ to: '/user/auth', search: { redirectTo: '/blog/editor' } })
+  }
+
+  const userData = await getUserData(user.id, user.email || '')
+
+  if (!userData) {
+    console.error('[BlogEditor] User profile not found for user:', user.id)
+    throw redirect({ to: '/user/auth', search: { redirectTo: '/blog/editor' } })
+  }
+
+  return { user: userData }
 })
 
 function BlogEditorRoute() {

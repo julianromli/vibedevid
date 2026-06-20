@@ -17,7 +17,7 @@ import { editProjectFn } from '@/lib/actions/projects.functions'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from '@/lib/project-url'
-import type { OurFileRouter } from '@/lib/uploadthing'
+import type { OurFileRouter } from '@/lib/uploadthing-router'
 
 const MAX_DESCRIPTION_LENGTH = 1600
 

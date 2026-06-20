@@ -4,7 +4,6 @@ import { fetchFavicon } from '../favicon-utils'
 import { normalizeProjectWebsiteUrl } from '../project-url'
 import { ensureUniqueSlug, slugifyTitle } from '../slug'
 import { createClient } from '../supabase/server'
-import { deleteUploadthingFiles } from '../uploadthing'
 
 type SubmitProjectFieldName = 'title' | 'tagline' | 'description' | 'category' | 'website_url' | 'image_urls' | 'tags'
 
@@ -391,6 +390,7 @@ const cleanupProvisionalUploadByKey = async (
   }
 
   try {
+    const { deleteUploadthingFiles } = await import('../uploadthing')
     return await deleteUploadthingFiles(normalizedKey)
   } catch {
     return {
@@ -420,6 +420,7 @@ const cleanupProvisionalUploadByKeys = async (
   }
 
   try {
+    const { deleteUploadthingFiles } = await import('../uploadthing')
     return await deleteUploadthingFiles(normalizedKeys)
   } catch {
     return {

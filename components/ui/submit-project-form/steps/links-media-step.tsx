@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import MultipleSelector, { type Option } from '@/components/ui/multiselect'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import { normalizeProjectWebsiteUrl } from '@/lib/project-url'
-import type { OurFileRouter } from '@/lib/uploadthing'
+import type { OurFileRouter } from '@/lib/uploadthing-router'
 import type { UploadResult } from '@/components/ui/submit-project-form/types'
 
 const techOptions: Option[] = [

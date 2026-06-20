@@ -1,4 +1,6 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
+import { z } from 'zod'
 import { getProjectBySlug } from '@/lib/actions'
 import { getComments } from '@/lib/actions/comments'
 import { getCategories } from '@/lib/categories'
@@ -7,10 +9,14 @@ import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 import ProjectDetailsPage, { type ProjectDetailsData } from '@/app/project/[slug]/page'
 
-export const Route = createFileRoute('/project/$slug')({
-  loader: async ({ params }): Promise<ProjectDetailsData> => {
-    const { slug } = params
-
+/**
+ * Server-only data fetching for a project detail page. Wrapped in
+ * `createServerFn` so the server-only Supabase clients never execute (or get
+ * bundled) on the client when the loader re-runs during client-side navigation.
+ */
+const loadProjectData = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }): Promise<ProjectDetailsData> => {
     // Legacy UUID redirect
     if (isUUID(slug)) {
       const legacyProject = await getProjectByUUID(slug)
@@ -34,6 +40,11 @@ export const Route = createFileRoute('/project/$slug')({
     const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
 
     return { slug, project, currentUser, categories, initialComments, isOwner }
+  })
+
+export const Route = createFileRoute('/project/$slug')({
+  loader: async ({ params }): Promise<ProjectDetailsData> => {
+    return loadProjectData({ data: { slug: params.slug } })
   },
   head: ({ loaderData }) => {
     const project = loaderData?.project

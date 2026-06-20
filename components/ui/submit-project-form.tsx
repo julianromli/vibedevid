@@ -13,7 +13,6 @@ import { ReviewStep } from '@/components/ui/submit-project-form/steps/review-ste
 import { SourceStep } from '@/components/ui/submit-project-form/steps/source-step'
 import type { UploadResult } from '@/components/ui/submit-project-form/types'
 import { cleanupProjectProvisionalUploadFn, submitProjectFn } from '@/lib/actions/projects.functions'
-import type { submitProject } from '@/lib/actions/projects'
 import type { Category } from '@/lib/categories'
 import { getFaviconUrl } from '@/lib/favicon-utils'
 import type { Option } from '@/components/ui/multiselect'
@@ -380,7 +379,7 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     return true
   }
 
-  const handleSubmitResultError = (result: Awaited<ReturnType<typeof submitProject>>) => {
+  const handleSubmitResultError = (result: Awaited<ReturnType<typeof submitProjectFn>>) => {
     if (!result) {
       setError('An unexpected error occurred. Please try again.')
       return

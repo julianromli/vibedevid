@@ -20,6 +20,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as AdminRouteRouteImport } from './routes/_admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UserAuthRouteImport } from './routes/user.auth'
 import { Route as ProjectSubmitRouteImport } from './routes/project.submit'
 import { Route as ProjectListRouteImport } from './routes/project.list'
@@ -100,6 +101,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
 } as any)
 const UserAuthRoute = UserAuthRouteImport.update({
   id: '/user/auth',
@@ -260,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/blog/': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -274,7 +281,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
   '/calendar': typeof CalendarRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -298,6 +304,7 @@ export interface FileRoutesByTo {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/blog': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -338,6 +345,7 @@ export interface FileRoutesById {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/blog/': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -378,6 +386,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/blog/'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
     | '/api/auth/reset-password'
@@ -392,7 +401,6 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/admin'
-    | '/blog'
     | '/calendar'
     | '/privacy-policy'
     | '/robots.txt'
@@ -416,6 +424,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/blog'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
     | '/api/auth/reset-password'
@@ -455,6 +464,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/blog/'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
     | '/api/auth/reset-password'
@@ -578,6 +588,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/user/auth': {
       id: '/user/auth'
@@ -791,11 +808,13 @@ const BlogEditorRouteWithChildren = BlogEditorRoute._addFileChildren(
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   BlogEditorRoute: typeof BlogEditorRouteWithChildren
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 const BlogRouteChildren: BlogRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   BlogEditorRoute: BlogEditorRouteWithChildren,
+  BlogIndexRoute: BlogIndexRoute,
 }
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)

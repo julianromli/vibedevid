@@ -5,7 +5,7 @@
 
 import { usePathname, useRouter, useSearchParams } from '@/lib/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { fetchProjectsWithSorting } from '@/lib/actions'
+import { fetchProjectsWithSortingFn } from '@/lib/actions/projects.functions'
 import { getCategories } from '@/lib/categories'
 import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
 
@@ -21,7 +21,7 @@ const ALL_FILTER_VALUE = 'all'
 const DEFAULT_SORT: SortBy = 'trending'
 const PROJECT_FETCH_TIMEOUT_MS = 10_000
 
-type FetchProjectsResult = Awaited<ReturnType<typeof fetchProjectsWithSorting>>
+type FetchProjectsResult = Awaited<ReturnType<typeof fetchProjectsWithSortingFn>>
 
 function normalizeSortParam(value: string | null | undefined): SortBy {
   return value === 'top' || value === 'newest' || value === 'trending' ? value : DEFAULT_SORT
@@ -40,7 +40,7 @@ async function fetchProjectsWithTimeout(sortBy: SortBy, category?: string): Prom
 
   try {
     return await Promise.race([
-      fetchProjectsWithSorting(sortBy, category, 20),
+      fetchProjectsWithSortingFn({ data: { sortBy, category, limit: 20 } }),
       new Promise<FetchProjectsResult>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`Project fetch timed out after ${PROJECT_FETCH_TIMEOUT_MS}ms`))

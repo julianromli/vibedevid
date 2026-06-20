@@ -28,7 +28,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - ❤️ **Like System** - Like project yang lo suka
 - 🔍 **Discovery** - Filter dan cari project berdasarkan kategori
 - 🖼️ **Progressive Image Loading** - Blur placeholders dengan lazy loading
-- 🌍 **Internationalization** - Full support English dan Indonesia (next-intl)
+- 🌍 **Internationalization** - Full support English dan Indonesia (react-i18next)
 - 🛡️ **Spam Protection** - Email domain whitelist dan bot protection
 - 📊 **Analytics Dashboard** - Charts dan data visualization (recharts)
 - ❓ **FAQ System** - Frequently asked questions management
@@ -36,27 +36,29 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.0.10 with App Router + Turbopack
+- **Framework**: TanStack Start (Vite + Nitro) with `@tanstack/react-router` file-based routing
+- **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
 - **Database**: Supabase (PostgreSQL) with RLS policies
 - **Authentication**: Supabase Auth (email/password + OAuth)
-- **Styling**: Tailwind CSS v4.1.9
+- **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
-- **Animations**: Motion 12.23.12
-- **Rich Text**: Novel 1.0.2 + TipTap 3.14.0
-- **Icons**: Lucide React 0.562.0 + Tabler Icons + LobeHub Icons
-- **Fonts**: Geist Sans & Geist Mono
-- **Internationalization**: next-intl 4.7.0
+- **Animations**: Motion
+- **Rich Text**: Novel + TipTap
+- **Icons**: Lucide React + Tabler Icons + LobeHub Icons
+- **Internationalization**: react-i18next
 - **Forms**: React Hook Form + Zod
 - **AI Integration**: AI SDK + OpenRouter Provider
 - **File Uploads**: UploadThing + Better Upload
-- **Command Palette**: cmdk 1.1.1
-- **Charts**: Recharts 3.7.0
+- **Command Palette**: cmdk
+- **Charts**: Recharts
 - **Dates**: date-fns + date-fns-tz
-- **Testing**: Playwright 1.55.0 (E2E) + Vitest 4.0.18 (unit)
-- **Code Quality**: Biome 2.3.10 (linter + formatter)
+- **Testing**: Playwright (E2E) + Vitest (unit)
+- **Code Quality**: Biome (linter + formatter)
 - **Analytics**: Vercel Analytics + Speed Insights
-- **Toast**: Sonner 2.0.7
+- **Toast**: Sonner
+
+> Note: this app was migrated from Next.js 16 App Router to TanStack Start. Some `app/` subfolders still use Next.js-style names but are now plain view/component modules imported by route files in `app/routes/`.
 
 ## Getting Started
 
@@ -114,7 +116,7 @@ Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
 6. Run the development server:
 
 ```bash
-bun dev
+bun run dev
 
 # or
 
@@ -133,39 +135,35 @@ pnpm dev
 # Install dependencies
 bun install
 
-# Development server (Turbopack is default in Next.js 16)
-bun dev
+# Development server (vite dev, port 3000)
+bun run dev
 
-# Build for production
-bun build
+# Build for production (vite build — Nitro server output in .output/)
+bun run build
 
-# Type checking (CRITICAL: build ignores TS errors via ignoreBuildErrors: true)
-bun tsc --noEmit
+# Start the production server
+bun run start
+
+# Type checking (required for type safety)
+bunx tsc --noEmit
 
 # Linting & Formatting (Biome)
-bun lint
-bun format
+bun run lint        # changed files only
+bun run lint:all    # full repo
+bun run format
 
-# E2E tests (Playwright) - runs all tests in tests/ directory
-bunx playwright test
+# Unit tests (Vitest)
+bun run test
+bun run test:watch
 
-# Run single test file
+# E2E tests (Playwright)
+bun run test:e2e
+bun run test:e2e:headed   # see browser
+bun run test:e2e:debug    # step through
+
+# Run a single Playwright spec / test by name
 bunx playwright test tests/views-tracking.spec.ts
-
-# Run single test by name
 bunx playwright test -g "should track views when visiting project page"
-
-# Run unit tests only
-bunx playwright test tests/unit/
-
-# Run tests in headed mode (see browser)
-bunx playwright test --headed
-
-# Run tests in debug mode (step through)
-bunx playwright test --debug
-
-# Run tests in specific browser
-bunx playwright test --project=chromium
 ```
 
 ## Environment Variables
@@ -220,27 +218,23 @@ bunx playwright test --project=chromium
 ## Project Structure
 
 ```
-├── app/                      # Next.js App Router
-│   ├── [username]/          # Dynamic user profile pages
-│   ├── project/
-│   │   ├── [slug]/         # Project detail pages (slug-based)
-│   │   ├── submit/         # Submit new project (auth required)
-│   │   └── list/           # Project listing with filters
-│   ├── blog/
-│   │   ├── page.tsx        # Blog listing
-│   │   ├── [id]/           # Blog post detail
-│   │   └── editor/         # Rich text blog editor
-│   ├── event/
-│   │   ├── list/           # Event listing
-│   │   ├── [slug]/         # Event detail pages
-│   │   └── submit/         # Submit new event (auth required)
-│   ├── dashboard/          # User dashboard
-│   ├── admin/              # Admin dashboard with moderation
-│   ├── calendar/           # Community calendar
-│   ├── videos/             # Vibe videos section
-│   ├── terms/              # Terms page
-│   ├── user/auth/          # Authentication pages
-│   └── layout.tsx          # Root layout with providers
+├── app/
+│   ├── routes/             # TanStack Router file-based routes (source of truth)
+│   │   ├── __root.tsx      # Root layout, head/meta, providers
+│   │   ├── index.tsx       # Homepage
+│   │   ├── $username.tsx   # Dynamic user profile pages
+│   │   ├── project.list.tsx / project.$slug.tsx / project.submit.tsx
+│   │   ├── blog.tsx (layout) / blog.index.tsx / blog.$slug.tsx / blog.editor*.tsx
+│   │   ├── event.list.tsx / event.$slug.tsx
+│   │   ├── _admin/         # Protected admin route group (role-gated layout)
+│   │   ├── api/            # API route handlers (server.handlers blocks)
+│   │   └── auth.callback.ts
+│   ├── routeTree.gen.ts    # Generated route tree (do not hand-edit)
+│   ├── router.tsx          # Router factory
+│   ├── start.ts            # TanStack Start instance + request middleware
+│   └── <feature>/          # Legacy Next.js-named folders, now view/component
+│                           #   modules imported by routes (blog, project,
+│                           #   event, [username], (admin), user/auth, ...)
 ├── components/
 │   ├── ui/                 # 50+ shadcn/ui components
 │   ├── sections/           # Page sections (hero, showcase, faq)
@@ -249,19 +243,24 @@ bunx playwright test --project=chromium
 │   ├── admin-panel/        # Admin dashboard components
 │   ├── event/              # Event-specific components
 │   └── profile/            # Profile-specific components
-├── hooks/                  # Custom React hooks (10+ hooks)
+├── hooks/                  # Custom React hooks
 ├── lib/
-│   ├── actions/            # Server actions (comments, blog, projects, events)
-│   ├── supabase/           # Supabase client configuration
-│   ├── server/             # Server utilities
+│   ├── actions/            # Server data/mutations + *.functions.ts (createServerFn)
+│   ├── supabase/           # Supabase client/server/admin configuration
+│   ├── server/             # Server-only utilities (auth, request middleware)
+│   ├── routes/             # Route helpers (server locale/translations)
+│   ├── uploadthing.ts      # UploadThing server router
+│   ├── uploadthing-client.ts   # Client upload helpers
+│   ├── uploadthing-router.ts   # Client-safe router types
 │   └── ai/                 # AI integration (OpenRouter)
+├── i18n/                   # react-i18next config (index.ts, routing.ts)
 ├── types/                  # TypeScript type definitions
 ├── scripts/                # Database migrations (20+ SQL files)
-├── tests/                  # Playwright E2E tests + unit tests
+├── tests/                  # Vitest unit tests + Playwright E2E tests
 ├── messages/               # i18n messages (en.json, id.json)
 ├── docs/                   # Documentation (security, database, deployment)
 ├── biome.json              # Biome configuration
-├── next.config.mjs         # Next.js configuration
+├── vite.config.ts          # Vite + TanStack Start + Nitro configuration
 └── tsconfig.json           # TypeScript configuration
 ```
 
@@ -331,10 +330,9 @@ Comprehensive admin tools:
 
 This project includes AI agent skills for enhanced development:
 
-- **frontend-design** - Create distinctive, production-grade frontend interfaces
-- **webapp-testing** - Toolkit for interacting with testing local web applications
+- **motion-design** - Motion design principles for emotionally-driven, technically sound animations
 
-See `.claude/skills/` for workspace skills and `~/.kiro/skills/` for global skills.
+See `.agents/skills/` for workspace skills.
 
 ## Contributing
 

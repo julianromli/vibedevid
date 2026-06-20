@@ -1,5 +1,8 @@
 import { createUploadthing, type FileRouter, UTApi } from 'uploadthing/server'
 import { createClient } from './supabase/server'
+import type { OurFileRouter, UploadedFileMetadata } from './uploadthing-router'
+
+export type { OurFileRouter } from './uploadthing-router'
 
 const f = createUploadthing()
 
@@ -12,12 +15,7 @@ function getUtApi() {
   return utapiInstance
 }
 
-export type UploadedFileMetadata = {
-  key: string
-  name: string
-  uploadedBy: string
-  url: string
-}
+export type { UploadedFileMetadata } from './uploadthing-router'
 
 export interface UploadCleanupResult {
   success: boolean
@@ -97,4 +95,7 @@ export const ourFileRouter = {
     }),
 } satisfies FileRouter
 
-export type OurFileRouter = typeof ourFileRouter
+// Keep the runtime router in sync with the client-safe `OurFileRouter` type
+// declared in `./uploadthing-router`. If this assertion fails, the endpoint
+// names or shapes have drifted and the type must be updated.
+ourFileRouter satisfies OurFileRouter

@@ -1,5 +1,7 @@
+import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import { z } from 'zod'
 import { Header } from '@/components/admin-panel/header'
 import { type DashboardTabValue, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
 import AdminManagementPage from '@/app/(admin)/dashboard/boards/admin-management/page'
@@ -48,6 +50,28 @@ function DashboardTabPanel({ tab, boardData }: { tab: DashboardTabValue; boardDa
   }
 }
 
+const dashboardSearchSchema = z.object({
+  tab: z.string().optional(),
+  search: z.string().optional(),
+  role: z.string().optional(),
+  status: z.string().optional(),
+  page: z.string().optional(),
+  category: z.string().optional(),
+})
+
+/**
+ * Server-only admin board data fetching. Wrapped in `createServerFn` so the
+ * server-only data loaders never execute (or get bundled) on the client when
+ * the loader re-runs during client-side navigation.
+ */
+const loadAdminDashboardData = createServerFn({ method: 'GET' })
+  .validator(dashboardSearchSchema)
+  .handler(async ({ data: search }) => {
+    const activeTab = resolveDashboardTab(search.tab)
+    const boardData = await loadDashboardBoardData(activeTab, search)
+    return { activeTab, boardData }
+  })
+
 export const Route = createFileRoute('/_admin/dashboard')({
   validateSearch: (
     search: Record<string, unknown>,
@@ -67,11 +91,7 @@ export const Route = createFileRoute('/_admin/dashboard')({
     category: typeof search.category === 'string' ? search.category : undefined,
   }),
   loaderDeps: ({ search }) => ({ search }),
-  loader: async ({ deps }) => {
-    const activeTab = resolveDashboardTab(deps.search.tab)
-    const boardData = await loadDashboardBoardData(activeTab, deps.search)
-    return { activeTab, boardData }
-  },
+  loader: async ({ deps }) => loadAdminDashboardData({ data: deps.search }),
   component: AdminDashboardRoute,
 })
 
