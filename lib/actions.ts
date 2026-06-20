@@ -346,7 +346,6 @@ export async function getLikeStatus(projectId: string) {
 export async function getBatchLikeStatus(projectIds: string[]) {
   try {
     if (!projectIds || projectIds.length === 0) {
-      console.log("[v0] getBatchLikeStatus: No project IDs provided");
       return {
         likesData: {} as Record<string, { totalLikes: number; isLiked: boolean }>,
         error: null,
@@ -359,19 +358,14 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       .filter((id) => Number.isInteger(id));
 
     if (cleanProjectIds.length === 0) {
-      console.log("[v0] getBatchLikeStatus: No valid project IDs after cleaning");
       return {
         likesData: {} as Record<string, { totalLikes: number; isLiked: boolean }>,
         error: "No valid project IDs provided",
       };
     }
 
-    console.log("[v0] getBatchLikeStatus: Fetching likes for projects:", cleanProjectIds);
-
     const session = await getServerSession();
     const userId = session?.user?.id;
-
-    console.log("[v0] getBatchLikeStatus: User status:", userId ? "logged in" : "anonymous");
 
     const db = getDb();
 
@@ -389,8 +383,6 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       });
       return { likesData: emptyLikesData, error: null };
     }
-
-    console.log("[v0] getBatchLikeStatus: Raw likes data:", allLikes.length, "likes found");
 
     const likesByProject = new Map<string, { count: number; userLiked: boolean }>();
 
@@ -415,7 +407,6 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       likesData[projectId] = { totalLikes: data.count, isLiked: data.userLiked };
     }
 
-    console.log("[v0] getBatchLikeStatus: Processed likes data:", likesData);
     return { likesData, error: null };
   } catch (error) {
     console.error("[v0] getBatchLikeStatus: Unexpected error:", toLoggableError(error));
@@ -671,10 +662,6 @@ export async function fetchProjectsWithSorting(
     }
 
     const limitedProjects = sortedProjects.slice(0, limit);
-
-    console.log(
-      `[fetchProjectsWithSorting] Fetched ${limitedProjects.length} projects with sorting: ${sortBy}, category: ${category || "all"}`,
-    );
 
     return { projects: limitedProjects, error: null };
   } catch (error) {

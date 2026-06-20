@@ -74,9 +74,15 @@ vi.mock("@/components/ui/logo-marquee", () => ({
   LogoMarquee: () => React.createElement("div", null, "Logo marquee"),
 }));
 
-vi.mock("@/components/ui/progressive-image", () => ({
-  ProgressiveImage: (props: React.ImgHTMLAttributes<HTMLImageElement>) =>
-    React.createElement("img", props),
+vi.mock("@/components/ui/optimized-image", () => ({
+  OptimizedImage: ({
+    variantWidths: _variantWidths,
+    priority: _priority,
+    ...props
+  }: React.ImgHTMLAttributes<HTMLImageElement> & {
+    variantWidths?: number[];
+    priority?: boolean;
+  }) => React.createElement("img", props),
 }));
 
 vi.mock("@/components/ui/safari-mockup", () => ({

@@ -1,4 +1,4 @@
-import { getRequestHeaders } from "@tanstack/react-start/server";
+import { getRequest, getRequestHeaders } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { createUserProfile } from "@/lib/auth/profile";
 import { getAuth } from "@/lib/auth/server";
@@ -14,11 +14,52 @@ export interface SessionUser {
   image?: string | null;
 }
 
-export async function getServerSession(requestHeaders?: Headers) {
+type ServerSession = Awaited<ReturnType<ReturnType<typeof getAuth>["api"]["getSession"]>>;
+
+/**
+ * Request-scoped cache for the resolved session. The homepage (and most pages)
+ * resolve the session multiple times per request — root `beforeLoad`, route
+ * loaders, and data helpers like `getBatchLikeStatus` all call
+ * `getServerSession()`. Each call is an auth roundtrip, so on Cloudflare Workers
+ * the duplicates add up to hundreds of ms of server response time.
+ *
+ * We key the cache on the per-request `Request` object (stable within a request,
+ * garbage-collected after), so there is no cross-request leakage. Callers that
+ * pass explicit `requestHeaders` bypass the cache, since they intentionally
+ * resolve a session for a different header set.
+ */
+const sessionCache = new WeakMap<Request, Promise<ServerSession>>();
+
+async function resolveSession(headers: Headers): Promise<ServerSession> {
   const auth = getAuth();
-  const headers = requestHeaders ?? getRequestHeaders();
-  const session = await auth.api.getSession({ headers });
-  return session;
+  return auth.api.getSession({ headers });
+}
+
+export async function getServerSession(requestHeaders?: Headers) {
+  if (requestHeaders) {
+    return resolveSession(requestHeaders);
+  }
+
+  let request: Request | undefined;
+  try {
+    request = getRequest();
+  } catch {
+    request = undefined;
+  }
+
+  if (!request) {
+    // Outside a request context (should not happen server-side) — resolve directly.
+    return resolveSession(getRequestHeaders());
+  }
+
+  const cached = sessionCache.get(request);
+  if (cached) {
+    return cached;
+  }
+
+  const pending = resolveSession(getRequestHeaders());
+  sessionCache.set(request, pending);
+  return pending;
 }
 
 export async function getCurrentUser() {

@@ -279,9 +279,11 @@ export default function FeaturesSection() {
                         </span>
                         <div className="ring-background relative size-7 ring-4">
                           <Image
-                            layout="fullWidth"
+                            width={64}
+                            height={64}
+                            loading="lazy"
                             className="rounded-full object-cover w-full h-full"
-                            src="https://avatars.githubusercontent.com/u/102558960?v=4"
+                            src="https://avatars.githubusercontent.com/u/102558960?s=64&v=4"
                             alt="Likeur avatar"
                           />
                         </div>
@@ -289,9 +291,11 @@ export default function FeaturesSection() {
                       <div className="relative ml-[calc(50%-1rem)] flex items-center gap-2">
                         <div className="ring-background relative size-8 ring-4">
                           <Image
-                            layout="fullWidth"
+                            width={64}
+                            height={64}
+                            loading="lazy"
                             className="rounded-full object-cover w-full h-full"
-                            src="https://avatars.githubusercontent.com/u/47919550?v=4"
+                            src="https://avatars.githubusercontent.com/u/47919550?s=64&v=4"
                             alt="M. Irung avatar"
                           />
                         </div>
@@ -305,9 +309,11 @@ export default function FeaturesSection() {
                         </span>
                         <div className="ring-background relative size-7 ring-4">
                           <Image
-                            layout="fullWidth"
+                            width={64}
+                            height={64}
+                            loading="lazy"
                             className="rounded-full object-cover w-full h-full"
-                            src="https://avatars.githubusercontent.com/u/31113941?v=4"
+                            src="https://avatars.githubusercontent.com/u/31113941?s=64&v=4"
                             alt="B. Ng avatar"
                           />
                         </div>

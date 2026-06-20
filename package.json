@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "vp build",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "build": "node scripts/optimize-images.mjs && vp build",
     "start": "node .output/server/index.mjs",
     "lint": "node scripts/lint-changed.mjs",
     "lint:fast": "node scripts/lint-changed.mjs",

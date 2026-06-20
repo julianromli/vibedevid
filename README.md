@@ -153,7 +153,11 @@ vp install
 bun run dev
 
 # Build for production (vite build — Nitro server output in .output/)
+# Pre-generates responsive AVIF/WebP image variants via scripts/optimize-images.mjs first
 bun run build
+
+# Regenerate optimized image variants only (public/optimized/)
+bun run optimize:images
 
 # Start the production server
 bun run start
@@ -387,6 +391,17 @@ Session-based analytics dengan:
 - Intersection Observer lazy loading
 - AVIF/WebP automatic optimization
 - Client-safe processing (no sharp in client bundle)
+
+### Performance Optimization
+
+Homepage performance is tuned for Core Web Vitals (LCP/TBT):
+
+- **Build-time responsive images** - `scripts/optimize-images.mjs` (sharp) pre-generates AVIF + WebP variants of large public images into `public/optimized/` at multiple widths. Runs automatically before `bun run build`. The hero (the LCP element) drops from a ~660KB 2880×1800 PNG to ~90KB at its 1200px breakpoint.
+- **`OptimizedImage` component** (`components/ui/optimized-image.tsx`) - Renders a `<picture>` with AVIF/WebP `srcset` pointing at the generated variants. The hero uses `priority` (eager load + `fetchpriority="high"`) and is preloaded in the home route `head()`.
+- **Right-sized remote avatars** - GitHub avatars request `?s=64`; testimonial avatars use the 128px optimized variants instead of full-size source PNGs.
+- **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
+- **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*`, fonts, and image file types.
+- **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
 
 ### SEO
 

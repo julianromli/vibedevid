@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Button } from "@/components/ui/button";
 import { LogoMarquee } from "@/components/ui/logo-marquee";
-import { ProgressiveImage } from "@/components/ui/progressive-image";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { SafariMockup } from "@/components/ui/safari-mockup";
 import { useLocale } from "@/hooks/use-locale";
 import { cn } from "@/lib/utils";
@@ -193,18 +193,15 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
             }}
           >
             <SafariMockup url="vibedevid.com">
-              <ProgressiveImage
+              <OptimizedImage
                 src="/hero-vibedevid-showcase.png"
                 alt="VibeDevID showcase interface"
                 width={2880}
                 height={1800}
+                variantWidths={[640, 960, 1200, 1600, 2400]}
+                sizes="(min-width: 1024px) 1200px, 100vw"
+                priority
                 className="h-auto w-full object-cover"
-                quality={75}
-                responsiveSizes={{
-                  mobile: "100vw",
-                  tablet: "100vw",
-                  desktop: "1200px",
-                }}
               />
             </SafariMockup>
           </MotionDiv>

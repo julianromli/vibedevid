@@ -1,0 +1,76 @@
+[
+  {
+    "file": "hero-vibedevid-showcase.png",
+    "widths": [640, 960, 1200, 1600, 2400],
+    "variants": [
+      "hero-vibedevid-showcase-640.avif",
+      "hero-vibedevid-showcase-640.webp",
+      "hero-vibedevid-showcase-960.avif",
+      "hero-vibedevid-showcase-960.webp",
+      "hero-vibedevid-showcase-1200.avif",
+      "hero-vibedevid-showcase-1200.webp",
+      "hero-vibedevid-showcase-1600.avif",
+      "hero-vibedevid-showcase-1600.webp",
+      "hero-vibedevid-showcase-2400.avif",
+      "hero-vibedevid-showcase-2400.webp"
+    ]
+  },
+  {
+    "file": "modern-tech-workspace.png",
+    "widths": [640, 1024],
+    "variants": [
+      "modern-tech-workspace-640.avif",
+      "modern-tech-workspace-640.webp",
+      "modern-tech-workspace-1024.avif",
+      "modern-tech-workspace-1024.webp"
+    ]
+  },
+  {
+    "file": "professional-woman-dark-hair.png",
+    "widths": [128, 256, 512],
+    "variants": [
+      "professional-woman-dark-hair-128.avif",
+      "professional-woman-dark-hair-128.webp",
+      "professional-woman-dark-hair-256.avif",
+      "professional-woman-dark-hair-256.webp",
+      "professional-woman-dark-hair-512.avif",
+      "professional-woman-dark-hair-512.webp"
+    ]
+  },
+  {
+    "file": "blonde-woman-glasses.png",
+    "widths": [128, 256, 512],
+    "variants": [
+      "blonde-woman-glasses-128.avif",
+      "blonde-woman-glasses-128.webp",
+      "blonde-woman-glasses-256.avif",
+      "blonde-woman-glasses-256.webp",
+      "blonde-woman-glasses-512.avif",
+      "blonde-woman-glasses-512.webp"
+    ]
+  },
+  {
+    "file": "asian-man-short-hair.png",
+    "widths": [128, 256, 512],
+    "variants": [
+      "asian-man-short-hair-128.avif",
+      "asian-man-short-hair-128.webp",
+      "asian-man-short-hair-256.avif",
+      "asian-man-short-hair-256.webp",
+      "asian-man-short-hair-512.avif",
+      "asian-man-short-hair-512.webp"
+    ]
+  },
+  {
+    "file": "hispanic-man-beard.png",
+    "widths": [128, 256, 512],
+    "variants": [
+      "hispanic-man-beard-128.avif",
+      "hispanic-man-beard-128.webp",
+      "hispanic-man-beard-256.avif",
+      "hispanic-man-beard-256.webp",
+      "hispanic-man-beard-512.avif",
+      "hispanic-man-beard-512.webp"
+    ]
+  }
+]
