@@ -1,14 +1,15 @@
 'use client'
 
 import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
-import { useRouter } from '@/lib/navigation'
 import { useEffect, useState } from 'react'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { Separator } from '@/components/ui/separator'
+import { useRouter } from '@/lib/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function TermsPage() {
@@ -554,6 +555,8 @@ export default function TermsPage() {
             </div>
           </div>
         </main>
+
+        <Footer />
       </div>
     </ThemeProvider>
   )

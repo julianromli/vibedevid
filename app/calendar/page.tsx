@@ -1,7 +1,6 @@
 'use client'
 
 import { CalendarDays, Clock, Filter, MapPin, Plus, Search, Users } from 'lucide-react'
-import { useRouter } from '@/lib/navigation'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,11 +15,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Footer } from '@/components/ui/footer'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Navbar } from '@/components/ui/navbar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useRouter } from '@/lib/navigation'
 
 interface Event {
   id: string
@@ -483,6 +484,8 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }
