@@ -43,23 +43,17 @@ export default defineConfig({
       },
       // Long-lived caching for static public assets. Nitro writes these into the
       // generated `_headers` file (Cloudflare honours them). The hashed JS/CSS in
-      // `/assets/**` is already handled by the framework; these cover images and
-      // fonts that previously shipped with no cache-control (Lighthouse `cache-insight`).
+      // `/assets/**` is already handled by the framework; `/optimized/**` holds the
+      // build-time responsive images that previously shipped with no cache-control
+      // (Lighthouse `cache-insight`).
       //
-      // NOTE: Cloudflare applies *every* matching `_headers` rule and concatenates
-      // their values, so rules must not overlap. `/optimized/**` and `/fonts/**`
-      // are immutable; the generic image rules below only target root-level public
-      // images (e.g. /og-image.png) and deliberately do not use a `/**/` glob that
-      // would also match `/optimized/*` or `/assets/*`.
+      // NOTE: Cloudflare `_headers` wildcards (`*`) match across `/` separators and
+      // every matching rule is applied (values are concatenated). So we use only
+      // non-overlapping directory rules here — an extension rule like `/*.avif`
+      // would also match `/optimized/...avif` and corrupt its cache-control header.
       routeRules: {
         "/optimized/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
         "/fonts/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
-        // Root-level public images only (e.g. /og-image.png, /default-favicon.svg).
-        "/*.png": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/*.jpg": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/*.svg": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/*.webp": { headers: { "cache-control": "public, max-age=2592000" } },
-        "/*.avif": { headers: { "cache-control": "public, max-age=2592000" } },
       },
     }),
   ],
