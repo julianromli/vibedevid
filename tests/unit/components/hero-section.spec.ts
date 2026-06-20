@@ -84,7 +84,7 @@ describe('HeroSection', () => {
     vi.useRealTimers()
   })
 
-  it('renders the animated title words with the hero-word animation class', () => {
+  it('renders the animated title words as visible motion spans', () => {
     const props = {
       joinHref: 'https://example.com/join',
       handleViewShowcase: vi.fn(),
@@ -92,10 +92,11 @@ describe('HeroSection', () => {
 
     const { rerender } = render(React.createElement(HeroSection, props))
 
-    // Title words render as CSS-animated spans (animation is handled by the
-    // .hero-word keyframe in globals.css, not JS opacity state).
-    expect(screen.getByText('Build')).toHaveClass('hero-word')
-    expect(screen.getByText('Products')).toHaveClass('hero-word')
+    // Title words render as Framer Motion spans. The entrance animation is
+    // driven by motion's initial/animate props (and disabled under reduced
+    // motion), so we assert the words render rather than a CSS class.
+    expect(screen.getByText('Build').tagName).toBe('SPAN')
+    expect(screen.getByText('Products').tagName).toBe('SPAN')
 
     Object.assign(messages, {
       titleLine1: 'Build Better',
@@ -105,9 +106,8 @@ describe('HeroSection', () => {
 
     rerender(React.createElement(HeroSection, props))
 
-    // After the translated title changes, the new words are rendered and
-    // animated via the same class.
-    expect(screen.getByText('Today')).toHaveClass('hero-word')
+    // After the translated title changes, the new words are rendered.
+    expect(screen.getByText('Today').tagName).toBe('SPAN')
   })
 
   it('links the announcement banner to the WhatsApp community', () => {

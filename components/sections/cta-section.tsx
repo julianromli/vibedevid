@@ -8,6 +8,7 @@
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { ScrollReveal } from '@/components/ui/motion-wrapper'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 
@@ -80,7 +81,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+      <ScrollReveal className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <div className="mb-6">
           <h2 className="mb-6 text-4xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-6xl">
             {t('titleLine1')}
@@ -109,7 +110,7 @@ export function CTASection({ joinHref }: CTASectionProps) {
             </Link>
           </Button>
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   )
 }

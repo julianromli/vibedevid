@@ -5,8 +5,9 @@
 
 'use client'
 
-import { useTranslation } from 'react-i18next'
 import { lazy, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
+import { ScaleIn, ScrollReveal } from '@/components/ui/motion-wrapper'
 import type { Testimonial } from '@/types/homepage'
 
 // Lazy load TestimonialsColumns component
@@ -47,12 +48,12 @@ export function ReviewsSection() {
       data-animate
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
+        <ScrollReveal className="mb-16 text-center">
           <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
           <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
-        </div>
+        </ScrollReveal>
 
-        <div className="flex max-h-[600px] justify-center gap-6 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">
+        <ScaleIn className="flex max-h-[600px] justify-center gap-6 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">
           <Suspense
             fallback={
               <div className="flex justify-center gap-6">
@@ -91,7 +92,7 @@ export function ReviewsSection() {
               duration={17}
             />
           </Suspense>
-        </div>
+        </ScaleIn>
       </div>
     </section>
   )

@@ -5,16 +5,17 @@
 
 'use client'
 
-import { ChevronDown, Plus } from 'lucide-react'
-import { motion } from 'motion/react'
-import { Image } from '@unpic/react'
 import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { Image } from '@unpic/react'
+import { ChevronDown, Plus } from 'lucide-react'
+import { motion, useInView } from 'motion/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
 import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
+import { ScrollReveal } from '@/components/ui/motion-wrapper'
 import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -101,13 +102,17 @@ interface ProjectCardProps {
 }
 
 function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+
   return (
     <MotionDiv
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
+      ref={ref}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{
-        duration: prefersReducedMotion ? 0 : 0.32,
-        delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
+        duration: prefersReducedMotion ? 0 : 0.36,
+        delay: prefersReducedMotion ? 0 : Math.min((index % 3) * 0.08, 0.24),
         ease: [0.2, 0, 0, 1],
       }}
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}
@@ -222,12 +227,12 @@ export function ProjectShowcase({
       id="projects"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 text-center sm:mb-12">
+        <ScrollReveal className="mb-10 text-center sm:mb-12">
           <h2 className="text-foreground mb-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
             {t('title')}
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg sm:text-xl">{t('description')}</p>
-        </div>
+        </ScrollReveal>
 
         {/* Filter Controls */}
         <div className="mb-8">

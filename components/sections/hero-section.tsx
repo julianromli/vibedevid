@@ -5,23 +5,27 @@
 
 'use client'
 
-import { ArrowRight } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
-import { useLocale } from '@/hooks/use-locale'
+import { ArrowRight } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Fragment, Suspense, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { Button } from '@/components/ui/button'
 import { LogoMarquee } from '@/components/ui/logo-marquee'
 import { ProgressiveImage } from '@/components/ui/progressive-image'
 import { SafariMockup } from '@/components/ui/safari-mockup'
-import { useMediaQuery } from '@/hooks/use-media-query'
+import { useLocale } from '@/hooks/use-locale'
 import { cn } from '@/lib/utils'
 
 const ANNOUNCEMENT_HREF = 'https://wa.vibedevid.com'
-const HERO_WORD_STAGGER_MS = 60
-const HERO_MAX_STAGGER_MS = 420
-const HERO_SUBTITLE_DELAY_MS = 300
+const HERO_WORD_STAGGER_S = 0.06
+const HERO_MAX_STAGGER_S = 0.42
+const HERO_SUBTITLE_DELAY_S = 0.3
+
+const MotionSpan = motion.span
+const MotionP = motion.p
+const MotionDiv = motion.div
 
 interface HeroSectionProps {
   joinHref: string
@@ -49,14 +53,14 @@ function buildAnimatedWordItems(words: string[], prefix: string): AnimatedWordIt
   })
 }
 
-function getWordAnimationDelay(index: number): string {
-  return `${Math.min(index * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS)}ms`
+function getWordAnimationDelay(index: number): number {
+  return Math.min(index * HERO_WORD_STAGGER_S, HERO_MAX_STAGGER_S)
 }
 
 export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) {
   const { t } = useTranslation('hero')
   const locale = useLocale()
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const prefersReducedMotion = useReducedMotion()
 
   // On mobile the Indonesian heading reads best as three balanced lines:
   // "Komunitas" / "Vibe Coding No. 1" / "di Indonesia". This regroups words
@@ -70,9 +74,16 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
   const titleLine1Items = useMemo(() => buildAnimatedWordItems(titleLine1, 'line1'), [titleLine1])
   const titleLine2Items = useMemo(() => buildAnimatedWordItems(titleLine2, 'line2'), [titleLine2])
   const totalWords = titleLine1.length + titleLine2.length
-  const subtitleDelay = `${
-    Math.min(Math.max(totalWords - 1, 0) * HERO_WORD_STAGGER_MS, HERO_MAX_STAGGER_MS) + HERO_SUBTITLE_DELAY_MS
-  }ms`
+  const subtitleDelay =
+    Math.min(Math.max(totalWords - 1, 0) * HERO_WORD_STAGGER_S, HERO_MAX_STAGGER_S) + HERO_SUBTITLE_DELAY_S
+
+  const wordTransition = (delay: number) => ({
+    duration: prefersReducedMotion ? 0 : 0.5,
+    delay: prefersReducedMotion ? 0 : delay,
+    ease: [0.2, 0, 0, 1] as const,
+  })
+  const hiddenWord = prefersReducedMotion ? false : { opacity: 0, y: '2rem', filter: 'blur(4px)' }
+  const visibleWord = { opacity: 1, y: 0, filter: 'blur(0px)' }
 
   return (
     <section className="bg-grid-pattern relative mt-0 py-16 sm:py-20 lg:py-28">
@@ -101,19 +112,14 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
             <h1 className="text-foreground text-4xl leading-[1.08] font-bold tracking-tight sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
               {titleLine1Items.map((item, index) => (
                 <Fragment key={item.key}>
-                  <span
-                    className={cn(
-                      'hero-word mr-2 inline-block sm:mr-3',
-                      prefersReducedMotion && 'opacity-100',
-                    )}
-                    style={
-                      prefersReducedMotion
-                        ? undefined
-                        : { animationDelay: getWordAnimationDelay(item.index) }
-                    }
+                  <MotionSpan
+                    className="mr-2 inline-block sm:mr-3"
+                    initial={hiddenWord}
+                    animate={visibleWord}
+                    transition={wordTransition(getWordAnimationDelay(item.index))}
                   >
                     {item.word}
-                  </span>
+                  </MotionSpan>
                   {useIdMobileLayout && index === 0 && (
                     <br
                       aria-hidden="true"
@@ -128,19 +134,14 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
               />
               {titleLine2Items.map((item, index) => (
                 <Fragment key={item.key}>
-                  <span
-                    className={cn(
-                      'hero-word mr-2 inline-block sm:mr-3',
-                      prefersReducedMotion && 'opacity-100',
-                    )}
-                    style={
-                      prefersReducedMotion
-                        ? undefined
-                        : { animationDelay: getWordAnimationDelay(item.index + titleLine1.length) }
-                    }
+                  <MotionSpan
+                    className="mr-2 inline-block sm:mr-3"
+                    initial={hiddenWord}
+                    animate={visibleWord}
+                    transition={wordTransition(getWordAnimationDelay(item.index + titleLine1.length))}
                   >
                     {item.word}
-                  </span>
+                  </MotionSpan>
                   {useIdMobileLayout && index === 1 && (
                     <br
                       aria-hidden="true"
@@ -151,17 +152,21 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
               ))}
             </h1>
 
-            <p
-              className={cn(
-                'hero-subtitle text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed md:text-xl',
-                prefersReducedMotion && 'opacity-100',
-              )}
-              style={prefersReducedMotion ? undefined : { animationDelay: subtitleDelay }}
+            <MotionP
+              className="text-muted-foreground mx-auto max-w-2xl text-center text-lg leading-relaxed md:text-xl"
+              initial={hiddenWord}
+              animate={visibleWord}
+              transition={wordTransition(subtitleDelay)}
             >
               {t('subtitle')}
-            </p>
+            </MotionP>
 
-            <div className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center">
+            <MotionDiv
+              className="flex flex-col justify-center gap-4 sm:flex-row sm:justify-center"
+              initial={hiddenWord}
+              animate={visibleWord}
+              transition={wordTransition(subtitleDelay + 0.12)}
+            >
               <Button
                 asChild
                 size="lg"
@@ -184,10 +189,19 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
               >
                 {t('ourShowcase')}
               </Button>
-            </div>
+            </MotionDiv>
           </div>
 
-          <div className="relative">
+          <MotionDiv
+            className="relative"
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.97, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.6,
+              delay: prefersReducedMotion ? 0 : subtitleDelay + 0.2,
+              ease: [0.2, 0, 0, 1],
+            }}
+          >
             <SafariMockup url="vibedevid.com">
               <ProgressiveImage
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SOLO-pic-EN.35a702ba-uLVDZsjReIz7K4Ecr3JBrYkLCl8cdm.png"
@@ -203,15 +217,24 @@ export function HeroSection({ joinHref, handleViewShowcase }: HeroSectionProps) 
                 }}
               />
             </SafariMockup>
-          </div>
+          </MotionDiv>
 
-          <div className="relative mt-12 mb-8">
-            <div className="my-0 flex items-center justify-center opacity-90">
+          <MotionDiv
+            className="relative mt-12 mb-8"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 0.9, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.5,
+              delay: prefersReducedMotion ? 0 : subtitleDelay + 0.35,
+              ease: [0.2, 0, 0, 1],
+            }}
+          >
+            <div className="my-0 flex items-center justify-center">
               <Suspense fallback={<div className="bg-muted/20 h-12 w-full animate-pulse rounded-lg" />}>
                 <LogoMarquee />
               </Suspense>
             </div>
-          </div>
+          </MotionDiv>
         </div>
       </div>
     </section>

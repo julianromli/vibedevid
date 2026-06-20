@@ -43,7 +43,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Authentication**: Supabase Auth (email/password + OAuth)
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
-- **Animations**: Motion
+- **Animations**: Motion (Framer Motion) — shared scroll-reveal primitives in `components/ui/motion-wrapper.tsx` (`ScrollReveal`, `StaggerContainer`/`StaggerItem`, `ScaleIn`) applied across all landing page sections; Radix dropdown menus (e.g. avatar menu) and the FAQ accordion animate open/close via Framer Motion, all with `prefers-reduced-motion` support
 - **Rich Text**: Novel + TipTap
 - **Icons**: Lucide React + Tabler Icons + LobeHub Icons
 - **Internationalization**: react-i18next
@@ -265,6 +265,34 @@ bunx playwright test -g "should track views when visiting project page"
 ```
 
 ## Key Features Deep Dive
+
+### Project Filtering & Sorting
+
+Project list (`/project/list`) dan homepage memakai `fetchProjectsWithSorting`
+(`lib/actions.ts`) lewat server function `fetchProjectsWithSortingFn`.
+
+Filter kategori bersifat resilient terhadap dua representasi nilai yang
+tersimpan di kolom `projects.category`:
+
+- Project baru menyimpan category `name` (slug, mis. `landing-page`).
+- Project lama / seed menyimpan display text (mis. `Landing Page`).
+
+Nilai filter dari UI di-resolve ke kedua bentuk lalu dimatch dengan `in(...)`,
+sehingga semua project pada satu kategori tetap muncul.
+
+Sorting tersedia dalam tiga mode:
+
+- `newest` — urut `created_at` desc (limit langsung di SQL). **Default.**
+- `top` — all-time best, murni berdasarkan total likes (tiebreak terbaru).
+- `trending` — likes diberi bobot recency (`likes / umur-hari`).
+
+Untuk `top`/`trending`, likes dihitung terpisah dan tidak bisa di-`order` di
+SQL, jadi query mengambil candidate window yang lebih lebar dulu, lalu sort +
+truncate ke `limit` di JS agar project lama dengan banyak likes tidak terpotong.
+
+Pilihan filter & sort di UI **tidak** mengubah URL. Nilai awal tetap di-seed
+dari search params saat load pertama (deep link tetap jalan), tapi mengganti
+dropdown setelahnya hanya mengubah state lokal tanpa menyentuh query string.
 
 ### Comments System
 

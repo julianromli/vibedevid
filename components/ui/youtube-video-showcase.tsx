@@ -1,10 +1,11 @@
 'use client'
 
-import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import { Image } from '@unpic/react'
-import { useTranslation } from 'react-i18next'
+import { Calendar, Code, Play, Users, Video } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { ScaleIn, ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
 import type { VibeVideo, VideoIconKey } from '@/types/homepage'
 
 const applyThumbnailFallback = (target: HTMLImageElement) => {
@@ -242,81 +243,82 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
   return (
     <div className="text-foreground w-full font-sans">
       {/* Header Section */}
-      <div className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
+      <ScrollReveal className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
         <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
         <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
-      </div>
+      </ScrollReveal>
 
       {/* Mobile: vertical list */}
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-2 md:hidden">
-        {vibeVideos.map((video, index) => (
-          <article
-            key={video.id ?? video.videoId}
-            className="bg-card relative overflow-hidden rounded-xl border border-border/60 shadow-sm"
-          >
-            <AspectRatio ratio={16 / 9}>
-              <Image
-                src={video.thumbnail}
-                alt={video.title}
-                layout="fullWidth"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  applyThumbnailFallback(e.currentTarget as HTMLImageElement)
-                }}
-              />
-            </AspectRatio>
+      <StaggerContainer className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-2 md:hidden">
+        {vibeVideos.map((video) => (
+          <StaggerItem key={video.id ?? video.videoId}>
+            <article className="bg-card relative overflow-hidden rounded-xl border border-border/60 shadow-sm">
+              <AspectRatio ratio={16 / 9}>
+                <Image
+                  src={video.thumbnail}
+                  alt={video.title}
+                  layout="fullWidth"
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    applyThumbnailFallback(e.currentTarget as HTMLImageElement)
+                  }}
+                />
+              </AspectRatio>
 
-            <div className="p-4">
-              <h3 className="line-clamp-2 text-base font-semibold">{video.title}</h3>
-              <p className="text-muted-foreground line-clamp-2 mt-1 text-sm">{video.description}</p>
-              <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>{formatDate(video.publishedAt)}</span>
-                {video.viewCount && (
-                  <>
-                    <span>•</span>
-                    <span>
-                      {video.viewCount} {t('views')}
-                    </span>
-                  </>
-                )}
+              <div className="p-4">
+                <h3 className="line-clamp-2 text-base font-semibold">{video.title}</h3>
+                <p className="text-muted-foreground line-clamp-2 mt-1 text-sm">{video.description}</p>
+                <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>{formatDate(video.publishedAt)}</span>
+                  {video.viewCount && (
+                    <>
+                      <span>•</span>
+                      <span>
+                        {video.viewCount} {t('views')}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handlePlayVideo(video.videoId)}
+                  className="mt-3 inline-flex min-h-[40px] touch-manipulation items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-red-700"
+                >
+                  <Play className="h-4 w-4" />
+                  {t('watch')} {t('videoLabel')}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => handlePlayVideo(video.videoId)}
-                className="mt-3 inline-flex min-h-[40px] touch-manipulation items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-red-700"
-              >
-                <Play className="h-4 w-4" />
-                {t('watch')} {t('videoLabel')}
-              </button>
-            </div>
-          </article>
+            </article>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerContainer>
 
       {/* Desktop/Tablet: horizontal interactive showcase */}
-      <div
-        className="videos-container relative mx-auto hidden w-full max-w-6xl min-w-[300px] gap-1 overflow-hidden rounded-xl px-0 md:flex"
-        style={{ height: 'auto', aspectRatio: '5/2' }}
-      >
-        {vibeVideos.map((video, index) => (
-          <DesktopVideoOption
-            key={video.id ?? video.videoId}
-            video={video}
-            index={index}
-            activeIndex={activeIndex}
-            onVideoClick={handleVideoClick}
-            onPlayVideo={handlePlayVideo}
-            formatDate={formatDate}
-            watchLabel={t('watch')}
-            videoLabel={t('videoLabel')}
-            viewsLabel={t('views')}
-          />
-        ))}
-      </div>
+      <ScaleIn className="hidden md:block">
+        <div
+          className="videos-container relative mx-auto flex w-full max-w-6xl min-w-[300px] gap-1 overflow-hidden rounded-xl px-0"
+          style={{ height: 'auto', aspectRatio: '5/2' }}
+        >
+          {vibeVideos.map((video, index) => (
+            <DesktopVideoOption
+              key={video.id ?? video.videoId}
+              video={video}
+              index={index}
+              activeIndex={activeIndex}
+              onVideoClick={handleVideoClick}
+              onPlayVideo={handlePlayVideo}
+              formatDate={formatDate}
+              watchLabel={t('watch')}
+              videoLabel={t('videoLabel')}
+              viewsLabel={t('views')}
+            />
+          ))}
+        </div>
+      </ScaleIn>
 
       {/* View All Videos Link */}
-      <div className="mt-8 text-center">
+      <ScrollReveal className="mt-8 text-center">
         <a
           href="https://youtube.com/@vibecoding"
           target="_blank"
@@ -339,7 +341,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
             />
           </svg>
         </a>
-      </div>
+      </ScrollReveal>
 
       {/* Custom animations */}
       <style
