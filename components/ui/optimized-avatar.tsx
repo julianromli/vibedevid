@@ -22,6 +22,16 @@ const sizeClasses = {
   xl: 'w-16 h-16',
 }
 
+// Pixel dimensions matching `sizeClasses` (used for the underlying <Image>
+// intrinsic size so @unpic does not cap the image below the wrapper size).
+const sizePixels = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
+}
+
 export function OptimizedAvatar({
   src,
   alt,
@@ -55,8 +65,8 @@ export function OptimizedAvatar({
 
   const avatarClasses = cn(
     'rounded-full object-cover',
+    'h-full w-full',
     'transition-all duration-300 ease-in-out',
-    sizeClasses[size],
     {
       'opacity-0': imageState === 'loading' && showSkeleton,
       'opacity-100': imageState === 'loaded' || !showSkeleton,
@@ -84,8 +94,8 @@ export function OptimizedAvatar({
         className={avatarClasses}
         onLoad={handleLoad}
         onError={handleError}
-        width={32}
-        height={32}
+        width={sizePixels[size]}
+        height={sizePixels[size]}
       />
 
       {/* Error State Fallback */}

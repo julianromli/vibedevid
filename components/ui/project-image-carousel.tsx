@@ -92,7 +92,7 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
               src={currentImage}
               alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
               layout="fullWidth"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           </motion.div>
         </AnimatePresence>

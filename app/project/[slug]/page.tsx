@@ -13,7 +13,7 @@ import { CommentSection } from '@/components/ui/comment-section'
 import { Footer } from '@/components/ui/footer'
 import { ScrollReveal } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { ProjectImageCarousel } from '@/components/ui/project-image-carousel'
 import { ProminentLikeButton } from '@/components/ui/prominent-like-button'
 import { UserDisplayName } from '@/components/ui/user-display-name'
@@ -181,9 +181,14 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
                     <Image
                       src={project.faviconUrl || '/default-favicon.svg'}
                       alt="Project favicon"
-                      className="h-12 w-12 rounded-lg"
+                      className="h-12 w-12 rounded-lg object-contain"
                       width={48}
                       height={48}
+                      onError={(e) => {
+                        if (e.currentTarget.src !== `${window.location.origin}/default-favicon.svg`) {
+                          e.currentTarget.src = '/default-favicon.svg'
+                        }
+                      }}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -314,11 +319,14 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
                 <CardContent className="p-6">
                   <div className="space-y-4 text-center">
                     <div className="flex justify-center">
-                      <OptimizedAvatar
-                        src={project.author.avatar}
-                        alt={project.author.name}
-                        size="xl"
-                        showSkeleton={false}
+                      <UserAvatar
+                        user={{
+                          name: project.author.name,
+                          username: project.author.username,
+                          avatar: project.author.avatar,
+                        }}
+                        size="lg"
+                        className="h-24 w-24 border-4 border-background shadow-xl"
                       />
                     </div>
                     <div>
