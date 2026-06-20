@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
+    "dev": "vp dev",
+    "build": "vp build",
     "start": "node .output/server/index.mjs",
     "lint": "node scripts/lint-changed.mjs",
     "lint:fast": "node scripts/lint-changed.mjs",
@@ -17,7 +17,8 @@
     "test:e2e": "bunx playwright test",
     "test:e2e:headed": "bunx playwright test --headed",
     "test:e2e:debug": "bunx playwright test --debug",
-    "test:all": "bun run test && bun run test:e2e"
+    "test:all": "bun run test && bun run test:e2e",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.5",
@@ -111,8 +112,14 @@
     "jsdom": "^29.0.1",
     "postcss": "^8.5",
     "typescript": "^5",
-    "vite": "^8.0.16",
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vite-plus": "latest",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.18"
-  }
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vitest": "4.1.9"
+  },
+  "packageManager": "bun@1.3.14"
 }

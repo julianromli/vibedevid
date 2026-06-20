@@ -32,3 +32,6 @@ next-env.d.ts
 nul
 # next-agents-md
 .next-docs/
+
+# Editor settings
+.zed/

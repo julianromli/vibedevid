@@ -65,6 +65,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 ### Prerequisites
 
 - Node.js 18+ or **Bun** (recommended)
+- [Vite+](https://viteplus.dev/) (`vp` CLI) — this project uses the Vite+ unified toolchain
 - A Supabase account and project
 
 ### Installation
@@ -79,16 +80,10 @@ cd vibedevid_v0
 2. Install dependencies:
 
 ```bash
-bun install
-
-# or
-
-npm install
-
-# or
-
-pnpm install
+vp install
 ```
+
+> Vite+ pins `vitest` to the exact version it bundles via the `overrides` field in `package.json` (currently `4.1.9`), while `vite`/`vitest` in `devDependencies` are npm aliases to `@voidzero-dev/vite-plus-core` / `@voidzero-dev/vite-plus-test`. If you upgrade `vite-plus` and `vp install` fails to resolve `vitest`, re-pin the `overrides.vitest` value to the version reported by `vp --version` (or rerun `vp migrate`). Do **not** route this pin through a `catalog:` reference — it must be a plain exact version.
 
 3. Set up environment variables:
 
@@ -109,6 +104,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 5. Set up the database:
 
 Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
+
 - `01_create_tables.sql` - Creates the database schema
 - `02_seed_data.sql` - Adds sample data
 - `03_create_storage_bucket.sql` - Sets up file storage
@@ -133,7 +129,7 @@ pnpm dev
 
 ```bash
 # Install dependencies
-bun install
+vp install
 
 # Development server (vite dev, port 3000)
 bun run dev
@@ -168,13 +164,13 @@ bunx playwright test -g "should track views when visiting project page"
 
 ## Environment Variables
 
-| Variable | Description | Required |
-| -------- | ----------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (keep secret!) | Yes |
-| `UPLOADTHING_TOKEN` | Your UploadThing API token (keep secret!) | Yes |
-| `NEXT_PUBLIC_SITE_URL` | Your site URL (for production) | Yes |
+| Variable                        | Description                                   | Required |
+| ------------------------------- | --------------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL                     | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key                   | Yes      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Your Supabase service role key (keep secret!) | Yes      |
+| `UPLOADTHING_TOKEN`             | Your UploadThing API token (keep secret!)     | Yes      |
+| `NEXT_PUBLIC_SITE_URL`          | Your site URL (for production)                | Yes      |
 
 ## Database Schema
 
@@ -300,19 +296,20 @@ dropdown setelahnya hanya mengubah state lokal tanpa menyentuh query string.
 Centralized comments component yang works untuk both Blog dan Project.
 
 ```tsx
-import { CommentSection } from '@/components/ui/comment-section'
+import { CommentSection } from "@/components/ui/comment-section";
 
 <CommentSection
-  entityType="post"        // or "project"
+  entityType="post" // or "project"
   entityId={id}
   initialComments={comments}
   isLoggedIn={!!user}
-/>
+/>;
 ```
 
 ### Views Tracking
 
 Session-based analytics dengan:
+
 - 30-minute session timeout
 - IP + User Agent fingerprinting
 - Bot protection (user agent filtering)
@@ -328,12 +325,14 @@ Session-based analytics dengan:
 ### Email Domain Whitelist
 
 Registration dibatasi ke domain terpercaya:
+
 - gmail.com, yahoo.com, outlook.com
 - dan 20+ domain edukasi/tech lain
 
 ### AI Integration
 
 Built-in AI features using OpenRouter:
+
 - AI-powered content suggestions
 - Leaderboard for AI tool rankings
 - Integration with Agentic workflow
@@ -341,6 +340,7 @@ Built-in AI features using OpenRouter:
 ### Events System
 
 Full-featured events management:
+
 - Event submission with approval workflow
 - Status tracking (upcoming, past)
 - Location types (online, offline, hybrid)
@@ -350,6 +350,7 @@ Full-featured events management:
 ### Admin Dashboard
 
 Comprehensive admin tools:
+
 - User management (role: admin, moderator, user)
 - Content moderation (comments, reports)
 - Event approval workflow
@@ -394,6 +395,7 @@ Kami welcome kontribusi dari semua developer! 🎉
 ### Security
 
 For detailed security documentation, see:
+
 - [Security Audit Summary](docs/security/SECURITY_AUDIT_SUMMARY.md)
 - [RLS Policies](docs/security/RLS_POLICIES.md)
 - [Auth Dashboard Settings](docs/security/AUTH_DASHBOARD_SETTINGS.md)
