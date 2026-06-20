@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   IconArchive,
@@ -9,10 +9,10 @@ import {
   IconStar,
   IconStarOff,
   IconTrash,
-} from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { toast } from 'sonner'
+} from "@tabler/icons-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,70 +22,67 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { type AdminPost, adminDeletePost, togglePostFeatured } from '@/lib/actions/admin/posts'
+} from "@/components/ui/dropdown-menu";
+import { type AdminPost, adminDeletePost, togglePostFeatured } from "@/lib/actions/admin/posts";
 
 interface PostActionsProps {
-  post: AdminPost
-  onEdit: () => void
+  post: AdminPost;
+  onEdit: () => void;
 }
 
 export function PostActions({ post, onEdit }: PostActionsProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleToggleFeatured = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await togglePostFeatured(post.id, !post.featured)
+      const result = await togglePostFeatured(post.id, !post.featured);
       if (result.success) {
-        toast.success(post.featured ? 'Post unfeatured' : 'Post featured')
-        window.location.reload()
+        toast.success(post.featured ? "Post unfeatured" : "Post featured");
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to update post')
+        toast.error(result.error || "Failed to update post");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await adminDeletePost(post.id)
+      const result = await adminDeletePost(post.id);
       if (result.success) {
-        toast.success('Post deleted successfully')
-        window.location.reload()
+        toast.success("Post deleted successfully");
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to delete post')
+        toast.error(result.error || "Failed to delete post");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
-      setShowDeleteDialog(false)
+      setIsLoading(false);
+      setShowDeleteDialog(false);
     }
-  }
+  };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="sm" disabled={isLoading}>
             <IconDotsVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -133,16 +130,13 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-      >
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the post &quot;{post.title}&quot; and all associated comments and likes. This
-              action cannot be undone.
+              This will permanently delete the post &quot;{post.title}&quot; and all associated
+              comments and likes. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -158,5 +152,5 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

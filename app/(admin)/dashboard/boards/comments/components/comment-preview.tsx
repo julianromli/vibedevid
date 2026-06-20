@@ -1,69 +1,79 @@
-'use client'
+"use client";
 
-import { IconFileText, IconMessageCircle, IconTrash, IconX } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { type ReportedComment, takeActionOnReport } from '@/lib/actions/admin/comments'
+import { IconFileText, IconMessageCircle, IconTrash, IconX } from "@tabler/icons-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { type ReportedComment, takeActionOnReport } from "@/lib/actions/admin/comments";
 
 interface CommentPreviewProps {
-  report: ReportedComment
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  report: ReportedComment;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function CommentPreview({ report, open, onOpenChange }: CommentPreviewProps) {
-  const handleAction = async (action: 'delete' | 'dismiss') => {
+  const router = useRouter();
+  const handleAction = async (action: "delete" | "dismiss") => {
     try {
-      const result = await takeActionOnReport(report.id, action)
+      const result = await takeActionOnReport(report.id, action);
       if (result.success) {
-        toast.success(action === 'delete' ? 'Comment deleted and report resolved' : 'Report dismissed')
-        onOpenChange(false)
-        window.location.reload()
+        toast.success(
+          action === "delete" ? "Comment deleted and report resolved" : "Report dismissed",
+        );
+        onOpenChange(false);
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to process report')
+        toast.error(result.error || "Failed to process report");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     }
-  }
+  };
 
-  const entityUrl = report.entity_type === 'post' ? `/blog/${report.entity_id}` : `/project/${report.entity_id}`
+  const entityUrl =
+    report.entity_type === "post" ? `/blog/${report.entity_id}` : `/project/${report.entity_id}`;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Reported Comment</DialogTitle>
-          <DialogDescription>Review the reported content and take appropriate action</DialogDescription>
+          <DialogDescription>
+            Review the reported content and take appropriate action
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-6">
           <div className="rounded-lg border p-4 space-y-4">
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={report.comment.author?.avatar_url || ''} />
-                <AvatarFallback>{report.comment.author?.display_name[0] || '?'}</AvatarFallback>
+                <AvatarImage src={report.comment.author?.avatar_url || ""} />
+                <AvatarFallback>{report.comment.author?.display_name[0] || "?"}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{report.comment.author?.display_name || 'Unknown'}</span>
+                  <span className="font-medium">
+                    {report.comment.author?.display_name || "Unknown"}
+                  </span>
                   {report.comment.isGuest && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs"
-                    >
+                    <Badge variant="outline" className="text-xs">
                       Guest
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{new Date(report.comment.created_at).toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(report.comment.created_at).toLocaleString()}
+                </p>
               </div>
             </div>
 
@@ -100,27 +110,21 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
               </div>
               <div>
                 <p className="text-muted-foreground">Status</p>
-                <Badge variant={report.status === 'pending' ? 'default' : 'secondary'}>{report.status}</Badge>
+                <Badge variant={report.status === "pending" ? "default" : "secondary"}>
+                  {report.status}
+                </Badge>
               </div>
             </div>
           </div>
         </div>
 
-        {report.status === 'pending' && (
+        {report.status === "pending" && (
           <div className="flex gap-2 pt-4 border-t">
-            <Button
-              variant="destructive"
-              className="flex-1"
-              onClick={() => handleAction('delete')}
-            >
+            <Button variant="destructive" className="flex-1" onClick={() => handleAction("delete")}>
               <IconTrash className="h-4 w-4 mr-1" />
               Delete Comment
             </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => handleAction('dismiss')}
-            >
+            <Button variant="outline" className="flex-1" onClick={() => handleAction("dismiss")}>
               <IconX className="h-4 w-4 mr-1" />
               Dismiss Report
             </Button>
@@ -128,5 +132,5 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

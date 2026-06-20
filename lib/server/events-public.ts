@@ -1,24 +1,23 @@
-import { createClient } from '@supabase/supabase-js'
-import { unstable_cache } from '@/lib/revalidation'
-import { getSupabaseConfig } from '@/lib/env-config'
-import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
+import { createClient } from "@supabase/supabase-js";
+import { getSupabaseConfig } from "@/lib/env-config";
+import type { AIEvent, EventCategory, EventLocationType } from "@/types/events";
 
 interface EventRow {
-  id: string
-  slug: string
-  name: string
-  date: string
-  time: string
-  end_date: string | null
-  end_time: string | null
-  location_type: EventLocationType
-  location_detail: string
-  description: string
-  organizer: string
-  registration_url: string
-  cover_image: string
-  category: EventCategory
-  status: AIEvent['status']
+  id: string;
+  slug: string;
+  name: string;
+  date: string;
+  time: string;
+  end_date: string | null;
+  end_time: string | null;
+  location_type: EventLocationType;
+  location_detail: string;
+  description: string;
+  organizer: string;
+  registration_url: string;
+  cover_image: string;
+  category: EventCategory;
+  status: AIEvent["status"];
 }
 
 function mapEventFromDB(data: EventRow): AIEvent {
@@ -38,32 +37,27 @@ function mapEventFromDB(data: EventRow): AIEvent {
     coverImage: data.cover_image,
     category: data.category,
     status: data.status,
-  }
+  };
 }
 
-async function fetchApprovedEvents(): Promise<AIEvent[]> {
-  const { url, anonKey } = getSupabaseConfig()
+export async function fetchApprovedEvents(): Promise<AIEvent[]> {
+  const { url, anonKey } = getSupabaseConfig();
   const supabase = createClient(url, anonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-  })
+  });
 
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('approved', true)
-    .order('date', { ascending: true })
+    .from("events")
+    .select("*")
+    .eq("approved", true)
+    .order("date", { ascending: true });
 
   if (error || !data) {
-    return []
+    return [];
   }
 
-  return data.map((event) => mapEventFromDB(event as EventRow))
+  return data.map((event) => mapEventFromDB(event as EventRow));
 }
-
-export const getCachedApprovedEvents = unstable_cache(fetchApprovedEvents, ['event-list-public-approved-events'], {
-  revalidate: 60,
-  tags: ['event-list-events'],
-})

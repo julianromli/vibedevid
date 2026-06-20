@@ -1,216 +1,227 @@
-'use client'
+"use client";
 
-import { UploadButton } from '@uploadthing/react'
-import { Edit, Loader2, X } from 'lucide-react'
-import { Image } from '@unpic/react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import MultipleSelector, { type Option } from '@/components/ui/multiselect'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { editProjectFn } from '@/lib/actions/projects.functions'
-import type { Category } from '@/lib/categories'
-import { getFaviconUrl } from '@/lib/favicon-utils'
-import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from '@/lib/project-url'
-import type { OurFileRouter } from '@/lib/uploadthing-router'
+import { useRouter } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
+import { UploadButton } from "@uploadthing/react";
+import { Edit, Loader2, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import MultipleSelector, { type Option } from "@/components/ui/multiselect";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { editProjectFn } from "@/lib/actions/projects.functions";
+import type { Category } from "@/lib/categories";
+import { getFaviconUrl } from "@/lib/favicon-utils";
+import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
+import type { OurFileRouter } from "@/lib/uploadthing-router";
 
-const MAX_DESCRIPTION_LENGTH = 1600
+const MAX_DESCRIPTION_LENGTH = 1600;
 
 const techOptions: Option[] = [
-  { value: 'next.js', label: 'Next.js' },
-  { value: 'react', label: 'React' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'vue', label: 'Vue.js' },
-  { value: 'angular', label: 'Angular' },
-  { value: 'svelte', label: 'Svelte' },
-  { value: 'tailwindcss', label: 'Tailwind CSS' },
-  { value: 'nodejs', label: 'Node.js' },
-  { value: 'python', label: 'Python' },
-  { value: 'django', label: 'Django' },
-  { value: 'flask', label: 'Flask' },
-  { value: 'mongodb', label: 'MongoDB' },
-  { value: 'postgresql', label: 'PostgreSQL' },
-  { value: 'mysql', label: 'MySQL' },
-  { value: 'supabase', label: 'Supabase' },
-  { value: 'firebase', label: 'Firebase' },
-  { value: 'vercel', label: 'Vercel' },
-]
+  { value: "next.js", label: "Next.js" },
+  { value: "react", label: "React" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "vue", label: "Vue.js" },
+  { value: "angular", label: "Angular" },
+  { value: "svelte", label: "Svelte" },
+  { value: "tailwindcss", label: "Tailwind CSS" },
+  { value: "nodejs", label: "Node.js" },
+  { value: "python", label: "Python" },
+  { value: "django", label: "Django" },
+  { value: "flask", label: "Flask" },
+  { value: "mongodb", label: "MongoDB" },
+  { value: "postgresql", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "supabase", label: "Supabase" },
+  { value: "firebase", label: "Firebase" },
+  { value: "vercel", label: "Vercel" },
+];
 
 interface ProjectEditClientProps {
   project: {
-    title: string
-    description: string
-    tagline: string
-    categoryRaw: string
-    url: string | null
-    imageUrls: string[]
-    image: string | null
-    imageKeys: string[]
-    tags: string[]
-    faviconUrl: string
-  }
-  categories: Category[]
-  projectSlug: string
-  isOwner: boolean
+    title: string;
+    description: string;
+    tagline: string;
+    categoryRaw: string;
+    url: string | null;
+    imageUrls: string[];
+    image: string | null;
+    imageKeys: string[];
+    tags: string[];
+    faviconUrl: string;
+  };
+  categories: Category[];
+  projectSlug: string;
+  isOwner: boolean;
 }
 
 interface UploadResult {
   serverData?: {
-    key?: string
-    url?: string
-  }
-  url?: string
-  key?: string
+    key?: string;
+    url?: string;
+  };
+  url?: string;
+  key?: string;
 }
 
-export function ProjectEditClient({ project, categories, projectSlug, isOwner }: ProjectEditClientProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [, setIsUploading] = useState(false)
+export function ProjectEditClient({
+  project,
+  categories,
+  projectSlug,
+  isOwner,
+}: ProjectEditClientProps) {
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [, setIsUploading] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    title: '',
-    description: '',
-    tagline: '',
-    category: '',
-    website_url: '',
-  })
-  const [editImageUrls, setEditImageUrls] = useState<string[]>([])
-  const [editImageKeys, setEditImageKeys] = useState<string[]>([])
-  const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([])
-  const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>('')
-  const [editFaviconUrl, setEditFaviconUrl] = useState<string>('')
+    title: "",
+    description: "",
+    tagline: "",
+    category: "",
+    website_url: "",
+  });
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [editImageKeys, setEditImageKeys] = useState<string[]>([]);
+  const [selectedEditTags, setSelectedEditTags] = useState<Option[]>([]);
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState<string>("");
+  const [editFaviconUrl, setEditFaviconUrl] = useState<string>("");
 
-  if (!isOwner) return null
+  if (!isOwner) return null;
 
   const handleEditProject = () => {
-    const projectImageUrls = project?.imageUrls || (project?.image ? [project.image] : [])
-    const projectImageKeys = project?.imageKeys || []
+    const projectImageUrls = project?.imageUrls || (project?.image ? [project.image] : []);
+    const projectImageKeys = project?.imageKeys || [];
 
     setEditFormData({
-      title: project?.title || '',
-      description: project?.description || '',
-      tagline: project?.tagline || '',
-      category: project?.categoryRaw || '',
-      website_url: project?.url || '',
-    })
+      title: project?.title || "",
+      description: project?.description || "",
+      tagline: project?.tagline || "",
+      category: project?.categoryRaw || "",
+      website_url: project?.url || "",
+    });
 
-    setEditImageUrls(projectImageUrls)
-    setEditImageKeys(projectImageKeys)
+    setEditImageUrls(projectImageUrls);
+    setEditImageKeys(projectImageKeys);
 
-    const existingTags = project?.tags ? project.tags.map((tag: string) => ({ value: tag, label: tag })) : []
-    setSelectedEditTags(existingTags)
+    const existingTags = project?.tags
+      ? project.tags.map((tag: string) => ({ value: tag, label: tag }))
+      : [];
+    setSelectedEditTags(existingTags);
 
-    setEditWebsiteUrl(project?.url || '')
-    setEditFaviconUrl(project?.faviconUrl || '')
+    setEditWebsiteUrl(project?.url || "");
+    setEditFaviconUrl(project?.faviconUrl || "");
 
-    setIsEditing(true)
-  }
+    setIsEditing(true);
+  };
 
   const handleSaveEdit = async () => {
-    if (!projectSlug) return
+    if (!projectSlug) return;
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
-      const formData = new FormData()
-      formData.append('title', editFormData.title)
-      formData.append('description', editFormData.description)
-      formData.append('tagline', editFormData.tagline)
-      formData.append('category', editFormData.category)
-      formData.append('website_url', editWebsiteUrl)
-      formData.append('favicon_url', editFaviconUrl)
-      formData.append('image_urls', JSON.stringify(editImageUrls))
-      formData.append('image_keys', JSON.stringify(editImageKeys))
+      const formData = new FormData();
+      formData.append("title", editFormData.title);
+      formData.append("description", editFormData.description);
+      formData.append("tagline", editFormData.tagline);
+      formData.append("category", editFormData.category);
+      formData.append("website_url", editWebsiteUrl);
+      formData.append("favicon_url", editFaviconUrl);
+      formData.append("image_urls", JSON.stringify(editImageUrls));
+      formData.append("image_keys", JSON.stringify(editImageKeys));
 
-      const tagsValues = selectedEditTags.map((tag) => tag.value)
-      formData.append('tags', JSON.stringify(tagsValues))
-      formData.append('projectSlug', projectSlug)
+      const tagsValues = selectedEditTags.map((tag) => tag.value);
+      formData.append("tags", JSON.stringify(tagsValues));
+      formData.append("projectSlug", projectSlug);
 
-      const result = await editProjectFn({ data: formData })
+      const result = await editProjectFn({ data: formData });
 
       if (result.success) {
-        toast.success('Project updated successfully')
-        window.location.reload()
+        toast.success("Project updated successfully");
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to update project')
+        toast.error(result.error || "Failed to update project");
       }
     } catch (_error) {
-      toast.error('Failed to update project')
+      toast.error("Failed to update project");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCancelEdit = () => {
-    setIsEditing(false)
+    setIsEditing(false);
     setEditFormData({
-      title: '',
-      description: '',
-      tagline: '',
-      category: '',
-      website_url: '',
-    })
-    setEditImageUrls([])
-    setEditImageKeys([])
-  }
+      title: "",
+      description: "",
+      tagline: "",
+      category: "",
+      website_url: "",
+    });
+    setEditImageUrls([]);
+    setEditImageKeys([]);
+  };
 
   const handleUploadComplete = (res: UploadResult[] | undefined) => {
-    setIsUploading(false)
+    setIsUploading(false);
 
     if (!res || res.length === 0) {
-      toast.error('Upload completed but no files were received.')
-      return
+      toast.error("Upload completed but no files were received.");
+      return;
     }
 
-    const newUrls: string[] = []
-    const newKeys: string[] = []
+    const newUrls: string[] = [];
+    const newKeys: string[] = [];
 
     for (const uploadResult of res) {
-      const url = uploadResult?.serverData?.url || uploadResult?.url
-      const key = uploadResult?.serverData?.key || uploadResult?.key
+      const url = uploadResult?.serverData?.url || uploadResult?.url;
+      const key = uploadResult?.serverData?.key || uploadResult?.key;
 
       if (url && key) {
-        newUrls.push(url)
-        newKeys.push(key)
+        newUrls.push(url);
+        newKeys.push(key);
       }
     }
 
     if (newUrls.length > 0) {
-      setEditImageUrls((prev) => [...prev, ...newUrls])
-      setEditImageKeys((prev) => [...prev, ...newKeys])
-      toast.success(`Added ${newUrls.length} image${newUrls.length !== 1 ? 's' : ''}`)
+      setEditImageUrls((prev) => [...prev, ...newUrls]);
+      setEditImageKeys((prev) => [...prev, ...newKeys]);
+      toast.success(`Added ${newUrls.length} image${newUrls.length !== 1 ? "s" : ""}`);
     }
-  }
+  };
 
   const handleUploadBegin = () => {
-    setIsUploading(true)
-  }
+    setIsUploading(true);
+  };
 
   const handleUploadError = (error: Error) => {
-    setIsUploading(false)
-    toast.error(`Upload failed: ${error.message}`)
-  }
+    setIsUploading(false);
+    toast.error(`Upload failed: ${error.message}`);
+  };
 
   const removeImage = (index: number) => {
-    setEditImageUrls((prev) => prev.filter((_, i) => i !== index))
-    setEditImageKeys((prev) => prev.filter((_, i) => i !== index))
-  }
+    setEditImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setEditImageKeys((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <>
       {!isEditing && (
         <div className="mb-4 flex justify-center md:justify-start">
-          <Button
-            onClick={handleEditProject}
-            variant="outline"
-            size="sm"
-          >
+          <Button onClick={handleEditProject} variant="outline" size="sm">
             <Edit className="mr-2 h-4 w-4" />
             Edit Project
           </Button>
@@ -223,10 +234,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
             <h3 className="mb-6 text-xl font-semibold">Edit Project</h3>
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label
-                  htmlFor="edit-title"
-                  className="form-label-enhanced"
-                >
+                <Label htmlFor="edit-title" className="form-label-enhanced">
                   Project Title *
                 </Label>
                 <Input
@@ -245,10 +253,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="edit-tagline"
-                  className="form-label-enhanced"
-                >
+                <Label htmlFor="edit-tagline" className="form-label-enhanced">
                   Tagline
                 </Label>
                 <Input
@@ -267,10 +272,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="edit-description"
-                  className="form-label-enhanced"
-                >
+                <Label htmlFor="edit-description" className="form-label-enhanced">
                   Description *
                 </Label>
                 <Textarea
@@ -293,10 +295,10 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                   <span
                     className={`font-medium ${
                       editFormData.description.length > MAX_DESCRIPTION_LENGTH
-                        ? 'text-red-500'
+                        ? "text-red-500"
                         : editFormData.description.length > 1500
-                          ? 'text-yellow-500'
-                          : 'text-muted-foreground'
+                          ? "text-yellow-500"
+                          : "text-muted-foreground"
                     }`}
                   >
                     {editFormData.description.length}/{MAX_DESCRIPTION_LENGTH}
@@ -317,18 +319,12 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                   <SelectContent>
                     {categories.length > 0 ? (
                       categories.map((category) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.name}
-                        >
+                        <SelectItem key={category.id} value={category.name}>
                           {category.display_name}
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem
-                        value="no-categories"
-                        disabled
-                      >
+                      <SelectItem value="no-categories" disabled>
                         No categories available
                       </SelectItem>
                     )}
@@ -347,12 +343,12 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                   spellCheck={false}
                   value={editWebsiteUrl}
                   onChange={(e) => {
-                    const url = e.target.value
-                    setEditWebsiteUrl(url)
+                    const url = e.target.value;
+                    setEditWebsiteUrl(url);
                     setEditFormData({
                       ...editFormData,
                       website_url: url,
-                    })
+                    });
                   }}
                   placeholder="your-project.com"
                   disabled={isSaving}
@@ -364,9 +360,11 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                     normalizeProjectWebsiteUrl(editWebsiteUrl) !== editWebsiteUrl.trim() ? (
                     `Will be saved as ${normalizeProjectWebsiteUrl(editWebsiteUrl)}`
                   ) : isValidProjectWebsiteUrl(editWebsiteUrl) ? (
-                    'Looking good! ✨'
+                    "Looking good! ✨"
                   ) : (
-                    <span className="text-destructive">Enter a valid website URL or leave it empty</span>
+                    <span className="text-destructive">
+                      Enter a valid website URL or leave it empty
+                    </span>
                   )}
                 </p>
               </div>
@@ -379,7 +377,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                       src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
                       alt="Website favicon"
                       className="h-4 w-4 flex-shrink-0"
-                      onError={() => setEditFaviconUrl('')}
+                      onError={() => setEditFaviconUrl("")}
                       width={16}
                       height={16}
                     />
@@ -402,12 +400,16 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                   onChange={setSelectedEditTags}
                   defaultOptions={techOptions}
                   placeholder="Select technologies..."
-                  emptyIndicator={<p className="text-muted-foreground text-center text-sm">No technologies found.</p>}
+                  emptyIndicator={
+                    <p className="text-muted-foreground text-center text-sm">
+                      No technologies found.
+                    </p>
+                  }
                   creatable
                   maxSelected={10}
                   disabled={isSaving}
                   commandProps={{
-                    label: 'Select tech stack',
+                    label: "Select tech stack",
                   }}
                 />
               </div>
@@ -419,10 +421,7 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                     <div className="mb-4">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {editImageUrls.map((url, index) => (
-                          <div
-                            key={url}
-                            className="relative"
-                          >
+                          <div key={url} className="relative">
                             <AspectRatio ratio={16 / 9}>
                               <Image
                                 src={url}
@@ -452,35 +451,38 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
 
                   <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
                     <span>
-                      {editImageUrls.length} image{editImageUrls.length !== 1 ? 's' : ''}
+                      {editImageUrls.length} image{editImageUrls.length !== 1 ? "s" : ""}
                     </span>
-                    {editImageUrls.length < 10 && <span>{10 - editImageUrls.length} more can be added</span>}
+                    {editImageUrls.length < 10 && (
+                      <span>{10 - editImageUrls.length} more can be added</span>
+                    )}
                   </div>
 
                   {editImageUrls.length < 10 && (
-                    <UploadButton<OurFileRouter, 'projectImageUploader'>
+                    <UploadButton<OurFileRouter, "projectImageUploader">
                       endpoint="projectImageUploader"
                       onUploadBegin={handleUploadBegin}
                       onClientUploadComplete={handleUploadComplete}
                       onUploadError={handleUploadError}
                       onUploadProgress={() => {}}
                       config={{
-                        mode: 'auto',
+                        mode: "auto",
                       }}
                       content={{
                         button({ ready }) {
-                          if (ready) return <div>Add Images</div>
-                          return 'Getting ready...'
+                          if (ready) return <div>Add Images</div>;
+                          return "Getting ready...";
                         },
                         allowedContent({ ready, fileTypes, isUploading }) {
-                          if (!ready) return 'Checking what you allow'
-                          if (isUploading) return 'Uploading...'
-                          return `${fileTypes.join(', ')} (max 10 total)`
+                          if (!ready) return "Checking what you allow";
+                          if (isUploading) return "Uploading...";
+                          return `${fileTypes.join(", ")} (max 10 total)`;
                         },
                       }}
                       appearance={{
-                        button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                        allowedContent: 'text-sm text-muted-foreground mt-2',
+                        button:
+                          "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                        allowedContent: "text-sm text-muted-foreground mt-2",
                       }}
                     />
                   )}
@@ -504,14 +506,10 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
                       Saving...
                     </>
                   ) : (
-                    'Save Changes'
+                    "Save Changes"
                   )}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCancelEdit}
-                  disabled={isSaving}
-                >
+                <Button variant="outline" onClick={handleCancelEdit} disabled={isSaving}>
                   Cancel
                 </Button>
               </div>
@@ -520,5 +518,5 @@ export function ProjectEditClient({ project, categories, projectSlug, isOwner }:
         </Card>
       )}
     </>
-  )
+  );
 }

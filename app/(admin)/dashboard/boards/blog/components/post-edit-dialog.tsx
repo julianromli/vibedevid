@@ -1,10 +1,11 @@
-'use client'
+"use client";
 
-import { IconX } from '@tabler/icons-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { IconX } from "@tabler/icons-react";
+import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,83 +13,86 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { type AdminPost, adminUpdatePost } from '@/lib/actions/admin/posts'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { type AdminPost, adminUpdatePost } from "@/lib/actions/admin/posts";
 
 interface PostEditDialogProps {
-  post: AdminPost
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  post: AdminPost;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [newTag, setNewTag] = useState('')
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [newTag, setNewTag] = useState("");
   const [formData, setFormData] = useState({
     title: post.title,
-    excerpt: post.excerpt || '',
-    cover_image: post.cover_image || '',
+    excerpt: post.excerpt || "",
+    cover_image: post.cover_image || "",
     status: post.status,
     featured: post.featured,
     read_time_minutes: post.read_time_minutes || 0,
     tags: post.tags || [],
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const result = await adminUpdatePost(post.id, formData)
+      const result = await adminUpdatePost(post.id, formData);
 
       if (result.success) {
-        toast.success('Post updated successfully')
-        onOpenChange(false)
-        window.location.reload()
+        toast.success("Post updated successfully");
+        onOpenChange(false);
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to update post')
+        toast.error(result.error || "Failed to update post");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const addTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData({ ...formData, tags: [...formData.tags, newTag.trim()] })
-      setNewTag('')
+      setFormData({ ...formData, tags: [...formData.tags, newTag.trim()] });
+      setNewTag("");
     }
-  }
+  };
 
   const removeTag = (tagToRemove: string) => {
     setFormData({
       ...formData,
       tags: formData.tags.filter((tag) => tag !== tagToRemove),
-    })
-  }
+    });
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Post</DialogTitle>
-          <DialogDescription>Make changes to the blog post. Click save when you&apos;re done.</DialogDescription>
+          <DialogDescription>
+            Make changes to the blog post. Click save when you&apos;re done.
+          </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 py-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
@@ -126,7 +130,7 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: 'draft' | 'published' | 'archived') =>
+                onValueChange={(value: "draft" | "published" | "archived") =>
                   setFormData({ ...formData, status: value })
                 }
               >
@@ -148,7 +152,9 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
                 type="number"
                 min={1}
                 value={formData.read_time_minutes}
-                onChange={(e) => setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 0 })
+                }
               />
             </div>
           </div>
@@ -159,24 +165,16 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                 placeholder="Add a tag..."
               />
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={addTag}
-              >
+              <Button type="button" variant="secondary" onClick={addTag}>
                 Add
               </Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="gap-1"
-                >
+                <Badge key={tag} variant="secondary" className="gap-1">
                   {tag}
                   <button
                     type="button"
@@ -193,7 +191,9 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="featured">Featured Post</Label>
-              <p className="text-sm text-muted-foreground">Featured posts appear prominently on the blog</p>
+              <p className="text-sm text-muted-foreground">
+                Featured posts appear prominently on the blog
+              </p>
             </div>
             <Switch
               id="featured"
@@ -211,15 +211,12 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : 'Save Changes'}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

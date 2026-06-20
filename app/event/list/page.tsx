@@ -1,8 +1,8 @@
-import { getCachedApprovedEvents } from '@/lib/server/events-public'
-import EventListClient from './event-list-client'
+import { fetchApprovedEvents } from "@/lib/server/events-public";
+import EventListClient from "./event-list-client";
 
 export default async function EventListPage() {
-  const initialEvents = await getCachedApprovedEvents()
+  const initialEvents = await fetchApprovedEvents();
 
-  return <EventListClient initialEvents={initialEvents || []} />
+  return <EventListClient initialEvents={initialEvents || []} />;
 }

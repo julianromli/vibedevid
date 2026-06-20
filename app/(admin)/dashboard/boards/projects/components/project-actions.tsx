@@ -1,9 +1,16 @@
-'use client'
+"use client";
 
-import { IconDotsVertical, IconEdit, IconExternalLink, IconStar, IconStarOff, IconTrash } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconExternalLink,
+  IconStar,
+  IconStarOff,
+  IconTrash,
+} from "@tabler/icons-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,70 +20,71 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { type AdminProject, adminDeleteProject, toggleProjectFeatured } from '@/lib/actions/admin/projects'
+} from "@/components/ui/dropdown-menu";
+import {
+  type AdminProject,
+  adminDeleteProject,
+  toggleProjectFeatured,
+} from "@/lib/actions/admin/projects";
 
 interface ProjectActionsProps {
-  project: AdminProject
-  onEdit: () => void
+  project: AdminProject;
+  onEdit: () => void;
 }
 
 export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleToggleFeatured = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await toggleProjectFeatured(project.id, !project.featured)
+      const result = await toggleProjectFeatured(project.id, !project.featured);
       if (result.success) {
-        toast.success(project.featured ? 'Project unfeatured' : 'Project featured')
-        window.location.reload()
+        toast.success(project.featured ? "Project unfeatured" : "Project featured");
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to update project')
+        toast.error(result.error || "Failed to update project");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await adminDeleteProject(project.id)
+      const result = await adminDeleteProject(project.id);
       if (result.success) {
-        toast.success('Project deleted successfully')
-        window.location.reload()
+        toast.success("Project deleted successfully");
+        router.invalidate();
       } else {
-        toast.error(result.error || 'Failed to delete project')
+        toast.error(result.error || "Failed to delete project");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
-      setShowDeleteDialog(false)
+      setIsLoading(false);
+      setShowDeleteDialog(false);
     }
-  }
+  };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="sm" disabled={isLoading}>
             <IconDotsVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -124,16 +132,13 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-      >
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the project &quot;{project.title}&quot; and all associated comments, likes,
-              and views. This action cannot be undone.
+              This will permanently delete the project &quot;{project.title}&quot; and all
+              associated comments, likes, and views. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -149,5 +154,5 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
