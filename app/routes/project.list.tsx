@@ -1,13 +1,14 @@
-import { createServerFn } from '@tanstack/react-start'
 import { createFileRoute } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import { ProjectListClient } from '@/app/project/list/project-list-client'
+import { Footer } from '@/components/ui/footer'
+import { ScrollReveal } from '@/components/ui/motion-wrapper'
+import { Navbar } from '@/components/ui/navbar'
 import { fetchProjectsWithSorting } from '@/lib/actions'
 import { getCategories } from '@/lib/categories'
-import { getCurrentUser } from '@/lib/server/auth'
 import { getServerT, getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { ProjectListClient } from '@/app/project/list/project-list-client'
+import { getCurrentUser } from '@/lib/server/auth'
 
 /**
  * Server-only data fetching for the project list. Wrapped in `createServerFn`
@@ -95,10 +96,10 @@ function ProjectListRoute() {
 
         <section className="relative bg-transparent py-12 pt-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-12 text-center">
+            <ScrollReveal className="mb-12 text-center">
               <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">{data.title}</h1>
               <p className="mx-auto max-w-2xl text-muted-foreground text-xl">{data.description}</p>
-            </div>
+            </ScrollReveal>
 
             <ProjectListClient
               initialProjects={data.initialProjects}

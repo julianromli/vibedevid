@@ -43,7 +43,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Authentication**: Supabase Auth (email/password + OAuth)
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
-- **Animations**: Motion (Framer Motion) — shared scroll-reveal primitives in `components/ui/motion-wrapper.tsx` (`ScrollReveal`, `StaggerContainer`/`StaggerItem`, `ScaleIn`) applied across all landing page sections; Radix dropdown menus (e.g. avatar menu) and the FAQ accordion animate open/close via Framer Motion, all with `prefers-reduced-motion` support
+- **Animations**: Motion (Framer Motion) — shared scroll-reveal primitives in `components/ui/motion-wrapper.tsx` (`ScrollReveal`, `StaggerContainer`/`StaggerItem`, `ScaleIn`) applied across the landing page and the `/project/list`, `/blog`, and `/event/list` pages; Radix dropdown menus (e.g. avatar menu) and the FAQ accordion animate open/close via Framer Motion, all with `prefers-reduced-motion` support
 - **Rich Text**: Novel + TipTap
 - **Icons**: Lucide React + Tabler Icons + LobeHub Icons
 - **Internationalization**: react-i18next

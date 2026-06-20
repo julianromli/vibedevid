@@ -3,7 +3,8 @@
 import { Link } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
 import { Plus } from 'lucide-react'
-import { motion } from 'motion/react'
+import { motion, useInView } from 'motion/react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -33,14 +34,17 @@ interface ProjectListCardProps {
 
 function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCardProps) {
   const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
     <motion.div
-      initial={false}
-      animate={{ opacity: 1, y: 0 }}
+      ref={ref}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={prefersReducedMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{
-        duration: prefersReducedMotion ? 0 : 0.32,
-        delay: prefersReducedMotion ? 0 : Math.min(index * 0.05, 0.35),
+        duration: prefersReducedMotion ? 0 : 0.36,
+        delay: prefersReducedMotion ? 0 : Math.min((index % 3) * 0.08, 0.24),
         ease: [0.2, 0, 0, 1],
       }}
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}

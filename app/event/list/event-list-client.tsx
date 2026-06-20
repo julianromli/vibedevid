@@ -5,6 +5,7 @@ import { EventCard } from '@/components/event/event-card'
 import { EventFilterControls } from '@/components/event/event-filter-controls'
 import { SubmitEventSection } from '@/components/event/submit-event-section'
 import { Footer } from '@/components/ui/footer'
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
 import { useAuth } from '@/hooks/useAuth'
 import { applyFilters } from '@/lib/events-utils'
@@ -90,7 +91,7 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
         <section className="relative bg-transparent py-12 pt-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Header */}
-            <div className="mb-12 text-center">
+            <ScrollReveal className="mb-12 text-center">
               <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">
                 AI Events di Indonesia
               </h1>
@@ -98,7 +99,7 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
                 Temukan workshop, meetup, conference, dan hackathon AI terbaik di Indonesia. Bergabunglah dengan
                 komunitas AI dan tingkatkan skill kamu!
               </p>
-            </div>
+            </ScrollReveal>
 
             {/* Filter Controls */}
             <div className="mb-8 flex justify-center">
@@ -115,19 +116,21 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
             </div>
 
             {/* Event Grid/List - Responsive layout based on viewMode */}
-            <div
+            <StaggerContainer
+              key={viewMode}
               className={
                 viewMode === 'grid' ? 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-4'
               }
             >
               {filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  variant={viewMode}
-                />
+                <StaggerItem key={event.id}>
+                  <EventCard
+                    event={event}
+                    variant={viewMode}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
 
             {/* Empty State */}
             {filteredEvents.length === 0 && (

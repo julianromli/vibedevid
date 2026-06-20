@@ -1,11 +1,12 @@
 'use client'
 
-import { FileText, PenSquare } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { FileText, PenSquare } from 'lucide-react'
 import { BlogCard } from '@/components/blog/blog-card'
 import { FloatingWriteButton } from '@/components/blog/floating-write-button'
 import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/ui/footer'
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
 import type { User } from '@/types/homepage'
 
@@ -38,16 +39,6 @@ interface BlogPageClientProps {
 }
 
 export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClientProps) {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
-  }
-
   // Flatten tags from nested structure to string array
   const flattenedPosts = posts.map((post) => ({
     ...post,
@@ -65,7 +56,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
       <main className="py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
-          <div className="mb-16">
+          <ScrollReveal className="mb-16">
             <div className="flex flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
               <div>
                 <h1 className="mb-4 font-bold text-4xl tracking-tight md:text-6xl">Blog</h1>
@@ -95,31 +86,32 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                 </div>
               )}
             </div>
-          </div>
+          </ScrollReveal>
 
           {flattenedPosts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <StaggerContainer className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {flattenedPosts.map((post) => (
-                <BlogCard
-                  key={post.id}
-                  post={{
-                    id: post.id,
-                    slug: post.slug,
-                    title: post.title,
-                    excerpt: post.excerpt,
-                    cover_image: post.cover_image,
-                    published_at: post.published_at,
-                    read_time_minutes: post.read_time_minutes,
-                    author: post.author ?? {
-                      display_name: 'Anonymous',
-                      avatar_url: null,
-                    },
-                    tags: post.tags,
-                  }}
-                  isOwner={user?.id === post.author_id}
-                />
+                <StaggerItem key={post.id}>
+                  <BlogCard
+                    post={{
+                      id: post.id,
+                      slug: post.slug,
+                      title: post.title,
+                      excerpt: post.excerpt,
+                      cover_image: post.cover_image,
+                      published_at: post.published_at,
+                      read_time_minutes: post.read_time_minutes,
+                      author: post.author ?? {
+                        display_name: 'Anonymous',
+                        avatar_url: null,
+                      },
+                      tags: post.tags,
+                    }}
+                    isOwner={user?.id === post.author_id}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
@@ -135,7 +127,10 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                   </Button>
                 </Link>
               ) : (
-                <Link to="/user/auth" search={{ redirectTo: '/blog/editor' }}>
+                <Link
+                  to="/user/auth"
+                  search={{ redirectTo: '/blog/editor' }}
+                >
                   <Button className="gap-2">Sign in to write</Button>
                 </Link>
               )}
