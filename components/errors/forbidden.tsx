@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
-import { BackButton } from '../back-button'
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { BackButton } from "../back-button";
 
 export default function ForbiddenError() {
   return (
@@ -20,5 +20,5 @@ export default function ForbiddenError() {
         </div>
       </div>
     </div>
-  )
+  );
 }

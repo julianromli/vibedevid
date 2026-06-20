@@ -1,9 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
 import { type CookieSerializeOptions, serialize } from "cookie-es";
 import { type Locale, routing } from "@/i18n/routing";
 import { getSafeRedirectPath } from "@/lib/auth/credentials";
+import { getAuth } from "@/lib/auth/server";
 import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from "@/lib/constants/auth";
-import { getSupabaseConfig } from "@/lib/env-config";
 
 const LOCALE_COOKIE = "NEXT_LOCALE";
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -38,6 +37,13 @@ function appendSetCookie(headers: Headers, cookie: CookieRecord) {
       ...cookie.options,
     }),
   );
+}
+
+function appendSetCookies(headers: Headers, source?: Headers) {
+  if (!source) return;
+  for (const cookie of source.getSetCookie()) {
+    headers.append("Set-Cookie", cookie);
+  }
 }
 
 function mergeCookiesIntoResponse(response: Response, cookies: CookieRecord[]): Response {
@@ -139,47 +145,29 @@ export async function applyAuthMiddleware(
   const pendingCookies: CookieRecord[] = [...localeCookies];
 
   try {
-    const { url, anonKey } = getSupabaseConfig();
+    const auth = getAuth();
+    const session = await auth.api.getSession({ headers: request.headers });
     const requestUrl = new URL(request.url);
-
-    const supabase = createServerClient(url, anonKey, {
-      global: {
-        fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
-      },
-      cookies: {
-        getAll() {
-          return parseRequestCookies(request).map(({ name, value }) => ({ name, value }));
-        },
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            pendingCookies.push({ name, value, options });
-          }
-        },
-      },
-    });
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
     const isAuthPath = pathname.startsWith("/user/auth");
     const isConfirmEmailPath = pathname.includes("/confirm-email");
-    const isCallbackPath = pathname.includes("/auth/callback");
+    const isCallbackPath =
+      pathname.startsWith("/api/auth/callback") || pathname.includes("/auth/callback");
     const hasConfirmEmailCookie = Boolean(getCookieValue(request, CONFIRM_EMAIL_COOKIE));
 
-    if (user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
+    if (session?.user && isAuthPath && !isConfirmEmailPath && !isCallbackPath) {
       const redirectTo = getSafeRedirectPath(requestUrl.searchParams.get("redirectTo"));
       return createRedirectResponse(new URL(redirectTo, requestUrl.origin), pendingCookies);
     }
 
-    if (user && !user.email_confirmed_at && !isAuthPath && !isCallbackPath) {
+    if (session?.user && !session.user.emailVerified && !isAuthPath && !isCallbackPath) {
       const redirectResponse = createRedirectResponse(
         new URL("/user/auth/confirm-email", requestUrl.origin),
         [
           ...pendingCookies,
           {
             name: CONFIRM_EMAIL_COOKIE,
-            value: encodeURIComponent(user.email || ""),
+            value: encodeURIComponent(session.user.email || ""),
             options: {
               path: "/user/auth/confirm-email",
               maxAge: CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS,
@@ -190,11 +178,22 @@ export async function applyAuthMiddleware(
         ],
       );
 
-      await supabase.auth.signOut();
-      return redirectResponse;
+      const signOutResponse = await auth.api.signOut({
+        headers: request.headers,
+        asResponse: true,
+      });
+      return new Response(redirectResponse.body, {
+        status: redirectResponse.status,
+        statusText: redirectResponse.statusText,
+        headers: (() => {
+          const headers = new Headers(redirectResponse.headers);
+          appendSetCookies(headers, signOutResponse.headers);
+          return headers;
+        })(),
+      });
     }
 
-    if (user && user.email_confirmed_at && isConfirmEmailPath && !hasConfirmEmailCookie) {
+    if (session?.user?.emailVerified && isConfirmEmailPath && !hasConfirmEmailCookie) {
       return createRedirectResponse(new URL("/", requestUrl.origin), pendingCookies);
     }
   } catch (error) {

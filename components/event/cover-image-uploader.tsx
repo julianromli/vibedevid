@@ -1,52 +1,57 @@
-'use client'
+"use client";
 
-import { UploadButton } from '@uploadthing/react'
-import { CheckCircle, Loader2, Upload, X } from 'lucide-react'
-import { Image } from '@unpic/react'
-import { useState } from 'react'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { OurFileRouter } from '@/lib/uploadthing-router'
+import { UploadButton } from "@uploadthing/react";
+import { CheckCircle, Loader2, Upload, X } from "lucide-react";
+import { Image } from "@unpic/react";
+import { useState } from "react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { OurFileRouter } from "@/lib/uploadthing-router";
 
 interface CoverImageUploaderProps {
-  value: string
-  onChange: (url: string) => void
-  onError: (error: string) => void
-  disabled?: boolean
+  value: string;
+  onChange: (url: string) => void;
+  onError: (error: string) => void;
+  disabled?: boolean;
 }
 
-type ImageInputMode = 'upload' | 'url'
+type ImageInputMode = "upload" | "url";
 
-export function CoverImageUploader({ value, onChange, onError, disabled = false }: CoverImageUploaderProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [imageUrl, setImageUrl] = useState('')
-  const [mode, setMode] = useState<ImageInputMode>('upload')
+export function CoverImageUploader({
+  value,
+  onChange,
+  onError,
+  disabled = false,
+}: CoverImageUploaderProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
+  const [mode, setMode] = useState<ImageInputMode>("upload");
 
   const handleUrlSubmit = () => {
     if (!imageUrl.trim()) {
-      onError('URL gambar tidak boleh kosong')
-      return
+      onError("URL gambar tidak boleh kosong");
+      return;
     }
 
     // Basic URL validation
     try {
-      new URL(imageUrl)
-      onChange(imageUrl)
-      onError('') // Clear error
+      new URL(imageUrl);
+      onChange(imageUrl);
+      onError(""); // Clear error
     } catch {
-      onError('URL gambar tidak valid')
+      onError("URL gambar tidak valid");
     }
-  }
+  };
 
   const handleRemoveImage = () => {
-    onChange('')
-    setImageUrl('')
-    onError('')
-  }
+    onChange("");
+    setImageUrl("");
+    onError("");
+  };
 
   return (
     <div className="space-y-4">
@@ -83,30 +88,17 @@ export function CoverImageUploader({ value, onChange, onError, disabled = false 
         </div>
       ) : (
         // Upload/URL input tabs
-        <Tabs
-          value={mode}
-          onValueChange={(v) => setMode(v as ImageInputMode)}
-          className="w-full"
-        >
+        <Tabs value={mode} onValueChange={(v) => setMode(v as ImageInputMode)} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger
-              value="upload"
-              disabled={disabled}
-            >
+            <TabsTrigger value="upload" disabled={disabled}>
               Upload File
             </TabsTrigger>
-            <TabsTrigger
-              value="url"
-              disabled={disabled}
-            >
+            <TabsTrigger value="url" disabled={disabled}>
               Image URL
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent
-            value="upload"
-            className="mt-4"
-          >
+          <TabsContent value="upload" className="mt-4">
             <div className="rounded-lg border-2 border-gray-300 border-dashed p-6 dark:border-gray-600">
               <div className="text-center">
                 {isUploading ? (
@@ -121,105 +113,112 @@ export function CoverImageUploader({ value, onChange, onError, disabled = false 
                         <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
                         Uploading...
                       </div>
-                      <p className="text-muted-foreground text-sm">Please wait while your image is being uploaded</p>
+                      <p className="text-muted-foreground text-sm">
+                        Please wait while your image is being uploaded
+                      </p>
                     </div>
                   ) : (
-                    <UploadButton<OurFileRouter, 'projectImageUploader'>
+                    <UploadButton<OurFileRouter, "projectImageUploader">
                       endpoint="projectImageUploader"
                       onUploadBegin={(name) => {
-                        console.log('[CoverImageUploader] Upload started for file:', name)
-                        setIsUploading(true)
-                        onError('')
+                        console.log("[CoverImageUploader] Upload started for file:", name);
+                        setIsUploading(true);
+                        onError("");
 
                         // Clear existing timeout if any
                         if (uploadTimeout) {
-                          clearTimeout(uploadTimeout)
+                          clearTimeout(uploadTimeout);
                         }
 
                         // Set a fallback timeout to prevent stuck state (2 minutes)
                         const timeoutId = setTimeout(() => {
-                          console.log('[CoverImageUploader] Upload timeout - resetting state')
-                          setIsUploading(false)
-                          onError('Upload timed out. Please try again.')
-                        }, 120000)
+                          console.log("[CoverImageUploader] Upload timeout - resetting state");
+                          setIsUploading(false);
+                          onError("Upload timed out. Please try again.");
+                        }, 120000);
 
-                        setUploadTimeout(timeoutId)
+                        setUploadTimeout(timeoutId);
                       }}
                       onClientUploadComplete={(res) => {
-                        console.log('[CoverImageUploader] Client upload completed:', res)
+                        console.log("[CoverImageUploader] Client upload completed:", res);
 
                         // Clear timeout since upload completed
                         if (uploadTimeout) {
-                          clearTimeout(uploadTimeout)
-                          setUploadTimeout(null)
+                          clearTimeout(uploadTimeout);
+                          setUploadTimeout(null);
                         }
 
-                        setIsUploading(false)
-                        onError('')
+                        setIsUploading(false);
+                        onError("");
 
                         // Check if we have a valid response
                         if (res && Array.isArray(res) && res.length > 0) {
-                          const uploadResult = res[0]
-                          const imageUrl = uploadResult.url
+                          const uploadResult = res[0];
+                          const imageUrl = uploadResult.url;
 
                           if (imageUrl) {
-                            console.log('[CoverImageUploader] Setting image URL:', imageUrl)
-                            onChange(imageUrl)
+                            console.log("[CoverImageUploader] Setting image URL:", imageUrl);
+                            onChange(imageUrl);
                           } else {
-                            onError('Upload completed but no URL received. Please try again.')
+                            onError("Upload completed but no URL received. Please try again.");
                           }
                         } else {
-                          onError('Upload completed but response format is invalid. Please try again.')
+                          onError(
+                            "Upload completed but response format is invalid. Please try again.",
+                          );
                         }
                       }}
                       onUploadError={(error: Error) => {
                         // Clear timeout since upload failed
                         if (uploadTimeout) {
-                          clearTimeout(uploadTimeout)
-                          setUploadTimeout(null)
+                          clearTimeout(uploadTimeout);
+                          setUploadTimeout(null);
                         }
 
-                        setIsUploading(false)
+                        setIsUploading(false);
 
                         // Check for file size error
-                        if (error.message.includes('FileSizeMismatch') || error.message.includes('10MB')) {
-                          onError('Ukuran file maksimal 10MB')
+                        if (
+                          error.message.includes("FileSizeMismatch") ||
+                          error.message.includes("10MB")
+                        ) {
+                          onError("Ukuran file maksimal 10MB");
                         } else {
-                          onError(`Gagal mengupload gambar: ${error.message}`)
+                          onError(`Gagal mengupload gambar: ${error.message}`);
                         }
                       }}
                       config={{
-                        mode: 'auto',
+                        mode: "auto",
                       }}
                       content={{
                         button({ ready }) {
-                          if (ready) return <div>Choose File</div>
-                          return 'Getting ready...'
+                          if (ready) return <div>Choose File</div>;
+                          return "Getting ready...";
                         },
                         allowedContent({ ready, fileTypes, isUploading }) {
-                          if (!ready) return 'Checking what you allow'
-                          if (isUploading) return 'Uploading...'
-                          return `Image (${fileTypes.join(', ')})`
+                          if (!ready) return "Checking what you allow";
+                          if (isUploading) return "Uploading...";
+                          return `Image (${fileTypes.join(", ")})`;
                         },
                       }}
                       appearance={{
-                        button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                        allowedContent: 'text-sm text-muted-foreground mt-2',
+                        button:
+                          "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                        allowedContent: "text-sm text-muted-foreground mt-2",
                       }}
                     />
                   )}
                 </div>
                 <p className="mt-2 text-gray-500 text-sm">
-                  {isUploading ? 'Uploading your cover image...' : 'Upload a cover image for your event (max 10MB)'}
+                  {isUploading
+                    ? "Uploading your cover image..."
+                    : "Upload a cover image for your event (max 10MB)"}
                 </p>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent
-            value="url"
-            className="mt-4"
-          >
+          <TabsContent value="url" className="mt-4">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Input
@@ -244,5 +243,5 @@ export function CoverImageUploader({ value, onChange, onError, disabled = false 
         </Tabs>
       )}
     </div>
-  )
+  );
 }

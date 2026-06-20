@@ -1,45 +1,52 @@
-'use client'
+"use client";
 
-import { IconClock, IconEye } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { AdminPost } from '@/lib/actions/admin/posts'
-import { PostActions } from './post-actions'
-import { PostEditDialog } from './post-edit-dialog'
+import { IconClock, IconEye } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { AdminPost } from "@/lib/actions/admin/posts";
+import { PostActions } from "./post-actions";
+import { PostEditDialog } from "./post-edit-dialog";
 
 interface PostsTableProps {
-  posts: AdminPost[]
-  totalCount: number
-  currentPage: number
+  posts: AdminPost[];
+  totalCount: number;
+  currentPage: number;
 }
 
 export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) {
-  const [editingPost, setEditingPost] = useState<AdminPost | null>(null)
+  const [editingPost, setEditingPost] = useState<AdminPost | null>(null);
 
   if (posts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
         <p className="text-muted-foreground">No posts found</p>
       </div>
-    )
+    );
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'published':
-        return <Badge className="bg-green-500/10 text-green-600">Published</Badge>
-      case 'draft':
-        return <Badge variant="secondary">Draft</Badge>
-      case 'archived':
-        return <Badge variant="outline">Archived</Badge>
+      case "published":
+        return <Badge className="bg-green-500/10 text-green-600">Published</Badge>;
+      case "draft":
+        return <Badge variant="secondary">Draft</Badge>;
+      case "archived":
+        return <Badge variant="outline">Archived</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }
+  };
 
   return (
     <>
@@ -62,10 +69,7 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={post.cover_image || ''}
-                        alt={post.title}
-                      />
+                      <AvatarImage src={post.cover_image || ""} alt={post.title} />
                       <AvatarFallback>{post.title[0]}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -76,14 +80,16 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                       >
                         {post.title}
                       </Link>
-                      <p className="text-sm text-muted-foreground truncate max-w-[200px]">{post.excerpt}</p>
+                      <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                        {post.excerpt}
+                      </p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={post.author.avatar_url || ''} />
+                      <AvatarImage src={post.author.avatar_url || ""} />
                       <AvatarFallback>{post.author.display_name[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm">{post.author.display_name}</span>
@@ -92,7 +98,9 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                 <TableCell>
                   <div className="space-y-1">
                     {getStatusBadge(post.status)}
-                    {post.featured && <Badge className="bg-yellow-500/10 text-yellow-600">Featured</Badge>}
+                    {post.featured && (
+                      <Badge className="bg-yellow-500/10 text-yellow-600">Featured</Badge>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -112,19 +120,12 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {post.tags.slice(0, 3).map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="text-xs"
-                      >
+                      <Badge key={tag} variant="outline" className="text-xs">
                         {tag}
                       </Badge>
                     ))}
                     {post.tags.length > 3 && (
-                      <Badge
-                        variant="outline"
-                        className="text-xs"
-                      >
+                      <Badge variant="outline" className="text-xs">
                         +{post.tags.length - 3}
                       </Badge>
                     )}
@@ -136,10 +137,7 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <PostActions
-                    post={post}
-                    onEdit={() => setEditingPost(post)}
-                  />
+                  <PostActions post={post} onEdit={() => setEditingPost(post)} />
                 </TableCell>
               </TableRow>
             ))}
@@ -157,9 +155,9 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
             size="sm"
             disabled={currentPage <= 1}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage - 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage - 1));
+              window.location.search = params.toString();
             }}
           >
             Previous
@@ -169,9 +167,9 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
             size="sm"
             disabled={posts.length < 20}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage + 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage + 1));
+              window.location.search = params.toString();
             }}
           >
             Next
@@ -187,5 +185,5 @@ export function PostsTable({ posts, totalCount, currentPage }: PostsTableProps) 
         />
       )}
     </>
-  )
+  );
 }

@@ -1,74 +1,79 @@
-type SocialPlatform = 'github' | 'x' | 'instagram' | 'threads'
+type SocialPlatform = "github" | "x" | "instagram" | "threads";
 
 const SOCIAL_HOSTS: Record<SocialPlatform, string[]> = {
-  github: ['github.com', 'www.github.com'],
-  x: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com'],
-  instagram: ['instagram.com', 'www.instagram.com'],
-  threads: ['threads.net', 'www.threads.net'],
-}
+  github: ["github.com", "www.github.com"],
+  x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
+  instagram: ["instagram.com", "www.instagram.com"],
+  threads: ["threads.net", "www.threads.net"],
+};
 
 const SOCIAL_BASE_URLS: Record<SocialPlatform, string> = {
-  github: 'https://github.com/',
-  x: 'https://x.com/',
-  instagram: 'https://instagram.com/',
-  threads: 'https://www.threads.net/@',
-}
+  github: "https://github.com/",
+  x: "https://x.com/",
+  instagram: "https://instagram.com/",
+  threads: "https://www.threads.net/@",
+};
 
 function parseHttpUrl(value: string): URL | null {
-  const withScheme = /^[a-z][a-z\d+\-.]*:\/\//i.test(value) ? value : `https://${value}`
+  const withScheme = /^[a-z][a-z\d+\-.]*:\/\//i.test(value) ? value : `https://${value}`;
 
   try {
-    const url = new URL(withScheme)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null
+    const url = new URL(withScheme);
+    return url.protocol === "http:" || url.protocol === "https:" ? url : null;
   } catch {
-    return null
+    return null;
   }
 }
 
 function looksLikeSocialUrl(value: string, platform: SocialPlatform): boolean {
-  if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value) || value.startsWith('www.')) {
-    return true
+  if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value) || value.startsWith("www.")) {
+    return true;
   }
 
-  return SOCIAL_HOSTS[platform].some((host) => value === host || value.startsWith(`${host}/`))
+  return SOCIAL_HOSTS[platform].some((host) => value === host || value.startsWith(`${host}/`));
 }
 
 function isPlatformHost(platform: SocialPlatform, hostname: string): boolean {
-  return SOCIAL_HOSTS[platform].includes(hostname.toLowerCase())
+  return SOCIAL_HOSTS[platform].includes(hostname.toLowerCase());
 }
 
 function normalizeHandle(value: string): string {
-  return value.trim().replace(/^@+/, '').replace(/^\/+/, '').split(/[/?#]/)[0]?.replace(/^@+/, '') || ''
+  return (
+    value.trim().replace(/^@+/, "").replace(/^\/+/, "").split(/[/?#]/)[0]?.replace(/^@+/, "") || ""
+  );
 }
 
 function extractHandleFromUrl(url: URL): string {
-  return normalizeHandle(decodeURIComponent(url.pathname).replace(/^\/+/, ''))
+  return normalizeHandle(decodeURIComponent(url.pathname).replace(/^\/+/, ""));
 }
 
 export function normalizeProfileWebsiteUrl(input: string | null | undefined): string {
-  const value = input?.trim()
-  if (!value) return ''
+  const value = input?.trim();
+  if (!value) return "";
 
-  const url = parseHttpUrl(value)
-  return url?.toString() || ''
+  const url = parseHttpUrl(value);
+  return url?.toString() || "";
 }
 
-export function normalizeProfileSocialUrl(platform: SocialPlatform, input: string | null | undefined): string {
-  const value = input?.trim()
-  if (!value) return ''
+export function normalizeProfileSocialUrl(
+  platform: SocialPlatform,
+  input: string | null | undefined,
+): string {
+  const value = input?.trim();
+  if (!value) return "";
 
   if (looksLikeSocialUrl(value, platform)) {
-    const url = parseHttpUrl(value)
-    if (!url) return ''
+    const url = parseHttpUrl(value);
+    if (!url) return "";
 
     if (isPlatformHost(platform, url.hostname)) {
-      const handle = extractHandleFromUrl(url)
-      return handle ? `${SOCIAL_BASE_URLS[platform]}${handle}` : ''
+      const handle = extractHandleFromUrl(url);
+      return handle ? `${SOCIAL_BASE_URLS[platform]}${handle}` : "";
     }
 
-    return url.toString()
+    return url.toString();
   }
 
-  const handle = normalizeHandle(value)
-  return handle ? `${SOCIAL_BASE_URLS[platform]}${handle}` : ''
+  const handle = normalizeHandle(value);
+  return handle ? `${SOCIAL_BASE_URLS[platform]}${handle}` : "";
 }

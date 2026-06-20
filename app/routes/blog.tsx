@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 /**
  * Layout route for `/blog`. It only renders an `<Outlet />` so that child
@@ -8,10 +8,10 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
  * Without this Outlet, navigating to `/blog/$slug` rendered the blog list
  * because the detail route is nested under this layout.
  */
-export const Route = createFileRoute('/blog')({
+export const Route = createFileRoute("/blog")({
   component: BlogLayout,
-})
+});
 
 function BlogLayout() {
-  return <Outlet />
+  return <Outlet />;
 }

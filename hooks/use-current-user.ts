@@ -1,5 +1,5 @@
-import { useRouteContext } from '@tanstack/react-router'
-import type { User } from '@/types/homepage'
+import { useRouteContext } from "@tanstack/react-router";
+import type { User } from "@/types/homepage";
 
 /**
  * Read the authenticated user from the root route context.
@@ -9,6 +9,6 @@ import type { User } from '@/types/homepage'
  * without an extra client fetch.
  */
 export function useCurrentUser(): User | null {
-  const context = useRouteContext({ from: '__root__' }) as { currentUser?: User | null }
-  return context.currentUser ?? null
+  const context = useRouteContext({ from: "__root__" }) as { currentUser?: User | null };
+  return context.currentUser ?? null;
 }

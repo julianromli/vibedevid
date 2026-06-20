@@ -6,37 +6,44 @@
  * than receiving it as props. Dropdowns own their own open/close state.
  */
 
-'use client'
+"use client";
 
-import { Link } from '@tanstack/react-router'
-import { Image } from '@unpic/react'
-import { ChevronDown, Plus } from 'lucide-react'
-import { motion, useInView } from 'motion/react'
-import { useCallback, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Button } from '@/components/ui/button'
-import { FilterControls } from '@/components/ui/filter-controls'
-import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
-import { ScrollReveal } from '@/components/ui/motion-wrapper'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { useClickOutside } from '@/hooks/useClickOutside'
-import type { Project, SortBy } from '@/types/homepage'
-import { useProjectShowcase } from './project-showcase/project-showcase-context'
+import { Link } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
+import { ChevronDown, Plus } from "lucide-react";
+import { motion, useInView } from "motion/react";
+import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { FilterControls } from "@/components/ui/filter-controls";
+import { HeartButtonDisplay } from "@/components/ui/heart-button-display";
+import { ScrollReveal } from "@/components/ui/motion-wrapper";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+import { UserDisplayName } from "@/components/ui/user-display-name";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import type { Project, SortBy } from "@/types/homepage";
+import { useProjectShowcase } from "./project-showcase/project-showcase-context";
 
-const MotionDiv = motion.div
+const MotionDiv = motion.div;
 
-const skeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6']
+const skeletonKeys = [
+  "skeleton-1",
+  "skeleton-2",
+  "skeleton-3",
+  "skeleton-4",
+  "skeleton-5",
+  "skeleton-6",
+];
 
-type TrendingDropdownPlacement = 'mobile' | 'desktop'
+type TrendingDropdownPlacement = "mobile" | "desktop";
 
 interface TrendingDropdownProps {
-  selectedTrending: SortBy
-  options: Array<{ value: SortBy; label: string }>
-  onChange: (value: SortBy) => void
-  placement: TrendingDropdownPlacement
+  selectedTrending: SortBy;
+  options: Array<{ value: SortBy; label: string }>;
+  onChange: (value: SortBy) => void;
+  placement: TrendingDropdownPlacement;
 }
 
 const TRENDING_PLACEMENT_CLASSES: Record<
@@ -44,31 +51,33 @@ const TRENDING_PLACEMENT_CLASSES: Record<
   { container: string; button: string; menu: string }
 > = {
   mobile: {
-    container: 'relative',
-    button: 'w-full justify-between',
-    menu: 'bg-background border-border absolute top-full right-0 z-10 mt-2 w-40 rounded-lg border shadow-lg',
+    container: "relative",
+    button: "w-full justify-between",
+    menu: "bg-background border-border absolute top-full right-0 z-10 mt-2 w-40 rounded-lg border shadow-lg",
   },
   desktop: {
-    container: 'relative justify-self-end',
-    button: 'flex items-center gap-2',
-    menu: 'bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg',
+    container: "relative justify-self-end",
+    button: "flex items-center gap-2",
+    menu: "bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg",
   },
-}
+};
 
-function TrendingDropdown({ selectedTrending, options, onChange, placement }: TrendingDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const close = useCallback(() => setIsOpen(false), [])
-  useClickOutside(containerRef, close, isOpen)
+function TrendingDropdown({
+  selectedTrending,
+  options,
+  onChange,
+  placement,
+}: TrendingDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setIsOpen(false), []);
+  useClickOutside(containerRef, close, isOpen);
 
-  const classes = TRENDING_PLACEMENT_CLASSES[placement]
-  const selectedOption = options.find((option) => option.value === selectedTrending)
+  const classes = TRENDING_PLACEMENT_CLASSES[placement];
+  const selectedOption = options.find((option) => option.value === selectedTrending);
 
   return (
-    <div
-      className={classes.container}
-      ref={containerRef}
-    >
+    <div className={classes.container} ref={containerRef}>
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
@@ -77,7 +86,7 @@ function TrendingDropdown({ selectedTrending, options, onChange, placement }: Tr
         aria-haspopup="menu"
       >
         {selectedOption?.label ?? options[0]?.label}
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </Button>
 
       {isOpen && (
@@ -88,11 +97,13 @@ function TrendingDropdown({ selectedTrending, options, onChange, placement }: Tr
                 key={option.value}
                 type="button"
                 onClick={() => {
-                  onChange(option.value)
-                  setIsOpen(false)
+                  onChange(option.value);
+                  setIsOpen(false);
                 }}
                 className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selectedTrending === option.value ? 'bg-muted text-foreground' : 'text-muted-foreground'
+                  selectedTrending === option.value
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
                 {option.label}
@@ -102,18 +113,18 @@ function TrendingDropdown({ selectedTrending, options, onChange, placement }: Tr
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface ProjectCardProps {
-  project: Project
-  index: number
-  prefersReducedMotion: boolean
+  project: Project;
+  index: number;
+  prefersReducedMotion: boolean;
 }
 
 function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-80px' })
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
     <MotionDiv
@@ -129,23 +140,19 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
       className="[contain-intrinsic-size:0_500px] [content-visibility:auto]"
     >
       <div className="group my-4 cursor-pointer py-0">
-        <Link
-          to="/project/$slug"
-          params={{ slug: project.slug }}
-          className="block"
-        >
+        <Link to="/project/$slug" params={{ slug: project.slug }} className="block">
           {/* Thumbnail Preview Section */}
           <div className="bg-background relative mb-4 overflow-hidden rounded-lg border border-border/60 shadow-sm transition-all duration-300 hover:shadow-md motion-reduce:transition-none">
             <AspectRatio ratio={16 / 9}>
               <Image
-                src={project.image || '/vibedev-guest-avatar.png'}
+                src={project.image || "/vibedev-guest-avatar.png"}
                 alt={project.title}
                 layout="fullWidth"
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                 onError={(e) => {
-                  e.currentTarget.src = '/vibedev-guest-avatar.png'
+                  e.currentTarget.src = "/vibedev-guest-avatar.png";
                 }}
               />
             </AspectRatio>
@@ -189,45 +196,41 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
             </Link>
           </div>
           <div className="relative z-20">
-            <HeartButtonDisplay
-              likes={project.likes || 0}
-              variant="default"
-            />
+            <HeartButtonDisplay likes={project.likes || 0} variant="default" />
           </div>
         </div>
       </div>
     </MotionDiv>
-  )
+  );
 }
 
 export function ProjectShowcase() {
-  const { t } = useTranslation('projectShowcase')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation("projectShowcase");
+  const { t: tCommon } = useTranslation("common");
   const {
     state: { projects, loading, selectedFilter, selectedTrending, filterOptions },
     actions: { setSelectedFilter, setSelectedTrending },
-  } = useProjectShowcase()
+  } = useProjectShowcase();
 
-  const resolvedFilterOptions = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
+  const resolvedFilterOptions = [{ value: "all", label: tCommon("all") }, ...filterOptions];
   const trendingOptions: Array<{ value: SortBy; label: string }> = [
-    { value: 'trending', label: t('trendingOptions.trending') },
-    { value: 'top', label: t('trendingOptions.top') },
-    { value: 'newest', label: t('trendingOptions.newest') },
-  ]
-  const [visibleProjects, setVisibleProjects] = useState(6)
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+    { value: "trending", label: t("trendingOptions.trending") },
+    { value: "top", label: t("trendingOptions.top") },
+    { value: "newest", label: t("trendingOptions.newest") },
+  ];
+  const [visibleProjects, setVisibleProjects] = useState(6);
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   return (
-    <section
-      className="bg-muted/20 py-14 sm:py-16"
-      id="projects"
-    >
+    <section className="bg-muted/20 py-14 sm:py-16" id="projects">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="mb-10 text-center sm:mb-12">
           <h2 className="text-foreground mb-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            {t('title')}
+            {t("title")}
           </h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-lg sm:text-xl">{t('description')}</p>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg sm:text-xl">
+            {t("description")}
+          </p>
         </ScrollReveal>
 
         {/* Filter Controls */}
@@ -235,13 +238,10 @@ export function ProjectShowcase() {
           {/* Mobile Layout: stacked + balanced widths */}
           <div className="space-y-4 md:hidden">
             <div className="flex justify-center">
-              <Button
-                asChild
-                className="bg-primary hover:bg-primary/90 w-full max-w-sm"
-              >
+              <Button asChild className="bg-primary hover:bg-primary/90 w-full max-w-sm">
                 <Link to="/project/submit">
                   <Plus className="mr-2 h-4 w-4" />
-                  {t('submitButton')}
+                  {t("submitButton")}
                 </Link>
               </Button>
             </div>
@@ -274,13 +274,10 @@ export function ProjectShowcase() {
             </div>
 
             <div className="justify-self-center">
-              <Button
-                asChild
-                className="bg-primary hover:bg-primary/90"
-              >
+              <Button asChild className="bg-primary hover:bg-primary/90">
                 <Link to="/project/submit">
                   <Plus className="mr-2 h-4 w-4" />
-                  {t('submitButton')}
+                  {t("submitButton")}
                 </Link>
               </Button>
             </div>
@@ -298,10 +295,7 @@ export function ProjectShowcase() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {loading
             ? skeletonKeys.map((skeletonKey) => (
-                <div
-                  key={skeletonKey}
-                  className="group my-4 cursor-pointer py-0"
-                >
+                <div key={skeletonKey} className="group my-4 cursor-pointer py-0">
                   <div className="bg-muted relative mb-4 animate-pulse overflow-hidden rounded-lg">
                     <div className="bg-muted h-64 w-full"></div>
                   </div>
@@ -317,14 +311,16 @@ export function ProjectShowcase() {
                   </div>
                 </div>
               ))
-            : projects.slice(0, visibleProjects).map((project, index) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  index={index}
-                  prefersReducedMotion={prefersReducedMotion}
-                />
-              ))}
+            : projects
+                .slice(0, visibleProjects)
+                .map((project, index) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    index={index}
+                    prefersReducedMotion={prefersReducedMotion}
+                  />
+                ))}
         </div>
 
         {/* Load More button */}
@@ -335,11 +331,11 @@ export function ProjectShowcase() {
               onClick={() => setVisibleProjects((prev) => prev + 6)}
               className="px-8 py-2"
             >
-              {t('loadMoreButton')}
+              {t("loadMoreButton")}
             </Button>
           </div>
         )}
       </div>
     </section>
-  )
+  );
 }

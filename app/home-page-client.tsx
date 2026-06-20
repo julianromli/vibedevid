@@ -1,34 +1,34 @@
-'use client'
+"use client";
 
-import { AIToolsSection } from '@/components/sections/ai-tools-section'
-import { CommunityFeaturesSection } from '@/components/sections/community-features-section'
-import { CTASection } from '@/components/sections/cta-section'
-import { FAQSection } from '@/components/sections/faq-section'
-import { HeroSection } from '@/components/sections/hero-section'
-import { HomeStructuredData } from '@/components/sections/home-structured-data'
-import { ProjectShowcase } from '@/components/sections/project-showcase'
-import { ProjectShowcaseProvider } from '@/components/sections/project-showcase/project-showcase-context'
-import { ReviewsSection } from '@/components/sections/reviews-section'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
-import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
+import { AIToolsSection } from "@/components/sections/ai-tools-section";
+import { CommunityFeaturesSection } from "@/components/sections/community-features-section";
+import { CTASection } from "@/components/sections/cta-section";
+import { FAQSection } from "@/components/sections/faq-section";
+import { HeroSection } from "@/components/sections/hero-section";
+import { HomeStructuredData } from "@/components/sections/home-structured-data";
+import { ProjectShowcase } from "@/components/sections/project-showcase";
+import { ProjectShowcaseProvider } from "@/components/sections/project-showcase/project-showcase-context";
+import { ReviewsSection } from "@/components/sections/reviews-section";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { YouTubeVideoShowcase } from "@/components/ui/youtube-video-showcase";
+import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from "@/types/homepage";
 
-const JOIN_HREF = 'https://dub.sh/vibedevid-form'
+const JOIN_HREF = "https://dub.sh/vibedevid-form";
 
 interface HomePageClientProps {
-  initialIsLoggedIn: boolean
-  initialUser: User | null
-  initialProjects: Project[]
-  initialCategories: ProjectFilterOption[]
-  initialFilter: string
-  initialSort: SortBy
-  initialVibeVideos: VibeVideo[]
+  initialIsLoggedIn: boolean;
+  initialUser: User | null;
+  initialProjects: Project[];
+  initialCategories: ProjectFilterOption[];
+  initialFilter: string;
+  initialSort: SortBy;
+  initialVibeVideos: VibeVideo[];
 }
 
 function scrollToShowcase() {
-  document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export default function HomePageClient({
@@ -41,10 +41,7 @@ export default function HomePageClient({
   initialVibeVideos,
 }: HomePageClientProps) {
   return (
-    <main
-      id="main-content"
-      className="bg-background min-h-screen"
-    >
+    <main id="main-content" className="bg-background min-h-screen">
       <HomeStructuredData />
 
       <Navbar
@@ -53,10 +50,7 @@ export default function HomePageClient({
         user={initialUser ?? undefined}
       />
 
-      <HeroSection
-        joinHref={JOIN_HREF}
-        handleViewShowcase={scrollToShowcase}
-      />
+      <HeroSection joinHref={JOIN_HREF} handleViewShowcase={scrollToShowcase} />
 
       <ErrorBoundary sectionName="Project Showcase">
         <ProjectShowcaseProvider
@@ -89,5 +83,5 @@ export default function HomePageClient({
 
       <Footer />
     </main>
-  )
+  );
 }

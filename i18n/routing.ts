@@ -1,1 +1,1 @@
-export { routing, type Locale } from './index'
+export { routing, type Locale } from "./index";

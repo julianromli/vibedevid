@@ -1,28 +1,28 @@
-import { format } from 'date-fns'
-import { Calendar, Clock } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { contentToHtml } from '@/lib/blog-utils'
-import { cn } from '@/lib/utils'
+import { format } from "date-fns";
+import { Calendar, Clock } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { contentToHtml } from "@/lib/blog-utils";
+import { cn } from "@/lib/utils";
 
 interface PostContentProps {
   post: {
-    title: string
-    content: any
-    excerpt?: string
-    cover_image?: string
-    published_at?: string | null
-    read_time_minutes?: number
+    title: string;
+    content: any;
+    excerpt?: string;
+    cover_image?: string;
+    published_at?: string | null;
+    read_time_minutes?: number;
     author?: {
-      display_name: string
-      avatar_url?: string
-    }
-  }
-  className?: string
+      display_name: string;
+      avatar_url?: string;
+    };
+  };
+  className?: string;
 }
 
 export function PostContent({ post, className }: PostContentProps) {
   return (
-    <div className={cn('mx-auto max-w-4xl px-4 md:px-8', className)}>
+    <div className={cn("mx-auto max-w-4xl px-4 md:px-8", className)}>
       <header className="mb-12">
         {post.cover_image && (
           <div className="relative mb-8 aspect-video overflow-hidden rounded-xl">
@@ -50,7 +50,7 @@ export function PostContent({ post, className }: PostContentProps) {
           {post.published_at && (
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              {format(new Date(post.published_at), 'MMMM d, yyyy')}
+              {format(new Date(post.published_at), "MMMM d, yyyy")}
             </span>
           )}
 
@@ -66,12 +66,12 @@ export function PostContent({ post, className }: PostContentProps) {
       {post.excerpt && <p className="text-muted-foreground mb-8 text-xl italic">{post.excerpt}</p>}
 
       <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
-        {post.content && typeof post.content === 'object' ? (
+        {post.content && typeof post.content === "object" ? (
           <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
         ) : (
           <p>{post.content}</p>
         )}
       </div>
     </div>
-  )
+  );
 }

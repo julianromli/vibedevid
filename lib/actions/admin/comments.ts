@@ -1,15 +1,10 @@
 import { revalidatePath } from "@/lib/revalidation";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { getDb } from "@/lib/db";
+import { blogReports, comments, users, posts, projects } from "@/lib/db/schema";
+import { requireUser } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/auth/permissions";
+import { eq, and, gte, lte, desc, count, inArray } from "drizzle-orm";
 
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const;
-
-// IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20;
 
 export interface ReportedComment {
@@ -55,21 +50,8 @@ export interface ReportFilters {
 }
 
 async function checkAdminAccess() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single();
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error("Admin access required");
-  }
-
+  const user = await requireUser();
+  await requireAdmin(user.id);
   return user;
 }
 
@@ -81,109 +63,115 @@ export async function getReportedComments(
   try {
     await checkAdminAccess();
 
-    const supabase = await createClient();
+    const db = getDb();
+    const conditions = [];
 
-    let query = supabase.from("blog_reports").select(
-      `
-        *,
-        comment:comment_id (
-          id,
-          content,
-          created_at,
-          user_id,
-          author_name,
-          users:user_id (
-            id,
-            display_name,
-            avatar_url
-          )
-        ),
-        reporter:reporter_id (
-          id,
-          display_name,
-          username
-        )
-      `,
-      { count: "exact" },
-    );
-
-    // Apply filters
     if (filters.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      conditions.push(eq(blogReports.status, filters.status));
     }
-
     if (filters.dateFrom) {
-      query = query.gte("created_at", filters.dateFrom);
+      conditions.push(gte(blogReports.createdAt, new Date(filters.dateFrom)));
     }
-
     if (filters.dateTo) {
-      query = query.lte("created_at", filters.dateTo);
+      conditions.push(lte(blogReports.createdAt, new Date(filters.dateTo)));
     }
 
-    // Pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to).order("created_at", { ascending: false });
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * pageSize;
 
-    const { data: reports, error, count } = await query;
+    const [totalResult, reportRows] = await Promise.all([
+      db.select({ value: count() }).from(blogReports).where(whereClause),
+      db
+        .select({
+          id: blogReports.id,
+          commentId: blogReports.commentId,
+          reporterId: blogReports.reporterId,
+          reason: blogReports.reason,
+          status: blogReports.status,
+          createdAt: blogReports.createdAt,
+          commentContent: comments.content,
+          commentCreatedAt: comments.createdAt,
+          commentUserId: comments.userId,
+          commentAuthorName: comments.authorName,
+          commentPostId: comments.postId,
+          commentProjectId: comments.projectId,
+          authorId: users.id,
+          authorDisplayName: users.displayName,
+          authorAvatarUrl: users.avatarUrl,
+        })
+        .from(blogReports)
+        .leftJoin(comments, eq(blogReports.commentId, comments.id))
+        .leftJoin(users, eq(comments.userId, users.id))
+        .where(whereClause)
+        .orderBy(desc(blogReports.createdAt))
+        .limit(pageSize)
+        .offset(offset),
+    ]);
 
-    if (error) {
-      console.error("Get reported comments error:", error);
-      return { reports: [], totalCount: 0, error: error.message };
-    }
+    const commentIds = reportRows.map((r) => r.commentId).filter(Boolean) as string[];
 
-    // IMPORTANT-2: Optimize N+1 query issue by batching lookups
-    // Get all comment IDs from reports to batch fetch entity info
-    const commentIds = (reports || []).map((r) => r.comment_id).filter(Boolean);
+    const allComments =
+      commentIds.length > 0
+        ? await db
+            .select({ id: comments.id, postId: comments.postId, projectId: comments.projectId })
+            .from(comments)
+            .where(inArray(comments.id, commentIds))
+        : [];
 
-    // Batch fetch all comments with their post_id and project_id in a single query
-    const { data: allComments } = await supabase
-      .from("comments")
-      .select("id, post_id, project_id")
-      .in("id", commentIds);
-
-    // Separate comment IDs by entity type
-    const postCommentIds: string[] = [];
-    const projectCommentIds: number[] = [];
     const commentEntityMap = new Map<string, { type: "post" | "project"; entityId: string }>();
-
-    allComments?.forEach((comment) => {
-      if (comment.post_id) {
-        postCommentIds.push(comment.id);
-        commentEntityMap.set(comment.id, {
-          type: "post",
-          entityId: comment.post_id,
-        });
-      } else if (comment.project_id) {
-        projectCommentIds.push(comment.project_id);
-        commentEntityMap.set(comment.id, {
-          type: "project",
-          entityId: String(comment.project_id),
-        });
+    allComments.forEach((comment) => {
+      if (comment.postId) {
+        commentEntityMap.set(comment.id, { type: "post", entityId: comment.postId });
+      } else if (comment.projectId) {
+        commentEntityMap.set(comment.id, { type: "project", entityId: String(comment.projectId) });
       }
     });
 
-    // Batch fetch all posts and projects in parallel
-    const [postsResult, projectsResult] = await Promise.all([
-      postCommentIds.length > 0
-        ? supabase.from("posts").select("id, title").in("id", postCommentIds)
-        : Promise.resolve({ data: [] }),
-      projectCommentIds.length > 0
-        ? supabase.from("projects").select("id, title").in("id", projectCommentIds)
-        : Promise.resolve({ data: [] }),
+    const postIds = [...new Set(allComments.filter((c) => c.postId).map((c) => c.postId!))];
+    const projectIds = [
+      ...new Set(allComments.filter((c) => c.projectId).map((c) => c.projectId!)),
+    ];
+
+    const [postRows, projectRows, reporterRows] = await Promise.all([
+      postIds.length > 0
+        ? db
+            .select({ id: posts.id, title: posts.title })
+            .from(posts)
+            .where(inArray(posts.id, postIds))
+        : Promise.resolve([]),
+      projectIds.length > 0
+        ? db
+            .select({ id: projects.id, title: projects.title })
+            .from(projects)
+            .where(inArray(projects.id, projectIds))
+        : Promise.resolve([]),
+      db
+        .select({
+          reportId: blogReports.id,
+          reporterId: blogReports.reporterId,
+          displayName: users.displayName,
+          username: users.username,
+        })
+        .from(blogReports)
+        .leftJoin(users, eq(blogReports.reporterId, users.id))
+        .where(whereClause),
     ]);
 
-    // Create lookup maps for O(1) access
-    const postMap = new Map<string, string>(
-      (postsResult.data || []).map((p: { id: string; title: string }) => [p.id, p.title]),
-    );
-    const projectMap = new Map<number, string>(
-      (projectsResult.data || []).map((p: { id: number; title: string }) => [p.id, p.title]),
+    const postMap = new Map<string, string>(postRows.map((p) => [p.id, p.title]));
+    const projectMap = new Map<number, string>(projectRows.map((p) => [p.id, p.title]));
+    const reporterMap = new Map(
+      reporterRows.map((r) => [
+        r.reportId,
+        {
+          id: r.reporterId || "",
+          display_name: r.displayName || "Unknown",
+          username: r.username || "unknown",
+        },
+      ]),
     );
 
-    // Format reports using the lookup maps (no additional queries)
-    const formattedReports: ReportedComment[] = (reports || []).map((report) => {
-      const entityInfo = commentEntityMap.get(report.comment_id);
+    const formattedReports: ReportedComment[] = reportRows.map((report) => {
+      const entityInfo = report.commentId ? commentEntityMap.get(report.commentId) : undefined;
       let entity_type: "post" | "project" = "post";
       let entity_id = "";
       let entity_title = "Unknown";
@@ -197,34 +185,34 @@ export async function getReportedComments(
             : projectMap.get(Number(entityInfo.entityId)) || "Unknown Project";
       }
 
-      const comment = report.comment;
+      const reporter = reporterMap.get(report.id);
 
       return {
         id: report.id,
-        comment_id: report.comment_id,
-        reporter_id: report.reporter_id,
+        comment_id: report.commentId || "",
+        reporter_id: report.reporterId || "",
         reason: report.reason,
-        status: report.status,
-        created_at: report.created_at,
+        status: (report.status || "pending") as ReportedComment["status"],
+        created_at: report.createdAt?.toISOString() ?? "",
         comment: {
-          id: comment?.id || "",
-          content: comment?.content || "",
-          created_at: comment?.created_at || "",
-          user_id: comment?.user_id || null,
-          author_name: comment?.author_name || null,
-          author: comment?.users
+          id: report.commentId || "",
+          content: report.commentContent || "",
+          created_at: report.commentCreatedAt?.toISOString() ?? "",
+          user_id: report.commentUserId,
+          author_name: report.commentAuthorName,
+          author: report.authorId
             ? {
-                id: comment.users.id,
-                display_name: comment.users.display_name,
-                avatar_url: comment.users.avatar_url,
+                id: report.authorId,
+                display_name: report.authorDisplayName || "",
+                avatar_url: report.authorAvatarUrl,
               }
             : null,
-          isGuest: false,
+          isGuest: !report.commentUserId,
         },
-        reporter: {
-          id: report.reporter?.id || "",
-          display_name: report.reporter?.display_name || "Unknown",
-          username: report.reporter?.username || "unknown",
+        reporter: reporter || {
+          id: report.reporterId || "",
+          display_name: "Unknown",
+          username: "unknown",
         },
         entity_type,
         entity_id,
@@ -234,7 +222,7 @@ export async function getReportedComments(
 
     return {
       reports: formattedReports,
-      totalCount: count || 0,
+      totalCount: totalResult[0]?.value || 0,
     };
   } catch (error) {
     console.error("Get reported comments error:", error);
@@ -252,45 +240,30 @@ export async function adminDeleteComment(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
 
-    // Get comment info for revalidation
-    const { data: comment } = await supabase
-      .from("comments")
-      .select("post_id, project_id")
-      .eq("id", commentId)
-      .single();
+    const [comment] = await db
+      .select({ postId: comments.postId, projectId: comments.projectId })
+      .from(comments)
+      .where(eq(comments.id, commentId))
+      .limit(1);
 
-    // Delete related reports first
-    const { error: reportDeleteError } = await supabase
-      .from("blog_reports")
-      .delete()
-      .eq("comment_id", commentId);
-    if (reportDeleteError) {
-      return { success: false, error: reportDeleteError.message };
-    }
+    await db.delete(blogReports).where(eq(blogReports.commentId, commentId));
 
-    // Delete the comment
-    const { data: deletedRows, error } = await supabase
-      .from("comments")
-      .delete()
-      .eq("id", commentId)
-      .select("id");
+    const deletedRows = await db
+      .delete(comments)
+      .where(eq(comments.id, commentId))
+      .returning({ id: comments.id });
 
-    if (error) {
-      console.error("Admin delete comment error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!deletedRows || deletedRows.length === 0) {
+    if (!deletedRows.length) {
       return { success: false, error: "Comment could not be deleted" };
     }
 
-    // Revalidate paths
-    if (comment?.post_id) {
+    if (comment?.postId) {
       revalidatePath("/blog/[slug]");
       revalidatePath("/blog");
     }
-    if (comment?.project_id) {
+    if (comment?.projectId) {
       revalidatePath("/project/[slug]");
       revalidatePath("/project/list");
     }
@@ -312,19 +285,14 @@ export async function dismissReport(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
+    const updatedRows = await db
+      .update(blogReports)
+      .set({ status: "dismissed" })
+      .where(eq(blogReports.id, reportId))
+      .returning({ id: blogReports.id });
 
-    const { data: updatedRows, error } = await supabase
-      .from("blog_reports")
-      .update({ status: "dismissed" })
-      .eq("id", reportId)
-      .select("id");
-
-    if (error) {
-      console.error("Dismiss report error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!updatedRows || updatedRows.length === 0) {
+    if (!updatedRows.length) {
       return { success: false, error: "Report not found" };
     }
 
@@ -347,52 +315,43 @@ export async function takeActionOnReport(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
 
-    // Get report details
-    const { data: report } = await supabase
-      .from("blog_reports")
-      .select("comment_id")
-      .eq("id", reportId)
-      .single();
+    const [report] = await db
+      .select({ commentId: blogReports.commentId })
+      .from(blogReports)
+      .where(eq(blogReports.id, reportId))
+      .limit(1);
 
     if (!report) {
       return { success: false, error: "Report not found" };
     }
 
     if (action === "delete") {
-      // Delete comment and mark report as reviewed
-      const result = await adminDeleteComment(report.comment_id);
+      const result = await adminDeleteComment(report.commentId!);
       if (!result.success) {
         return result;
       }
 
-      // Mark report as reviewed
-      const { data: updatedRows, error: reviewError } = await supabase
-        .from("blog_reports")
-        .update({ status: "reviewed" })
-        .eq("id", reportId)
-        .select("id");
-      if (reviewError) {
-        return { success: false, error: reviewError.message };
-      }
-      if (!updatedRows || updatedRows.length === 0) {
+      const updatedRows = await db
+        .update(blogReports)
+        .set({ status: "reviewed" })
+        .where(eq(blogReports.id, reportId))
+        .returning({ id: blogReports.id });
+
+      if (!updatedRows.length) {
         return { success: false, error: "Report not found" };
       }
     } else if (action === "dismiss") {
       return await dismissReport(reportId);
     } else if (action === "warn") {
-      // Mark as reviewed but keep comment
-      const { data: updatedRows, error } = await supabase
-        .from("blog_reports")
-        .update({ status: "reviewed" })
-        .eq("id", reportId)
-        .select("id");
+      const updatedRows = await db
+        .update(blogReports)
+        .set({ status: "reviewed" })
+        .where(eq(blogReports.id, reportId))
+        .returning({ id: blogReports.id });
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      if (!updatedRows || updatedRows.length === 0) {
+      if (!updatedRows.length) {
         return { success: false, error: "Report not found" };
       }
     }
@@ -422,19 +381,14 @@ export async function getCommentModerationStats(): Promise<{
   try {
     await checkAdminAccess();
 
-    const supabase = await createClient();
-
-    const { data: reports, error } = await supabase.from("blog_reports").select("status");
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
+    const db = getDb();
+    const reportRows = await db.select({ status: blogReports.status }).from(blogReports);
 
     const stats = {
-      total_reports: reports?.length || 0,
-      pending_reports: reports?.filter((r) => r.status === "pending").length || 0,
-      reviewed_reports: reports?.filter((r) => r.status === "reviewed").length || 0,
-      dismissed_reports: reports?.filter((r) => r.status === "dismissed").length || 0,
+      total_reports: reportRows.length,
+      pending_reports: reportRows.filter((r) => r.status === "pending").length,
+      reviewed_reports: reportRows.filter((r) => r.status === "reviewed").length,
+      dismissed_reports: reportRows.filter((r) => r.status === "dismissed").length,
     };
 
     return { success: true, stats };

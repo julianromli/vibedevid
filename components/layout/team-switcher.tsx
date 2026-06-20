@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { ChevronsUpDown, Plus } from 'lucide-react'
-import * as React from 'react'
+import { ChevronsUpDown, Plus } from "lucide-react";
+import * as React from "react";
 // import { Image } from '@unpic/react'
 import {
   DropdownMenu,
@@ -11,21 +11,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface Props {
   teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
+    name: string;
+    logo: React.ElementType;
+    plan: string;
+  }[];
 }
 
 export function TeamSwitcher({ teams }: Props) {
-  const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { isMobile } = useSidebar();
+  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
   return (
     <SidebarMenu>
@@ -49,7 +54,7 @@ export function TeamSwitcher({ teams }: Props) {
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             align="start"
-            side={isMobile ? 'bottom' : 'right'}
+            side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">Teams</DropdownMenuLabel>
@@ -60,7 +65,9 @@ export function TeamSwitcher({ teams }: Props) {
                 className="gap-2 p-2 text-balance"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className={cn('size-4 shrink-0', index === 0 && 'invert-0 dark:invert')} />
+                  <team.logo
+                    className={cn("size-4 shrink-0", index === 0 && "invert-0 dark:invert")}
+                  />
                 </div>
                 {team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
@@ -77,5 +84,5 @@ export function TeamSwitcher({ teams }: Props) {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

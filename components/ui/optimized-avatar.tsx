@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { Image } from '@unpic/react'
-import { useCallback, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { Image } from "@unpic/react";
+import { useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface OptimizedAvatarProps {
-  src?: string | null
-  alt: string
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  fallbackSrc?: string
-  className?: string
-  isGuest?: boolean
-  showSkeleton?: boolean
+  src?: string | null;
+  alt: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  fallbackSrc?: string;
+  className?: string;
+  isGuest?: boolean;
+  showSkeleton?: boolean;
 }
 
 const sizeClasses = {
-  xs: 'w-6 h-6',
-  sm: 'w-8 h-8',
-  md: 'w-10 h-10',
-  lg: 'w-12 h-12',
-  xl: 'w-16 h-16',
-}
+  xs: "w-6 h-6",
+  sm: "w-8 h-8",
+  md: "w-10 h-10",
+  lg: "w-12 h-12",
+  xl: "w-16 h-16",
+};
 
 // Pixel dimensions matching `sizeClasses` (used for the underlying <Image>
 // intrinsic size so @unpic does not cap the image below the wrapper size).
@@ -30,56 +30,61 @@ const sizePixels = {
   md: 40,
   lg: 48,
   xl: 64,
-}
+};
 
 export function OptimizedAvatar({
   src,
   alt,
-  size = 'md',
-  fallbackSrc = '/placeholder.svg',
+  size = "md",
+  fallbackSrc = "/placeholder.svg",
   className,
   isGuest = false,
   showSkeleton = true,
 }: OptimizedAvatarProps) {
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading')
-  const [imageSrc, setImageSrc] = useState<string | null>(src || null)
+  const [imageState, setImageState] = useState<"loading" | "loaded" | "error">("loading");
+  const [imageSrc, setImageSrc] = useState<string | null>(src || null);
 
   // Handle image load success
   const handleLoad = useCallback(() => {
-    setImageState('loaded')
-  }, [])
+    setImageState("loaded");
+  }, []);
 
   // Handle image load error with fallback chain
   const handleError = useCallback(() => {
     if (imageSrc !== fallbackSrc) {
       // Try fallback first
-      setImageSrc(fallbackSrc)
+      setImageSrc(fallbackSrc);
     } else {
       // If fallback also fails, set to error state
-      setImageState('error')
+      setImageState("error");
     }
-  }, [imageSrc, fallbackSrc])
+  }, [imageSrc, fallbackSrc]);
 
   // Determine final src
-  const finalSrc = isGuest ? '/vibedev-guest-avatar.png' : imageSrc || fallbackSrc
+  const finalSrc = isGuest ? "/vibedev-guest-avatar.png" : imageSrc || fallbackSrc;
 
   const avatarClasses = cn(
-    'rounded-full object-cover',
-    'h-full w-full',
-    'transition-all duration-300 ease-in-out',
+    "rounded-full object-cover",
+    "h-full w-full",
+    "transition-all duration-300 ease-in-out",
     {
-      'opacity-0': imageState === 'loading' && showSkeleton,
-      'opacity-100': imageState === 'loaded' || !showSkeleton,
-      'bg-muted animate-pulse': imageState === 'loading' && showSkeleton,
+      "opacity-0": imageState === "loading" && showSkeleton,
+      "opacity-100": imageState === "loaded" || !showSkeleton,
+      "bg-muted animate-pulse": imageState === "loading" && showSkeleton,
     },
     className,
-  )
+  );
 
   return (
-    <div className={cn('relative overflow-hidden rounded-full', sizeClasses[size])}>
+    <div className={cn("relative overflow-hidden rounded-full", sizeClasses[size])}>
       {/* Skeleton Loading State */}
-      {imageState === 'loading' && showSkeleton && (
-        <div className={cn('bg-muted absolute inset-0 animate-pulse rounded-full', 'flex items-center justify-center')}>
+      {imageState === "loading" && showSkeleton && (
+        <div
+          className={cn(
+            "bg-muted absolute inset-0 animate-pulse rounded-full",
+            "flex items-center justify-center",
+          )}
+        >
           <div className="bg-muted-foreground/20 h-1/2 w-1/2 rounded-full" />
         </div>
       )}
@@ -99,19 +104,14 @@ export function OptimizedAvatar({
       />
 
       {/* Error State Fallback */}
-      {imageState === 'error' && (
+      {imageState === "error" && (
         <div
           className={cn(
-            'bg-muted absolute inset-0 rounded-full',
-            'text-muted-foreground flex items-center justify-center',
+            "bg-muted absolute inset-0 rounded-full",
+            "text-muted-foreground flex items-center justify-center",
           )}
         >
-          <svg
-            className="h-1/2 w-1/2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
+          <svg className="h-1/2 w-1/2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path
               fillRule="evenodd"
               d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -121,5 +121,5 @@ export function OptimizedAvatar({
         </div>
       )}
     </div>
-  )
+  );
 }

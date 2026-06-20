@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   IconCalendarEvent,
@@ -8,21 +8,32 @@ import {
   IconShield,
   IconStar,
   IconUsers,
-} from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { type ElementType, type ReactNode, useEffect, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+} from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+import { type ElementType, type ReactNode, useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import type {
   CategoryCount,
   CommunityHealthCounts,
   ContentGrowthPoint,
   RoleCount,
   StatusCount,
-} from '@/lib/actions/analytics'
+} from "@/lib/actions/analytics";
 import {
   getAnalyticsTimeSeriesFn,
   getCommunityHealthCountsFn,
@@ -31,89 +42,96 @@ import {
   getPostsByStatusFn,
   getProjectsByCategoryFn,
   getUsersByRoleFn,
-} from '@/lib/actions/analytics.functions'
-import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+} from "@/lib/actions/analytics.functions";
+import type { DashboardTabValue } from "@/lib/admin/dashboard-tabs";
 
 interface EngagementPoint {
-  date: string
-  views: number
-  likes: number
-  comments: number
+  date: string;
+  views: number;
+  likes: number;
+  comments: number;
 }
 
 const contentGrowthConfig = {
-  users: { label: 'New users', color: 'hsl(var(--chart-1))' },
-  projects: { label: 'New projects', color: 'hsl(var(--chart-2))' },
-  posts: { label: 'New posts', color: 'hsl(var(--chart-3))' },
-} satisfies ChartConfig
+  users: { label: "New users", color: "hsl(var(--chart-1))" },
+  projects: { label: "New projects", color: "hsl(var(--chart-2))" },
+  posts: { label: "New posts", color: "hsl(var(--chart-3))" },
+} satisfies ChartConfig;
 
 const engagementConfig = {
-  views: { label: 'Views', color: 'hsl(var(--chart-1))' },
-  likes: { label: 'Likes', color: 'hsl(var(--chart-2))' },
-  comments: { label: 'Comments', color: 'hsl(var(--chart-3))' },
-} satisfies ChartConfig
+  views: { label: "Views", color: "hsl(var(--chart-1))" },
+  likes: { label: "Likes", color: "hsl(var(--chart-2))" },
+  comments: { label: "Comments", color: "hsl(var(--chart-3))" },
+} satisfies ChartConfig;
 
 const categoryChartConfig = {
-  count: { label: 'Projects', color: 'hsl(var(--chart-1))' },
-} satisfies ChartConfig
+  count: { label: "Projects", color: "hsl(var(--chart-1))" },
+} satisfies ChartConfig;
 
 const roleChartConfig = {
-  count: { label: 'Users', color: 'hsl(var(--chart-2))' },
-} satisfies ChartConfig
+  count: { label: "Users", color: "hsl(var(--chart-2))" },
+} satisfies ChartConfig;
 
 const statusChartConfig = {
-  count: { label: 'Posts', color: 'hsl(var(--chart-3))' },
-} satisfies ChartConfig
+  count: { label: "Posts", color: "hsl(var(--chart-3))" },
+} satisfies ChartConfig;
 
 export default function Analytics() {
-  const [days, setDays] = useState(30)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [days, setDays] = useState(30);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [periodStats, setPeriodStats] = useState({ new_users: 0, new_projects: 0, new_posts: 0 })
-  const [contentGrowth, setContentGrowth] = useState<ContentGrowthPoint[]>([])
-  const [engagement, setEngagement] = useState<EngagementPoint[]>([])
-  const [categories, setCategories] = useState<CategoryCount[]>([])
-  const [roles, setRoles] = useState<RoleCount[]>([])
-  const [postStatuses, setPostStatuses] = useState<StatusCount[]>([])
-  const [health, setHealth] = useState<CommunityHealthCounts | null>(null)
+  const [periodStats, setPeriodStats] = useState({ new_users: 0, new_projects: 0, new_posts: 0 });
+  const [contentGrowth, setContentGrowth] = useState<ContentGrowthPoint[]>([]);
+  const [engagement, setEngagement] = useState<EngagementPoint[]>([]);
+  const [categories, setCategories] = useState<CategoryCount[]>([]);
+  const [roles, setRoles] = useState<RoleCount[]>([]);
+  const [postStatuses, setPostStatuses] = useState<StatusCount[]>([]);
+  const [health, setHealth] = useState<CommunityHealthCounts | null>(null);
 
   useEffect(() => {
     async function load() {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        const [periodResult, growthResult, engagementResult, categoryResult, roleResult, statusResult, healthResult] =
-          await Promise.all([
-            getPeriodSignupStatsFn({ data: { days } }),
-            getContentGrowthTimeSeriesFn({ data: { days } }),
-            getAnalyticsTimeSeriesFn({ data: { days } }),
-            getProjectsByCategoryFn({ data: { limit: 8 } }),
-            getUsersByRoleFn(),
-            getPostsByStatusFn(),
-            getCommunityHealthCountsFn(),
-          ])
+        const [
+          periodResult,
+          growthResult,
+          engagementResult,
+          categoryResult,
+          roleResult,
+          statusResult,
+          healthResult,
+        ] = await Promise.all([
+          getPeriodSignupStatsFn({ data: { days } }),
+          getContentGrowthTimeSeriesFn({ data: { days } }),
+          getAnalyticsTimeSeriesFn({ data: { days } }),
+          getProjectsByCategoryFn({ data: { limit: 8 } }),
+          getUsersByRoleFn(),
+          getPostsByStatusFn(),
+          getCommunityHealthCountsFn(),
+        ]);
 
-        if (!periodResult.success) throw new Error(periodResult.error)
-        if (!growthResult.success) throw new Error(growthResult.error)
-        if (!engagementResult.success) throw new Error(engagementResult.error)
-        if (!categoryResult.success) throw new Error(categoryResult.error)
-        if (!roleResult.success) throw new Error(roleResult.error)
-        if (!statusResult.success) throw new Error(statusResult.error)
-        if (!healthResult.success) throw new Error(healthResult.error)
+        if (!periodResult.success) throw new Error(periodResult.error);
+        if (!growthResult.success) throw new Error(growthResult.error);
+        if (!engagementResult.success) throw new Error(engagementResult.error);
+        if (!categoryResult.success) throw new Error(categoryResult.error);
+        if (!roleResult.success) throw new Error(roleResult.error);
+        if (!statusResult.success) throw new Error(statusResult.error);
+        if (!healthResult.success) throw new Error(healthResult.error);
 
         setPeriodStats({
           new_users: periodResult.new_users || 0,
           new_projects: periodResult.new_projects || 0,
           new_posts: periodResult.new_posts || 0,
-        })
+        });
         setContentGrowth(
           (growthResult.data || []).map((point) => ({
             ...point,
             date: formatChartDate(point.date),
           })),
-        )
+        );
 
         if (engagementResult.data) {
           setEngagement(
@@ -123,22 +141,22 @@ export default function Analytics() {
               likes: engagementResult.data?.likes[i] || 0,
               comments: engagementResult.data?.comments[i] || 0,
             })),
-          )
+          );
         }
 
-        setCategories(categoryResult.categories || [])
-        setRoles(roleResult.roles || [])
-        setPostStatuses(statusResult.statuses || [])
-        setHealth(healthResult.counts || null)
+        setCategories(categoryResult.categories || []);
+        setRoles(roleResult.roles || []);
+        setPostStatuses(statusResult.statuses || []);
+        setHealth(healthResult.counts || null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load analytics')
+        setError(err instanceof Error ? err.message : "Failed to load analytics");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    load()
-  }, [days])
+    load();
+  }, [days]);
 
   if (error) {
     return (
@@ -148,7 +166,7 @@ export default function Analytics() {
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -156,12 +174,11 @@ export default function Analytics() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-semibold text-lg">Platform analytics</h2>
-          <p className="text-muted-foreground text-sm">Growth, engagement, and community breakdown from live data.</p>
+          <p className="text-muted-foreground text-sm">
+            Growth, engagement, and community breakdown from live data.
+          </p>
         </div>
-        <Select
-          value={days.toString()}
-          onValueChange={(value) => setDays(Number(value))}
-        >
+        <Select value={days.toString()} onValueChange={(value) => setDays(Number(value))}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Date range" />
           </SelectTrigger>
@@ -200,10 +217,7 @@ export default function Analytics() {
           description={`New users, projects, and posts in the last ${days} days`}
           loading={loading}
         >
-          <ChartContainer
-            config={contentGrowthConfig}
-            className="h-[280px] w-full"
-          >
+          <ChartContainer config={contentGrowthConfig} className="h-[280px] w-full">
             <LineChart data={contentGrowth}>
               <CartesianGrid vertical={false} />
               <XAxis
@@ -213,11 +227,7 @@ export default function Analytics() {
                 tickMargin={8}
                 minTickGap={24}
               />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                allowDecimals={false}
-              />
+              <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line
                 type="monotone"
@@ -249,10 +259,7 @@ export default function Analytics() {
           description={`Views, likes, and comments in the last ${days} days`}
           loading={loading}
         >
-          <ChartContainer
-            config={engagementConfig}
-            className="h-[280px] w-full"
-          >
+          <ChartContainer config={engagementConfig} className="h-[280px] w-full">
             <LineChart data={engagement}>
               <CartesianGrid vertical={false} />
               <XAxis
@@ -262,11 +269,7 @@ export default function Analytics() {
                 tickMargin={8}
                 minTickGap={24}
               />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                allowDecimals={false}
-              />
+              <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line
                 type="monotone"
@@ -300,20 +303,10 @@ export default function Analytics() {
           description="Distribution of submitted projects"
           loading={loading}
         >
-          <ChartContainer
-            config={categoryChartConfig}
-            className="h-[240px] w-full"
-          >
-            <BarChart
-              data={categories}
-              layout="vertical"
-              margin={{ left: 8, right: 8 }}
-            >
+          <ChartContainer config={categoryChartConfig} className="h-[240px] w-full">
+            <BarChart data={categories} layout="vertical" margin={{ left: 8, right: 8 }}>
               <CartesianGrid horizontal={false} />
-              <XAxis
-                type="number"
-                allowDecimals={false}
-              />
+              <XAxis type="number" allowDecimals={false} />
               <YAxis
                 type="category"
                 dataKey="category"
@@ -322,11 +315,7 @@ export default function Analytics() {
                 axisLine={false}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar
-                dataKey="count"
-                fill="var(--color-count)"
-                radius={4}
-              />
+              <Bar dataKey="count" fill="var(--color-count)" radius={4} />
             </BarChart>
           </ChartContainer>
         </ChartCard>
@@ -336,28 +325,13 @@ export default function Analytics() {
           description="Admin, moderator, and member accounts"
           loading={loading}
         >
-          <ChartContainer
-            config={roleChartConfig}
-            className="h-[240px] w-full"
-          >
+          <ChartContainer config={roleChartConfig} className="h-[240px] w-full">
             <BarChart data={roles}>
               <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                allowDecimals={false}
-                tickLine={false}
-                axisLine={false}
-              />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar
-                dataKey="count"
-                fill="var(--color-count)"
-                radius={4}
-              />
+              <Bar dataKey="count" fill="var(--color-count)" radius={4} />
             </BarChart>
           </ChartContainer>
         </ChartCard>
@@ -367,28 +341,13 @@ export default function Analytics() {
           description="Draft, published, and archived posts"
           loading={loading}
         >
-          <ChartContainer
-            config={statusChartConfig}
-            className="h-[240px] w-full"
-          >
+          <ChartContainer config={statusChartConfig} className="h-[240px] w-full">
             <BarChart data={postStatuses}>
               <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                allowDecimals={false}
-                tickLine={false}
-                axisLine={false}
-              />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar
-                dataKey="count"
-                fill="var(--color-count)"
-                radius={4}
-              />
+              <Bar dataKey="count" fill="var(--color-count)" radius={4} />
             </BarChart>
           </ChartContainer>
         </ChartCard>
@@ -444,12 +403,12 @@ export default function Analytics() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function formatChartDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function PeriodStatCard({
@@ -458,10 +417,10 @@ function PeriodStatCard({
   icon: Icon,
   loading,
 }: {
-  title: string
-  value: number
-  icon: ElementType
-  loading: boolean
+  title: string;
+  value: number;
+  icon: ElementType;
+  loading: boolean;
 }) {
   return (
     <Card>
@@ -477,7 +436,7 @@ function PeriodStatCard({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ChartCard({
@@ -486,10 +445,10 @@ function ChartCard({
   loading,
   children,
 }: {
-  title: string
-  description: string
-  loading: boolean
-  children: ReactNode
+  title: string;
+  description: string;
+  loading: boolean;
+  children: ReactNode;
 }) {
   return (
     <Card>
@@ -499,7 +458,7 @@ function ChartCard({
       </CardHeader>
       <CardContent>{loading ? <Skeleton className="h-[280px] w-full" /> : children}</CardContent>
     </Card>
-  )
+  );
 }
 
 function HealthCard({
@@ -510,23 +469,20 @@ function HealthCard({
   loading,
   highlight = false,
 }: {
-  title: string
-  value?: number
-  icon: ElementType
-  tab: DashboardTabValue
-  loading: boolean
-  highlight?: boolean
+  title: string;
+  value?: number;
+  icon: ElementType;
+  tab: DashboardTabValue;
+  loading: boolean;
+  highlight?: boolean;
 }) {
   return (
-    <Link
-      to="/dashboard"
-      search={{ tab }}
-    >
+    <Link to="/dashboard" search={{ tab }}>
       <Card
         className={
           highlight
-            ? 'border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10'
-            : 'transition-colors hover:bg-muted/50'
+            ? "border-amber-500/50 bg-amber-500/5 transition-colors hover:bg-amber-500/10"
+            : "transition-colors hover:bg-muted/50"
         }
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -542,5 +498,5 @@ function HealthCard({
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }

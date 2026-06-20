@@ -1,41 +1,41 @@
-'use client'
+"use client";
 
-import { Link } from '@tanstack/react-router'
-import { Image } from '@unpic/react'
-import { Plus } from 'lucide-react'
-import { motion, useInView } from 'motion/react'
-import { useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Button } from '@/components/ui/button'
-import { FilterControls } from '@/components/ui/filter-controls'
-import { HeartButtonDisplay } from '@/components/ui/heart-button-display'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { ProjectGridSkeleton } from '@/components/ui/skeleton'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { useProjectFilters } from '@/hooks/useProjectFilters'
-import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
+import { Link } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
+import { Plus } from "lucide-react";
+import { motion, useInView } from "motion/react";
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { FilterControls } from "@/components/ui/filter-controls";
+import { HeartButtonDisplay } from "@/components/ui/heart-button-display";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+import { ProjectGridSkeleton } from "@/components/ui/skeleton";
+import { UserDisplayName } from "@/components/ui/user-display-name";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useProjectFilters } from "@/hooks/useProjectFilters";
+import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 
-const EAGER_PROJECT_THUMBNAIL_COUNT = 3
+const EAGER_PROJECT_THUMBNAIL_COUNT = 3;
 
 interface ProjectListClientProps {
-  initialProjects: Project[]
-  initialFilter: string
-  initialSort: SortBy
-  filterOptions: ProjectFilterOption[]
+  initialProjects: Project[];
+  initialFilter: string;
+  initialSort: SortBy;
+  filterOptions: ProjectFilterOption[];
 }
 
 interface ProjectListCardProps {
-  project: Project
-  index: number
-  prefersReducedMotion: boolean
+  project: Project;
+  index: number;
+  prefersReducedMotion: boolean;
 }
 
 function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCardProps) {
-  const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-80px' })
+  const shouldEagerLoadThumbnail = index < EAGER_PROJECT_THUMBNAIL_COUNT;
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
     <motion.div
@@ -50,22 +50,18 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}
       className="group my-4 cursor-pointer py-0"
     >
-      <Link
-        to="/project/$slug"
-        params={{ slug: project.slug }}
-        className="block"
-      >
+      <Link to="/project/$slug" params={{ slug: project.slug }} className="block">
         <div className="relative mb-4 overflow-hidden rounded-lg bg-background shadow-md transition-shadow duration-300 hover:shadow-lg motion-reduce:transition-none">
           <AspectRatio ratio={16 / 9}>
             <Image
-              src={project.image || '/vibedev-guest-avatar.png'}
+              src={project.image || "/vibedev-guest-avatar.png"}
               alt={project.title}
               layout="fullWidth"
-              loading={shouldEagerLoadThumbnail ? 'eager' : 'lazy'}
+              loading={shouldEagerLoadThumbnail ? "eager" : "lazy"}
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
               onError={(e) => {
-                e.currentTarget.src = '/vibedev-guest-avatar.png'
+                e.currentTarget.src = "/vibedev-guest-avatar.png";
               }}
             />
           </AspectRatio>
@@ -106,14 +102,11 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
           </Link>
         </div>
         <div className="relative z-20">
-          <HeartButtonDisplay
-            likes={project.likes || 0}
-            variant="default"
-          />
+          <HeartButtonDisplay likes={project.likes || 0} variant="default" />
         </div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 export function ProjectListClient({
@@ -122,9 +115,9 @@ export function ProjectListClient({
   initialSort,
   filterOptions,
 }: ProjectListClientProps) {
-  const { t } = useTranslation('projectList')
-  const { t: tCommon } = useTranslation('common')
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const { t } = useTranslation("projectList");
+  const { t: tCommon } = useTranslation("common");
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const {
     selectedFilter,
@@ -139,31 +132,28 @@ export function ProjectListClient({
   } = useProjectFilters({
     authReady: true,
     initialProjects,
-    initialCategories: [{ value: 'all', label: tCommon('all') }, ...filterOptions],
+    initialCategories: [{ value: "all", label: tCommon("all") }, ...filterOptions],
     initialFilter,
     initialSort,
-  })
+  });
 
-  const visibleProjectCount = Math.min(visibleProjects, projects.length)
+  const visibleProjectCount = Math.min(visibleProjects, projects.length);
 
   const trendingOptions = [
-    { value: 'trending' as SortBy, label: t('trendingOptions.trending') },
-    { value: 'top' as SortBy, label: t('trendingOptions.top') },
-    { value: 'newest' as SortBy, label: t('trendingOptions.newest') },
-  ]
+    { value: "trending" as SortBy, label: t("trendingOptions.trending") },
+    { value: "top" as SortBy, label: t("trendingOptions.top") },
+    { value: "newest" as SortBy, label: t("trendingOptions.newest") },
+  ];
 
   return (
     <>
       <div className="mb-8">
         <div className="space-y-4 md:hidden">
           <div className="flex justify-center">
-            <Button
-              asChild
-              className="bg-primary hover:bg-primary/90 w-full max-w-sm"
-            >
+            <Button asChild className="bg-primary hover:bg-primary/90 w-full max-w-sm">
               <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
-                {t('submitButton')}
+                {t("submitButton")}
               </Link>
             </Button>
           </div>
@@ -184,10 +174,7 @@ export function ProjectListClient({
                 aria-label="Sort projects"
               >
                 {trendingOptions.map((option) => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                  >
+                  <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
@@ -206,13 +193,10 @@ export function ProjectListClient({
           </div>
 
           <div className="justify-self-center">
-            <Button
-              asChild
-              className="bg-primary hover:bg-primary/90"
-            >
+            <Button asChild className="bg-primary hover:bg-primary/90">
               <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
-                {t('submitButton')}
+                {t("submitButton")}
               </Link>
             </Button>
           </div>
@@ -225,10 +209,7 @@ export function ProjectListClient({
               aria-label="Sort projects"
             >
               {trendingOptions.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -242,43 +223,43 @@ export function ProjectListClient({
           <ProjectGridSkeleton count={9} />
         ) : projects.length === 0 ? (
           <div className="col-span-full py-12 text-center">
-            <p className="mb-4 text-muted-foreground text-xl">{t('noProjects')}</p>
+            <p className="mb-4 text-muted-foreground text-xl">{t("noProjects")}</p>
             <Button asChild>
               <Link to="/project/submit">
                 <Plus className="mr-2 h-4 w-4" />
-                {t('beFirst')}
+                {t("beFirst")}
               </Link>
             </Button>
           </div>
         ) : (
-          projects.slice(0, visibleProjects).map((project, index) => (
-            <ProjectListCard
-              key={project.id}
-              project={project}
-              index={index}
-              prefersReducedMotion={prefersReducedMotion}
-            />
-          ))
+          projects
+            .slice(0, visibleProjects)
+            .map((project, index) => (
+              <ProjectListCard
+                key={project.id}
+                project={project}
+                index={index}
+                prefersReducedMotion={prefersReducedMotion}
+              />
+            ))
         )}
       </div>
 
       {!loading && visibleProjects < projects.length && (
         <div className="mt-8 text-center">
-          <Button
-            variant="outline"
-            onClick={loadMore}
-            className="px-8 py-2"
-          >
-            {t('loadMoreButton')}
+          <Button variant="outline" onClick={loadMore} className="px-8 py-2">
+            {t("loadMoreButton")}
           </Button>
         </div>
       )}
 
       {!loading && projects.length > 0 && (
         <div className="mt-8 text-center">
-          <p className="text-muted-foreground">{t('showingProjects', { count: visibleProjectCount })}</p>
+          <p className="text-muted-foreground">
+            {t("showingProjects", { count: visibleProjectCount })}
+          </p>
         </div>
       )}
     </>
-  )
+  );
 }

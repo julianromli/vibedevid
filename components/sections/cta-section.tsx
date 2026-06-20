@@ -3,28 +3,25 @@
  * Call-to-action section with floating project cards animation
  */
 
-'use client'
+"use client";
 
-import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { ScrollReveal } from '@/components/ui/motion-wrapper'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { cn } from '@/lib/utils'
+import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { ScrollReveal } from "@/components/ui/motion-wrapper";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 interface CTASectionProps {
-  joinHref: string
+  joinHref: string;
 }
 
 export function CTASection({ joinHref }: CTASectionProps) {
-  const { t } = useTranslation('cta')
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const { t } = useTranslation("cta");
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   return (
-    <section
-      className="bg-muted text-foreground relative overflow-hidden py-32"
-      data-animate
-    >
+    <section className="bg-muted text-foreground relative overflow-hidden py-32" data-animate>
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -45,8 +42,8 @@ export function CTASection({ joinHref }: CTASectionProps) {
       <div className="pointer-events-none absolute inset-0">
         <div
           className={cn(
-            'bg-card/20 border-border/20 absolute top-20 left-10 h-20 w-28 rotate-6 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-cta-card-float',
+            "bg-card/20 border-border/20 absolute top-20 left-10 h-20 w-28 rotate-6 transform rounded-lg border backdrop-blur-sm",
+            !prefersReducedMotion && "animate-cta-card-float",
           )}
         >
           <div className="p-3">
@@ -57,8 +54,8 @@ export function CTASection({ joinHref }: CTASectionProps) {
 
         <div
           className={cn(
-            'bg-card/20 border-border/20 absolute top-16 right-12 h-20 w-28 -rotate-6 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-cta-card-float-reverse',
+            "bg-card/20 border-border/20 absolute top-16 right-12 h-20 w-28 -rotate-6 transform rounded-lg border backdrop-blur-sm",
+            !prefersReducedMotion && "animate-cta-card-float-reverse",
           )}
         >
           <div className="p-2">
@@ -69,8 +66,8 @@ export function CTASection({ joinHref }: CTASectionProps) {
 
         <div
           className={cn(
-            'bg-card/20 border-border/20 absolute right-1/4 bottom-16 h-20 w-28 -rotate-3 transform rounded-lg border backdrop-blur-sm',
-            !prefersReducedMotion && 'animate-cta-card-float-slow',
+            "bg-card/20 border-border/20 absolute right-1/4 bottom-16 h-20 w-28 -rotate-3 transform rounded-lg border backdrop-blur-sm",
+            !prefersReducedMotion && "animate-cta-card-float-slow",
           )}
         >
           <div className="p-3">
@@ -84,14 +81,14 @@ export function CTASection({ joinHref }: CTASectionProps) {
       <ScrollReveal className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <div className="mb-6">
           <h2 className="mb-6 text-4xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            {t('titleLine1')}
+            {t("titleLine1")}
             <br />
             <span className="from-foreground via-foreground/80 to-foreground bg-gradient-to-r bg-clip-text font-extrabold text-transparent dark:from-primary dark:via-primary/80 dark:to-primary">
-              {t('titleLine2')}
+              {t("titleLine2")}
             </span>
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed sm:text-xl">
-            {t('description')}
+            {t("description")}
           </p>
         </div>
 
@@ -101,16 +98,12 @@ export function CTASection({ joinHref }: CTASectionProps) {
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <Link
-              to={joinHref}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t('button')}
+            <Link to={joinHref} target="_blank" rel="noopener noreferrer">
+              {t("button")}
             </Link>
           </Button>
         </div>
       </ScrollReveal>
     </section>
-  )
+  );
 }

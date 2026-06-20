@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { Loader2, Trash2 } from 'lucide-react'
-import { useRouter } from '@/lib/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { Loader2, Trash2 } from "lucide-react";
+import { useRouter } from "@/lib/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,39 +14,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { deleteProjectFn } from '@/lib/actions/projects.functions'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { deleteProjectFn } from "@/lib/actions/projects.functions";
 
 interface ProjectActionsClientProps {
-  projectSlug: string
-  projectTitle: string
+  projectSlug: string;
+  projectTitle: string;
 }
 
 export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActionsClientProps) {
-  const router = useRouter()
-  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    setIsDeleting(true)
-    const result = await deleteProjectFn({ data: { projectSlug } })
+    setIsDeleting(true);
+    const result = await deleteProjectFn({ data: { projectSlug } });
 
     if (result.success) {
-      router.navigate({ to: '/' })
+      router.navigate({ to: "/" });
     } else {
-      toast.error(result.error || 'Failed to delete project')
-      setIsDeleting(false)
+      toast.error(result.error || "Failed to delete project");
+      setIsDeleting(false);
     }
-  }
+  };
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="destructive"
-          className="w-full"
-          disabled={isDeleting}
-        >
+        <Button variant="destructive" className="w-full" disabled={isDeleting}>
           {isDeleting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" />
@@ -64,8 +60,8 @@ export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActio
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your project &quot;{projectTitle}&quot; and
-            remove all associated data from our servers.
+            This action cannot be undone. This will permanently delete your project &quot;
+            {projectTitle}&quot; and remove all associated data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -81,11 +77,11 @@ export function ProjectActionsClient({ projectSlug, projectTitle }: ProjectActio
                 Deleting...
               </>
             ) : (
-              'Delete Project'
+              "Delete Project"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

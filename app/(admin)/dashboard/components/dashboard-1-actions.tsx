@@ -1,6 +1,6 @@
-import { IconDownload } from '@tabler/icons-react'
-import DatePicker from '@/components/date-picker'
-import { Button } from '@/components/ui/button'
+import { IconDownload } from "@tabler/icons-react";
+import DatePicker from "@/components/date-picker";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard1Actions() {
   return (
@@ -11,5 +11,5 @@ export default function Dashboard1Actions() {
       </Button>
       <DatePicker />
     </div>
-  )
+  );
 }

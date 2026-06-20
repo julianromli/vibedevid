@@ -1,32 +1,36 @@
-'use client'
+"use client";
 
-import { IconBan, IconChartBar, IconDotsVertical, IconEdit, IconShield, IconUserCheck } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import {
+  IconBan,
+  IconChartBar,
+  IconDotsVertical,
+  IconEdit,
+  IconShield,
+  IconUserCheck,
+} from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import type { AdminUser } from '@/lib/actions/admin/users'
+} from "@/components/ui/dropdown-menu";
+import type { AdminUser } from "@/lib/actions/admin/users";
 
 interface UserActionsProps {
-  user: AdminUser
-  onEditRole: () => void
-  onSuspend: () => void
-  onViewStats: () => void
+  user: AdminUser;
+  onEditRole: () => void;
+  onSuspend: () => void;
+  onViewStats: () => void;
 }
 
 export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-        >
+        <Button variant="ghost" size="sm">
           <IconDotsVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -57,12 +61,12 @@ export function UserActions({ user, onEditRole, onSuspend, onViewStats }: UserAc
 
         <DropdownMenuItem
           onClick={onSuspend}
-          className={user.is_suspended ? 'text-green-600' : 'text-destructive'}
+          className={user.is_suspended ? "text-green-600" : "text-destructive"}
         >
           <IconBan className="mr-2 h-4 w-4" />
-          {user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+          {user.is_suspended ? "Unsuspend User" : "Suspend User"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

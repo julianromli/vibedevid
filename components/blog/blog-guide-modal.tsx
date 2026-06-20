@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -10,30 +10,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
-const BLOG_GUIDE_STORAGE_KEY = 'hide_blog_editor_guide'
+const BLOG_GUIDE_STORAGE_KEY = "hide_blog_editor_guide";
 
 function getStoredGuidePreference(): string | null {
-  if (typeof window === 'undefined') {
-    return null
+  if (typeof window === "undefined") {
+    return null;
   }
 
   try {
-    return window.localStorage.getItem(BLOG_GUIDE_STORAGE_KEY)
+    return window.localStorage.getItem(BLOG_GUIDE_STORAGE_KEY);
   } catch {
-    return null
+    return null;
   }
 }
 
 function setStoredGuidePreference(): void {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
 
   try {
-    window.localStorage.setItem(BLOG_GUIDE_STORAGE_KEY, 'true')
+    window.localStorage.setItem(BLOG_GUIDE_STORAGE_KEY, "true");
   } catch {}
 }
 
@@ -58,15 +58,7 @@ const TypingAnimation = () => (
         fill="var(--background)"
       />
       {/* Header Image Placeholder */}
-      <rect
-        x="25"
-        y="15"
-        width="50"
-        height="20"
-        rx="2"
-        fill="currentColor"
-        opacity="0.1"
-      />
+      <rect x="25" y="15" width="50" height="20" rx="2" fill="currentColor" opacity="0.1" />
       {/* Lines */}
       <line
         x1="30"
@@ -159,60 +151,42 @@ const TypingAnimation = () => (
         strokeWidth="3"
         strokeLinecap="round"
       >
-        <animate
-          attributeName="opacity"
-          values="0;1;0"
-          dur="1s"
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="x1"
-          values="30;55"
-          dur="3s"
-          repeatCount="indefinite"
-          begin="0.9s"
-        />
-        <animate
-          attributeName="x2"
-          values="30;55"
-          dur="3s"
-          repeatCount="indefinite"
-          begin="0.9s"
-        />
+        <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite" />
+        <animate attributeName="x1" values="30;55" dur="3s" repeatCount="indefinite" begin="0.9s" />
+        <animate attributeName="x2" values="30;55" dur="3s" repeatCount="indefinite" begin="0.9s" />
       </line>
     </svg>
   </div>
-)
+);
 
 export function BlogGuideModal() {
-  const [open, setOpen] = useState(false)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
-    const hasSeenGuide = getStoredGuidePreference()
+    const hasSeenGuide = getStoredGuidePreference();
     if (!hasSeenGuide) {
       // Small delay to ensure UI is ready
-      const timer = setTimeout(() => setOpen(true), 500)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setOpen(true), 500);
+      return () => clearTimeout(timer);
     }
-  }, [])
+  }, []);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && dontShowAgain) {
-      setStoredGuidePreference()
+      setStoredGuidePreference();
     }
-    setOpen(newOpen)
-  }
+    setOpen(newOpen);
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleOpenChange}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to the Editor</DialogTitle>
-          <DialogDescription>Here's a quick guide on how to create amazing posts.</DialogDescription>
+          <DialogDescription>
+            Here's a quick guide on how to create amazing posts.
+          </DialogDescription>
         </DialogHeader>
 
         <TypingAnimation />
@@ -221,10 +195,10 @@ export function BlogGuideModal() {
           <div className="grid gap-2">
             <h4 className="font-medium leading-none">✨ Rich Text Editing</h4>
             <p className="text-muted-foreground">
-              Type{' '}
+              Type{" "}
               <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                 /
-              </kbd>{' '}
+              </kbd>{" "}
               to open the command menu. You can add headings, lists, quotes, code blocks, and more.
             </p>
           </div>
@@ -232,14 +206,16 @@ export function BlogGuideModal() {
           <div className="grid gap-2">
             <h4 className="font-medium leading-none">🖼️ Adding Media</h4>
             <p className="text-muted-foreground">
-              Drag and drop images directly into the editor, or use the command menu to upload. Don't forget to set a
-              cover image for your post!
+              Drag and drop images directly into the editor, or use the command menu to upload.
+              Don't forget to set a cover image for your post!
             </p>
           </div>
 
           <div className="grid gap-2">
             <h4 className="font-medium leading-none">🏷️ Tags & Categories</h4>
-            <p className="text-muted-foreground">Add relevant tags to help people find your content.</p>
+            <p className="text-muted-foreground">
+              Add relevant tags to help people find your content.
+            </p>
           </div>
         </div>
 
@@ -257,14 +233,11 @@ export function BlogGuideModal() {
               Don't show again
             </Label>
           </div>
-          <Button
-            type="button"
-            onClick={() => handleOpenChange(false)}
-          >
+          <Button type="button" onClick={() => handleOpenChange(false)}>
             Got it
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

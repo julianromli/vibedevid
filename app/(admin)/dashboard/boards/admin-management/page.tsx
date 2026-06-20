@@ -1,10 +1,10 @@
-import type { getPrivilegedUsers } from '@/lib/actions/admin/admins'
-import { AdminManagementBoard } from './components/admin-management-board'
+import type { getPrivilegedUsers } from "@/lib/actions/admin/admins";
+import { AdminManagementBoard } from "./components/admin-management-board";
 
-type PrivilegedUsersResult = Awaited<ReturnType<typeof getPrivilegedUsers>>
+type PrivilegedUsersResult = Awaited<ReturnType<typeof getPrivilegedUsers>>;
 
 export interface AdminManagementBoardProps {
-  result: PrivilegedUsersResult
+  result: PrivilegedUsersResult;
 }
 
 export default function AdminManagementPage({ result }: AdminManagementBoardProps) {
@@ -12,9 +12,9 @@ export default function AdminManagementPage({ result }: AdminManagementBoardProp
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="text-destructive">Failed to load admin management</div>
-        <div className="text-muted-foreground mt-1 text-sm">{result.error || 'Unknown error'}</div>
+        <div className="text-muted-foreground mt-1 text-sm">{result.error || "Unknown error"}</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -23,5 +23,5 @@ export default function AdminManagementPage({ result }: AdminManagementBoardProp
       adminCount={result.adminCount || 0}
       moderatorCount={result.moderatorCount || 0}
     />
-  )
+  );
 }

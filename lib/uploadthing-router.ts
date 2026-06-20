@@ -8,14 +8,14 @@
  * instead of `@/lib/uploadthing`, so the server module is never dragged into the
  * client bundle.
  */
-import type { FileRouter } from 'uploadthing/types'
+import type { FileRouter } from "uploadthing/types";
 
 export type UploadedFileMetadata = {
-  key: string
-  name: string
-  uploadedBy: string
-  url: string
-}
+  key: string;
+  name: string;
+  uploadedBy: string;
+  url: string;
+};
 
 /**
  * Endpoint keys exposed by {@link import('./uploadthing').ourFileRouter}.
@@ -25,6 +25,6 @@ export type UploadedFileMetadata = {
  * record constrained to these keys. The runtime router in `lib/uploadthing.ts`
  * is asserted to satisfy this type to keep the two in sync.
  */
-export type OurFileRouterEndpoint = 'projectImageUploader' | 'blogImageUploader'
+export type OurFileRouterEndpoint = "projectImageUploader" | "blogImageUploader" | "avatarUploader";
 
-export type OurFileRouter = FileRouter & Record<OurFileRouterEndpoint, FileRouter[string]>
+export type OurFileRouter = FileRouter & Record<OurFileRouterEndpoint, FileRouter[string]>;

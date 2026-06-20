@@ -8,840 +8,854 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
-import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as CalendarRouteImport } from './routes/calendar'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as UsernameRouteImport } from './routes/$username'
-import { Route as AdminRouteRouteImport } from './routes/_admin/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as UserAuthRouteImport } from './routes/user.auth'
-import { Route as ProjectSubmitRouteImport } from './routes/project.submit'
-import { Route as ProjectListRouteImport } from './routes/project.list'
-import { Route as ProjectSlugRouteImport } from './routes/project.$slug'
-import { Route as EventListRouteImport } from './routes/event.list'
-import { Route as EventSlugRouteImport } from './routes/event.$slug'
-import { Route as DashboardPostsRouteImport } from './routes/dashboard.posts'
-import { Route as BlogEditorRouteImport } from './routes/blog.editor'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
-import { Route as ApiYoutubeRouteImport } from './routes/api/youtube'
-import { Route as ApiVibeVideosRouteImport } from './routes/api/vibe-videos'
-import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
-import { Route as ApiOgRouteImport } from './routes/api/og'
-import { Route as ApiGithubImportRouteImport } from './routes/api/github-import'
-import { Route as ApiAuthCheckRouteImport } from './routes/api/auth-check'
-import { Route as AdminDashboardRouteImport } from './routes/_admin/dashboard'
-import { Route as UserAuthConfirmEmailRouteImport } from './routes/user.auth.confirm-email'
-import { Route as BlogEditorSlugRouteImport } from './routes/blog.editor.$slug'
-import { Route as ApiVibeVideosIdRouteImport } from './routes/api/vibe-videos.$id'
-import { Route as ApiAuthSignUpRouteImport } from './routes/api/auth.sign-up'
-import { Route as ApiAuthSignInRouteImport } from './routes/api/auth.sign-in'
-import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth.reset-password'
-import { Route as ApiAiEnhanceDescriptionRouteImport } from './routes/api/ai.enhance-description'
-import { Route as ApiAiCompletionRouteImport } from './routes/api/ai.completion'
-import { Route as ApiAuthOauthProviderRouteImport } from './routes/api/auth.oauth.$provider'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as TermsOfServiceRouteImport } from "./routes/terms-of-service";
+import { Route as TermsRouteImport } from "./routes/terms";
+import { Route as SitemapDotxmlRouteImport } from "./routes/sitemap[.]xml";
+import { Route as RobotsDottxtRouteImport } from "./routes/robots[.]txt";
+import { Route as PrivacyPolicyRouteImport } from "./routes/privacy-policy";
+import { Route as CalendarRouteImport } from "./routes/calendar";
+import { Route as BlogRouteImport } from "./routes/blog";
+import { Route as AdminRouteImport } from "./routes/admin";
+import { Route as UsernameRouteImport } from "./routes/$username";
+import { Route as AdminRouteRouteImport } from "./routes/_admin/route";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as BlogIndexRouteImport } from "./routes/blog.index";
+import { Route as UserAuthRouteImport } from "./routes/user.auth";
+import { Route as ProjectSubmitRouteImport } from "./routes/project.submit";
+import { Route as ProjectListRouteImport } from "./routes/project.list";
+import { Route as ProjectSlugRouteImport } from "./routes/project.$slug";
+import { Route as EventListRouteImport } from "./routes/event.list";
+import { Route as EventSlugRouteImport } from "./routes/event.$slug";
+import { Route as DashboardPostsRouteImport } from "./routes/dashboard.posts";
+import { Route as BlogEditorRouteImport } from "./routes/blog.editor";
+import { Route as BlogSlugRouteImport } from "./routes/blog.$slug";
+import { Route as AuthCallbackRouteImport } from "./routes/auth.callback";
+import { Route as ApiYoutubeRouteImport } from "./routes/api/youtube";
+import { Route as ApiVibeVideosRouteImport } from "./routes/api/vibe-videos";
+import { Route as ApiUploadthingRouteImport } from "./routes/api/uploadthing";
+import { Route as ApiOgRouteImport } from "./routes/api/og";
+import { Route as ApiGithubImportRouteImport } from "./routes/api/github-import";
+import { Route as ApiAuthCheckRouteImport } from "./routes/api/auth-check";
+import { Route as AdminDashboardRouteImport } from "./routes/_admin/dashboard";
+import { Route as UserAuthConfirmEmailRouteImport } from "./routes/user.auth.confirm-email";
+import { Route as BlogEditorSlugRouteImport } from "./routes/blog.editor.$slug";
+import { Route as ApiVibeVideosIdRouteImport } from "./routes/api/vibe-videos.$id";
+import { Route as ApiAuthSignUpRouteImport } from "./routes/api/auth.sign-up";
+import { Route as ApiAuthSignInRouteImport } from "./routes/api/auth.sign-in";
+import { Route as ApiAuthResetPasswordRouteImport } from "./routes/api/auth.reset-password";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth.$";
+import { Route as ApiAiEnhanceDescriptionRouteImport } from "./routes/api/ai.enhance-description";
+import { Route as ApiAiCompletionRouteImport } from "./routes/api/ai.completion";
+import { Route as ApiAuthOauthProviderRouteImport } from "./routes/api/auth.oauth.$provider";
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
-  id: '/terms-of-service',
-  path: '/terms-of-service',
+  id: "/terms-of-service",
+  path: "/terms-of-service",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+  id: "/terms",
+  path: "/terms",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+  id: "/sitemap.xml",
+  path: "/sitemap.xml",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
+  id: "/robots.txt",
+  path: "/robots.txt",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
+  id: "/privacy-policy",
+  path: "/privacy-policy",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const CalendarRoute = CalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
+  id: "/calendar",
+  path: "/calendar",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
+  id: "/blog",
+  path: "/blog",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+  id: "/admin",
+  path: "/admin",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const UsernameRoute = UsernameRouteImport.update({
-  id: '/$username',
-  path: '/$username',
+  id: "/$username",
+  path: "/$username",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminRouteRoute = AdminRouteRouteImport.update({
-  id: '/_admin',
+  id: "/_admin",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => BlogRoute,
-} as any)
+} as any);
 const UserAuthRoute = UserAuthRouteImport.update({
-  id: '/user/auth',
-  path: '/user/auth',
+  id: "/user/auth",
+  path: "/user/auth",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProjectSubmitRoute = ProjectSubmitRouteImport.update({
-  id: '/project/submit',
-  path: '/project/submit',
+  id: "/project/submit",
+  path: "/project/submit",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProjectListRoute = ProjectListRouteImport.update({
-  id: '/project/list',
-  path: '/project/list',
+  id: "/project/list",
+  path: "/project/list",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProjectSlugRoute = ProjectSlugRouteImport.update({
-  id: '/project/$slug',
-  path: '/project/$slug',
+  id: "/project/$slug",
+  path: "/project/$slug",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const EventListRoute = EventListRouteImport.update({
-  id: '/event/list',
-  path: '/event/list',
+  id: "/event/list",
+  path: "/event/list",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const EventSlugRoute = EventSlugRouteImport.update({
-  id: '/event/$slug',
-  path: '/event/$slug',
+  id: "/event/$slug",
+  path: "/event/$slug",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DashboardPostsRoute = DashboardPostsRouteImport.update({
-  id: '/dashboard/posts',
-  path: '/dashboard/posts',
+  id: "/dashboard/posts",
+  path: "/dashboard/posts",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const BlogEditorRoute = BlogEditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
+  id: "/editor",
+  path: "/editor",
   getParentRoute: () => BlogRoute,
-} as any)
+} as any);
 const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
+  id: "/$slug",
+  path: "/$slug",
   getParentRoute: () => BlogRoute,
-} as any)
+} as any);
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
+  id: "/auth/callback",
+  path: "/auth/callback",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiYoutubeRoute = ApiYoutubeRouteImport.update({
-  id: '/api/youtube',
-  path: '/api/youtube',
+  id: "/api/youtube",
+  path: "/api/youtube",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiVibeVideosRoute = ApiVibeVideosRouteImport.update({
-  id: '/api/vibe-videos',
-  path: '/api/vibe-videos',
+  id: "/api/vibe-videos",
+  path: "/api/vibe-videos",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
-  id: '/api/uploadthing',
-  path: '/api/uploadthing',
+  id: "/api/uploadthing",
+  path: "/api/uploadthing",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiOgRoute = ApiOgRouteImport.update({
-  id: '/api/og',
-  path: '/api/og',
+  id: "/api/og",
+  path: "/api/og",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiGithubImportRoute = ApiGithubImportRouteImport.update({
-  id: '/api/github-import',
-  path: '/api/github-import',
+  id: "/api/github-import",
+  path: "/api/github-import",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiAuthCheckRoute = ApiAuthCheckRouteImport.update({
-  id: '/api/auth-check',
-  path: '/api/auth-check',
+  id: "/api/auth-check",
+  path: "/api/auth-check",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+  id: "/dashboard",
+  path: "/dashboard",
   getParentRoute: () => AdminRouteRoute,
-} as any)
+} as any);
 const UserAuthConfirmEmailRoute = UserAuthConfirmEmailRouteImport.update({
-  id: '/confirm-email',
-  path: '/confirm-email',
+  id: "/confirm-email",
+  path: "/confirm-email",
   getParentRoute: () => UserAuthRoute,
-} as any)
+} as any);
 const BlogEditorSlugRoute = BlogEditorSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
+  id: "/$slug",
+  path: "/$slug",
   getParentRoute: () => BlogEditorRoute,
-} as any)
+} as any);
 const ApiVibeVideosIdRoute = ApiVibeVideosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
+  id: "/$id",
+  path: "/$id",
   getParentRoute: () => ApiVibeVideosRoute,
-} as any)
+} as any);
 const ApiAuthSignUpRoute = ApiAuthSignUpRouteImport.update({
-  id: '/api/auth/sign-up',
-  path: '/api/auth/sign-up',
+  id: "/api/auth/sign-up",
+  path: "/api/auth/sign-up",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiAuthSignInRoute = ApiAuthSignInRouteImport.update({
-  id: '/api/auth/sign-in',
-  path: '/api/auth/sign-in',
+  id: "/api/auth/sign-in",
+  path: "/api/auth/sign-in",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
-  id: '/api/auth/reset-password',
-  path: '/api/auth/reset-password',
+  id: "/api/auth/reset-password",
+  path: "/api/auth/reset-password",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: "/api/auth/$",
+  path: "/api/auth/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const ApiAiEnhanceDescriptionRoute = ApiAiEnhanceDescriptionRouteImport.update({
-  id: '/api/ai/enhance-description',
-  path: '/api/ai/enhance-description',
+  id: "/api/ai/enhance-description",
+  path: "/api/ai/enhance-description",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiAiCompletionRoute = ApiAiCompletionRouteImport.update({
-  id: '/api/ai/completion',
-  path: '/api/ai/completion',
+  id: "/api/ai/completion",
+  path: "/api/ai/completion",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiAuthOauthProviderRoute = ApiAuthOauthProviderRouteImport.update({
-  id: '/api/auth/oauth/$provider',
-  path: '/api/auth/oauth/$provider',
+  id: "/api/auth/oauth/$provider",
+  path: "/api/auth/oauth/$provider",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$username': typeof UsernameRoute
-  '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
-  '/calendar': typeof CalendarRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/robots.txt': typeof RobotsDottxtRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/dashboard': typeof AdminDashboardRoute
-  '/api/auth-check': typeof ApiAuthCheckRoute
-  '/api/github-import': typeof ApiGithubImportRoute
-  '/api/og': typeof ApiOgRoute
-  '/api/uploadthing': typeof ApiUploadthingRoute
-  '/api/vibe-videos': typeof ApiVibeVideosRouteWithChildren
-  '/api/youtube': typeof ApiYoutubeRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/editor': typeof BlogEditorRouteWithChildren
-  '/dashboard/posts': typeof DashboardPostsRoute
-  '/event/$slug': typeof EventSlugRoute
-  '/event/list': typeof EventListRoute
-  '/project/$slug': typeof ProjectSlugRoute
-  '/project/list': typeof ProjectListRoute
-  '/project/submit': typeof ProjectSubmitRoute
-  '/user/auth': typeof UserAuthRouteWithChildren
-  '/blog/': typeof BlogIndexRoute
-  '/api/ai/completion': typeof ApiAiCompletionRoute
-  '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/sign-in': typeof ApiAuthSignInRoute
-  '/api/auth/sign-up': typeof ApiAuthSignUpRoute
-  '/api/vibe-videos/$id': typeof ApiVibeVideosIdRoute
-  '/blog/editor/$slug': typeof BlogEditorSlugRoute
-  '/user/auth/confirm-email': typeof UserAuthConfirmEmailRoute
-  '/api/auth/oauth/$provider': typeof ApiAuthOauthProviderRoute
+  "/": typeof IndexRoute;
+  "/$username": typeof UsernameRoute;
+  "/admin": typeof AdminRoute;
+  "/blog": typeof BlogRouteWithChildren;
+  "/calendar": typeof CalendarRoute;
+  "/privacy-policy": typeof PrivacyPolicyRoute;
+  "/robots.txt": typeof RobotsDottxtRoute;
+  "/sitemap.xml": typeof SitemapDotxmlRoute;
+  "/terms": typeof TermsRoute;
+  "/terms-of-service": typeof TermsOfServiceRoute;
+  "/dashboard": typeof AdminDashboardRoute;
+  "/api/auth-check": typeof ApiAuthCheckRoute;
+  "/api/github-import": typeof ApiGithubImportRoute;
+  "/api/og": typeof ApiOgRoute;
+  "/api/uploadthing": typeof ApiUploadthingRoute;
+  "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
+  "/api/youtube": typeof ApiYoutubeRoute;
+  "/auth/callback": typeof AuthCallbackRoute;
+  "/blog/$slug": typeof BlogSlugRoute;
+  "/blog/editor": typeof BlogEditorRouteWithChildren;
+  "/dashboard/posts": typeof DashboardPostsRoute;
+  "/event/$slug": typeof EventSlugRoute;
+  "/event/list": typeof EventListRoute;
+  "/project/$slug": typeof ProjectSlugRoute;
+  "/project/list": typeof ProjectListRoute;
+  "/project/submit": typeof ProjectSubmitRoute;
+  "/user/auth": typeof UserAuthRouteWithChildren;
+  "/blog/": typeof BlogIndexRoute;
+  "/api/ai/completion": typeof ApiAiCompletionRoute;
+  "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/auth/reset-password": typeof ApiAuthResetPasswordRoute;
+  "/api/auth/sign-in": typeof ApiAuthSignInRoute;
+  "/api/auth/sign-up": typeof ApiAuthSignUpRoute;
+  "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
+  "/blog/editor/$slug": typeof BlogEditorSlugRoute;
+  "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
+  "/api/auth/oauth/$provider": typeof ApiAuthOauthProviderRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$username': typeof UsernameRoute
-  '/admin': typeof AdminRoute
-  '/calendar': typeof CalendarRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/robots.txt': typeof RobotsDottxtRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/dashboard': typeof AdminDashboardRoute
-  '/api/auth-check': typeof ApiAuthCheckRoute
-  '/api/github-import': typeof ApiGithubImportRoute
-  '/api/og': typeof ApiOgRoute
-  '/api/uploadthing': typeof ApiUploadthingRoute
-  '/api/vibe-videos': typeof ApiVibeVideosRouteWithChildren
-  '/api/youtube': typeof ApiYoutubeRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/editor': typeof BlogEditorRouteWithChildren
-  '/dashboard/posts': typeof DashboardPostsRoute
-  '/event/$slug': typeof EventSlugRoute
-  '/event/list': typeof EventListRoute
-  '/project/$slug': typeof ProjectSlugRoute
-  '/project/list': typeof ProjectListRoute
-  '/project/submit': typeof ProjectSubmitRoute
-  '/user/auth': typeof UserAuthRouteWithChildren
-  '/blog': typeof BlogIndexRoute
-  '/api/ai/completion': typeof ApiAiCompletionRoute
-  '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/sign-in': typeof ApiAuthSignInRoute
-  '/api/auth/sign-up': typeof ApiAuthSignUpRoute
-  '/api/vibe-videos/$id': typeof ApiVibeVideosIdRoute
-  '/blog/editor/$slug': typeof BlogEditorSlugRoute
-  '/user/auth/confirm-email': typeof UserAuthConfirmEmailRoute
-  '/api/auth/oauth/$provider': typeof ApiAuthOauthProviderRoute
+  "/": typeof IndexRoute;
+  "/$username": typeof UsernameRoute;
+  "/admin": typeof AdminRoute;
+  "/calendar": typeof CalendarRoute;
+  "/privacy-policy": typeof PrivacyPolicyRoute;
+  "/robots.txt": typeof RobotsDottxtRoute;
+  "/sitemap.xml": typeof SitemapDotxmlRoute;
+  "/terms": typeof TermsRoute;
+  "/terms-of-service": typeof TermsOfServiceRoute;
+  "/dashboard": typeof AdminDashboardRoute;
+  "/api/auth-check": typeof ApiAuthCheckRoute;
+  "/api/github-import": typeof ApiGithubImportRoute;
+  "/api/og": typeof ApiOgRoute;
+  "/api/uploadthing": typeof ApiUploadthingRoute;
+  "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
+  "/api/youtube": typeof ApiYoutubeRoute;
+  "/auth/callback": typeof AuthCallbackRoute;
+  "/blog/$slug": typeof BlogSlugRoute;
+  "/blog/editor": typeof BlogEditorRouteWithChildren;
+  "/dashboard/posts": typeof DashboardPostsRoute;
+  "/event/$slug": typeof EventSlugRoute;
+  "/event/list": typeof EventListRoute;
+  "/project/$slug": typeof ProjectSlugRoute;
+  "/project/list": typeof ProjectListRoute;
+  "/project/submit": typeof ProjectSubmitRoute;
+  "/user/auth": typeof UserAuthRouteWithChildren;
+  "/blog": typeof BlogIndexRoute;
+  "/api/ai/completion": typeof ApiAiCompletionRoute;
+  "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/auth/reset-password": typeof ApiAuthResetPasswordRoute;
+  "/api/auth/sign-in": typeof ApiAuthSignInRoute;
+  "/api/auth/sign-up": typeof ApiAuthSignUpRoute;
+  "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
+  "/blog/editor/$slug": typeof BlogEditorSlugRoute;
+  "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
+  "/api/auth/oauth/$provider": typeof ApiAuthOauthProviderRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_admin': typeof AdminRouteRouteWithChildren
-  '/$username': typeof UsernameRoute
-  '/admin': typeof AdminRoute
-  '/blog': typeof BlogRouteWithChildren
-  '/calendar': typeof CalendarRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/robots.txt': typeof RobotsDottxtRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/_admin/dashboard': typeof AdminDashboardRoute
-  '/api/auth-check': typeof ApiAuthCheckRoute
-  '/api/github-import': typeof ApiGithubImportRoute
-  '/api/og': typeof ApiOgRoute
-  '/api/uploadthing': typeof ApiUploadthingRoute
-  '/api/vibe-videos': typeof ApiVibeVideosRouteWithChildren
-  '/api/youtube': typeof ApiYoutubeRoute
-  '/auth/callback': typeof AuthCallbackRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/editor': typeof BlogEditorRouteWithChildren
-  '/dashboard/posts': typeof DashboardPostsRoute
-  '/event/$slug': typeof EventSlugRoute
-  '/event/list': typeof EventListRoute
-  '/project/$slug': typeof ProjectSlugRoute
-  '/project/list': typeof ProjectListRoute
-  '/project/submit': typeof ProjectSubmitRoute
-  '/user/auth': typeof UserAuthRouteWithChildren
-  '/blog/': typeof BlogIndexRoute
-  '/api/ai/completion': typeof ApiAiCompletionRoute
-  '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
-  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
-  '/api/auth/sign-in': typeof ApiAuthSignInRoute
-  '/api/auth/sign-up': typeof ApiAuthSignUpRoute
-  '/api/vibe-videos/$id': typeof ApiVibeVideosIdRoute
-  '/blog/editor/$slug': typeof BlogEditorSlugRoute
-  '/user/auth/confirm-email': typeof UserAuthConfirmEmailRoute
-  '/api/auth/oauth/$provider': typeof ApiAuthOauthProviderRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/_admin": typeof AdminRouteRouteWithChildren;
+  "/$username": typeof UsernameRoute;
+  "/admin": typeof AdminRoute;
+  "/blog": typeof BlogRouteWithChildren;
+  "/calendar": typeof CalendarRoute;
+  "/privacy-policy": typeof PrivacyPolicyRoute;
+  "/robots.txt": typeof RobotsDottxtRoute;
+  "/sitemap.xml": typeof SitemapDotxmlRoute;
+  "/terms": typeof TermsRoute;
+  "/terms-of-service": typeof TermsOfServiceRoute;
+  "/_admin/dashboard": typeof AdminDashboardRoute;
+  "/api/auth-check": typeof ApiAuthCheckRoute;
+  "/api/github-import": typeof ApiGithubImportRoute;
+  "/api/og": typeof ApiOgRoute;
+  "/api/uploadthing": typeof ApiUploadthingRoute;
+  "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
+  "/api/youtube": typeof ApiYoutubeRoute;
+  "/auth/callback": typeof AuthCallbackRoute;
+  "/blog/$slug": typeof BlogSlugRoute;
+  "/blog/editor": typeof BlogEditorRouteWithChildren;
+  "/dashboard/posts": typeof DashboardPostsRoute;
+  "/event/$slug": typeof EventSlugRoute;
+  "/event/list": typeof EventListRoute;
+  "/project/$slug": typeof ProjectSlugRoute;
+  "/project/list": typeof ProjectListRoute;
+  "/project/submit": typeof ProjectSubmitRoute;
+  "/user/auth": typeof UserAuthRouteWithChildren;
+  "/blog/": typeof BlogIndexRoute;
+  "/api/ai/completion": typeof ApiAiCompletionRoute;
+  "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/auth/reset-password": typeof ApiAuthResetPasswordRoute;
+  "/api/auth/sign-in": typeof ApiAuthSignInRoute;
+  "/api/auth/sign-up": typeof ApiAuthSignUpRoute;
+  "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
+  "/blog/editor/$slug": typeof BlogEditorSlugRoute;
+  "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
+  "/api/auth/oauth/$provider": typeof ApiAuthOauthProviderRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/$username'
-    | '/admin'
-    | '/blog'
-    | '/calendar'
-    | '/privacy-policy'
-    | '/robots.txt'
-    | '/sitemap.xml'
-    | '/terms'
-    | '/terms-of-service'
-    | '/dashboard'
-    | '/api/auth-check'
-    | '/api/github-import'
-    | '/api/og'
-    | '/api/uploadthing'
-    | '/api/vibe-videos'
-    | '/api/youtube'
-    | '/auth/callback'
-    | '/blog/$slug'
-    | '/blog/editor'
-    | '/dashboard/posts'
-    | '/event/$slug'
-    | '/event/list'
-    | '/project/$slug'
-    | '/project/list'
-    | '/project/submit'
-    | '/user/auth'
-    | '/blog/'
-    | '/api/ai/completion'
-    | '/api/ai/enhance-description'
-    | '/api/auth/reset-password'
-    | '/api/auth/sign-in'
-    | '/api/auth/sign-up'
-    | '/api/vibe-videos/$id'
-    | '/blog/editor/$slug'
-    | '/user/auth/confirm-email'
-    | '/api/auth/oauth/$provider'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/$username"
+    | "/admin"
+    | "/blog"
+    | "/calendar"
+    | "/privacy-policy"
+    | "/robots.txt"
+    | "/sitemap.xml"
+    | "/terms"
+    | "/terms-of-service"
+    | "/dashboard"
+    | "/api/auth-check"
+    | "/api/github-import"
+    | "/api/og"
+    | "/api/uploadthing"
+    | "/api/vibe-videos"
+    | "/api/youtube"
+    | "/auth/callback"
+    | "/blog/$slug"
+    | "/blog/editor"
+    | "/dashboard/posts"
+    | "/event/$slug"
+    | "/event/list"
+    | "/project/$slug"
+    | "/project/list"
+    | "/project/submit"
+    | "/user/auth"
+    | "/blog/"
+    | "/api/ai/completion"
+    | "/api/ai/enhance-description"
+    | "/api/auth/$"
+    | "/api/auth/reset-password"
+    | "/api/auth/sign-in"
+    | "/api/auth/sign-up"
+    | "/api/vibe-videos/$id"
+    | "/blog/editor/$slug"
+    | "/user/auth/confirm-email"
+    | "/api/auth/oauth/$provider";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/$username'
-    | '/admin'
-    | '/calendar'
-    | '/privacy-policy'
-    | '/robots.txt'
-    | '/sitemap.xml'
-    | '/terms'
-    | '/terms-of-service'
-    | '/dashboard'
-    | '/api/auth-check'
-    | '/api/github-import'
-    | '/api/og'
-    | '/api/uploadthing'
-    | '/api/vibe-videos'
-    | '/api/youtube'
-    | '/auth/callback'
-    | '/blog/$slug'
-    | '/blog/editor'
-    | '/dashboard/posts'
-    | '/event/$slug'
-    | '/event/list'
-    | '/project/$slug'
-    | '/project/list'
-    | '/project/submit'
-    | '/user/auth'
-    | '/blog'
-    | '/api/ai/completion'
-    | '/api/ai/enhance-description'
-    | '/api/auth/reset-password'
-    | '/api/auth/sign-in'
-    | '/api/auth/sign-up'
-    | '/api/vibe-videos/$id'
-    | '/blog/editor/$slug'
-    | '/user/auth/confirm-email'
-    | '/api/auth/oauth/$provider'
+    | "/"
+    | "/$username"
+    | "/admin"
+    | "/calendar"
+    | "/privacy-policy"
+    | "/robots.txt"
+    | "/sitemap.xml"
+    | "/terms"
+    | "/terms-of-service"
+    | "/dashboard"
+    | "/api/auth-check"
+    | "/api/github-import"
+    | "/api/og"
+    | "/api/uploadthing"
+    | "/api/vibe-videos"
+    | "/api/youtube"
+    | "/auth/callback"
+    | "/blog/$slug"
+    | "/blog/editor"
+    | "/dashboard/posts"
+    | "/event/$slug"
+    | "/event/list"
+    | "/project/$slug"
+    | "/project/list"
+    | "/project/submit"
+    | "/user/auth"
+    | "/blog"
+    | "/api/ai/completion"
+    | "/api/ai/enhance-description"
+    | "/api/auth/$"
+    | "/api/auth/reset-password"
+    | "/api/auth/sign-in"
+    | "/api/auth/sign-up"
+    | "/api/vibe-videos/$id"
+    | "/blog/editor/$slug"
+    | "/user/auth/confirm-email"
+    | "/api/auth/oauth/$provider";
   id:
-    | '__root__'
-    | '/'
-    | '/_admin'
-    | '/$username'
-    | '/admin'
-    | '/blog'
-    | '/calendar'
-    | '/privacy-policy'
-    | '/robots.txt'
-    | '/sitemap.xml'
-    | '/terms'
-    | '/terms-of-service'
-    | '/_admin/dashboard'
-    | '/api/auth-check'
-    | '/api/github-import'
-    | '/api/og'
-    | '/api/uploadthing'
-    | '/api/vibe-videos'
-    | '/api/youtube'
-    | '/auth/callback'
-    | '/blog/$slug'
-    | '/blog/editor'
-    | '/dashboard/posts'
-    | '/event/$slug'
-    | '/event/list'
-    | '/project/$slug'
-    | '/project/list'
-    | '/project/submit'
-    | '/user/auth'
-    | '/blog/'
-    | '/api/ai/completion'
-    | '/api/ai/enhance-description'
-    | '/api/auth/reset-password'
-    | '/api/auth/sign-in'
-    | '/api/auth/sign-up'
-    | '/api/vibe-videos/$id'
-    | '/blog/editor/$slug'
-    | '/user/auth/confirm-email'
-    | '/api/auth/oauth/$provider'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/_admin"
+    | "/$username"
+    | "/admin"
+    | "/blog"
+    | "/calendar"
+    | "/privacy-policy"
+    | "/robots.txt"
+    | "/sitemap.xml"
+    | "/terms"
+    | "/terms-of-service"
+    | "/_admin/dashboard"
+    | "/api/auth-check"
+    | "/api/github-import"
+    | "/api/og"
+    | "/api/uploadthing"
+    | "/api/vibe-videos"
+    | "/api/youtube"
+    | "/auth/callback"
+    | "/blog/$slug"
+    | "/blog/editor"
+    | "/dashboard/posts"
+    | "/event/$slug"
+    | "/event/list"
+    | "/project/$slug"
+    | "/project/list"
+    | "/project/submit"
+    | "/user/auth"
+    | "/blog/"
+    | "/api/ai/completion"
+    | "/api/ai/enhance-description"
+    | "/api/auth/$"
+    | "/api/auth/reset-password"
+    | "/api/auth/sign-in"
+    | "/api/auth/sign-up"
+    | "/api/vibe-videos/$id"
+    | "/blog/editor/$slug"
+    | "/user/auth/confirm-email"
+    | "/api/auth/oauth/$provider";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  UsernameRoute: typeof UsernameRoute
-  AdminRoute: typeof AdminRoute
-  BlogRoute: typeof BlogRouteWithChildren
-  CalendarRoute: typeof CalendarRoute
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  RobotsDottxtRoute: typeof RobotsDottxtRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TermsRoute: typeof TermsRoute
-  TermsOfServiceRoute: typeof TermsOfServiceRoute
-  ApiAuthCheckRoute: typeof ApiAuthCheckRoute
-  ApiGithubImportRoute: typeof ApiGithubImportRoute
-  ApiOgRoute: typeof ApiOgRoute
-  ApiUploadthingRoute: typeof ApiUploadthingRoute
-  ApiVibeVideosRoute: typeof ApiVibeVideosRouteWithChildren
-  ApiYoutubeRoute: typeof ApiYoutubeRoute
-  AuthCallbackRoute: typeof AuthCallbackRoute
-  DashboardPostsRoute: typeof DashboardPostsRoute
-  EventSlugRoute: typeof EventSlugRoute
-  EventListRoute: typeof EventListRoute
-  ProjectSlugRoute: typeof ProjectSlugRoute
-  ProjectListRoute: typeof ProjectListRoute
-  ProjectSubmitRoute: typeof ProjectSubmitRoute
-  UserAuthRoute: typeof UserAuthRouteWithChildren
-  ApiAiCompletionRoute: typeof ApiAiCompletionRoute
-  ApiAiEnhanceDescriptionRoute: typeof ApiAiEnhanceDescriptionRoute
-  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
-  ApiAuthSignInRoute: typeof ApiAuthSignInRoute
-  ApiAuthSignUpRoute: typeof ApiAuthSignUpRoute
-  ApiAuthOauthProviderRoute: typeof ApiAuthOauthProviderRoute
+  IndexRoute: typeof IndexRoute;
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren;
+  UsernameRoute: typeof UsernameRoute;
+  AdminRoute: typeof AdminRoute;
+  BlogRoute: typeof BlogRouteWithChildren;
+  CalendarRoute: typeof CalendarRoute;
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute;
+  RobotsDottxtRoute: typeof RobotsDottxtRoute;
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute;
+  TermsRoute: typeof TermsRoute;
+  TermsOfServiceRoute: typeof TermsOfServiceRoute;
+  ApiAuthCheckRoute: typeof ApiAuthCheckRoute;
+  ApiGithubImportRoute: typeof ApiGithubImportRoute;
+  ApiOgRoute: typeof ApiOgRoute;
+  ApiUploadthingRoute: typeof ApiUploadthingRoute;
+  ApiVibeVideosRoute: typeof ApiVibeVideosRouteWithChildren;
+  ApiYoutubeRoute: typeof ApiYoutubeRoute;
+  AuthCallbackRoute: typeof AuthCallbackRoute;
+  DashboardPostsRoute: typeof DashboardPostsRoute;
+  EventSlugRoute: typeof EventSlugRoute;
+  EventListRoute: typeof EventListRoute;
+  ProjectSlugRoute: typeof ProjectSlugRoute;
+  ProjectListRoute: typeof ProjectListRoute;
+  ProjectSubmitRoute: typeof ProjectSubmitRoute;
+  UserAuthRoute: typeof UserAuthRouteWithChildren;
+  ApiAiCompletionRoute: typeof ApiAiCompletionRoute;
+  ApiAiEnhanceDescriptionRoute: typeof ApiAiEnhanceDescriptionRoute;
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
+  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute;
+  ApiAuthSignInRoute: typeof ApiAuthSignInRoute;
+  ApiAuthSignUpRoute: typeof ApiAuthSignUpRoute;
+  ApiAuthOauthProviderRoute: typeof ApiAuthOauthProviderRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/terms-of-service': {
-      id: '/terms-of-service'
-      path: '/terms-of-service'
-      fullPath: '/terms-of-service'
-      preLoaderRoute: typeof TermsOfServiceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calendar': {
-      id: '/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof CalendarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$username': {
-      id: '/$username'
-      path: '/$username'
-      fullPath: '/$username'
-      preLoaderRoute: typeof UsernameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_admin': {
-      id: '/_admin'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AdminRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof BlogRoute
-    }
-    '/user/auth': {
-      id: '/user/auth'
-      path: '/user/auth'
-      fullPath: '/user/auth'
-      preLoaderRoute: typeof UserAuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/project/submit': {
-      id: '/project/submit'
-      path: '/project/submit'
-      fullPath: '/project/submit'
-      preLoaderRoute: typeof ProjectSubmitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/project/list': {
-      id: '/project/list'
-      path: '/project/list'
-      fullPath: '/project/list'
-      preLoaderRoute: typeof ProjectListRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/project/$slug': {
-      id: '/project/$slug'
-      path: '/project/$slug'
-      fullPath: '/project/$slug'
-      preLoaderRoute: typeof ProjectSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/event/list': {
-      id: '/event/list'
-      path: '/event/list'
-      fullPath: '/event/list'
-      preLoaderRoute: typeof EventListRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/event/$slug': {
-      id: '/event/$slug'
-      path: '/event/$slug'
-      fullPath: '/event/$slug'
-      preLoaderRoute: typeof EventSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/posts': {
-      id: '/dashboard/posts'
-      path: '/dashboard/posts'
-      fullPath: '/dashboard/posts'
-      preLoaderRoute: typeof DashboardPostsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/editor': {
-      id: '/blog/editor'
-      path: '/editor'
-      fullPath: '/blog/editor'
-      preLoaderRoute: typeof BlogEditorRouteImport
-      parentRoute: typeof BlogRoute
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof BlogRoute
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/youtube': {
-      id: '/api/youtube'
-      path: '/api/youtube'
-      fullPath: '/api/youtube'
-      preLoaderRoute: typeof ApiYoutubeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/vibe-videos': {
-      id: '/api/vibe-videos'
-      path: '/api/vibe-videos'
-      fullPath: '/api/vibe-videos'
-      preLoaderRoute: typeof ApiVibeVideosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/uploadthing': {
-      id: '/api/uploadthing'
-      path: '/api/uploadthing'
-      fullPath: '/api/uploadthing'
-      preLoaderRoute: typeof ApiUploadthingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/og': {
-      id: '/api/og'
-      path: '/api/og'
-      fullPath: '/api/og'
-      preLoaderRoute: typeof ApiOgRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/github-import': {
-      id: '/api/github-import'
-      path: '/api/github-import'
-      fullPath: '/api/github-import'
-      preLoaderRoute: typeof ApiGithubImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth-check': {
-      id: '/api/auth-check'
-      path: '/api/auth-check'
-      fullPath: '/api/auth-check'
-      preLoaderRoute: typeof ApiAuthCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_admin/dashboard': {
-      id: '/_admin/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/user/auth/confirm-email': {
-      id: '/user/auth/confirm-email'
-      path: '/confirm-email'
-      fullPath: '/user/auth/confirm-email'
-      preLoaderRoute: typeof UserAuthConfirmEmailRouteImport
-      parentRoute: typeof UserAuthRoute
-    }
-    '/blog/editor/$slug': {
-      id: '/blog/editor/$slug'
-      path: '/$slug'
-      fullPath: '/blog/editor/$slug'
-      preLoaderRoute: typeof BlogEditorSlugRouteImport
-      parentRoute: typeof BlogEditorRoute
-    }
-    '/api/vibe-videos/$id': {
-      id: '/api/vibe-videos/$id'
-      path: '/$id'
-      fullPath: '/api/vibe-videos/$id'
-      preLoaderRoute: typeof ApiVibeVideosIdRouteImport
-      parentRoute: typeof ApiVibeVideosRoute
-    }
-    '/api/auth/sign-up': {
-      id: '/api/auth/sign-up'
-      path: '/api/auth/sign-up'
-      fullPath: '/api/auth/sign-up'
-      preLoaderRoute: typeof ApiAuthSignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/sign-in': {
-      id: '/api/auth/sign-in'
-      path: '/api/auth/sign-in'
-      fullPath: '/api/auth/sign-in'
-      preLoaderRoute: typeof ApiAuthSignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/reset-password': {
-      id: '/api/auth/reset-password'
-      path: '/api/auth/reset-password'
-      fullPath: '/api/auth/reset-password'
-      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/enhance-description': {
-      id: '/api/ai/enhance-description'
-      path: '/api/ai/enhance-description'
-      fullPath: '/api/ai/enhance-description'
-      preLoaderRoute: typeof ApiAiEnhanceDescriptionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/completion': {
-      id: '/api/ai/completion'
-      path: '/api/ai/completion'
-      fullPath: '/api/ai/completion'
-      preLoaderRoute: typeof ApiAiCompletionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/oauth/$provider': {
-      id: '/api/auth/oauth/$provider'
-      path: '/api/auth/oauth/$provider'
-      fullPath: '/api/auth/oauth/$provider'
-      preLoaderRoute: typeof ApiAuthOauthProviderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/terms-of-service": {
+      id: "/terms-of-service";
+      path: "/terms-of-service";
+      fullPath: "/terms-of-service";
+      preLoaderRoute: typeof TermsOfServiceRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/terms": {
+      id: "/terms";
+      path: "/terms";
+      fullPath: "/terms";
+      preLoaderRoute: typeof TermsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/sitemap.xml": {
+      id: "/sitemap.xml";
+      path: "/sitemap.xml";
+      fullPath: "/sitemap.xml";
+      preLoaderRoute: typeof SitemapDotxmlRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/robots.txt": {
+      id: "/robots.txt";
+      path: "/robots.txt";
+      fullPath: "/robots.txt";
+      preLoaderRoute: typeof RobotsDottxtRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/privacy-policy": {
+      id: "/privacy-policy";
+      path: "/privacy-policy";
+      fullPath: "/privacy-policy";
+      preLoaderRoute: typeof PrivacyPolicyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/calendar": {
+      id: "/calendar";
+      path: "/calendar";
+      fullPath: "/calendar";
+      preLoaderRoute: typeof CalendarRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/blog": {
+      id: "/blog";
+      path: "/blog";
+      fullPath: "/blog";
+      preLoaderRoute: typeof BlogRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin": {
+      id: "/admin";
+      path: "/admin";
+      fullPath: "/admin";
+      preLoaderRoute: typeof AdminRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/$username": {
+      id: "/$username";
+      path: "/$username";
+      fullPath: "/$username";
+      preLoaderRoute: typeof UsernameRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_admin": {
+      id: "/_admin";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof AdminRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/blog/": {
+      id: "/blog/";
+      path: "/";
+      fullPath: "/blog/";
+      preLoaderRoute: typeof BlogIndexRouteImport;
+      parentRoute: typeof BlogRoute;
+    };
+    "/user/auth": {
+      id: "/user/auth";
+      path: "/user/auth";
+      fullPath: "/user/auth";
+      preLoaderRoute: typeof UserAuthRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/project/submit": {
+      id: "/project/submit";
+      path: "/project/submit";
+      fullPath: "/project/submit";
+      preLoaderRoute: typeof ProjectSubmitRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/project/list": {
+      id: "/project/list";
+      path: "/project/list";
+      fullPath: "/project/list";
+      preLoaderRoute: typeof ProjectListRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/project/$slug": {
+      id: "/project/$slug";
+      path: "/project/$slug";
+      fullPath: "/project/$slug";
+      preLoaderRoute: typeof ProjectSlugRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/event/list": {
+      id: "/event/list";
+      path: "/event/list";
+      fullPath: "/event/list";
+      preLoaderRoute: typeof EventListRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/event/$slug": {
+      id: "/event/$slug";
+      path: "/event/$slug";
+      fullPath: "/event/$slug";
+      preLoaderRoute: typeof EventSlugRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/dashboard/posts": {
+      id: "/dashboard/posts";
+      path: "/dashboard/posts";
+      fullPath: "/dashboard/posts";
+      preLoaderRoute: typeof DashboardPostsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/blog/editor": {
+      id: "/blog/editor";
+      path: "/editor";
+      fullPath: "/blog/editor";
+      preLoaderRoute: typeof BlogEditorRouteImport;
+      parentRoute: typeof BlogRoute;
+    };
+    "/blog/$slug": {
+      id: "/blog/$slug";
+      path: "/$slug";
+      fullPath: "/blog/$slug";
+      preLoaderRoute: typeof BlogSlugRouteImport;
+      parentRoute: typeof BlogRoute;
+    };
+    "/auth/callback": {
+      id: "/auth/callback";
+      path: "/auth/callback";
+      fullPath: "/auth/callback";
+      preLoaderRoute: typeof AuthCallbackRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/youtube": {
+      id: "/api/youtube";
+      path: "/api/youtube";
+      fullPath: "/api/youtube";
+      preLoaderRoute: typeof ApiYoutubeRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/vibe-videos": {
+      id: "/api/vibe-videos";
+      path: "/api/vibe-videos";
+      fullPath: "/api/vibe-videos";
+      preLoaderRoute: typeof ApiVibeVideosRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/uploadthing": {
+      id: "/api/uploadthing";
+      path: "/api/uploadthing";
+      fullPath: "/api/uploadthing";
+      preLoaderRoute: typeof ApiUploadthingRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/og": {
+      id: "/api/og";
+      path: "/api/og";
+      fullPath: "/api/og";
+      preLoaderRoute: typeof ApiOgRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/github-import": {
+      id: "/api/github-import";
+      path: "/api/github-import";
+      fullPath: "/api/github-import";
+      preLoaderRoute: typeof ApiGithubImportRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth-check": {
+      id: "/api/auth-check";
+      path: "/api/auth-check";
+      fullPath: "/api/auth-check";
+      preLoaderRoute: typeof ApiAuthCheckRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_admin/dashboard": {
+      id: "/_admin/dashboard";
+      path: "/dashboard";
+      fullPath: "/dashboard";
+      preLoaderRoute: typeof AdminDashboardRouteImport;
+      parentRoute: typeof AdminRouteRoute;
+    };
+    "/user/auth/confirm-email": {
+      id: "/user/auth/confirm-email";
+      path: "/confirm-email";
+      fullPath: "/user/auth/confirm-email";
+      preLoaderRoute: typeof UserAuthConfirmEmailRouteImport;
+      parentRoute: typeof UserAuthRoute;
+    };
+    "/blog/editor/$slug": {
+      id: "/blog/editor/$slug";
+      path: "/$slug";
+      fullPath: "/blog/editor/$slug";
+      preLoaderRoute: typeof BlogEditorSlugRouteImport;
+      parentRoute: typeof BlogEditorRoute;
+    };
+    "/api/vibe-videos/$id": {
+      id: "/api/vibe-videos/$id";
+      path: "/$id";
+      fullPath: "/api/vibe-videos/$id";
+      preLoaderRoute: typeof ApiVibeVideosIdRouteImport;
+      parentRoute: typeof ApiVibeVideosRoute;
+    };
+    "/api/auth/sign-up": {
+      id: "/api/auth/sign-up";
+      path: "/api/auth/sign-up";
+      fullPath: "/api/auth/sign-up";
+      preLoaderRoute: typeof ApiAuthSignUpRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth/sign-in": {
+      id: "/api/auth/sign-in";
+      path: "/api/auth/sign-in";
+      fullPath: "/api/auth/sign-in";
+      preLoaderRoute: typeof ApiAuthSignInRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth/reset-password": {
+      id: "/api/auth/reset-password";
+      path: "/api/auth/reset-password";
+      fullPath: "/api/auth/reset-password";
+      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/ai/enhance-description": {
+      id: "/api/ai/enhance-description";
+      path: "/api/ai/enhance-description";
+      fullPath: "/api/ai/enhance-description";
+      preLoaderRoute: typeof ApiAiEnhanceDescriptionRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/ai/completion": {
+      id: "/api/ai/completion";
+      path: "/api/ai/completion";
+      fullPath: "/api/ai/completion";
+      preLoaderRoute: typeof ApiAiCompletionRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/auth/oauth/$provider": {
+      id: "/api/auth/oauth/$provider";
+      path: "/api/auth/oauth/$provider";
+      fullPath: "/api/auth/oauth/$provider";
+      preLoaderRoute: typeof ApiAuthOauthProviderRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 interface AdminRouteRouteChildren {
-  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute;
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
-}
+};
 
-const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
-  AdminRouteRouteChildren,
-)
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(AdminRouteRouteChildren);
 
 interface BlogEditorRouteChildren {
-  BlogEditorSlugRoute: typeof BlogEditorSlugRoute
+  BlogEditorSlugRoute: typeof BlogEditorSlugRoute;
 }
 
 const BlogEditorRouteChildren: BlogEditorRouteChildren = {
   BlogEditorSlugRoute: BlogEditorSlugRoute,
-}
+};
 
-const BlogEditorRouteWithChildren = BlogEditorRoute._addFileChildren(
-  BlogEditorRouteChildren,
-)
+const BlogEditorRouteWithChildren = BlogEditorRoute._addFileChildren(BlogEditorRouteChildren);
 
 interface BlogRouteChildren {
-  BlogSlugRoute: typeof BlogSlugRoute
-  BlogEditorRoute: typeof BlogEditorRouteWithChildren
-  BlogIndexRoute: typeof BlogIndexRoute
+  BlogSlugRoute: typeof BlogSlugRoute;
+  BlogEditorRoute: typeof BlogEditorRouteWithChildren;
+  BlogIndexRoute: typeof BlogIndexRoute;
 }
 
 const BlogRouteChildren: BlogRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   BlogEditorRoute: BlogEditorRouteWithChildren,
   BlogIndexRoute: BlogIndexRoute,
-}
+};
 
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren);
 
 interface ApiVibeVideosRouteChildren {
-  ApiVibeVideosIdRoute: typeof ApiVibeVideosIdRoute
+  ApiVibeVideosIdRoute: typeof ApiVibeVideosIdRoute;
 }
 
 const ApiVibeVideosRouteChildren: ApiVibeVideosRouteChildren = {
   ApiVibeVideosIdRoute: ApiVibeVideosIdRoute,
-}
+};
 
 const ApiVibeVideosRouteWithChildren = ApiVibeVideosRoute._addFileChildren(
   ApiVibeVideosRouteChildren,
-)
+);
 
 interface UserAuthRouteChildren {
-  UserAuthConfirmEmailRoute: typeof UserAuthConfirmEmailRoute
+  UserAuthConfirmEmailRoute: typeof UserAuthConfirmEmailRoute;
 }
 
 const UserAuthRouteChildren: UserAuthRouteChildren = {
   UserAuthConfirmEmailRoute: UserAuthConfirmEmailRoute,
-}
+};
 
-const UserAuthRouteWithChildren = UserAuthRoute._addFileChildren(
-  UserAuthRouteChildren,
-)
+const UserAuthRouteWithChildren = UserAuthRoute._addFileChildren(UserAuthRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -871,21 +885,22 @@ const rootRouteChildren: RootRouteChildren = {
   UserAuthRoute: UserAuthRouteWithChildren,
   ApiAiCompletionRoute: ApiAiCompletionRoute,
   ApiAiEnhanceDescriptionRoute: ApiAiEnhanceDescriptionRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
   ApiAuthSignInRoute: ApiAuthSignInRoute,
   ApiAuthSignUpRoute: ApiAuthSignUpRoute,
   ApiAuthOauthProviderRoute: ApiAuthOauthProviderRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { startInstance } from "./start.ts";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>;
   }
 }

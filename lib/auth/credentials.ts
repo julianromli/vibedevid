@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { APIError } from "better-auth/api";
+import { auth } from "@/lib/auth/server";
 
 const allowedEmailDomains = new Set([
   "gmail.com",
@@ -31,11 +32,6 @@ export function getSafeRedirectPath(value: FormDataEntryValue | null | string | 
   if (typeof value !== "string" || !value.trim()) return "/";
 
   const trimmed = value.trim();
-  // Reject anything that isn't a same-origin path:
-  // - must start with a single '/'
-  // - reject protocol-relative ('//host') and backslash variants ('/\host'),
-  //   which browsers normalize to '//host'
-  // - reject redirecting back into the auth flow
   if (
     !trimmed.startsWith("/") ||
     trimmed.startsWith("//") ||
@@ -49,10 +45,45 @@ export function getSafeRedirectPath(value: FormDataEntryValue | null | string | 
 }
 
 export type AuthCredentialsResult =
-  | { ok: true; redirect: string }
-  | { ok: false; error: string; emailNotConfirmed?: boolean; email?: string };
+  | { ok: true; redirect: string; responseHeaders?: Headers }
+  | {
+      ok: false;
+      error: string;
+      emailNotConfirmed?: boolean;
+      email?: string;
+      responseHeaders?: Headers;
+    };
 
-export async function signInWithCredentials(formData: FormData): Promise<AuthCredentialsResult> {
+function appendSetCookies(target: Headers, source?: Headers) {
+  if (!source) return;
+  for (const cookie of source.getSetCookie()) {
+    target.append("Set-Cookie", cookie);
+  }
+}
+
+function getAuthErrorMessage(error: unknown): string {
+  if (error instanceof APIError) {
+    return error.message || "Authentication failed";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "An unexpected error occurred. Please try again.";
+}
+
+async function parseAuthErrorResponse(response: Response): Promise<string> {
+  try {
+    const body = (await response.json()) as { message?: string };
+    return body.message || "Authentication failed";
+  } catch {
+    return "Authentication failed";
+  }
+}
+
+export async function signInWithCredentials(
+  formData: FormData,
+  requestHeaders: Headers,
+): Promise<AuthCredentialsResult> {
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = getSafeRedirectPath(formData.get("redirectTo"));
@@ -61,94 +92,60 @@ export async function signInWithCredentials(formData: FormData): Promise<AuthCre
     return { ok: false, error: "Email and password are required" };
   }
 
-  const supabase = await createClient();
+  const emailStr = email.toString();
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.toString(),
-      password: password.toString(),
+    const response = await auth.api.signInEmail({
+      body: {
+        email: emailStr,
+        password: password.toString(),
+      },
+      headers: requestHeaders,
+      asResponse: true,
     });
 
-    if (error) {
-      return { ok: false, error: error.message };
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      if (!user.email_confirmed_at) {
-        await supabase.auth.signOut();
+    if (!response.ok) {
+      const message = await parseAuthErrorResponse(response);
+      if (response.status === 403 || /verify/i.test(message)) {
         return {
           ok: false,
           error:
             "Please confirm your email address before signing in. Check your inbox for the confirmation link.",
           emailNotConfirmed: true,
-          email: user.email ?? email.toString(),
+          email: emailStr,
         };
       }
-
-      const { data: existingProfile } = await supabase
-        .from("users")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      if (!existingProfile) {
-        const baseUsername =
-          user.email
-            ?.split("@")[0]
-            ?.toLowerCase()
-            .replace(/[^a-z0-9]/g, "") || `user${user.id.slice(0, 8)}`;
-
-        let username = baseUsername;
-        let attempts = 0;
-        const maxAttempts = 5;
-
-        while (attempts < maxAttempts) {
-          const { data: usernameTaken } = await supabase
-            .from("users")
-            .select("id")
-            .eq("username", username)
-            .single();
-
-          if (!usernameTaken) break;
-
-          attempts++;
-          username = `${baseUsername}${attempts}`;
-        }
-
-        if (attempts >= maxAttempts) {
-          username = `${baseUsername}${Math.floor(Math.random() * 1000)}`;
-        }
-
-        const profileData = {
-          id: user.id,
-          username,
-          display_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-          updated_at: new Date().toISOString(),
-        };
-
-        const { error: profileError } = await supabase.from("users").insert(profileData);
-
-        if (profileError) {
-          console.error("[auth] Profile creation error:", profileError);
-        }
-      }
+      return { ok: false, error: message };
     }
 
-    return { ok: true, redirect: redirectTo };
+    const session = await auth.api.getSession({ headers: response.headers });
+
+    if (session?.user && !session.user.emailVerified) {
+      const signOutResponse = await auth.api.signOut({
+        headers: response.headers,
+        asResponse: true,
+      });
+      return {
+        ok: false,
+        error:
+          "Please confirm your email address before signing in. Check your inbox for the confirmation link.",
+        emailNotConfirmed: true,
+        email: session.user.email ?? emailStr,
+        responseHeaders: signOutResponse.headers,
+      };
+    }
+
+    return { ok: true, redirect: redirectTo, responseHeaders: response.headers };
   } catch (error) {
     console.error("[auth] Login error:", error);
-    return { ok: false, error: "An unexpected error occurred. Please try again." };
+    return { ok: false, error: getAuthErrorMessage(error) };
   }
 }
 
 export async function signUpWithCredentials(
   formData: FormData,
   origin: string,
+  requestHeaders: Headers,
 ): Promise<AuthCredentialsResult> {
   const email = formData.get("email")?.toString().trim() ?? "";
   const password = formData.get("password")?.toString() ?? "";
@@ -168,38 +165,37 @@ export async function signUpWithCredentials(
     };
   }
 
-  const supabase = await createClient();
-
   try {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${origin}/`,
-        data: {
-          username,
-          display_name: username,
-        },
+    const response = await auth.api.signUpEmail({
+      body: {
+        email,
+        password,
+        name: username || email.split("@")[0] || "User",
       },
+      headers: requestHeaders,
+      asResponse: true,
     });
 
-    if (error) {
-      return { ok: false, error: error.message };
+    if (!response.ok) {
+      const message = await parseAuthErrorResponse(response);
+      return { ok: false, error: message };
     }
 
     return {
       ok: true,
       redirect: `/user/auth/confirm-email?email=${encodeURIComponent(email)}`,
+      responseHeaders: response.headers,
     };
   } catch (error) {
     console.error("[auth] Sign up error:", error);
-    return { ok: false, error: "An unexpected error occurred. Please try again." };
+    return { ok: false, error: getAuthErrorMessage(error) };
   }
 }
 
 export async function resetPasswordWithEmail(
   formData: FormData,
   origin: string,
+  requestHeaders: Headers,
 ): Promise<AuthCredentialsResult> {
   const email = formData.get("email");
 
@@ -207,25 +203,43 @@ export async function resetPasswordWithEmail(
     return { ok: false, error: "Email is required" };
   }
 
-  const supabase = await createClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VITE_SITE_URL || origin;
+  const redirectTo = `${siteUrl}/user/auth`;
 
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email.toString(), {
-      redirectTo:
-        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-        `${process.env.NEXT_PUBLIC_SITE_URL || origin}/user/auth`,
+    const response = await auth.api.requestPasswordReset({
+      body: {
+        email: email.toString(),
+        redirectTo,
+      },
+      headers: requestHeaders,
+      asResponse: true,
     });
 
-    if (error) {
-      return { ok: false, error: error.message };
+    if (!response.ok) {
+      const message = await parseAuthErrorResponse(response);
+      return { ok: false, error: message };
     }
 
     return {
       ok: true,
       redirect: `/user/auth?success=${encodeURIComponent("Password reset email sent. Check your inbox.")}`,
+      responseHeaders: response.headers,
     };
   } catch (error) {
     console.error("[auth] Password reset error:", error);
-    return { ok: false, error: "An unexpected error occurred. Please try again." };
+    return { ok: false, error: getAuthErrorMessage(error) };
   }
+}
+
+export function mergeAuthHeadersIntoResponse(response: Response, authHeaders?: Headers): Response {
+  if (!authHeaders) return response;
+
+  const headers = new Headers(response.headers);
+  appendSetCookies(headers, authHeaders);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { eq, isNotNull } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { events, posts, projects, users } from "@/lib/db/schema";
 import { getSiteUrl } from "@/lib/seo/site-url";
-import { createClient } from "@/lib/supabase/server";
 
-/**
- * Static, publicly indexable routes. Auth-gated pages (e.g. `/user/auth`,
- * `/project/submit`) are intentionally excluded — they redirect or render thin
- * login UI and should not be in the sitemap.
- */
 const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string }> = [
   { path: "", priority: "1.0", changefreq: "daily" },
   { path: "/project/list", priority: "0.8", changefreq: "daily" },
@@ -35,6 +32,9 @@ function escapeXml(value: string): string {
 }
 
 function toIso(value: unknown, fallback: string): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
   if (typeof value === "string" && value) {
     const date = new Date(value);
     if (!Number.isNaN(date.getTime())) return date.toISOString();
@@ -42,62 +42,64 @@ function toIso(value: unknown, fallback: string): string {
   return fallback;
 }
 
-/**
- * Fetches dynamic content URLs (published blog posts, projects, approved
- * events, and public user profiles) so search engines can discover every
- * rankable page rather than only the static routes.
- */
 async function getDynamicEntries(base: string, fallbackIso: string): Promise<SitemapEntry[]> {
   try {
-    const supabase = await createClient();
+    const db = getDb();
 
-    const [posts, projects, events, users] = await Promise.all([
-      supabase.from("posts").select("slug, updated_at, published_at").eq("status", "published"),
-      supabase.from("projects").select("slug, updated_at"),
-      supabase.from("events").select("slug, updated_at, created_at").eq("approved", true),
-      supabase.from("users").select("username, updated_at").not("username", "is", null),
+    const [postRows, projectRows, eventRows, userRows] = await Promise.all([
+      db
+        .select({ slug: posts.slug, updatedAt: posts.updatedAt, publishedAt: posts.publishedAt })
+        .from(posts)
+        .where(eq(posts.status, "published")),
+      db.select({ slug: projects.slug, updatedAt: projects.updatedAt }).from(projects),
+      db
+        .select({ slug: events.slug, updatedAt: events.updatedAt, createdAt: events.createdAt })
+        .from(events)
+        .where(eq(events.approved, true)),
+      db
+        .select({ username: users.username, updatedAt: users.updatedAt })
+        .from(users)
+        .where(isNotNull(users.username)),
     ]);
 
-    const postEntries = (posts.data ?? [])
+    const postEntries = postRows
       .filter((row) => row.slug)
       .map((row) => ({
         loc: `${base}/blog/${row.slug}`,
-        lastmod: toIso(row.updated_at ?? row.published_at, fallbackIso),
+        lastmod: toIso(row.updatedAt ?? row.publishedAt, fallbackIso),
         changefreq: "weekly",
         priority: "0.7",
       }));
 
-    const projectEntries = (projects.data ?? [])
+    const projectEntries = projectRows
       .filter((row) => row.slug)
       .map((row) => ({
         loc: `${base}/project/${row.slug}`,
-        lastmod: toIso(row.updated_at, fallbackIso),
+        lastmod: toIso(row.updatedAt, fallbackIso),
         changefreq: "weekly",
         priority: "0.6",
       }));
 
-    const eventEntries = (events.data ?? [])
+    const eventEntries = eventRows
       .filter((row) => row.slug)
       .map((row) => ({
         loc: `${base}/event/${row.slug}`,
-        lastmod: toIso(row.updated_at ?? row.created_at, fallbackIso),
+        lastmod: toIso(row.updatedAt ?? row.createdAt, fallbackIso),
         changefreq: "weekly",
         priority: "0.6",
       }));
 
-    const userEntries = (users.data ?? [])
+    const userEntries = userRows
       .filter((row) => row.username)
       .map((row) => ({
         loc: `${base}/${row.username}`,
-        lastmod: toIso(row.updated_at, fallbackIso),
+        lastmod: toIso(row.updatedAt, fallbackIso),
         changefreq: "weekly",
         priority: "0.4",
       }));
 
     return [...postEntries, ...projectEntries, ...eventEntries, ...userEntries];
   } catch {
-    // Never fail the sitemap response on a query error — fall back to the
-    // static routes so the document stays valid and crawlable.
     return [];
   }
 }

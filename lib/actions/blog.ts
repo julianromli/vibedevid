@@ -1,303 +1,389 @@
-import { revalidatePath, revalidateTag } from '@/lib/revalidation'
-import { slugifyTitle } from '@/lib/slug'
-import { createClient } from '@/lib/supabase/server'
+import { revalidatePath, revalidateTag } from "@/lib/revalidation";
+import { slugifyTitle } from "@/lib/slug";
+import { getDb } from "@/lib/db";
+import { posts, postTags, blogPostTags, users } from "@/lib/db/schema";
+import { toPostDto } from "@/lib/db/mappers";
+import { USER_ROLE } from "@/lib/auth/permissions";
+import { getServerSession } from "@/lib/server/auth";
+import { eq, and, desc, ilike, like, count } from "drizzle-orm";
 
-function normalizeEditorContent(content: unknown): Record<string, any> {
-  if (!content) return { type: 'doc', content: [] }
+function normalizeEditorContent(content: unknown): Record<string, unknown> {
+  if (!content) return { type: "doc", content: [] };
 
-  if (typeof content === 'string') {
+  if (typeof content === "string") {
     try {
-      const parsed = JSON.parse(content)
-      if (parsed && typeof parsed === 'object') {
-        return parsed as Record<string, any>
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed === "object") {
+        return parsed as Record<string, unknown>;
       }
     } catch {
-      return { type: 'doc', content: [] }
+      return { type: "doc", content: [] };
     }
   }
 
-  if (typeof content === 'object') {
-    return content as Record<string, any>
+  if (typeof content === "object") {
+    return content as Record<string, unknown>;
   }
 
-  return { type: 'doc', content: [] }
+  return { type: "doc", content: [] };
 }
 
 export async function createBlogPost(data: {
-  title: string
-  content: Record<string, any> | string
-  excerpt?: string
-  cover_image?: string
-  status?: 'published' | 'draft'
-  tags?: string[]
+  title: string;
+  content: Record<string, unknown> | string;
+  excerpt?: string;
+  cover_image?: string;
+  status?: "published" | "draft";
+  tags?: string[];
 }) {
-  const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const session = await getServerSession();
 
-  if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
   }
 
   if (!data.title || data.title.length < 5) {
-    return { success: false, error: 'Title must be at least 5 characters' }
+    return { success: false, error: "Title must be at least 5 characters" };
   }
 
-  const normalizedContent = normalizeEditorContent(data.content)
+  const normalizedContent = normalizeEditorContent(data.content);
 
-  // Allow shorter content for drafts
-  const minLength = data.status === 'draft' ? 10 : 100
-  const contentStr = JSON.stringify(normalizedContent)
+  const minLength = data.status === "draft" ? 10 : 100;
+  const contentStr = JSON.stringify(normalizedContent);
   if (!normalizedContent || contentStr.length < minLength) {
-    return { success: false, error: 'Content is too short' }
+    return { success: false, error: "Content is too short" };
   }
 
-  const baseSlug = slugifyTitle(data.title)
-  const { data: existing } = await supabase.from('posts').select('slug').like('slug', `${baseSlug}%`)
+  const db = getDb();
+  const baseSlug = slugifyTitle(data.title);
+  const existing = await db
+    .select({ slug: posts.slug })
+    .from(posts)
+    .where(like(posts.slug, `${baseSlug}%`));
 
-  let slug = baseSlug
-  if (existing?.some((p: { slug: string }) => p.slug === slug)) {
-    slug = `${baseSlug}-${Date.now().toString(36)}`
+  let slug = baseSlug;
+  if (existing.some((p) => p.slug === slug)) {
+    slug = `${baseSlug}-${Date.now().toString(36)}`;
   }
 
-  const readTime = Math.ceil(contentStr.split(' ').length / 200)
+  const readTime = Math.ceil(contentStr.split(" ").length / 200);
 
-  const insertData = {
-    title: data.title,
-    slug,
-    content: normalizedContent,
-    excerpt: data.excerpt,
-    cover_image: data.cover_image,
-    author_id: authData.user.id,
-    read_time_minutes: readTime,
-    status: data.status || 'published',
-    published_at: data.status === 'published' ? new Date().toISOString() : null,
+  console.log("[createBlogPost] Content to save:", JSON.stringify(normalizedContent, null, 2));
+
+  try {
+    const [post] = await db
+      .insert(posts)
+      .values({
+        title: data.title,
+        slug,
+        content: normalizedContent,
+        excerpt: data.excerpt,
+        coverImage: data.cover_image,
+        authorId: session.user.id,
+        readTimeMinutes: readTime,
+        status: data.status || "published",
+        publishedAt: data.status === "published" ? new Date() : null,
+      })
+      .returning({ id: posts.id, slug: posts.slug });
+
+    if (!post) {
+      return { success: false, error: "Failed to create post" };
+    }
+
+    if (data.tags && data.tags.length > 0) {
+      await syncPostTags(post.id, data.tags);
+    }
+
+    revalidatePath("/blog");
+    revalidatePath("/dashboard/posts");
+    revalidateTag("blog-list-posts", "max");
+    return { success: true, slug };
+  } catch (error) {
+    console.error("Create post error:", error);
+    return { success: false, error: "Failed to create post" };
   }
-
-  // Log content being saved to database
-  console.log('[createBlogPost] Content to save:', JSON.stringify(normalizedContent, null, 2))
-
-  const { data: post, error } = await supabase.from('posts').insert(insertData).select('id, slug').single()
-
-  if (error || !post) {
-    console.error('Create post error:', error)
-    return { success: false, error: 'Failed to create post' }
-  }
-
-  // Handle Tags
-  if (data.tags && data.tags.length > 0) {
-    await syncPostTags(post.id, data.tags)
-  }
-
-  revalidatePath('/blog')
-  revalidatePath('/dashboard/posts')
-  revalidateTag('blog-list-posts', 'max')
-  return { success: true, slug }
 }
 
 export async function updateBlogPost(
   id: string,
   data: Partial<{
-    title: string
-    content: Record<string, any> | string
-    excerpt: string
-    cover_image: string
-    status: 'published' | 'draft' | 'archived'
-    tags: string[]
+    title: string;
+    content: Record<string, unknown> | string;
+    excerpt: string;
+    cover_image: string;
+    status: "published" | "draft" | "archived";
+    tags: string[];
   }>,
 ) {
-  const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const session = await getServerSession();
 
-  if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
   }
 
-  const { data: post, error: fetchError } = await supabase
-    .from('posts')
-    .select('author_id, status, slug')
-    .eq('id', id)
-    .single()
+  const db = getDb();
+  const [post] = await db
+    .select({ authorId: posts.authorId, status: posts.status, slug: posts.slug })
+    .from(posts)
+    .where(eq(posts.id, id))
+    .limit(1);
 
-  if (fetchError || !post) {
-    console.error('Update fetch error:', fetchError)
-    return { success: false, error: 'Post not found' }
+  if (!post) {
+    return { success: false, error: "Post not found" };
   }
 
-  if (post.author_id !== authData.user.id) {
-    return { success: false, error: 'Not authorized' }
+  if (post.authorId !== session.user.id) {
+    return { success: false, error: "Not authorized" };
   }
 
-  const { tags, ...updateDataRaw } = data
-  const updateData: any = { ...updateDataRaw, updated_at: new Date().toISOString() }
+  const { tags, ...updateDataRaw } = data;
+  const updateData: {
+    title?: string;
+    slug?: string;
+    content?: Record<string, unknown>;
+    excerpt?: string;
+    coverImage?: string;
+    status?: string;
+    readTimeMinutes?: number;
+    publishedAt?: Date;
+    updatedAt: Date;
+  } = { updatedAt: new Date() };
 
-  if (data.title) {
-    updateData.slug = slugifyTitle(data.title)
+  if (updateDataRaw.title) {
+    updateData.title = updateDataRaw.title;
+    updateData.slug = slugifyTitle(updateDataRaw.title);
   }
 
-  if (typeof data.content !== 'undefined') {
-    const normalizedContent = normalizeEditorContent(data.content)
-    updateData.content = normalizedContent
-    updateData.read_time_minutes = Math.ceil(JSON.stringify(normalizedContent).split(' ').length / 200)
+  if (data.excerpt !== undefined) {
+    updateData.excerpt = data.excerpt;
   }
 
-  // Handle publishing status change
-  if (data.status === 'published' && post.status !== 'published') {
-    updateData.published_at = new Date().toISOString()
+  if (data.cover_image !== undefined) {
+    updateData.coverImage = data.cover_image;
   }
 
-  const { error } = await supabase.from('posts').update(updateData).eq('id', id)
-
-  if (error) {
-    return { success: false, error: 'Failed to update post' }
+  if (data.status !== undefined) {
+    updateData.status = data.status;
   }
 
-  // Handle Tags
+  if (typeof data.content !== "undefined") {
+    const normalizedContent = normalizeEditorContent(data.content);
+    updateData.content = normalizedContent;
+    updateData.readTimeMinutes = Math.ceil(
+      JSON.stringify(normalizedContent).split(" ").length / 200,
+    );
+  }
+
+  if (data.status === "published" && post.status !== "published") {
+    updateData.publishedAt = new Date();
+  }
+
+  try {
+    await db.update(posts).set(updateData).where(eq(posts.id, id));
+  } catch (error) {
+    console.error("Update post error:", error);
+    return { success: false, error: "Failed to update post" };
+  }
+
   if (tags) {
-    await syncPostTags(id, tags)
+    await syncPostTags(id, tags);
   }
 
-  const finalSlug = updateData.slug || post.slug
+  const finalSlug = updateData.slug || post.slug;
 
-  revalidatePath('/blog')
-  revalidatePath(`/blog/${finalSlug}`)
-  revalidatePath('/dashboard/posts')
-  revalidateTag('blog-list-posts', 'max')
-  return { success: true, slug: finalSlug }
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${finalSlug}`);
+  revalidatePath("/dashboard/posts");
+  revalidateTag("blog-list-posts", "max");
+  return { success: true, slug: finalSlug };
 }
 
 async function syncPostTags(postId: string, tagNames: string[]) {
-  const supabase = await createClient()
-
-  // 1. Get or create tag IDs
-  const tagIds: string[] = []
+  const db = getDb();
+  const tagIds: string[] = [];
 
   for (const name of tagNames) {
-    const slug = slugifyTitle(name)
-    // Upsert tag
-    const { data: tag, error } = await supabase
-      .from('post_tags')
-      .upsert({ name, slug }, { onConflict: 'slug' })
-      .select('id')
-      .single()
+    const slug = slugifyTitle(name);
+    const [tag] = await db
+      .insert(postTags)
+      .values({ name, slug })
+      .onConflictDoUpdate({ target: postTags.slug, set: { name } })
+      .returning({ id: postTags.id });
 
-    if (tag) tagIds.push(tag.id)
+    if (tag) tagIds.push(tag.id);
   }
 
-  // 2. Delete existing links
-  await supabase.from('blog_post_tags').delete().eq('post_id', postId)
+  await db.delete(blogPostTags).where(eq(blogPostTags.postId, postId));
 
-  // 3. Insert new links
   if (tagIds.length > 0) {
-    await supabase.from('blog_post_tags').insert(tagIds.map((tagId) => ({ post_id: postId, tag_id: tagId })))
+    await db.insert(blogPostTags).values(tagIds.map((tagId) => ({ postId, tagId })));
   }
 }
 
-export async function getTags(query = '') {
-  const supabase = await createClient()
-  let q = supabase.from('post_tags').select('id, name, slug')
+export async function getTags(query = "") {
+  const db = getDb();
 
-  if (query) {
-    q = q.ilike('name', `%${query}%`)
-  }
+  const rows = query
+    ? await db
+        .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })
+        .from(postTags)
+        .where(ilike(postTags.name, `%${query}%`))
+        .limit(20)
+    : await db
+        .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })
+        .from(postTags)
+        .limit(20);
 
-  const { data, error } = await q.limit(20)
-  if (error) return []
-  return data || []
+  return rows;
 }
 
-export async function getAuthorPosts(page = 1, status: 'published' | 'draft' | 'archived' | 'all' = 'all') {
-  const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+export async function getAuthorPosts(
+  page = 1,
+  status: "published" | "draft" | "archived" | "all" = "all",
+) {
+  const session = await getServerSession();
 
-  if (!authData.user) {
-    return { success: false, error: 'Unauthorized', data: [], total: 0 }
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized", data: [], total: 0 };
   }
 
-  const pageSize = 10
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
+  const db = getDb();
+  const pageSize = 10;
+  const offset = (page - 1) * pageSize;
 
-  let query = supabase
-    .from('posts')
-    .select('id, title, slug, status, created_at, published_at, view_count, excerpt, cover_image', { count: 'exact' })
-    .eq('author_id', authData.user.id)
-    .order('created_at', { ascending: false })
-    .range(from, to)
+  const whereClause =
+    status === "all"
+      ? eq(posts.authorId, session.user.id)
+      : and(eq(posts.authorId, session.user.id), eq(posts.status, status));
 
-  if (status !== 'all') {
-    query = query.eq('status', status)
-  }
+  const [{ value: totalPosts }] = await db
+    .select({ value: count() })
+    .from(posts)
+    .where(whereClause);
 
-  const { data, count, error } = await query
+  const data = await db
+    .select({
+      id: posts.id,
+      title: posts.title,
+      slug: posts.slug,
+      status: posts.status,
+      createdAt: posts.createdAt,
+      publishedAt: posts.publishedAt,
+      viewCount: posts.viewCount,
+      excerpt: posts.excerpt,
+      coverImage: posts.coverImage,
+    })
+    .from(posts)
+    .where(whereClause)
+    .orderBy(desc(posts.createdAt))
+    .limit(pageSize)
+    .offset(offset);
 
-  if (error) {
-    console.error('Error fetching author posts:', error)
-    return { success: false, error: 'Failed to fetch posts', data: [], total: 0 }
-  }
-
-  return { success: true, data: data || [], total: count || 0 }
+  return {
+    success: true,
+    data: data.map((row) => ({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      status: row.status as "draft" | "published" | "archived",
+      created_at: row.createdAt?.toISOString() ?? "",
+      published_at: row.publishedAt?.toISOString() ?? null,
+      view_count: row.viewCount ?? 0,
+      excerpt: row.excerpt ?? undefined,
+      cover_image: row.coverImage ?? undefined,
+    })),
+    total: totalPosts,
+  };
 }
 
 export async function getPostForEdit(slug: string) {
-  const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const session = await getServerSession();
 
-  if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
   }
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*, tags:blog_post_tags(post_tags(name))')
-    .eq('slug', slug)
-    .single()
+  const db = getDb();
+  const [postRow] = await db.select().from(posts).where(eq(posts.slug, slug)).limit(1);
 
-  if (error || !data) {
-    return { success: false, error: 'Post not found' }
+  if (!postRow) {
+    return { success: false, error: "Post not found" };
   }
 
-  if (data.author_id !== authData.user.id) {
-    return { success: false, error: 'Not authorized' }
+  if (postRow.authorId !== session.user.id) {
+    return { success: false, error: "Not authorized" };
   }
 
-  // Flatten tags
-  const tags = data.tags?.map((t: any) => t.post_tags?.name).filter(Boolean) || []
+  const tagRows = await db
+    .select({ name: postTags.name })
+    .from(blogPostTags)
+    .innerJoin(postTags, eq(blogPostTags.tagId, postTags.id))
+    .where(eq(blogPostTags.postId, postRow.id));
 
-  return { success: true, data: { ...data, tags } }
+  const post = toPostDto(postRow);
+  const tags = tagRows.map((t) => t.name).filter(Boolean);
+
+  return {
+    success: true,
+    data: {
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      content: post.content as object,
+      excerpt: post.excerpt,
+      cover_image: post.coverImage,
+      author_id: post.authorId,
+      status: post.status,
+      published_at: post.publishedAt,
+      created_at: post.createdAt,
+      updated_at: post.updatedAt,
+      read_time_minutes: post.readTimeMinutes,
+      view_count: post.viewCount,
+      featured: post.featured,
+      tags,
+    },
+  };
 }
 
 export async function deleteBlogPost(id: string) {
-  const supabase = await createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const session = await getServerSession();
 
-  if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
   }
 
-  const { data: post, error: fetchError } = await supabase
-    .from('posts')
-    .select('author_id, status')
-    .eq('id', id)
-    .single()
+  const db = getDb();
+  const [post] = await db
+    .select({ authorId: posts.authorId })
+    .from(posts)
+    .where(eq(posts.id, id))
+    .limit(1);
 
-  if (fetchError || !post) {
-    return { success: false, error: 'Post not found' }
+  if (!post) {
+    return { success: false, error: "Post not found" };
   }
 
-  const isAuthor = post.author_id === authData.user.id
-  const isAdmin = authData.user.user_metadata.role === 0
+  const [profile] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
+
+  const isAuthor = post.authorId === session.user.id;
+  const isAdmin = profile?.role === USER_ROLE.ADMIN;
 
   if (!isAuthor && !isAdmin) {
-    return { success: false, error: 'Not authorized' }
+    return { success: false, error: "Not authorized" };
   }
 
-  const { error } = await supabase.from('posts').delete().eq('id', id)
-
-  if (error) {
-    return { success: false, error: 'Failed to delete post' }
+  try {
+    await db.delete(posts).where(eq(posts.id, id));
+  } catch (error) {
+    console.error("Delete post error:", error);
+    return { success: false, error: "Failed to delete post" };
   }
 
-  revalidatePath('/blog')
-  revalidateTag('blog-list-posts', 'max')
-  return { success: true }
+  revalidatePath("/blog");
+  revalidateTag("blog-list-posts", "max");
+  return { success: true };
 }

@@ -107,11 +107,11 @@ Currently, the `projects` table stores a single `image_url TEXT` column, and the
 
 ## Dependencies
 
-| Dependency | Purpose | Notes |
-|------------|---------|-------|
-| UploadThing | Image storage | Already configured, just needs `maxFileCount` increase |
-| Supabase | Database | Already in use, just schema migration |
-| `lucide-react` | Icons | Already used (`ChevronLeft`, `ChevronRight`) |
+| Dependency     | Purpose       | Notes                                                  |
+| -------------- | ------------- | ------------------------------------------------------ |
+| UploadThing    | Image storage | Already configured, just needs `maxFileCount` increase |
+| Supabase       | Database      | Already in use, just schema migration                  |
+| `lucide-react` | Icons         | Already used (`ChevronLeft`, `ChevronRight`)           |
 
 **No new external dependencies required.**
 
@@ -120,14 +120,17 @@ Currently, the `projects` table stores a single `image_url TEXT` column, and the
 ## Risks
 
 ### HIGH:
+
 1. **Database Migration Complexity**: Converting `image_url TEXT` to `image_urls TEXT[]` with existing data requires careful migration
 2. **Breaking Changes in Multiple Files**: Changes span database, server actions, and multiple UI components
 
 ### MEDIUM:
+
 1. **Image Cleanup Logic**: Managing multiple upload keys for deletion when images are replaced or removed
 2. **Edit Form State Management**: Adding multi-image support increases state complexity
 
 ### LOW:
+
 1. **Carousel UX**: Ensure carousel works well on mobile and desktop
 2. **Performance**: Consider lazy loading for multiple images
 
@@ -135,17 +138,17 @@ Currently, the `projects` table stores a single `image_url TEXT` column, and the
 
 ## Files Summary
 
-| Phase | Action | Files |
-|-------|--------|-------|
-| 1 | Migration | `scripts/22_add_project_images.sql` |
-| 2 | UploadThing Config | `lib/uploadthing.ts` |
-| 3 | Submit Actions | `lib/actions/projects.ts` |
-| 4 | Edit Actions | `lib/actions.ts` |
-| 5 | Carousel Component | `components/ui/project-image-carousel.tsx` |
-| 6 | Submit Form | `components/ui/submit-project-form.tsx` |
-| 7 | Edit Form | `components/project/ProjectEditClient.tsx` |
-| 8 | Display Page | `app/project/[slug]/page.tsx` |
-| 9 | Data Fetching | `lib/actions.ts` |
+| Phase | Action             | Files                                      |
+| ----- | ------------------ | ------------------------------------------ |
+| 1     | Migration          | `scripts/22_add_project_images.sql`        |
+| 2     | UploadThing Config | `lib/uploadthing.ts`                       |
+| 3     | Submit Actions     | `lib/actions/projects.ts`                  |
+| 4     | Edit Actions       | `lib/actions.ts`                           |
+| 5     | Carousel Component | `components/ui/project-image-carousel.tsx` |
+| 6     | Submit Form        | `components/ui/submit-project-form.tsx`    |
+| 7     | Edit Form          | `components/project/ProjectEditClient.tsx` |
+| 8     | Display Page       | `app/project/[slug]/page.tsx`              |
+| 9     | Data Fetching      | `lib/actions.ts`                           |
 
 ---
 

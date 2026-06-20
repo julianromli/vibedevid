@@ -1,5 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/env-config";
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { toPostDto } from "@/lib/db/mappers";
+import { blogPostTags, postTags, posts, users } from "@/lib/db/schema";
 
 export interface BlogAuthor {
   display_name: string;
@@ -24,37 +26,58 @@ export interface BlogPostListItem {
 }
 
 export async function fetchPublishedPosts(): Promise<BlogPostListItem[]> {
-  const { url, anonKey } = getSupabaseConfig();
-  const supabase = createClient(url, anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-    global: {
-      fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
-    },
+  const db = getDb();
+
+  const rows = await db
+    .select({
+      post: posts,
+      authorDisplayName: users.displayName,
+      authorAvatarUrl: users.avatarUrl,
+    })
+    .from(posts)
+    .leftJoin(users, eq(posts.authorId, users.id))
+    .where(and(eq(posts.status, "published"), isNotNull(posts.publishedAt)))
+    .orderBy(desc(posts.publishedAt));
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const postIds = rows.map((row) => row.post.id);
+  const tagRows = await db
+    .select({
+      postId: blogPostTags.postId,
+      tagName: postTags.name,
+    })
+    .from(blogPostTags)
+    .innerJoin(postTags, eq(blogPostTags.tagId, postTags.id))
+    .where(inArray(blogPostTags.postId, postIds));
+
+  const tagsByPostId = new Map<string, BlogPostTag[]>();
+  for (const tagRow of tagRows) {
+    const existing = tagsByPostId.get(tagRow.postId) ?? [];
+    existing.push({ post_tags: { name: tagRow.tagName } });
+    tagsByPostId.set(tagRow.postId, existing);
+  }
+
+  return rows.map((row) => {
+    const mapped = toPostDto(row.post);
+    return {
+      id: mapped.id,
+      title: mapped.title,
+      slug: mapped.slug,
+      excerpt: mapped.excerpt,
+      cover_image: mapped.coverImage,
+      published_at: mapped.publishedAt,
+      read_time_minutes: mapped.readTimeMinutes,
+      author_id: mapped.authorId,
+      author: row.authorDisplayName
+        ? {
+            display_name: row.authorDisplayName,
+            avatar_url: row.authorAvatarUrl,
+          }
+        : null,
+      tags: tagsByPostId.get(row.post.id) ?? [],
+    };
   });
-
-  const { data } = await supabase
-    .from("posts")
-    .select(
-      `
-      id,
-      title,
-      slug,
-      excerpt,
-      cover_image,
-      published_at,
-      read_time_minutes,
-      author_id,
-      author:users!posts_author_id_fkey(display_name, avatar_url),
-      tags:blog_post_tags(post_tags(name))
-    `,
-    )
-    .eq("status", "published")
-    .not("published_at", "is", null)
-    .order("published_at", { ascending: false })
-    .returns<BlogPostListItem[]>();
-
-  return data || [];
 }

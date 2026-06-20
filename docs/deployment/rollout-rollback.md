@@ -227,14 +227,14 @@ COMMIT;
 ```yaml
 alerts:
   database:
-    unique_violations: '> 0'
-    query_performance: '> 100ms'
+    unique_violations: "> 0"
+    query_performance: "> 100ms"
   application:
-    error_rate: '> 2%'
-    response_time: '> 500ms'
+    error_rate: "> 2%"
+    response_time: "> 500ms"
   user_experience:
-    bounce_rate: '> 70%'
-    broken_links: '> 1%'
+    bounce_rate: "> 70%"
+    broken_links: "> 1%"
 ```
 
 ### Monitoring Commands

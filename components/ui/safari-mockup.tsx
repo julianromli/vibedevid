@@ -4,11 +4,11 @@
  */
 
 interface SafariMockupProps {
-  children: React.ReactNode
-  url?: string
+  children: React.ReactNode;
+  url?: string;
 }
 
-export function SafariMockup({ children, url = 'vibedevid.com' }: SafariMockupProps) {
+export function SafariMockup({ children, url = "vibedevid.com" }: SafariMockupProps) {
   return (
     <div className="relative w-full overflow-hidden rounded-xl bg-gray-100 shadow-2xl">
       {/* Browser Chrome */}
@@ -35,5 +35,5 @@ export function SafariMockup({ children, url = 'vibedevid.com' }: SafariMockupPr
       {/* Content Area */}
       <div className="bg-white">{children}</div>
     </div>
-  )
+  );
 }

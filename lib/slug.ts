@@ -1,122 +1,87 @@
-import type React from 'react'
-import { createClient } from './supabase/server'
+import type React from "react";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { projects } from "@/lib/db/schema";
 
-/**
- * Generate SEO-friendly slug dari title
- * @param input - Input string (biasanya title)
- * @param maxLen - Maximum length untuk slug (default: 80)
- * @returns Clean slug yang SEO-friendly
- */
 export function slugifyTitle(input: string, maxLen: number = 80): string {
-  // Step 1: Clean dan normalize input
-  let base = input.trim().toLowerCase()
+  let base = input.trim().toLowerCase();
+  base = base.replace(/[^a-z0-9\s]/g, "");
+  base = base.replace(/\s+/g, "-");
+  base = base.replace(/^-+|-+$/g, "");
 
-  // Step 2: Remove special characters, keep only alphanumeric and spaces
-  base = base.replace(/[^a-z0-9\s]/g, '')
-
-  // Step 3: Replace multiple spaces with single dash
-  base = base.replace(/\s+/g, '-')
-
-  // Step 4: Remove leading/trailing dashes
-  base = base.replace(/^-+|-+$/g, '')
-
-  // Step 5: Limit length dan remove trailing dash
   if (base.length > maxLen) {
-    base = base.slice(0, maxLen).replace(/-+$/g, '')
+    base = base.slice(0, maxLen).replace(/-+$/g, "");
   }
 
-  // Step 6: Fallback kalau kosong
-  return base || 'project'
+  return base || "project";
 }
 
-/**
- * Ensure slug unique di database dengan collision detection
- * @param baseSlug - Base slug yang mau dicek
- * @param excludeProjectId - Project ID yang mau di-exclude dari pengecekan (untuk edit)
- * @returns Unique slug (dengan suffix -2, -3, dst jika diperlukan)
- */
-export async function ensureUniqueSlug(baseSlug: string, excludeProjectId?: string): Promise<string> {
-  const supabase = await createClient()
+export async function ensureUniqueSlug(
+  baseSlug: string,
+  excludeProjectId?: string,
+): Promise<string> {
+  const db = getDb();
+  const excludeId = excludeProjectId ? Number.parseInt(excludeProjectId, 10) : undefined;
 
-  let slug = baseSlug
-  let i = 1
+  let slug = baseSlug;
+  let i = 1;
 
-  // Loop sampai dapat unique slug
   while (true) {
     try {
-      // Cek apakah slug sudah exist di database
-      const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).limit(1)
+      const [existing] = await db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.slug, slug))
+        .limit(1);
 
-      if (error) {
-        console.error('Error checking slug uniqueness:', error)
-        break // Return slug yang ada kalau error
+      const isExcluded = existing && excludeId !== undefined && existing.id === excludeId;
+
+      if (!existing || isExcluded) {
+        return slug;
       }
 
-      // Kalau tidak ada data, berarti slug unique
-      const exists = data && data.length > 0
-      const isExcluded = exists && excludeProjectId && data[0]?.id === excludeProjectId
+      i += 1;
+      slug = `${baseSlug}-${i}`;
 
-      if (!exists || isExcluded) {
-        return slug
-      }
-
-      // Kalau sudah exist, increment suffix
-      i += 1
-      slug = `${baseSlug}-${i}`
-
-      // Safety break untuk avoid infinite loop
       if (i > 100) {
-        console.warn('Slug collision detection exceeded 100 attempts')
-        break
+        console.warn("Slug collision detection exceeded 100 attempts");
+        break;
       }
     } catch (error) {
-      console.error('Unexpected error in ensureUniqueSlug:', error)
-      break
+      console.error("Unexpected error in ensureUniqueSlug:", error);
+      break;
     }
   }
 
-  return slug
+  return slug;
 }
 
-/**
- * Validate slug format
- * @param slug - Slug yang mau divalidate
- * @returns true jika slug valid, false jika tidak
- */
 export function isValidSlug(slug: string): boolean {
-  // Check format: lowercase alphanumeric with dashes, no leading/trailing dashes
-  const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-  return slugRegex.test(slug) && slug.length > 0 && slug.length <= 100
+  const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  return slugRegex.test(slug) && slug.length > 0 && slug.length <= 100;
 }
 
-/**
- * Extract project ID dari slug menggunakan database lookup
- * @param slug - Project slug
- * @returns Project ID (string/UUID) atau null jika tidak ditemukan
- */
 export async function getProjectIdBySlug(slug: string): Promise<string | null> {
   if (!slug || !isValidSlug(slug)) {
-    return null
+    return null;
   }
-
-  const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.from('projects').select('id').eq('slug', slug).single()
+    const db = getDb();
+    const [row] = await db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.slug, slug))
+      .limit(1);
 
-    if (error || !data) {
-      return null
-    }
-
-    return data.id as string
+    return row ? String(row.id) : null;
   } catch (error) {
-    console.error('Error getting project ID by slug:', error)
-    return null
+    console.error("Error getting project ID by slug:", error);
+    return null;
   }
 }
 
-// Export type untuk TypeScript
 export type SlugGenerationOptions = {
-  maxLength?: number
-  excludeProjectId?: string
-}
+  maxLength?: number;
+  excludeProjectId?: string;
+};

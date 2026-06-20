@@ -1,89 +1,85 @@
-'use client'
+"use client";
 
-import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import type React from 'react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { CONFIRM_EMAIL_COOKIE } from '@/lib/constants/auth'
-import { createClient } from '@/lib/supabase/client'
+import { ArrowLeft, CheckCircle, Loader2, Mail, RefreshCw } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { CONFIRM_EMAIL_COOKIE } from "@/lib/constants/auth";
+import { authClient } from "@/lib/auth/client";
 
 function getCookieValue(cookieName: string): string {
-  if (typeof document === 'undefined') {
-    return ''
+  if (typeof document === "undefined") {
+    return "";
   }
 
-  const prefix = `${cookieName}=`
+  const prefix = `${cookieName}=`;
   const match = document.cookie
-    .split(';')
+    .split(";")
     .map((value) => value.trim())
-    .find((cookie) => cookie.startsWith(prefix))
-  return match ? match.slice(prefix.length) : ''
+    .find((cookie) => cookie.startsWith(prefix));
+  return match ? match.slice(prefix.length) : "";
 }
 
 function clearConfirmEmailCookie() {
-  if (typeof document === 'undefined') {
-    return
+  if (typeof document === "undefined") {
+    return;
   }
 
-  document.cookie = `${CONFIRM_EMAIL_COOKIE}=; Max-Age=0; Path=/user/auth/confirm-email; SameSite=Lax`
+  document.cookie = `${CONFIRM_EMAIL_COOKIE}=; Max-Age=0; Path=/user/auth/confirm-email; SameSite=Lax`;
 }
 
 // Reads the prefilled email from a short-lived middleware cookie.
 function ConfirmEmailContent() {
-  const [email, setEmail] = useState('')
-  const [isResending, setIsResending] = useState(false)
-  const [resendSuccess, setResendSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Auto-fill email from short-lived middleware cookie
   useEffect(() => {
-    const emailFromCookie = getCookieValue(CONFIRM_EMAIL_COOKIE)
+    const emailFromCookie = getCookieValue(CONFIRM_EMAIL_COOKIE);
     if (emailFromCookie) {
-      setEmail(decodeURIComponent(emailFromCookie))
-      clearConfirmEmailCookie()
+      setEmail(decodeURIComponent(emailFromCookie));
+      clearConfirmEmailCookie();
     }
-  }, [])
+  }, []);
 
   const handleResendConfirmation = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!email) {
-      setError('Email address is required')
-      return
+      setError("Email address is required");
+      return;
     }
 
-    const supabase = createClient()
-    setIsResending(true)
-    setError(null)
-    setResendSuccess(false)
+    setIsResending(true);
+    setError(null);
+    setResendSuccess(false);
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
+      const { error } = await authClient.sendVerificationEmail({
         email: email.toString(),
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/`,
-        },
-      })
+        callbackURL: `${window.location.origin}/`,
+      });
 
       if (error) {
-        throw error
+        throw new Error(error.message);
       }
 
-      setResendSuccess(true)
-      toast.success('Email konfirmasi berhasil dikirim ulang! 📧')
+      setResendSuccess(true);
+      toast.success("Email konfirmasi berhasil dikirim ulang! 📧");
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
-      setError(errorMessage)
-      toast.error(`Gagal kirim email: ${errorMessage}`)
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      setError(errorMessage);
+      toast.error(`Gagal kirim email: ${errorMessage}`);
     } finally {
-      setIsResending(false)
+      setIsResending(false);
     }
-  }
+  };
 
   return (
     <div className="bg-grid-pattern flex min-h-screen items-center justify-center p-4">
@@ -98,10 +94,7 @@ function ConfirmEmailContent() {
           </div>
 
           {/* Back Button */}
-          <Link
-            to="/user/auth"
-            className="absolute top-6 right-6"
-          >
+          <Link to="/user/auth" className="absolute top-6 right-6">
             <Button
               variant="ghost"
               size="sm"
@@ -116,9 +109,12 @@ function ConfirmEmailContent() {
             <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
               <Mail className="text-primary h-8 w-8" />
             </div>
-            <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">Check your email</h1>
+            <h1 className="text-foreground mb-2 text-3xl font-bold tracking-tight">
+              Check your email
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Gue sudah kirim link konfirmasi ke email lo. Klik link tersebut untuk mengaktifkan akun lo.
+              Gue sudah kirim link konfirmasi ke email lo. Klik link tersebut untuk mengaktifkan
+              akun lo.
             </p>
           </div>
 
@@ -144,10 +140,7 @@ function ConfirmEmailContent() {
               </p>
             </div>
 
-            <form
-              onSubmit={handleResendConfirmation}
-              className="space-y-4"
-            >
+            <form onSubmit={handleResendConfirmation} className="space-y-4">
               <div className="relative">
                 <Mail className="text-muted-foreground absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform transition-all duration-200" />
                 <Input
@@ -185,7 +178,9 @@ function ConfirmEmailContent() {
                 <div className="border-border w-full border-t transition-all duration-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background text-muted-foreground px-4 transition-all duration-200">OR</span>
+                <span className="bg-background text-muted-foreground px-4 transition-all duration-200">
+                  OR
+                </span>
               </div>
             </div>
 
@@ -216,11 +211,8 @@ function ConfirmEmailContent() {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-muted-foreground text-xs">
-              Masih ada masalah?{' '}
-              <Link
-                to="/user/auth"
-                className="text-foreground hover:text-primary underline"
-              >
+              Masih ada masalah?{" "}
+              <Link to="/user/auth" className="text-foreground hover:text-primary underline">
                 Coba daftar ulang
               </Link>
             </p>
@@ -228,9 +220,9 @@ function ConfirmEmailContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ConfirmEmailPage() {
-  return <ConfirmEmailContent />
+  return <ConfirmEmailContent />;
 }

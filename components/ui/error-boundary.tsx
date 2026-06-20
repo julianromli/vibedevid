@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode } from "react";
 
 interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode
-  sectionName?: string
+  children: ReactNode;
+  fallback?: ReactNode;
+  sectionName?: string;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean
+  hasError: boolean;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true }
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   render(): ReactNode {
@@ -31,12 +31,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         this.props.fallback || (
           <div className="text-muted-foreground py-12 text-center">
-            Gagal memuat {this.props.sectionName || 'konten'}. Silakan refresh halaman.
+            Gagal memuat {this.props.sectionName || "konten"}. Silakan refresh halaman.
           </div>
         )
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

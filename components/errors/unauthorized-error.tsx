@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
-import { BackButton } from '../back-button'
-import { Button } from '../ui/button'
+import { Link } from "@tanstack/react-router";
+import { BackButton } from "../back-button";
+import { Button } from "../ui/button";
 
 export default function UnauthorizedError() {
   return (
@@ -19,5 +19,5 @@ export default function UnauthorizedError() {
         </div>
       </div>
     </div>
-  )
+  );
 }

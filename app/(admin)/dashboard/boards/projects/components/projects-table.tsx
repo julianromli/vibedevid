@@ -1,31 +1,38 @@
-'use client'
+"use client";
 
-import { IconEye, IconHeart, IconMessageCircle } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { AdminProject } from '@/lib/actions/admin/projects'
-import { ProjectActions } from './project-actions'
-import { ProjectEditDialog } from './project-edit-dialog'
+import { IconEye, IconHeart, IconMessageCircle } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { AdminProject } from "@/lib/actions/admin/projects";
+import { ProjectActions } from "./project-actions";
+import { ProjectEditDialog } from "./project-edit-dialog";
 
 interface ProjectsTableProps {
-  projects: AdminProject[]
-  totalCount: number
-  currentPage: number
+  projects: AdminProject[];
+  totalCount: number;
+  currentPage: number;
 }
 
 export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTableProps) {
-  const [editingProject, setEditingProject] = useState<AdminProject | null>(null)
+  const [editingProject, setEditingProject] = useState<AdminProject | null>(null);
 
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
         <p className="text-muted-foreground">No projects found</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -49,10 +56,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={project.image_url || ''}
-                        alt={project.title}
-                      />
+                      <AvatarImage src={project.image_url || ""} alt={project.title} />
                       <AvatarFallback>{project.title[0]}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -72,7 +76,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={project.author.avatar_url || ''} />
+                      <AvatarImage src={project.author.avatar_url || ""} />
                       <AvatarFallback>{project.author.display_name[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm">{project.author.display_name}</span>
@@ -99,7 +103,9 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                 </TableCell>
                 <TableCell>
                   {project.featured ? (
-                    <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20">Featured</Badge>
+                    <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20">
+                      Featured
+                    </Badge>
                   ) : (
                     <Badge variant="outline">Regular</Badge>
                   )}
@@ -110,10 +116,7 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <ProjectActions
-                    project={project}
-                    onEdit={() => setEditingProject(project)}
-                  />
+                  <ProjectActions project={project} onEdit={() => setEditingProject(project)} />
                 </TableCell>
               </TableRow>
             ))}
@@ -131,9 +134,9 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
             size="sm"
             disabled={currentPage <= 1}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage - 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage - 1));
+              window.location.search = params.toString();
             }}
           >
             Previous
@@ -143,9 +146,9 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
             size="sm"
             disabled={projects.length < 20}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage + 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage + 1));
+              window.location.search = params.toString();
             }}
           >
             Next
@@ -161,5 +164,5 @@ export function ProjectsTable({ projects, totalCount, currentPage }: ProjectsTab
         />
       )}
     </>
-  )
+  );
 }

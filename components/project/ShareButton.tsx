@@ -1,39 +1,42 @@
-'use client'
+"use client";
 
-import { Share2 } from 'lucide-react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Share2 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface ShareButtonProps {
-  projectTitle: string
+  projectTitle: string;
 }
 
 export function ShareButton({ projectTitle }: ShareButtonProps) {
-  const [showShareMenu, setShowShareMenu] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const handleShare = (platform: string) => {
-    const url = window.location.href
-    const title = projectTitle || 'Check out this project'
+    const url = window.location.href;
+    const title = projectTitle || "Check out this project";
 
     switch (platform) {
-      case 'twitter':
+      case "twitter":
         window.open(
           `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-          '_blank',
-        )
-        break
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')
-        break
-      case 'copy':
-        navigator.clipboard.writeText(url)
-        alert('Link copied to clipboard!')
-        break
+          "_blank",
+        );
+        break;
+      case "linkedin":
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+          "_blank",
+        );
+        break;
+      case "copy":
+        navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+        break;
     }
-    setShowShareMenu(false)
-  }
+    setShowShareMenu(false);
+  };
 
   return (
     <div className="relative">
@@ -61,21 +64,21 @@ export function ShareButton({ projectTitle }: ShareButtonProps) {
             <div className="space-y-1 p-2">
               <button
                 type="button"
-                onClick={() => handleShare('twitter')}
+                onClick={() => handleShare("twitter")}
                 className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors motion-reduce:transition-none"
               >
                 Share on Twitter
               </button>
               <button
                 type="button"
-                onClick={() => handleShare('linkedin')}
+                onClick={() => handleShare("linkedin")}
                 className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors motion-reduce:transition-none"
               >
                 Share on LinkedIn
               </button>
               <button
                 type="button"
-                onClick={() => handleShare('copy')}
+                onClick={() => handleShare("copy")}
                 className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors motion-reduce:transition-none"
               >
                 Copy Link
@@ -85,5 +88,5 @@ export function ShareButton({ projectTitle }: ShareButtonProps) {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

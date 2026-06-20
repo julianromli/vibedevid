@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { ChevronRight } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { usePathname, useSearchParams } from '@/lib/navigation'
-import type { ReactNode } from 'react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ChevronRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { usePathname, useSearchParams } from "@/lib/navigation";
+import type { ReactNode } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -15,16 +15,16 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from '@/lib/admin/dashboard-tabs'
-import { Badge } from '../ui/badge'
-import type { NavGroup, NavItem } from './types'
+} from "@/components/ui/sidebar";
+import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from "@/lib/admin/dashboard-tabs";
+import { Badge } from "../ui/badge";
+import type { NavGroup, NavItem } from "./types";
 
 export function NavGroup({ title, items }: NavGroup) {
-  const { setOpenMobile } = useSidebar()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const dashboardTab = resolveDashboardTab(searchParams.get('tab'))
+  const { setOpenMobile } = useSidebar();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const dashboardTab = resolveDashboardTab(searchParams.get("tab"));
 
   return (
     <SidebarGroup>
@@ -39,17 +39,14 @@ export function NavGroup({ title, items }: NavGroup) {
                   isActive={checkIsActive(pathname, dashboardTab, item, true)}
                   tooltip={item.title}
                 >
-                  <Link
-                    to={item.url}
-                    onClick={() => setOpenMobile(false)}
-                  >
+                  <Link to={item.url} onClick={() => setOpenMobile(false)}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.badge && <NavBadge>{item.badge}</NavBadge>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            )
+            );
           }
           return (
             <Collapsible
@@ -74,10 +71,7 @@ export function NavGroup({ title, items }: NavGroup) {
                           asChild
                           isActive={checkIsActive(pathname, dashboardTab, subItem)}
                         >
-                          <Link
-                            to={subItem.url}
-                            onClick={() => setOpenMobile(false)}
-                          >
+                          <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
                             {subItem.icon && <subItem.icon />}
                             <span>{subItem.title}</span>
                             {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
@@ -89,50 +83,55 @@ export function NavGroup({ title, items }: NavGroup) {
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }
 
 const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
-)
+);
 
-function checkIsActive(pathname: string, dashboardTab: string, item: NavItem, mainNav = false): boolean {
+function checkIsActive(
+  pathname: string,
+  dashboardTab: string,
+  item: NavItem,
+  mainNav = false,
+): boolean {
   if (item.items?.length) {
-    return item.items.some((subItem) => checkIsActive(pathname, dashboardTab, subItem))
+    return item.items.some((subItem) => checkIsActive(pathname, dashboardTab, subItem));
   }
 
   if (!item.url) {
-    return false
+    return false;
   }
 
-  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
-    const itemTab = getDashboardTabFromNavUrl(item.url)
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    const itemTab = getDashboardTabFromNavUrl(item.url);
     if (itemTab !== null) {
-      return dashboardTab === itemTab
+      return dashboardTab === itemTab;
     }
   }
 
-  const itemPath = item.url.split('?')[0]
+  const itemPath = item.url.split("?")[0];
   return (
     pathname === itemPath ||
-    (mainNav && pathname.split('/')[1] !== '' && pathname.split('/')[1] === itemPath.split('/')[1])
-  )
+    (mainNav && pathname.split("/")[1] !== "" && pathname.split("/")[1] === itemPath.split("/")[1])
+  );
 }
 
 function getDashboardTabFromNavUrl(url: string | undefined): string | null {
-  if (!url?.startsWith('/dashboard')) {
-    return null
+  if (!url?.startsWith("/dashboard")) {
+    return null;
   }
 
-  const queryIndex = url.indexOf('?')
+  const queryIndex = url.indexOf("?");
   if (queryIndex === -1) {
-    return DEFAULT_DASHBOARD_TAB
+    return DEFAULT_DASHBOARD_TAB;
   }
 
-  const params = new URLSearchParams(url.slice(queryIndex))
-  return resolveDashboardTab(params.get('tab'))
+  const params = new URLSearchParams(url.slice(queryIndex));
+  return resolveDashboardTab(params.get("tab"));
 }

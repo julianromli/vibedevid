@@ -1,10 +1,20 @@
-'use client'
+"use client";
 
-import { AlertCircle, Calendar, Edit, ExternalLink, Eye, Loader2, RotateCcw, Trash2, Youtube } from 'lucide-react'
-import { Image } from '@unpic/react'
-import type React from 'react'
-import { useEffect, useState } from 'react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertCircle,
+  Calendar,
+  Edit,
+  ExternalLink,
+  Eye,
+  Loader2,
+  RotateCcw,
+  Trash2,
+  Youtube,
+} from "lucide-react";
+import { Image } from "@unpic/react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,136 +25,136 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import { extractYouTubeVideoId } from '@/lib/youtube-utils'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { extractYouTubeVideoId } from "@/lib/youtube-utils";
 
 interface VideoData {
-  title: string
-  description: string
-  thumbnail: string
-  views: number
-  publishedAt: string
-  channelTitle: string
-  videoId: string
-  url: string
+  title: string;
+  description: string;
+  thumbnail: string;
+  views: number;
+  publishedAt: string;
+  channelTitle: string;
+  videoId: string;
+  url: string;
 }
 
 interface VibeVideoData {
-  id: string
-  title: string
-  description: string
-  thumbnail: string
-  videoId: string
-  publishedAt: string
-  viewCount: string
-  position: number
-  createdAt: string
-  updatedAt: string
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  videoId: string;
+  publishedAt: string;
+  viewCount: string;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function VideoVibeCodingManager() {
-  const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [videoData, setVideoData] = useState<VideoData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [videoData, setVideoData] = useState<VideoData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Current videos management
-  const [currentVideos, setCurrentVideos] = useState<VibeVideoData[]>([])
-  const [videosLoading, setVideosLoading] = useState(true)
-  const [videosError, setVideosError] = useState<string | null>(null)
+  const [currentVideos, setCurrentVideos] = useState<VibeVideoData[]>([]);
+  const [videosLoading, setVideosLoading] = useState(true);
+  const [videosError, setVideosError] = useState<string | null>(null);
 
   // Edit mode state
-  const [editingVideo, setEditingVideo] = useState<VibeVideoData | null>(null)
-  const [editFormData, setEditFormData] = useState<Partial<VibeVideoData>>({})
-  const [editYoutubeUrl, setEditYoutubeUrl] = useState('')
-  const [editFetching, setEditFetching] = useState(false)
-  const [editFetchError, setEditFetchError] = useState<string | null>(null)
+  const [editingVideo, setEditingVideo] = useState<VibeVideoData | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<VibeVideoData>>({});
+  const [editYoutubeUrl, setEditYoutubeUrl] = useState("");
+  const [editFetching, setEditFetching] = useState(false);
+  const [editFetchError, setEditFetchError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!youtubeUrl.trim()) {
-      setError('Masukkan URL YouTube dulu cuy! 🤔')
-      return
+      setError("Masukkan URL YouTube dulu cuy! 🤔");
+      return;
     }
 
-    const videoId = extractYouTubeVideoId(youtubeUrl)
+    const videoId = extractYouTubeVideoId(youtubeUrl);
     if (!videoId) {
-      setError('URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅')
-      return
+      setError("URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/youtube', {
-        method: 'POST',
+      const response = await fetch("/api/youtube", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ url: youtubeUrl }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Gagal fetch data video')
+        throw new Error("Gagal fetch data video");
       }
 
-      const data = await response.json()
-      setVideoData(data)
+      const data = await response.json();
+      setVideoData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi error nih cuy 😕')
+      setError(err instanceof Error ? err.message : "Terjadi error nih cuy 😕");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
-    setYoutubeUrl('')
-    setVideoData(null)
-    setError(null)
-  }
+    setYoutubeUrl("");
+    setVideoData(null);
+    setError(null);
+  };
 
   // Fetch current videos dari database
   const fetchCurrentVideos = async () => {
     try {
-      setVideosLoading(true)
-      const response = await fetch('/api/vibe-videos')
+      setVideosLoading(true);
+      const response = await fetch("/api/vibe-videos");
 
       if (!response.ok) {
-        throw new Error('Failed to fetch videos')
+        throw new Error("Failed to fetch videos");
       }
 
-      const data = await response.json()
-      setCurrentVideos(data.videos || [])
-      setVideosError(null)
+      const data = await response.json();
+      setCurrentVideos(data.videos || []);
+      setVideosError(null);
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error fetching videos')
+      setVideosError(err instanceof Error ? err.message : "Error fetching videos");
     } finally {
-      setVideosLoading(false)
+      setVideosLoading(false);
     }
-  }
+  };
 
   // Load videos on component mount
   useEffect(() => {
-    fetchCurrentVideos()
-  }, [])
+    fetchCurrentVideos();
+  }, []);
 
   // Handle add video ke database
   const handleAddToDatabase = async () => {
-    if (!videoData) return
+    if (!videoData) return;
 
     try {
-      setLoading(true)
-      const response = await fetch('/api/vibe-videos', {
-        method: 'POST',
+      setLoading(true);
+      const response = await fetch("/api/vibe-videos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: videoData.title,
@@ -154,57 +164,57 @@ export function VideoVibeCodingManager() {
           published_at: videoData.publishedAt,
           view_count: videoData.views.toString(),
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to add video')
+        throw new Error(result.error || "Failed to add video");
       }
 
       // Refresh current videos list
-      await fetchCurrentVideos()
+      await fetchCurrentVideos();
 
       // Reset form
-      resetForm()
+      resetForm();
 
-      setError(null)
+      setError(null);
       // Show success message (optional)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error adding video to database')
+      setError(err instanceof Error ? err.message : "Error adding video to database");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Handle delete video
   const handleDeleteVideo = async (videoId: string) => {
     try {
       const response = await fetch(`/api/vibe-videos/${videoId}`, {
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete video')
+        throw new Error(result.error || "Failed to delete video");
       }
 
       // Refresh current videos list
-      await fetchCurrentVideos()
-      setVideosError(null)
+      await fetchCurrentVideos();
+      setVideosError(null);
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error deleting video')
+      setVideosError(err instanceof Error ? err.message : "Error deleting video");
     }
-  }
+  };
 
   // Handle update video
   const handleUpdateVideo = async (videoId: string, updateData: Partial<VibeVideoData>) => {
     try {
       const response = await fetch(`/api/vibe-videos/${videoId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: updateData.title,
@@ -214,27 +224,27 @@ export function VideoVibeCodingManager() {
           published_at: updateData.publishedAt,
           view_count: updateData.viewCount,
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update video')
+        throw new Error(result.error || "Failed to update video");
       }
 
       // Refresh current videos list
-      await fetchCurrentVideos()
-      setEditingVideo(null)
-      setEditFormData({})
-      setVideosError(null)
+      await fetchCurrentVideos();
+      setEditingVideo(null);
+      setEditFormData({});
+      setVideosError(null);
     } catch (err) {
-      setVideosError(err instanceof Error ? err.message : 'Error updating video')
+      setVideosError(err instanceof Error ? err.message : "Error updating video");
     }
-  }
+  };
 
   // Handle edit mode
   const startEditing = (video: VibeVideoData) => {
-    setEditingVideo(video)
+    setEditingVideo(video);
     setEditFormData({
       title: video.title,
       description: video.description,
@@ -242,47 +252,47 @@ export function VideoVibeCodingManager() {
       videoId: video.videoId,
       publishedAt: video.publishedAt,
       viewCount: video.viewCount,
-    })
-  }
+    });
+  };
 
   const cancelEditing = () => {
-    setEditingVideo(null)
-    setEditFormData({})
-    setEditYoutubeUrl('')
-    setEditFetching(false)
-    setEditFetchError(null)
-  }
+    setEditingVideo(null);
+    setEditFormData({});
+    setEditYoutubeUrl("");
+    setEditFetching(false);
+    setEditFetchError(null);
+  };
 
   // Handle fetch YouTube data in edit mode
   const handleEditFetchYoutube = async () => {
     if (!editYoutubeUrl.trim()) {
-      setEditFetchError('Masukkan URL YouTube dulu cuy! 🤔')
-      return
+      setEditFetchError("Masukkan URL YouTube dulu cuy! 🤔");
+      return;
     }
 
-    const videoId = extractYouTubeVideoId(editYoutubeUrl)
+    const videoId = extractYouTubeVideoId(editYoutubeUrl);
     if (!videoId) {
-      setEditFetchError('URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅')
-      return
+      setEditFetchError("URL YouTube tidak valid nih. Pastiin format yang benar ya! 😅");
+      return;
     }
 
-    setEditFetching(true)
-    setEditFetchError(null)
+    setEditFetching(true);
+    setEditFetchError(null);
 
     try {
-      const response = await fetch('/api/youtube', {
-        method: 'POST',
+      const response = await fetch("/api/youtube", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ url: editYoutubeUrl }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Gagal fetch data video')
+        throw new Error("Gagal fetch data video");
       }
 
-      const data = await response.json()
+      const data = await response.json();
 
       // Auto-populate form fields with fetched data
       setEditFormData((prev) => ({
@@ -293,15 +303,15 @@ export function VideoVibeCodingManager() {
         videoId: data.videoId,
         publishedAt: data.publishedAt,
         viewCount: data.views.toString(),
-      }))
+      }));
 
-      setEditFetchError(null)
+      setEditFetchError(null);
     } catch (err) {
-      setEditFetchError(err instanceof Error ? err.message : 'Terjadi error nih cuy 😕')
+      setEditFetchError(err instanceof Error ? err.message : "Terjadi error nih cuy 😕");
     } finally {
-      setEditFetching(false)
+      setEditFetching(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -312,18 +322,14 @@ export function VideoVibeCodingManager() {
             <Youtube className="h-5 w-5 text-red-500" />
             Add YouTube Video
           </CardTitle>
-          <CardDescription>Masukkan link YouTube untuk otomatis fetch semua detail video! 🎥</CardDescription>
+          <CardDescription>
+            Masukkan link YouTube untuk otomatis fetch semua detail video! 🎥
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="youtube-url"
-                className="form-label-enhanced"
-              >
+              <Label htmlFor="youtube-url" className="form-label-enhanced">
                 YouTube URL
               </Label>
               <Input
@@ -372,10 +378,7 @@ export function VideoVibeCodingManager() {
           </form>
 
           {error && (
-            <Alert
-              className="mt-4"
-              variant="destructive"
-            >
+            <Alert className="mt-4" variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -408,12 +411,7 @@ export function VideoVibeCodingManager() {
           <CardHeader>
             <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span>Video Preview ✨</span>
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="w-full sm:w-auto"
-              >
+              <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                 <a
                   href={videoData.url}
                   target="_blank"
@@ -448,7 +446,9 @@ export function VideoVibeCodingManager() {
 
               <div>
                 <Label className="text-muted-foreground text-sm font-medium">Description</Label>
-                <p className="text-muted-foreground mt-1 line-clamp-3 text-sm">{videoData.description}</p>
+                <p className="text-muted-foreground mt-1 line-clamp-3 text-sm">
+                  {videoData.description}
+                </p>
               </div>
 
               <div>
@@ -466,10 +466,10 @@ export function VideoVibeCodingManager() {
                 <div className="flex items-center gap-2">
                   <Calendar className="text-muted-foreground h-4 w-4" />
                   <span className="text-sm">
-                    {new Date(videoData.publishedAt).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
+                    {new Date(videoData.publishedAt).toLocaleDateString("id-ID", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </span>
                 </div>
@@ -483,18 +483,14 @@ export function VideoVibeCodingManager() {
 
             {/* Actions */}
             <div className="border-t pt-4">
-              <Button
-                onClick={handleAddToDatabase}
-                disabled={loading}
-                className="w-full"
-              >
+              <Button onClick={handleAddToDatabase} disabled={loading} className="w-full">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Adding to Database...
                   </>
                 ) : (
-                  'Add to Video Vibe Coding Section'
+                  "Add to Video Vibe Coding Section"
                 )}
               </Button>
             </div>
@@ -517,18 +513,21 @@ export function VideoVibeCodingManager() {
               disabled={videosLoading}
               className="w-full shrink-0 sm:w-auto"
             >
-              {videosLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+              {videosLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
               Refresh
             </Button>
           </CardTitle>
-          <CardDescription>Manage video yang tampil di homepage. Total: {currentVideos.length} videos</CardDescription>
+          <CardDescription>
+            Manage video yang tampil di homepage. Total: {currentVideos.length} videos
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {videosError && (
-            <Alert
-              className="mb-4"
-              variant="destructive"
-            >
+            <Alert className="mb-4" variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{videosError}</AlertDescription>
             </Alert>
@@ -609,12 +608,14 @@ export function VideoVibeCodingManager() {
                               )}
                             </Button>
                           </div>
-                          {editFetchError && <p className="text-xs text-red-600">{editFetchError}</p>}
+                          {editFetchError && (
+                            <p className="text-xs text-red-600">{editFetchError}</p>
+                          )}
                         </div>
 
                         {/* Manual Edit Fields */}
                         <Input
-                          value={editFormData.title || ''}
+                          value={editFormData.title || ""}
                           onChange={(e) =>
                             setEditFormData((prev) => ({
                               ...prev,
@@ -625,7 +626,7 @@ export function VideoVibeCodingManager() {
                           placeholder="Video title"
                         />
                         <textarea
-                          value={editFormData.description || ''}
+                          value={editFormData.description || ""}
                           onChange={(e) =>
                             setEditFormData((prev) => ({
                               ...prev,
@@ -637,7 +638,7 @@ export function VideoVibeCodingManager() {
                         />
                         <div className="text-muted-foreground flex flex-col gap-2 text-xs sm:flex-row">
                           <Input
-                            value={editFormData.viewCount || ''}
+                            value={editFormData.viewCount || ""}
                             onChange={(e) =>
                               setEditFormData((prev) => ({
                                 ...prev,
@@ -649,7 +650,7 @@ export function VideoVibeCodingManager() {
                           />
                           <Input
                             type="date"
-                            value={editFormData.publishedAt || ''}
+                            value={editFormData.publishedAt || ""}
                             onChange={(e) =>
                               setEditFormData((prev) => ({
                                 ...prev,
@@ -664,7 +665,9 @@ export function VideoVibeCodingManager() {
                       // View Mode
                       <div className="space-y-1">
                         <h3 className="line-clamp-2 text-sm font-medium">{video.title}</h3>
-                        <p className="text-muted-foreground line-clamp-2 text-xs">{video.description}</p>
+                        <p className="text-muted-foreground line-clamp-2 text-xs">
+                          {video.description}
+                        </p>
                         <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3 shrink-0" />
@@ -672,7 +675,7 @@ export function VideoVibeCodingManager() {
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3 shrink-0" />
-                            {new Date(video.publishedAt).toLocaleDateString('id-ID')}
+                            {new Date(video.publishedAt).toLocaleDateString("id-ID")}
                           </span>
                           <span className="shrink-0">Position: {video.position}</span>
                         </div>
@@ -684,8 +687,8 @@ export function VideoVibeCodingManager() {
                   <div
                     className={
                       editingVideo?.id === video.id
-                        ? 'flex gap-2 sm:shrink-0 sm:flex-col'
-                        : 'flex justify-end gap-2 sm:shrink-0 sm:flex-col sm:justify-start'
+                        ? "flex gap-2 sm:shrink-0 sm:flex-col"
+                        : "flex justify-end gap-2 sm:shrink-0 sm:flex-col sm:justify-start"
                     }
                   >
                     {editingVideo?.id === video.id ? (
@@ -735,7 +738,8 @@ export function VideoVibeCodingManager() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Video</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Yakin mau hapus video "{video.title}"? Action ini tidak bisa di-undo ya cuy!
+                                Yakin mau hapus video "{video.title}"? Action ini tidak bisa di-undo
+                                ya cuy!
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -750,11 +754,7 @@ export function VideoVibeCodingManager() {
                           </AlertDialogContent>
                         </AlertDialog>
 
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          asChild
-                        >
+                        <Button size="sm" variant="outline" asChild>
                           <a
                             href={`https://www.youtube.com/watch?v=${video.videoId}`}
                             target="_blank"
@@ -780,5 +780,5 @@ export function VideoVibeCodingManager() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

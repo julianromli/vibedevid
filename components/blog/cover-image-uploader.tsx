@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useUploadThing } from '@/lib/uploadthing-client'
-import { cn } from '@/lib/utils'
+import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import { cn } from "@/lib/utils";
 
 interface CoverImageUploaderProps {
-  value: string
-  onChange: (value: string) => void
-  isUploading: boolean
-  onUploadStart: () => void
-  onUploadComplete: (url: string) => void
-  onUploadError: (error: Error) => void
-  disabled?: boolean
+  value: string;
+  onChange: (value: string) => void;
+  isUploading: boolean;
+  onUploadStart: () => void;
+  onUploadComplete: (url: string) => void;
+  onUploadError: (error: Error) => void;
+  disabled?: boolean;
 }
 
 function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
   try {
-    const parsed = new URL(rawUrl)
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
     }
-    return { url: parsed.toString(), isHttp: parsed.protocol === 'http:' }
+    return { url: parsed.toString(), isHttp: parsed.protocol === "http:" };
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -37,17 +37,14 @@ function UrlInputSection({
   disabled,
   isUploading,
 }: {
-  value: string
-  onChange: (value: string) => void
-  disabled: boolean
-  isUploading: boolean
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  isUploading: boolean;
 }) {
   return (
     <div className="space-y-2">
-      <Label
-        htmlFor="cover-url"
-        className="flex items-center gap-2 text-sm font-medium"
-      >
+      <Label htmlFor="cover-url" className="flex items-center gap-2 text-sm font-medium">
         <LinkIcon className="h-4 w-4" />
         <span>Or paste image URL</span>
       </Label>
@@ -59,8 +56,8 @@ function UrlInputSection({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled || isUploading}
           className={cn(
-            'pr-10 transition-all duration-200',
-            value && 'ring-primary/20 ring-offset-background ring-2 ring-offset-2',
+            "pr-10 transition-all duration-200",
+            value && "ring-primary/20 ring-offset-background ring-2 ring-offset-2",
           )}
         />
         {value && (
@@ -68,7 +65,7 @@ function UrlInputSection({
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => onChange('')}
+            onClick={() => onChange("")}
             disabled={disabled || isUploading}
             className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
           >
@@ -78,16 +75,22 @@ function UrlInputSection({
       </div>
       <p className="text-muted-foreground text-xs">Paste a direct image link from any URL</p>
     </div>
-  )
+  );
 }
 
-function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFileSelect: (file: File) => void }) {
+function UploadZone({
+  isUploading,
+  onFileSelect,
+}: {
+  isUploading: boolean;
+  onFileSelect: (file: File) => void;
+}) {
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300',
-        'border-border hover:border-primary/50 hover:bg-muted/30',
-        isUploading && 'pointer-events-none opacity-50',
+        "group relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300",
+        "border-border hover:border-primary/50 hover:bg-muted/30",
+        isUploading && "pointer-events-none opacity-50",
       )}
     >
       <div className="bg-grid-pattern pointer-events-none absolute inset-0 opacity-[0.03]" />
@@ -95,11 +98,15 @@ function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFil
       <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
         <div
           className={cn(
-            'relative flex h-14 w-14 items-center justify-center rounded-full transition-all duration-300',
-            'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
+            "relative flex h-14 w-14 items-center justify-center rounded-full transition-all duration-300",
+            "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
           )}
         >
-          {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
+          {isUploading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            <Upload className="h-6 w-6" />
+          )}
         </div>
 
         <div className="space-y-1">
@@ -121,26 +128,34 @@ function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFil
           className="absolute inset-0 cursor-pointer opacity-0"
           disabled={isUploading}
           onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) onFileSelect(file)
+            const file = e.target.files?.[0];
+            if (file) onFileSelect(file);
           }}
         />
       </div>
     </div>
-  )
+  );
 }
 
-function ImagePreview({ src, onClear, isUploading }: { src: string; onClear: () => void; isUploading: boolean }) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [error, setError] = useState(false)
+function ImagePreview({
+  src,
+  onClear,
+  isUploading,
+}: {
+  src: string;
+  onClear: () => void;
+  isUploading: boolean;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   return (
     <div className="group bg-muted/30 relative overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-lg">
       <div className="aspect-[21/9] w-full overflow-hidden">
         <div
           className={cn(
-            'h-full w-full transition-opacity duration-300',
-            isLoaded && !error ? 'opacity-100' : 'opacity-0',
+            "h-full w-full transition-opacity duration-300",
+            isLoaded && !error ? "opacity-100" : "opacity-0",
           )}
         >
           {error ? (
@@ -181,7 +196,7 @@ function ImagePreview({ src, onClear, isUploading }: { src: string; onClear: () 
         <span className="text-xs font-medium text-white">Cover Image</span>
       </div>
     </div>
-  )
+  );
 }
 
 export function CoverImageUploader({
@@ -193,35 +208,35 @@ export function CoverImageUploader({
   onUploadError,
   disabled = false,
 }: CoverImageUploaderProps) {
-  const { startUpload } = useUploadThing('blogImageUploader', {
+  const { startUpload } = useUploadThing("blogImageUploader", {
     onUploadBegin: () => {
-      onUploadStart()
+      onUploadStart();
     },
     onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
       if (url) {
-        onUploadComplete(url)
+        onUploadComplete(url);
       } else {
-        onUploadError(new Error('No URL returned from upload'))
+        onUploadError(new Error("No URL returned from upload"));
       }
     },
     onUploadError: (error) => {
-      onUploadError(error)
+      onUploadError(error);
     },
-  })
+  });
 
   const handleFileSelect = useCallback(
     async (file: File) => {
       try {
-        await startUpload([file])
+        await startUpload([file]);
       } catch (err) {
-        onUploadError(err instanceof Error ? err : new Error('Upload failed'))
+        onUploadError(err instanceof Error ? err : new Error("Upload failed"));
       }
     },
     [startUpload, onUploadError],
-  )
+  );
 
-  const hasImage = value.trim() !== ''
+  const hasImage = value.trim() !== "";
 
   return (
     <div className="space-y-4">
@@ -235,7 +250,7 @@ export function CoverImageUploader({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onChange('')}
+            onClick={() => onChange("")}
             className="text-muted-foreground hover:text-foreground"
           >
             Clear
@@ -245,10 +260,7 @@ export function CoverImageUploader({
 
       {!hasImage ? (
         <div className="space-y-4">
-          <UploadZone
-            isUploading={isUploading}
-            onFileSelect={handleFileSelect}
-          />
+          <UploadZone isUploading={isUploading} onFileSelect={handleFileSelect} />
 
           <UrlInputSection
             value={value}
@@ -257,15 +269,13 @@ export function CoverImageUploader({
             isUploading={isUploading}
           />
 
-          <p className="text-muted-foreground/70 text-xs">Paste an image URL or upload a file (max 4MB).</p>
+          <p className="text-muted-foreground/70 text-xs">
+            Paste an image URL or upload a file (max 4MB).
+          </p>
         </div>
       ) : (
-        <ImagePreview
-          src={value}
-          onClear={() => onChange('')}
-          isUploading={isUploading}
-        />
+        <ImagePreview src={value} onClear={() => onChange("")} isUploading={isUploading} />
       )}
     </div>
-  )
+  );
 }

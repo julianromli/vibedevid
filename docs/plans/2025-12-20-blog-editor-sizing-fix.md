@@ -50,7 +50,7 @@ return (
       <EditorContent editor={editor} />
     </div>
   </div>
-)
+);
 ```
 
 **Step 3: Fix the Tiptap editorProps class attribute**
@@ -82,15 +82,14 @@ Minimal safe approach:
 
 ```ts
 const safeContent = useMemo(() => {
-  if (content && typeof content === 'object' && (content as any).type)
-    return content
-  return { type: 'doc', content: [] }
-}, [content])
+  if (content && typeof content === "object" && (content as any).type) return content;
+  return { type: "doc", content: [] };
+}, [content]);
 
 const editor = useEditor({
   // ...
   content: safeContent,
-})
+});
 ```
 
 **Step 5: Keep editor content in sync (optional but recommended)**
@@ -99,12 +98,12 @@ Tiptap doesn’t automatically re-apply external `content` updates. Add an effec
 
 ```ts
 useEffect(() => {
-  if (!editor) return
-  const current = editor.getJSON()
+  if (!editor) return;
+  const current = editor.getJSON();
   if (JSON.stringify(current) !== JSON.stringify(safeContent)) {
-    editor.commands.setContent(safeContent, { emitUpdate: false })
+    editor.commands.setContent(safeContent, { emitUpdate: false });
   }
-}, [editor, safeContent])
+}, [editor, safeContent]);
 ```
 
 **Step 6: Fix the ref typing so `setContent` is available**

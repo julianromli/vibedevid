@@ -17,89 +17,72 @@
  * Comment author information
  */
 export interface CommentAuthor {
-  id: string
-  displayName: string
-  avatarUrl: string | null
-  role: number | null
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  role: number | null;
 }
 
 /**
  * Unified Comment type for display
  */
 export interface Comment {
-  id: string
-  content: string
-  createdAt: string
-  author: CommentAuthor | null
-  isGuest: boolean
-}
-
-/**
- * Raw comment data from Supabase API
- */
-export interface CommentApiResponse {
-  id: string
-  content: string
-  created_at: string
-  user_id: string | null
-  author_name: string | null
-  user: {
-    id: string
-    display_name: string
-    avatar_url: string | null
-    role: number | null
-  } | null
+  id: string;
+  content: string;
+  createdAt: string;
+  author: CommentAuthor | null;
+  isGuest: boolean;
 }
 
 /**
  * Entity type for comments (blog post or project)
  */
-export type CommentEntityType = 'post' | 'project'
+export type CommentEntityType = "post" | "project";
 
 /**
  * Props for unified CommentSection component
  */
 export interface CommentSectionProps {
   /** Entity type: 'post' for blog, 'project' for projects */
-  entityType: CommentEntityType
+  entityType: CommentEntityType;
   /** Entity ID (post_id or project_id) */
-  entityId: string
+  entityId: string;
   /** Pre-fetched comments from server */
-  initialComments: Comment[]
+  initialComments: Comment[];
   /** Whether user is logged in */
-  isLoggedIn: boolean
+  isLoggedIn: boolean;
   /** Current user info (optional) */
   currentUser?: {
-    id: string
-    name: string
-    avatar?: string
-  } | null
+    id: string;
+    name: string;
+    avatar?: string;
+  } | null;
   /** Allow guest comments (default: false) */
-  allowGuest?: boolean
+  allowGuest?: boolean;
 }
 
 /**
  * Input for creating a comment
  */
 export interface CreateCommentInput {
-  entityType: CommentEntityType
-  entityId: string
-  content: string
-  guestName?: string
+  entityType: CommentEntityType;
+  entityId: string;
+  content: string;
+  guestName?: string;
 }
 
 /**
  * Result from comment operations
  */
 export interface CommentResult {
-  success: boolean
-  error?: string
+  success: boolean;
+  error?: string;
 }
 
 /**
  * Result from fetching comments
  */
 export interface GetCommentsResult {
-  comments: Comment[]
-  error?: string
+  comments: Comment[];
+  error?: string;
 }

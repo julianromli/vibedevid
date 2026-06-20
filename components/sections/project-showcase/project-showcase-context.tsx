@@ -8,38 +8,38 @@
  * from context instead of props.
  */
 
-'use client'
+"use client";
 
-import { createContext, use, useMemo } from 'react'
-import { useProjectFilters } from '@/hooks/useProjectFilters'
-import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
+import { createContext, use, useMemo } from "react";
+import { useProjectFilters } from "@/hooks/useProjectFilters";
+import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 
 interface ProjectShowcaseState {
-  projects: Project[]
-  loading: boolean
-  selectedFilter: string
-  selectedTrending: SortBy
-  filterOptions: ProjectFilterOption[]
+  projects: Project[];
+  loading: boolean;
+  selectedFilter: string;
+  selectedTrending: SortBy;
+  filterOptions: ProjectFilterOption[];
 }
 
 interface ProjectShowcaseActions {
-  setSelectedFilter: (filter: string) => void
-  setSelectedTrending: (trending: SortBy) => void
+  setSelectedFilter: (filter: string) => void;
+  setSelectedTrending: (trending: SortBy) => void;
 }
 
 interface ProjectShowcaseContextValue {
-  state: ProjectShowcaseState
-  actions: ProjectShowcaseActions
+  state: ProjectShowcaseState;
+  actions: ProjectShowcaseActions;
 }
 
-const ProjectShowcaseContext = createContext<ProjectShowcaseContextValue | null>(null)
+const ProjectShowcaseContext = createContext<ProjectShowcaseContextValue | null>(null);
 
 interface ProjectShowcaseProviderProps {
-  children: React.ReactNode
-  initialProjects: Project[]
-  initialCategories: ProjectFilterOption[]
-  initialFilter: string
-  initialSort: SortBy
+  children: React.ReactNode;
+  initialProjects: Project[];
+  initialCategories: ProjectFilterOption[];
+  initialFilter: string;
+  initialSort: SortBy;
 }
 
 export function ProjectShowcaseProvider({
@@ -55,7 +55,7 @@ export function ProjectShowcaseProvider({
     initialCategories,
     initialFilter,
     initialSort,
-  })
+  });
 
   const value = useMemo<ProjectShowcaseContextValue>(
     () => ({
@@ -80,15 +80,15 @@ export function ProjectShowcaseProvider({
       projectFilters.setSelectedFilter,
       projectFilters.setSelectedTrending,
     ],
-  )
+  );
 
-  return <ProjectShowcaseContext value={value}>{children}</ProjectShowcaseContext>
+  return <ProjectShowcaseContext value={value}>{children}</ProjectShowcaseContext>;
 }
 
 export function useProjectShowcase(): ProjectShowcaseContextValue {
-  const context = use(ProjectShowcaseContext)
+  const context = use(ProjectShowcaseContext);
   if (!context) {
-    throw new Error('useProjectShowcase must be used within a ProjectShowcaseProvider')
+    throw new Error("useProjectShowcase must be used within a ProjectShowcaseProvider");
   }
-  return context
+  return context;
 }

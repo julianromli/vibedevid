@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { generateText } from 'ai'
-import { getAIModel } from '@/lib/ai/openrouter'
+import { createFileRoute } from "@tanstack/react-router";
+import { generateText } from "ai";
+import { getAIModel } from "@/lib/ai/openrouter";
 
 interface EnhanceRequest {
-  description: string
-  title?: string
-  tagline?: string
-  tags?: string[]
+  description: string;
+  title?: string;
+  tagline?: string;
+  tags?: string[];
 }
 
 const SYSTEM_PROMPT = `Kamu adalah AI writer untuk VibeDev Indonesia community - komunitas developer Indonesia.
@@ -36,59 +36,65 @@ FORMAT OUTPUT (contoh):
 💻 Tech Stack:
 [List teknologi yang digunakan]
 
-[Closing statement singkat - untuk siapa project ini cocok]`
+[Closing statement singkat - untuk siapa project ini cocok]`;
 
-export const Route = createFileRoute('/api/ai/enhance-description')({
+export const Route = createFileRoute("/api/ai/enhance-description")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body: EnhanceRequest = await request.json()
-          const { description, title, tagline, tags } = body
+          const body: EnhanceRequest = await request.json();
+          const { description, title, tagline, tags } = body;
 
           if (!description?.trim() && !title?.trim()) {
-            return Response.json({ error: 'Minimal harus ada title atau description' }, { status: 400 })
+            return Response.json(
+              { error: "Minimal harus ada title atau description" },
+              { status: 400 },
+            );
           }
 
-          const contextParts: string[] = []
-          if (title?.trim()) contextParts.push(`Title: ${title.trim()}`)
-          if (tagline?.trim()) contextParts.push(`Tagline: ${tagline.trim()}`)
-          if (tags?.length) contextParts.push(`Tech Stack/Tags: ${tags.join(', ')}`)
+          const contextParts: string[] = [];
+          if (title?.trim()) contextParts.push(`Title: ${title.trim()}`);
+          if (tagline?.trim()) contextParts.push(`Tagline: ${tagline.trim()}`);
+          if (tags?.length) contextParts.push(`Tech Stack/Tags: ${tags.join(", ")}`);
 
-          let userPrompt: string
+          let userPrompt: string;
           if (description?.trim()) {
-            userPrompt = `${contextParts.join('\n')}
+            userPrompt = `${contextParts.join("\n")}
 
 Description (tolong rapikan dan enhance):
-${description.trim()}`
+${description.trim()}`;
           } else {
-            userPrompt = `${contextParts.join('\n')}
+            userPrompt = `${contextParts.join("\n")}
 
-Tolong buatkan description yang menarik untuk project ini berdasarkan informasi di atas.`
+Tolong buatkan description yang menarik untuk project ini berdasarkan informasi di atas.`;
           }
 
           const result = await generateText({
             model: getAIModel(),
             messages: [
-              { role: 'system', content: SYSTEM_PROMPT },
-              { role: 'user', content: userPrompt },
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: userPrompt },
             ],
             temperature: 0.7,
             maxOutputTokens: 2500,
-          })
+          });
 
-          const enhancedDescription = result.text?.trim() || ''
+          const enhancedDescription = result.text?.trim() || "";
 
           if (!enhancedDescription) {
-            return Response.json({ error: 'AI tidak menghasilkan output' }, { status: 500 })
+            return Response.json({ error: "AI tidak menghasilkan output" }, { status: 500 });
           }
 
-          return Response.json({ description: enhancedDescription })
+          return Response.json({ description: enhancedDescription });
         } catch (error) {
-          console.error('AI enhance description error:', error)
-          return Response.json({ error: 'Gagal generate description. Coba lagi.' }, { status: 500 })
+          console.error("AI enhance description error:", error);
+          return Response.json(
+            { error: "Gagal generate description. Coba lagi." },
+            { status: 500 },
+          );
         }
       },
     },
   },
-})
+});

@@ -1,127 +1,136 @@
-'use client'
+"use client";
 
-import { useRouter } from '@/lib/navigation'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
-import { BlogGuideModal } from '@/components/blog/blog-guide-modal'
-import { CoverImageUploader } from '@/components/blog/cover-image-uploader'
-import { PreviewDialog } from '@/components/blog/preview-dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import MultipleSelector, { type Option } from '@/components/ui/multiselect'
-import { Navbar } from '@/components/ui/navbar'
-import { createBlogPost, getTags, updateBlogPost } from '@/lib/actions/blog'
-import type { User } from '@/types/homepage'
+import { useRouter } from "@/lib/navigation";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { BlogGuideModal } from "@/components/blog/blog-guide-modal";
+import { CoverImageUploader } from "@/components/blog/cover-image-uploader";
+import { PreviewDialog } from "@/components/blog/preview-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import MultipleSelector, { type Option } from "@/components/ui/multiselect";
+import { Navbar } from "@/components/ui/navbar";
+import { createBlogPostFn, getTagsFn, updateBlogPostFn } from "@/lib/actions/blog.functions";
+import type { User } from "@/types/homepage";
 
 const NovelEditor = lazy(() =>
-  import('@/components/blog/novel-editor').then((mod) => ({
+  import("@/components/blog/novel-editor").then((mod) => ({
     default: mod.NovelEditor,
   })),
-)
+);
 
 function EditorSkeleton() {
   return (
     <div className="flex min-h-[400px] items-center justify-center overflow-hidden rounded-lg border bg-card">
       <div className="text-muted-foreground">Loading editor...</div>
     </div>
-  )
+  );
 }
 
 interface EditorRef {
-  getContent: () => Record<string, any>
-  setContent: (content: Record<string, any>) => void
+  getContent: () => Record<string, any>;
+  setContent: (content: Record<string, any>) => void;
 }
 
 interface BlogEditorClientProps {
-  user: User
-  initialData?: any
-  mode?: 'create' | 'edit'
+  user: User;
+  initialData?: any;
+  mode?: "create" | "edit";
 }
 
 function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
   try {
-    const parsed = new URL(rawUrl)
+    const parsed = new URL(rawUrl);
 
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
     }
 
-    return { url: parsed.toString(), isHttp: parsed.protocol === 'http:' }
+    return { url: parsed.toString(), isHttp: parsed.protocol === "http:" };
   } catch {
-    return null
+    return null;
   }
 }
 
-export default function BlogEditorClient({ user, initialData, mode = 'create' }: BlogEditorClientProps) {
-  const router = useRouter()
-  const [title, setTitle] = useState(initialData?.title || '')
-  const [excerpt, setExcerpt] = useState(initialData?.excerpt || '')
-  const [coverImage, setCoverImage] = useState(initialData?.cover_image || '')
-  const [isUploadingCover, setIsUploadingCover] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const editorRef = useRef<EditorRef>(null)
+export default function BlogEditorClient({
+  user,
+  initialData,
+  mode = "create",
+}: BlogEditorClientProps) {
+  const router = useRouter();
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
+  const [coverImage, setCoverImage] = useState(initialData?.cover_image || "");
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const editorRef = useRef<EditorRef>(null);
 
   // Tags state
   const [selectedTags, setSelectedTags] = useState<Option[]>(
     initialData?.tags?.map((t: string) => ({ label: t, value: t })) || [],
-  )
+  );
 
   // Memoize content for preview
-  const [currentContent, setCurrentContent] = useState<any>(initialData?.content || { type: 'doc', content: [] })
+  const [currentContent, setCurrentContent] = useState<any>(
+    initialData?.content || { type: "doc", content: [] },
+  );
 
   const initialEditorContent = useMemo(
-    () => initialData?.content || ({ type: 'doc', content: [] } as Record<string, any>),
+    () => initialData?.content || ({ type: "doc", content: [] } as Record<string, any>),
     [initialData],
-  )
+  );
 
   useEffect(() => {
-    console.log('[BlogEditorClient] User authenticated:', user.id)
-  }, [user])
+    console.log("[BlogEditorClient] User authenticated:", user.id);
+  }, [user]);
 
   const handleSave = useCallback(
-    async (status: 'published' | 'draft') => {
+    async (status: "published" | "draft") => {
       if (!title.trim()) {
-        toast.error('Please add a title')
-        return
+        toast.error("Please add a title");
+        return;
       }
 
       if (isUploadingCover) {
-        toast.error('Please wait for cover upload to finish')
-        return
+        toast.error("Please wait for cover upload to finish");
+        return;
       }
 
-      const trimmedCoverImage = coverImage.trim()
-      const parsedCoverImageUrl = trimmedCoverImage ? parseHttpOrHttpsUrl(trimmedCoverImage) : null
+      const trimmedCoverImage = coverImage.trim();
+      const parsedCoverImageUrl = trimmedCoverImage ? parseHttpOrHttpsUrl(trimmedCoverImage) : null;
 
       if (trimmedCoverImage && !parsedCoverImageUrl) {
-        toast.error('Cover image URL must be http(s)')
-        return
+        toast.error("Cover image URL must be http(s)");
+        return;
       }
 
       if (parsedCoverImageUrl?.isHttp) {
-        toast.info('Cover image uses http:// and may fail to load on HTTPS')
+        toast.info("Cover image uses http:// and may fail to load on HTTPS");
       }
 
       const editorContent = editorRef.current?.getContent() ?? {
-        type: 'doc',
+        type: "doc",
         content: [],
-      }
+      };
 
       // Log content before saving for debugging
-      console.log('[BlogEditorClient] Content before save:', JSON.stringify(editorContent, null, 2))
+      console.log(
+        "[BlogEditorClient] Content before save:",
+        JSON.stringify(editorContent, null, 2),
+      );
 
-      const contentJson = JSON.stringify(editorContent)
-      const minLength = status === 'draft' ? 10 : 100
+      const contentJson = JSON.stringify(editorContent);
+      const minLength = status === "draft" ? 10 : 100;
       if (contentJson.length < minLength) {
-        toast.error('Content is too short')
-        return
+        toast.error("Content is too short");
+        return;
       }
 
-      setSaving(true)
+      setSaving(true);
 
       try {
-        let result: any
+        let result: any;
         const postData = {
           title: title.trim(),
           excerpt: excerpt.trim() || undefined,
@@ -129,63 +138,62 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
           cover_image: parsedCoverImageUrl?.url || undefined,
           status,
           tags: selectedTags.map((t) => t.label),
-        }
+        };
 
-        if (mode === 'edit' && initialData?.id) {
-          result = await updateBlogPost(initialData.id, postData as any)
+        if (mode === "edit" && initialData?.id) {
+          result = await updateBlogPostFn({
+            data: { id: initialData.id, data: postData },
+          });
         } else {
-          result = await createBlogPost(postData)
+          result = await createBlogPostFn({ data: postData });
         }
 
         if (result.success) {
-          toast.success(status === 'published' ? 'Post published!' : 'Draft saved!')
+          toast.success(status === "published" ? "Post published!" : "Draft saved!");
 
-          const finalSlug = result.slug || initialData?.slug
-          console.log('[BlogEditor] Redirecting with slug:', finalSlug)
+          const finalSlug = result.slug || initialData?.slug;
+          console.log("[BlogEditor] Redirecting with slug:", finalSlug);
 
-          if (mode === 'create') {
-            if (status === 'published') {
-              router.navigate({ to: `/blog/${finalSlug}` })
+          if (mode === "create") {
+            if (status === "published") {
+              router.navigate({ to: `/blog/${finalSlug}` });
             } else {
-              router.navigate({ to: '/dashboard/posts' })
+              router.navigate({ to: "/dashboard/posts" });
             }
           } else {
-            if (status === 'published') {
-              router.navigate({ to: `/blog/${finalSlug}` })
+            if (status === "published") {
+              router.navigate({ to: `/blog/${finalSlug}` });
             }
           }
         } else {
-          toast.error(result.error ?? 'Failed to save')
+          toast.error(result.error ?? "Failed to save");
         }
       } catch (_error) {
-        toast.error('Something went wrong')
+        toast.error("Something went wrong");
       } finally {
-        setSaving(false)
+        setSaving(false);
       }
     },
     [title, excerpt, coverImage, isUploadingCover, router, mode, initialData, selectedTags],
-  )
+  );
 
   const handleEditorChange = useCallback((json: Record<string, any>) => {
-    setCurrentContent(json)
-  }, [])
+    setCurrentContent(json);
+  }, []);
 
   const handleTagSearch = async (query: string): Promise<Option[]> => {
-    const tags = await getTags(query)
-    return tags.map((t) => ({ label: t.name, value: t.name }))
-  }
+    const tags = await getTagsFn({ data: { query } });
+    return tags.map((t) => ({ label: t.name, value: t.name }));
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar
-        isLoggedIn={true}
-        user={user}
-      />
+      <Navbar isLoggedIn={true} user={user} />
 
       <main className="py-12">
         <div className="mx-auto max-w-4xl px-4">
           <div className="mb-8 flex items-center justify-between">
-            <h1 className="font-bold text-3xl">{mode === 'edit' ? 'Edit Post' : 'Write a Post'}</h1>
+            <h1 className="font-bold text-3xl">{mode === "edit" ? "Edit Post" : "Write a Post"}</h1>
             <div className="flex gap-3">
               <PreviewDialog
                 post={{
@@ -201,24 +209,18 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
               />
               <Button
                 variant="outline"
-                onClick={() => handleSave('draft')}
+                onClick={() => handleSave("draft")}
                 disabled={saving || isUploadingCover}
               >
-                {saving ? 'Saving...' : 'Save Draft'}
+                {saving ? "Saving..." : "Save Draft"}
               </Button>
-              <Button
-                onClick={() => handleSave('published')}
-                disabled={saving || isUploadingCover}
-              >
-                {saving ? 'Publishing...' : 'Publish'}
+              <Button onClick={() => handleSave("published")} disabled={saving || isUploadingCover}>
+                {saving ? "Publishing..." : "Publish"}
               </Button>
             </div>
           </div>
 
-          <div
-            className="space-y-6"
-            data-editor
-          >
+          <div className="space-y-6" data-editor>
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -248,7 +250,9 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
                 onSearch={handleTagSearch}
                 placeholder="Add tags..."
                 creatable
-                emptyIndicator={<p className="text-center text-muted-foreground text-sm">No tags found.</p>}
+                emptyIndicator={
+                  <p className="text-center text-muted-foreground text-sm">No tags found.</p>
+                }
               />
             </div>
 
@@ -258,13 +262,13 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
               isUploading={isUploadingCover}
               onUploadStart={() => setIsUploadingCover(true)}
               onUploadComplete={(url) => {
-                setIsUploadingCover(false)
-                setCoverImage(url)
-                toast.success('Cover image uploaded')
+                setIsUploadingCover(false);
+                setCoverImage(url);
+                toast.success("Cover image uploaded");
               }}
               onUploadError={(error: Error) => {
-                setIsUploadingCover(false)
-                toast.error(`Upload failed: ${error.message}`)
+                setIsUploadingCover(false);
+                toast.error(`Upload failed: ${error.message}`);
               }}
               disabled={saving}
             />
@@ -284,5 +288,5 @@ export default function BlogEditorClient({ user, initialData, mode = 'create' }:
       </main>
       <BlogGuideModal />
     </div>
-  )
+  );
 }

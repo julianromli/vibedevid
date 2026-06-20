@@ -1,24 +1,21 @@
-'use client'
+"use client";
 
-import { IconCaretDownFilled, IconCaretUpFilled, IconInfoCircle } from '@tabler/icons-react'
-import { Line, LineChart } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import { type Dashboard2Stats, dashboard2Stats } from '../data/data'
+import { IconCaretDownFilled, IconCaretUpFilled, IconInfoCircle } from "@tabler/icons-react";
+import { Line, LineChart } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { type Dashboard2Stats, dashboard2Stats } from "../data/data";
 
 export default function Stats() {
   return (
     <>
       {dashboard2Stats.map((stats) => (
-        <StatsCard
-          key={stats.label}
-          {...stats}
-        />
+        <StatsCard key={stats.label} {...stats} />
       ))}
     </>
-  )
+  );
 }
 
 function StatsCard({
@@ -33,10 +30,10 @@ function StatsCard({
 }: Dashboard2Stats) {
   const chartConfig = {
     month: {
-      label: 'month',
+      label: "month",
       color: strokeColor,
     },
-  } satisfies ChartConfig
+  } satisfies ChartConfig;
 
   return (
     <Card className="col-span-3 h-full lg:col-span-2 xl:col-span-2">
@@ -60,15 +57,9 @@ function StatsCard({
       <CardContent className="flex h-[calc(100%_-_48px)] flex-col justify-between py-4">
         <div className="flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className="text-3xl font-bold">{stats.toLocaleString('en-US')}</div>
-            <ChartContainer
-              className="w-[70px]"
-              config={chartConfig}
-            >
-              <LineChart
-                accessibilityLayer
-                data={chartData}
-              >
+            <div className="text-3xl font-bold">{stats.toLocaleString("en-US")}</div>
+            <ChartContainer className="w-[70px]" config={chartConfig}>
+              <LineChart accessibilityLayer data={chartData}>
                 <Line
                   dataKey="value"
                   type="linear"
@@ -85,16 +76,18 @@ function StatsCard({
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div className="text-sm font-semibold">Details</div>
           <div
-            className={cn('flex items-center gap-1', {
-              'text-emerald-500 dark:text-emerald-400': type === 'up',
-              'text-red-500 dark:text-red-400': type === 'down',
+            className={cn("flex items-center gap-1", {
+              "text-emerald-500 dark:text-emerald-400": type === "up",
+              "text-red-500 dark:text-red-400": type === "down",
             })}
           >
-            <p className={'text-[13px] leading-none font-medium'}>{percentage.toLocaleString('en-US')}%</p>
-            {type === 'up' ? <IconCaretUpFilled size={18} /> : <IconCaretDownFilled />}
+            <p className={"text-[13px] leading-none font-medium"}>
+              {percentage.toLocaleString("en-US")}%
+            </p>
+            {type === "up" ? <IconCaretUpFilled size={18} /> : <IconCaretDownFilled />}
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

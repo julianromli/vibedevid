@@ -1,56 +1,56 @@
-'use client'
+"use client";
 
-import { useEffect, useRef } from 'react'
-import { incrementBlogPostViewsFn } from '@/lib/actions/projects.functions'
+import { useEffect, useRef } from "react";
+import { incrementBlogPostViewsFn } from "@/lib/actions/projects.functions";
 
 interface BlogViewTrackerProps {
-  postId: string
+  postId: string;
 }
 
 function generateSessionId(): string {
   // Generate a unique session ID for view tracking
-  const timestamp = Date.now().toString(36)
-  const randomPart = Math.random().toString(36).substring(2, 10)
-  return `blog-${timestamp}-${randomPart}`
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 10);
+  return `blog-${timestamp}-${randomPart}`;
 }
 
 function getOrCreateSessionId(): string {
-  if (typeof window === 'undefined') return ''
+  if (typeof window === "undefined") return "";
 
-  const storageKey = 'vibedev-blog-session-id'
-  let sessionId = sessionStorage.getItem(storageKey)
+  const storageKey = "vibedev-blog-session-id";
+  let sessionId = sessionStorage.getItem(storageKey);
 
   if (!sessionId) {
-    sessionId = generateSessionId()
-    sessionStorage.setItem(storageKey, sessionId)
+    sessionId = generateSessionId();
+    sessionStorage.setItem(storageKey, sessionId);
   }
 
-  return sessionId
+  return sessionId;
 }
 
 export function BlogViewTracker({ postId }: BlogViewTrackerProps) {
-  const hasTracked = useRef(false)
+  const hasTracked = useRef(false);
 
   useEffect(() => {
     // Prevent double tracking in development (StrictMode)
-    if (hasTracked.current) return
-    hasTracked.current = true
+    if (hasTracked.current) return;
+    hasTracked.current = true;
 
     const trackView = async () => {
       try {
-        const sessionId = getOrCreateSessionId()
-        await incrementBlogPostViewsFn({ data: { postId, sessionId } })
+        const sessionId = getOrCreateSessionId();
+        await incrementBlogPostViewsFn({ data: { postId, sessionId } });
       } catch (error) {
-        console.error('[BlogViewTracker] Failed to track view:', error)
+        console.error("[BlogViewTracker] Failed to track view:", error);
       }
-    }
+    };
 
     // Small delay to ensure page is loaded
-    const timeoutId = setTimeout(trackView, 500)
+    const timeoutId = setTimeout(trackView, 500);
 
-    return () => clearTimeout(timeoutId)
-  }, [postId])
+    return () => clearTimeout(timeoutId);
+  }, [postId]);
 
   // This component doesn't render anything
-  return null
+  return null;
 }

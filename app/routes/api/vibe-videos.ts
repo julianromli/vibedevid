@@ -1,29 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { asc, eq, max } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { vibeVideos } from "@/lib/db/schema";
+import { requireAdminOrModeratorUser } from "@/lib/server/auth";
 
-function transformVideo(video: {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  video_id: string;
-  published_at: string;
-  view_count: string;
-  position: number;
-  created_at: string;
-  updated_at: string;
-}) {
+function transformVideo(video: typeof vibeVideos.$inferSelect) {
   return {
     id: video.id,
     title: video.title,
     description: video.description,
     thumbnail: video.thumbnail,
-    videoId: video.video_id,
-    publishedAt: video.published_at,
-    viewCount: video.view_count,
+    videoId: video.videoId,
+    publishedAt: video.publishedAt,
+    viewCount: video.viewCount,
     position: video.position,
-    createdAt: video.created_at,
-    updatedAt: video.updated_at,
+    createdAt: video.createdAt.toISOString(),
+    updatedAt: video.updatedAt.toISOString(),
   };
 }
 
@@ -32,25 +24,16 @@ export const Route = createFileRoute("/api/vibe-videos")({
     handlers: {
       GET: async () => {
         try {
-          const supabase = await createAdminClient();
+          await requireAdminOrModeratorUser();
+          const db = getDb();
 
-          const { data: videos, error } = await supabase
-            .from("vibe_videos")
-            .select("*")
-            .order("position", { ascending: true });
+          const videos = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position));
 
-          if (error) {
-            console.error("Database error:", error);
-            return Response.json(
-              { error: "Failed to fetch videos from database" },
-              { status: 500 },
-            );
-          }
-
-          const transformedVideos = videos?.map(transformVideo) || [];
-
-          return Response.json({ videos: transformedVideos });
+          return Response.json({ videos: videos.map(transformVideo) });
         } catch (error) {
+          if (error instanceof Error && error.message.startsWith("Unauthorized")) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+          }
           console.error("API Error:", error);
           return Response.json(
             { error: "Terjadi error saat mengambil data video cuy!" },
@@ -61,6 +44,7 @@ export const Route = createFileRoute("/api/vibe-videos")({
 
       POST: async ({ request }) => {
         try {
+          await requireAdminOrModeratorUser();
           const body = await request.json();
           const { title, description, thumbnail, video_id, published_at, view_count } = body;
 
@@ -74,42 +58,26 @@ export const Route = createFileRoute("/api/vibe-videos")({
             );
           }
 
-          const supabase = await createAdminClient();
+          const db = getDb();
 
-          const { data: maxPositionData } = await supabase
-            .from("vibe_videos")
-            .select("position")
-            .order("position", { ascending: false })
-            .limit(1)
-            .single();
+          const [maxPositionResult] = await db
+            .select({ maxPosition: max(vibeVideos.position) })
+            .from(vibeVideos);
 
-          const nextPosition = maxPositionData ? maxPositionData.position + 1 : 1;
+          const nextPosition = (maxPositionResult?.maxPosition ?? 0) + 1;
 
-          const { data: newVideo, error } = await supabase
-            .from("vibe_videos")
-            .insert({
+          const [newVideo] = await db
+            .insert(vibeVideos)
+            .values({
               title,
               description,
               thumbnail,
-              video_id,
-              published_at,
-              view_count: view_count || "0",
+              videoId: video_id,
+              publishedAt: published_at,
+              viewCount: view_count || "0",
               position: nextPosition,
             })
-            .select()
-            .single();
-
-          if (error) {
-            if (error.code === "23505") {
-              return Response.json(
-                { error: "Video dengan ID ini sudah ada dalam database" },
-                { status: 409 },
-              );
-            }
-
-            console.error("Database error:", error);
-            return Response.json({ error: "Gagal menambahkan video ke database" }, { status: 500 });
-          }
+            .returning();
 
           return Response.json(
             {
@@ -119,6 +87,17 @@ export const Route = createFileRoute("/api/vibe-videos")({
             { status: 201 },
           );
         } catch (error) {
+          if (error instanceof Error) {
+            if (error.message.startsWith("Unauthorized")) {
+              return Response.json({ error: "Unauthorized" }, { status: 401 });
+            }
+            if (error.message.includes("unique") || error.message.includes("duplicate")) {
+              return Response.json(
+                { error: "Video dengan ID ini sudah ada dalam database" },
+                { status: 409 },
+              );
+            }
+          }
           console.error("API Error:", error);
           return Response.json(
             { error: "Terjadi error saat menambahkan video cuy!" },

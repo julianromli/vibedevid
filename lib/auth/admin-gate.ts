@@ -1,22 +1,23 @@
 import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getCurrentUser } from "@/lib/actions/user";
+import { USER_ROLE } from "@/lib/auth/permissions";
+import { getCurrentUser } from "@/lib/server/auth";
 
 export const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
+  ADMIN: USER_ROLE.ADMIN,
+  MODERATOR: USER_ROLE.MODERATOR,
+  USER: USER_ROLE.USER,
 } as const;
 
 /**
  * Server-only admin gate. Wrapped in `createServerFn` so the server-only
- * Supabase client never executes (or gets bundled) on the client when
+ * auth helpers never execute (or get bundled) on the client when
  * `beforeLoad` re-runs during client-side navigation.
  */
 export const resolveAdminUser = createServerFn({ method: "GET" }).handler(async () => {
-  const { user, error } = await getCurrentUser();
+  const user = await getCurrentUser();
 
-  if (error || !user) {
+  if (!user) {
     throw redirect({ to: "/user/auth" });
   }
 

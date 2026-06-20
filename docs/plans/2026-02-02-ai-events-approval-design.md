@@ -28,26 +28,27 @@ Implementasi sistem approval untuk AI Events yang memungkinkan admin melihat, me
 
 **Table:** `events` (existing)
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid | Primary key |
-| `slug` | text | URL-friendly identifier |
-| `name` | text | Event name |
-| `description` | text | Event description |
-| `date` | date | Event date |
-| `time` | text | Event time |
-| `location_type` | text | online/offline/hybrid |
-| `location_detail` | text | Location details |
-| `organizer` | text | Event organizer |
-| `registration_url` | text | Registration link |
-| `cover_image` | text | Cover image URL |
-| `category` | text | Event category |
-| `status` | text | upcoming/ongoing/past |
-| `approved` | boolean | Approval status (false = pending) |
-| `submitted_by` | uuid | User who submitted the event |
-| `created_at` | timestamp | Submission timestamp |
+| Column             | Type      | Description                       |
+| ------------------ | --------- | --------------------------------- |
+| `id`               | uuid      | Primary key                       |
+| `slug`             | text      | URL-friendly identifier           |
+| `name`             | text      | Event name                        |
+| `description`      | text      | Event description                 |
+| `date`             | date      | Event date                        |
+| `time`             | text      | Event time                        |
+| `location_type`    | text      | online/offline/hybrid             |
+| `location_detail`  | text      | Location details                  |
+| `organizer`        | text      | Event organizer                   |
+| `registration_url` | text      | Registration link                 |
+| `cover_image`      | text      | Cover image URL                   |
+| `category`         | text      | Event category                    |
+| `status`           | text      | upcoming/ongoing/past             |
+| `approved`         | boolean   | Approval status (false = pending) |
+| `submitted_by`     | uuid      | User who submitted the event      |
+| `created_at`       | timestamp | Submission timestamp              |
 
 **Indexes Added:**
+
 ```sql
 -- Partial index for pending events (critical for approval dashboard)
 CREATE INDEX idx_events_pending_created ON events (created_at DESC) WHERE approved = false;
@@ -56,7 +57,7 @@ CREATE INDEX idx_events_pending_created ON events (created_at DESC) WHERE approv
 CREATE INDEX idx_events_submitted_by ON events (submitted_by);
 
 -- Covering index for public event listings
-CREATE INDEX idx_events_approved_category_date ON events (approved, category, date) 
+CREATE INDEX idx_events_approved_category_date ON events (approved, category, date)
   INCLUDE (name, slug, location_type, cover_image, status);
 
 -- Partial index for chronological listings
@@ -76,12 +77,13 @@ CREATE INDEX idx_events_approved_date ON events (date ASC) WHERE approved = true
 **Authentication:** Requires admin role (user_metadata.role === 0)
 
 **Query:**
+
 ```typescript
 const { data, error } = await supabase
-  .from('events')
-  .select('*, users:submitted_by(display_name, email)')
-  .eq('approved', false)
-  .order('created_at', { ascending: false })
+  .from("events")
+  .select("*, users:submitted_by(display_name, email)")
+  .eq("approved", false)
+  .order("created_at", { ascending: false });
 ```
 
 **Returns:** `{ events: AIEvent[], error?: string }`
@@ -95,6 +97,7 @@ const { data, error } = await supabase
 **Authentication:** Requires admin role
 
 **Logic:**
+
 1. Verify admin status
 2. Update `approved = true` where `id = eventId`
 3. Revalidate paths: `/dashboard`, `/event/list`
@@ -110,6 +113,7 @@ const { data, error } = await supabase
 **Authentication:** Requires admin role
 
 **Logic:**
+
 1. Verify admin status
 2. Delete event where `id = eventId`
 3. Revalidate path: `/dashboard`
@@ -138,6 +142,7 @@ app/(admin)/dashboard/
 **Framework:** TanStack Table (consistent dengan payments.tsx existing)
 
 **Features:**
+
 - Data table dengan kolom: Event Name, Category, Date, Organizer, Actions
 - Badge untuk Category
 - Dual action buttons: Approve (primary) & Reject (destructive)
@@ -155,17 +160,20 @@ app/(admin)/dashboard/
 | Actions | buttons | Approve + Reject |
 
 **Interactions:**
+
 - **Approve:** Trigger `approveEvent()`, show success toast, refresh data
 - **Reject:** Show confirmation dialog, trigger `rejectEvent()`, show success toast, refresh data
 - **Processing state:** Disable buttons saat action berjalan
 
 **Empty State:**
+
 ```
 No pending events
 All events have been reviewed
 ```
 
 **Styling:**
+
 - Card container (consistent dengan design system)
 - Table with rounded-md border
 - Primary button (default variant) untuk Approve
@@ -181,22 +189,18 @@ All events have been reviewed
 **Location:** `app/(admin)/dashboard/page.tsx`
 
 **New Tab:**
+
 ```tsx
-<TabsTrigger
-  value="events-approval"
-  className="flex items-center gap-2"
->
+<TabsTrigger value="events-approval" className="flex items-center gap-2">
   <IconCalendarEvent size={16} />
   Events
 </TabsTrigger>
 ```
 
 **Tab Content:**
+
 ```tsx
-<TabsContent
-  value="events-approval"
-  className="space-y-4"
->
+<TabsContent value="events-approval" className="space-y-4">
   <EventsApprovalPage />
 </TabsContent>
 ```
@@ -223,12 +227,12 @@ All events have been reviewed
 
 ## Error Handling
 
-| Scenario | Handling |
-|----------|----------|
-| Unauthorized | Return error message, no action taken |
-| Database error | Log error, return user-friendly message |
-| Network failure | Toast error, keep UI state |
-| Invalid event ID | Validation error |
+| Scenario         | Handling                                |
+| ---------------- | --------------------------------------- |
+| Unauthorized     | Return error message, no action taken   |
+| Database error   | Log error, return user-friendly message |
+| Network failure  | Toast error, keep UI state              |
+| Invalid event ID | Validation error                        |
 
 ---
 
@@ -265,22 +269,22 @@ All events have been reviewed
 -- Date: 2025-02-02
 
 -- Partial index for pending events
-CREATE INDEX IF NOT EXISTS idx_events_pending_created 
-ON events (created_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_events_pending_created
+ON events (created_at DESC)
 WHERE approved = false;
 
 -- Foreign key index for submitted_by
-CREATE INDEX IF NOT EXISTS idx_events_submitted_by 
+CREATE INDEX IF NOT EXISTS idx_events_submitted_by
 ON events (submitted_by);
 
 -- Covering index for public listings
-CREATE INDEX IF NOT EXISTS idx_events_approved_category_date 
-ON events (approved, category, date) 
+CREATE INDEX IF NOT EXISTS idx_events_approved_category_date
+ON events (approved, category, date)
 INCLUDE (name, slug, location_type, cover_image, status);
 
 -- Partial index for chronological listings
-CREATE INDEX IF NOT EXISTS idx_events_approved_date 
-ON events (date ASC) 
+CREATE INDEX IF NOT EXISTS idx_events_approved_date
+ON events (date ASC)
 WHERE approved = true;
 
 -- Comments

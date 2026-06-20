@@ -1,3 +1,3 @@
 export function ReviewStep() {
-  return <div className="space-y-6" />
+  return <div className="space-y-6" />;
 }

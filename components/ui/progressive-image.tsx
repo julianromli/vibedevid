@@ -1,48 +1,50 @@
-'use client'
+"use client";
 
-import type { ImageProps, StaticImageData } from '@/lib/image-types'
-import { Image } from '@unpic/react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { generateSizes, validateImageProps } from '@/lib/image-utils'
-import { cn } from '@/lib/utils'
+import type { ImageProps, StaticImageData } from "@/lib/image-types";
+import { Image } from "@unpic/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { generateSizes, validateImageProps } from "@/lib/image-utils";
+import { cn } from "@/lib/utils";
 
-export type ImageLoadingState = 'loading' | 'loaded' | 'error'
+export type ImageLoadingState = "loading" | "loaded" | "error";
 
-export interface ProgressiveImageProps
-  extends Omit<ImageProps, 'placeholder' | 'blurDataURL' | 'layout' | 'width' | 'height' | 'aspectRatio'> {
-  src: string | StaticImageData
+export interface ProgressiveImageProps extends Omit<
+  ImageProps,
+  "placeholder" | "blurDataURL" | "layout" | "width" | "height" | "aspectRatio"
+> {
+  src: string | StaticImageData;
   /** Layout mode forwarded to the underlying @unpic Image. */
-  layout?: 'fixed' | 'constrained' | 'fullWidth'
-  width?: number
-  height?: number
-  aspectRatio?: number
+  layout?: "fixed" | "constrained" | "fullWidth";
+  width?: number;
+  height?: number;
+  aspectRatio?: number;
   /** Fill the parent container (maps to fullWidth layout + object-cover). */
-  fill?: boolean
-  fallbackSrc?: string
-  onLoadingStateChange?: (state: ImageLoadingState) => void
+  fill?: boolean;
+  fallbackSrc?: string;
+  onLoadingStateChange?: (state: ImageLoadingState) => void;
   responsiveSizes?: {
-    mobile?: string
-    tablet?: string
-    desktop?: string
-    default?: string
-  }
-  preloadStrategy?: 'none' | 'hover' | 'viewport'
-  loadingThreshold?: number
-  ariaLabel?: string
+    mobile?: string;
+    tablet?: string;
+    desktop?: string;
+    default?: string;
+  };
+  preloadStrategy?: "none" | "hover" | "viewport";
+  loadingThreshold?: number;
+  ariaLabel?: string;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  enableBlurPlaceholder?: boolean
+  enableBlurPlaceholder?: boolean;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  customBlurDataURL?: string
+  customBlurDataURL?: string;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  placeholderColor?: string
+  placeholderColor?: string;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  showSkeleton?: boolean
+  showSkeleton?: boolean;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  fadeTransition?: boolean
+  fadeTransition?: boolean;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  transitionDuration?: number
+  transitionDuration?: number;
   /** @deprecated Ignored — kept for backward compatibility with callers */
-  unoptimized?: boolean
+  unoptimized?: boolean;
 }
 
 export function ProgressiveImage({
@@ -56,11 +58,11 @@ export function ProgressiveImage({
   className,
   style,
   loading,
-  decoding = 'async',
+  decoding = "async",
   onLoad,
   onError,
   unoptimized = false,
-  fallbackSrc = '/placeholder.svg',
+  fallbackSrc = "/placeholder.svg",
   onLoadingStateChange,
   responsiveSizes,
   ariaLabel,
@@ -69,101 +71,101 @@ export function ProgressiveImage({
   placeholderColor: _placeholderColor,
   ...restProps
 }: ProgressiveImageProps) {
-  const [loadingState, setLoadingState] = useState<ImageLoadingState>('loading')
-  const [currentSrc, setCurrentSrc] = useState<string>(typeof src === 'string' ? src : src.src)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [loadingState, setLoadingState] = useState<ImageLoadingState>("loading");
+  const [currentSrc, setCurrentSrc] = useState<string>(typeof src === "string" ? src : src.src);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const responsiveSize = useMemo(() => {
-    if (propSizes) return propSizes
-    if (responsiveSizes) return generateSizes(responsiveSizes)
-    return fill ? '100vw' : undefined
-  }, [propSizes, responsiveSizes, fill])
+    if (propSizes) return propSizes;
+    if (responsiveSizes) return generateSizes(responsiveSizes);
+    return fill ? "100vw" : undefined;
+  }, [propSizes, responsiveSizes, fill]);
 
   useLayoutEffect(() => {
-    const img = imgRef.current ?? containerRef.current?.querySelector('img')
+    const img = imgRef.current ?? containerRef.current?.querySelector("img");
     if (img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0) {
-      setLoadingState('loaded')
+      setLoadingState("loaded");
     }
-  }, [currentSrc])
+  }, [currentSrc]);
 
   useEffect(() => {
-    onLoadingStateChange?.(loadingState)
-  }, [loadingState, onLoadingStateChange])
+    onLoadingStateChange?.(loadingState);
+  }, [loadingState, onLoadingStateChange]);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     const syncLoadedState = () => {
       if (cancelled) {
-        return
+        return;
       }
 
-      const img = imgRef.current ?? containerRef.current?.querySelector('img')
+      const img = imgRef.current ?? containerRef.current?.querySelector("img");
       if (img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0) {
-        setLoadingState('loaded')
-        return true
+        setLoadingState("loaded");
+        return true;
       }
 
-      return false
-    }
+      return false;
+    };
 
     if (syncLoadedState()) {
       return () => {
-        cancelled = true
-      }
+        cancelled = true;
+      };
     }
 
-    setLoadingState('loading')
+    setLoadingState("loading");
 
     const rafId = requestAnimationFrame(() => {
-      syncLoadedState()
-    })
+      syncLoadedState();
+    });
     const timeoutId = window.setTimeout(() => {
-      syncLoadedState()
-    }, 50)
+      syncLoadedState();
+    }, 50);
 
-    const img = containerRef.current?.querySelector('img')
-    img?.addEventListener('load', syncLoadedState)
+    const img = containerRef.current?.querySelector("img");
+    img?.addEventListener("load", syncLoadedState);
 
     return () => {
-      cancelled = true
-      cancelAnimationFrame(rafId)
-      window.clearTimeout(timeoutId)
-      img?.removeEventListener('load', syncLoadedState)
-    }
-  }, [currentSrc])
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+      img?.removeEventListener("load", syncLoadedState);
+    };
+  }, [currentSrc]);
 
   const handleLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    setLoadingState('loaded')
-    onLoad?.(event)
-  }
+    setLoadingState("loaded");
+    onLoad?.(event);
+  };
 
   const handleError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    setLoadingState('error')
+    setLoadingState("error");
     if (currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc)
-      setLoadingState('loading')
+      setCurrentSrc(fallbackSrc);
+      setLoadingState("loading");
     }
-    onError?.(event)
-  }
+    onError?.(event);
+  };
 
   const setImageRef = (node: HTMLImageElement | null) => {
-    imgRef.current = node
+    imgRef.current = node;
 
     if (node?.complete && node.naturalWidth > 0) {
-      setLoadingState('loaded')
+      setLoadingState("loaded");
     }
-  }
+  };
 
-  const imageClasses = cn('opacity-100 transition-opacity ease-in-out', className)
+  const imageClasses = cn("opacity-100 transition-opacity ease-in-out", className);
 
   return (
     <div
       ref={containerRef}
-      className={cn('relative overflow-hidden', fill ? 'relative' : 'w-full h-full')}
+      className={cn("relative overflow-hidden", fill ? "relative" : "w-full h-full")}
     >
-      {loadingState === 'loading' && (
+      {loadingState === "loading" && (
         <div
           className="absolute inset-0 animate-pulse transition-opacity duration-300 flex items-center justify-center"
           aria-hidden="true"
@@ -196,40 +198,33 @@ export function ProgressiveImage({
       <Image
         ref={setImageRef}
         src={currentSrc}
-        alt={ariaLabel || (typeof alt === 'string' ? alt : '')}
-        className={cn(fill && 'h-full w-full object-cover', imageClasses)}
+        alt={ariaLabel || (typeof alt === "string" ? alt : "")}
+        className={cn(fill && "h-full w-full object-cover", imageClasses)}
         onLoad={handleLoad}
         onError={handleError}
-        {...(
-          fill || width === undefined || height === undefined
-            ? { layout: 'fullWidth' as const }
-            : { layout: 'constrained' as const, width, height }
-        )}
+        {...(fill || width === undefined || height === undefined
+          ? { layout: "fullWidth" as const }
+          : { layout: "constrained" as const, width, height })}
         {...(restProps as Record<string, unknown>)}
       />
 
-      {loadingState === 'error' && currentSrc === fallbackSrc && (
+      {loadingState === "error" && currentSrc === fallbackSrc && (
         <div
           className="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col items-center justify-center text-sm text-gray-400 dark:text-gray-500"
           aria-label="Image failed to load"
         >
-          <svg
-            className="mb-2 h-8 w-8"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
+          <svg className="mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path
               fillRule="evenodd"
               d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
               clipRule="evenodd"
             />
           </svg>
-          <span className="px-2 text-center">{alt ? 'Image unavailable' : 'Failed to load'}</span>
+          <span className="px-2 text-center">{alt ? "Image unavailable" : "Failed to load"}</span>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default ProgressiveImage
+export default ProgressiveImage;

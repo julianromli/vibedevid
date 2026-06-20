@@ -1,15 +1,11 @@
 import { revalidatePath } from "@/lib/revalidation";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { getDb } from "@/lib/db";
+import { posts, users, postTags, blogPostTags, comments, likes, views } from "@/lib/db/schema";
+import { toPostDto } from "@/lib/db/mappers";
+import { requireUser } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/auth/permissions";
+import { eq, and, gte, lte, desc, count, or, ilike, inArray } from "drizzle-orm";
 
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const;
-
-// IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20;
 
 export interface AdminPost {
@@ -58,27 +54,12 @@ export interface Tag {
 }
 
 async function checkAdminAccess() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single();
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error("Admin access required");
-  }
-
+  const user = await requireUser();
+  await requireAdmin(user.id);
   return user;
 }
 
-// CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
 function sanitizeSearchInput(search: string): string {
-  // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
   return search.replace(/[%_]/g, "\\$&");
 }
 
@@ -90,99 +71,97 @@ export async function getAllPosts(
   try {
     await checkAdminAccess();
 
-    const supabase = await createClient();
+    const db = getDb();
+    const conditions = [];
 
-    let query = supabase.from("posts").select(
-      `
-        *,
-        users:author_id (
-          username,
-          display_name,
-          avatar_url
-        ),
-        blog_post_tags (
-          post_tags (
-            id,
-            name,
-            slug
-          )
-        )
-      `,
-      { count: "exact" },
-    );
-
-    // Apply filters
     if (filters.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
+      conditions.push(eq(posts.status, filters.status));
     }
-
     if (filters.authorId) {
-      query = query.eq("author_id", filters.authorId);
+      conditions.push(eq(posts.authorId, filters.authorId));
     }
-
     if (filters.featured !== undefined) {
-      query = query.eq("featured", filters.featured);
+      conditions.push(eq(posts.featured, filters.featured));
     }
-
     if (filters.dateFrom) {
-      query = query.gte("created_at", filters.dateFrom);
+      conditions.push(gte(posts.createdAt, new Date(filters.dateFrom)));
     }
-
     if (filters.dateTo) {
-      query = query.lte("created_at", filters.dateTo);
+      conditions.push(lte(posts.createdAt, new Date(filters.dateTo)));
     }
-
     if (filters.search) {
-      // CRITICAL-2: Sanitize search to prevent SQL injection
       const sanitized = sanitizeSearchInput(filters.search);
-      query = query.or(`title.ilike.%${sanitized}%,excerpt.ilike.%${sanitized}%`);
+      const pattern = `%${sanitized}%`;
+      conditions.push(or(ilike(posts.title, pattern), ilike(posts.excerpt, pattern)));
     }
 
-    // Pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to).order("created_at", { ascending: false });
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * pageSize;
 
-    const { data: posts, error, count } = await query;
+    const [totalResult, postRows] = await Promise.all([
+      db.select({ value: count() }).from(posts).where(whereClause),
+      db
+        .select({
+          post: posts,
+          authorUsername: users.username,
+          authorDisplayName: users.displayName,
+          authorAvatarUrl: users.avatarUrl,
+        })
+        .from(posts)
+        .innerJoin(users, eq(posts.authorId, users.id))
+        .where(whereClause)
+        .orderBy(desc(posts.createdAt))
+        .limit(pageSize)
+        .offset(offset),
+    ]);
 
-    if (error) {
-      console.error("Get all posts error:", error);
-      return { posts: [], totalCount: 0, error: error.message };
-    }
+    const postIds = postRows.map((row) => row.post.id);
 
-    const formattedPosts: AdminPost[] = (posts || []).map((post) => {
-      const tags =
-        post.blog_post_tags
-          ?.map((pt: { post_tags: { name: string } }) => pt.post_tags?.name)
-          .filter(Boolean) || [];
+    const tagRows =
+      postIds.length > 0
+        ? await db
+            .select({ postId: blogPostTags.postId, tagName: postTags.name })
+            .from(blogPostTags)
+            .innerJoin(postTags, eq(blogPostTags.tagId, postTags.id))
+            .where(inArray(blogPostTags.postId, postIds))
+        : [];
 
+    const tagsByPost = new Map<string, string[]>();
+    tagRows.forEach((row) => {
+      const existing = tagsByPost.get(row.postId) || [];
+      if (row.tagName) existing.push(row.tagName);
+      tagsByPost.set(row.postId, existing);
+    });
+
+    const formattedPosts: AdminPost[] = postRows.map((row) => {
+      const mapped = toPostDto(row.post);
       return {
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        content: post.content,
-        excerpt: post.excerpt,
-        cover_image: post.cover_image,
-        status: post.status,
-        featured: post.featured || false,
-        view_count: post.view_count || 0,
-        read_time_minutes: post.read_time_minutes,
-        published_at: post.published_at,
-        created_at: post.created_at,
-        updated_at: post.updated_at,
-        author_id: post.author_id,
-        author: post.users || {
-          username: "unknown",
-          display_name: "Unknown",
-          avatar_url: null,
+        id: mapped.id,
+        slug: mapped.slug,
+        title: mapped.title,
+        content: mapped.content as object,
+        excerpt: mapped.excerpt,
+        cover_image: mapped.coverImage,
+        status: mapped.status as AdminPost["status"],
+        featured: mapped.featured || false,
+        view_count: mapped.viewCount || 0,
+        read_time_minutes: mapped.readTimeMinutes,
+        published_at: mapped.publishedAt,
+        created_at: mapped.createdAt ?? "",
+        updated_at: mapped.updatedAt ?? "",
+        author_id: mapped.authorId,
+        author: {
+          username: row.authorUsername || "unknown",
+          display_name: row.authorDisplayName || "Unknown",
+          avatar_url: row.authorAvatarUrl,
         },
-        tags,
+        tags: tagsByPost.get(mapped.id) || [],
       };
     });
 
     return {
       posts: formattedPosts,
-      totalCount: count || 0,
+      totalCount: totalResult[0]?.value || 0,
     };
   } catch (error) {
     console.error("Get all posts error:", error);
@@ -201,49 +180,52 @@ export async function adminUpdatePost(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
-
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
+    const db = getDb();
+    const updateData: {
+      title?: string;
+      excerpt?: string | null;
+      coverImage?: string | null;
+      status?: string;
+      featured?: boolean;
+      readTimeMinutes?: number | null;
+      content?: object;
+      publishedAt?: Date;
+      updatedAt: Date;
+    } = {
+      updatedAt: new Date(),
     };
 
     if (updates.title !== undefined) updateData.title = updates.title;
     if (updates.excerpt !== undefined) updateData.excerpt = updates.excerpt;
-    if (updates.cover_image !== undefined) updateData.cover_image = updates.cover_image;
+    if (updates.cover_image !== undefined) updateData.coverImage = updates.cover_image;
     if (updates.status !== undefined) updateData.status = updates.status;
     if (updates.featured !== undefined) updateData.featured = updates.featured;
     if (updates.read_time_minutes !== undefined)
-      updateData.read_time_minutes = updates.read_time_minutes;
+      updateData.readTimeMinutes = updates.read_time_minutes;
     if (updates.content !== undefined) updateData.content = updates.content;
 
-    // Handle published_at when status changes to published
     if (updates.status === "published") {
-      const { data: currentPost } = await supabase
-        .from("posts")
-        .select("published_at")
-        .eq("id", postId)
-        .single();
+      const [currentPost] = await db
+        .select({ publishedAt: posts.publishedAt })
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
 
-      if (!currentPost?.published_at) {
-        updateData.published_at = new Date().toISOString();
+      if (!currentPost?.publishedAt) {
+        updateData.publishedAt = new Date();
       }
     }
 
-    const { data: updatedRows, error } = await supabase
-      .from("posts")
-      .update(updateData)
-      .eq("id", postId)
-      .select("id");
+    const updatedRows = await db
+      .update(posts)
+      .set(updateData)
+      .where(eq(posts.id, postId))
+      .returning({ id: posts.id });
 
-    if (error) {
-      console.error("Admin update post error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!updatedRows || updatedRows.length === 0) {
+    if (!updatedRows.length) {
       return { success: false, error: "Post not found or no changes applied" };
     }
 
-    // Update tags if provided
     if (updates.tags !== undefined) {
       await updatePostTags(postId, updates.tags);
     }
@@ -263,35 +245,30 @@ export async function adminUpdatePost(
 }
 
 async function updatePostTags(postId: string, tagNames: string[]) {
-  const supabase = await createAdminClient();
+  const db = getDb();
 
-  // Remove existing tags
-  await supabase.from("blog_post_tags").delete().eq("post_id", postId);
+  await db.delete(blogPostTags).where(eq(blogPostTags.postId, postId));
 
   if (tagNames.length === 0) return;
 
-  // Get or create tags
   const tagIds: string[] = [];
 
   for (const tagName of tagNames) {
     const slug = tagName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    // Try to find existing tag
-    const { data: existingTag } = await supabase
-      .from("post_tags")
-      .select("id")
-      .eq("slug", slug)
-      .single();
+    const [existingTag] = await db
+      .select({ id: postTags.id })
+      .from(postTags)
+      .where(eq(postTags.slug, slug))
+      .limit(1);
 
     if (existingTag) {
       tagIds.push(existingTag.id);
     } else {
-      // Create new tag
-      const { data: newTag, error } = await supabase
-        .from("post_tags")
-        .insert({ name: tagName, slug })
-        .select("id")
-        .single();
+      const [newTag] = await db
+        .insert(postTags)
+        .values({ name: tagName, slug })
+        .returning({ id: postTags.id });
 
       if (newTag) {
         tagIds.push(newTag.id);
@@ -299,14 +276,8 @@ async function updatePostTags(postId: string, tagNames: string[]) {
     }
   }
 
-  // Insert new tag relationships
   if (tagIds.length > 0) {
-    const tagRelations = tagIds.map((tagId) => ({
-      post_id: postId,
-      tag_id: tagId,
-    }));
-
-    await supabase.from("blog_post_tags").insert(tagRelations);
+    await db.insert(blogPostTags).values(tagIds.map((tagId) => ({ postId, tagId })));
   }
 }
 
@@ -316,42 +287,23 @@ export async function adminDeletePost(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
 
-    // Delete the post first to avoid partial child-only deletion states.
-    const { data: deletedRows, error } = await supabase
-      .from("posts")
-      .delete()
-      .eq("id", postId)
-      .select("id");
+    const deletedRows = await db
+      .delete(posts)
+      .where(eq(posts.id, postId))
+      .returning({ id: posts.id });
 
-    if (error) {
-      console.error("Admin delete post error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!deletedRows || deletedRows.length === 0) {
+    if (!deletedRows.length) {
       return { success: false, error: "Post could not be deleted" };
     }
 
-    // Best-effort cleanup for tables that may store post_id without strict FK cascade.
-    const cleanupResults = await Promise.all([
-      supabase.from("comments").delete().eq("post_id", postId),
-      supabase.from("likes").delete().eq("post_id", postId),
-      supabase.from("views").delete().eq("post_id", postId),
-      supabase.from("blog_post_tags").delete().eq("post_id", postId),
+    await Promise.all([
+      db.delete(comments).where(eq(comments.postId, postId)),
+      db.delete(likes).where(eq(likes.postId, postId)),
+      db.delete(views).where(eq(views.postId, postId)),
+      db.delete(blogPostTags).where(eq(blogPostTags.postId, postId)),
     ]);
-
-    const cleanupTargets = ["comments", "likes", "views", "blog_post_tags"] as const;
-    cleanupResults.forEach((result, index) => {
-      if (result.error) {
-        console.error(`Admin delete post cleanup warning (${cleanupTargets[index]}):`, {
-          postId,
-          message: result.error.message,
-          code: result.error.code,
-          details: result.error.details,
-        });
-      }
-    });
 
     revalidatePath("/blog");
     revalidatePath("/admin/dashboard/boards/blog");
@@ -373,19 +325,14 @@ export async function togglePostFeatured(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
+    const updatedRows = await db
+      .update(posts)
+      .set({ featured, updatedAt: new Date() })
+      .where(eq(posts.id, postId))
+      .returning({ id: posts.id });
 
-    const { data: updatedRows, error } = await supabase
-      .from("posts")
-      .update({ featured, updated_at: new Date().toISOString() })
-      .eq("id", postId)
-      .select("id");
-
-    if (error) {
-      console.error("Toggle post featured error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!updatedRows || updatedRows.length === 0) {
+    if (!updatedRows.length) {
       return { success: false, error: "Post not found" };
     }
 
@@ -406,15 +353,17 @@ export async function getAllTags(): Promise<{ tags: Tag[]; error?: string }> {
   try {
     await checkAdminAccess();
 
-    const supabase = await createClient();
+    const db = getDb();
+    const tagRows = await db.select().from(postTags).orderBy(postTags.name);
 
-    const { data: tags, error } = await supabase.from("post_tags").select("*").order("name");
-
-    if (error) {
-      return { tags: [], error: error.message };
-    }
-
-    return { tags: tags || [] };
+    return {
+      tags: tagRows.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        created_at: tag.createdAt?.toISOString() ?? "",
+      })),
+    };
   } catch (error) {
     return {
       tags: [],
@@ -429,24 +378,32 @@ export async function createTag(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
-
+    const db = getDb();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    const { data: tag, error } = await supabase
-      .from("post_tags")
-      .insert({ name, slug })
-      .select()
-      .single();
+    try {
+      const [tag] = await db.insert(postTags).values({ name, slug }).returning();
 
-    if (error) {
-      if (error.code === "23505") {
+      if (!tag) {
+        return { success: false, error: "Failed to create tag" };
+      }
+
+      return {
+        success: true,
+        tag: {
+          id: tag.id,
+          name: tag.name,
+          slug: tag.slug,
+          created_at: tag.createdAt?.toISOString() ?? "",
+        },
+      };
+    } catch (error) {
+      const pgError = error as { code?: string; message?: string };
+      if (pgError.code === "23505") {
         return { success: false, error: "Tag already exists" };
       }
-      return { success: false, error: error.message };
+      return { success: false, error: pgError.message || "Failed to create tag" };
     }
-
-    return { success: true, tag };
   } catch (error) {
     return {
       success: false,
@@ -459,28 +416,16 @@ export async function deleteTag(tagId: string): Promise<{ success: boolean; erro
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
 
-    // Delete tag relationships first
-    const { error: relationDeleteError } = await supabase
-      .from("blog_post_tags")
-      .delete()
-      .eq("tag_id", tagId);
-    if (relationDeleteError) {
-      return { success: false, error: relationDeleteError.message };
-    }
+    await db.delete(blogPostTags).where(eq(blogPostTags.tagId, tagId));
 
-    // Delete the tag
-    const { data: deletedRows, error } = await supabase
-      .from("post_tags")
-      .delete()
-      .eq("id", tagId)
-      .select("id");
+    const deletedRows = await db
+      .delete(postTags)
+      .where(eq(postTags.id, tagId))
+      .returning({ id: postTags.id });
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    if (!deletedRows || deletedRows.length === 0) {
+    if (!deletedRows.length) {
       return { success: false, error: "Tag not found" };
     }
 

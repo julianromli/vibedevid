@@ -1,4 +1,4 @@
-import { type RefObject, useEffect } from 'react'
+import { type RefObject, useEffect } from "react";
 
 export function useClickOutside(
   refs: RefObject<HTMLElement | null> | RefObject<HTMLElement | null>[],
@@ -6,27 +6,27 @@ export function useClickOutside(
   enabled = true,
 ) {
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return;
 
-    const refsArray = Array.isArray(refs) ? refs : [refs]
+    const refsArray = Array.isArray(refs) ? refs : [refs];
 
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target
+      const target = event.target;
 
       if (!(target instanceof Node)) {
-        return
+        return;
       }
 
-      const clickedInside = refsArray.some((ref) => ref.current?.contains(target))
+      const clickedInside = refsArray.some((ref) => ref.current?.contains(target));
 
       if (!clickedInside) {
-        handler()
+        handler();
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [refs, handler, enabled])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [refs, handler, enabled]);
 }

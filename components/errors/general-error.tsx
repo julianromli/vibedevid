@@ -1,15 +1,15 @@
-import { Link } from '@tanstack/react-router'
-import { BackButton } from '@/components/back-button'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/back-button";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
-  minimal?: boolean
+  minimal?: boolean;
 }
 
 export default function GeneralError({ className, minimal = false }: Props) {
   return (
-    <div className={cn('h-svh w-full', className)}>
+    <div className={cn("h-svh w-full", className)}>
       <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2">
         {!minimal && <h1 className="text-[7rem] leading-tight font-bold">500</h1>}
         <span className="font-medium">Oops! Something went wrong {`:')`}</span>
@@ -26,5 +26,5 @@ export default function GeneralError({ className, minimal = false }: Props) {
         )}
       </div>
     </div>
-  )
+  );
 }

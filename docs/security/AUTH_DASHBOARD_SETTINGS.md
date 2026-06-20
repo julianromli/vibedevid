@@ -11,6 +11,7 @@
   - **Impact**: Longer expiry = larger window for OTP interception attacks
 
 **How to configure**:
+
 1. Go to Supabase Dashboard
 2. Navigate to Authentication → Providers
 3. Click on "Email" provider
@@ -27,6 +28,7 @@
   - **Impact**: Prevents users from using compromised passwords
 
 **How to configure**:
+
 1. Go to Supabase Dashboard
 2. Navigate to Authentication → Policies
 3. Find "Password Security" section
@@ -34,6 +36,7 @@
 5. Click "Save"
 
 **Testing leaked password protection**:
+
 ```bash
 # Try signing up with a known leaked password
 # Example leaked passwords (DO NOT USE IN PRODUCTION):
@@ -74,6 +77,7 @@
   - **Check**: Reset link works and redirects correctly
 
 **Testing email templates**:
+
 ```bash
 # 1. Signup with new email
 # 2. Check inbox for confirmation email
@@ -112,13 +116,14 @@
   - **Example**: Only allow `@company.com` emails
 
 **Current implementation** (via code):
+
 ```typescript
 // lib/server/auth.ts
-const ALLOWED_DOMAINS = ['vibedev.id', 'gmail.com', 'outlook.com']
+const ALLOWED_DOMAINS = ["vibedev.id", "gmail.com", "outlook.com"];
 
 export async function validateEmailDomain(email: string) {
-  const domain = email.split('@')[1]
-  return ALLOWED_DOMAINS.includes(domain)
+  const domain = email.split("@")[1];
+  return ALLOWED_DOMAINS.includes(domain);
 }
 ```
 
@@ -127,6 +132,7 @@ export async function validateEmailDomain(email: string) {
 ### 1. After Enabling Leaked Password Protection
 
 **Test signup with leaked password**:
+
 ```bash
 # Should be REJECTED
 Email: test@example.com
@@ -137,6 +143,7 @@ Password: password123
 ```
 
 **Test signup with strong password**:
+
 ```bash
 # Should be ACCEPTED
 Email: test@example.com
@@ -149,6 +156,7 @@ Password: xK9$mP2@vL7&qR4!
 ### 2. After Reducing OTP Expiry
 
 **Test OTP expiry**:
+
 1. Request password reset email
 2. Note the timestamp
 3. Wait for expiry time + 5 minutes
@@ -156,6 +164,7 @@ Password: xK9$mP2@vL7&qR4!
 5. **Expected**: OTP should be expired and rejected
 
 **Example**:
+
 ```bash
 # OTP expiry set to 1 hour (3600 seconds)
 # Request reset at 10:00 AM
@@ -166,19 +175,20 @@ Password: xK9$mP2@vL7&qR4!
 ### 3. Check Current Settings via SQL
 
 **Query auth configuration**:
+
 ```sql
 -- View current auth settings
 SELECT * FROM auth.config;
 
 -- Check session settings
-SELECT 
+SELECT
   name,
   setting
 FROM pg_settings
 WHERE name LIKE '%jwt%' OR name LIKE '%session%';
 
 -- Check OTP expiry (from auth.config)
-SELECT 
+SELECT
   key,
   value
 FROM auth.config
@@ -186,6 +196,7 @@ WHERE key = 'otp_expiry';
 ```
 
 **Expected output**:
+
 ```
 key          | value
 -------------+-------
@@ -194,19 +205,20 @@ otp_expiry   | 3600  (or 1800 for 30 minutes)
 
 ## 📊 Security Score Impact
 
-| Setting | Before | After | Impact |
-|---------|--------|-------|--------|
-| FORCE RLS | ❌ | ✅ | +1.5 |
-| Function search_path | ❌ | ✅ | +0.8 |
-| OTP Expiry | ❌ (>1hr) | ✅ (≤1hr) | +0.3 |
-| Leaked Password Protection | ❌ | ✅ | +0.4 |
-| **Total** | **6.2/10** | **9.8/10** | **+3.6** |
+| Setting                    | Before     | After      | Impact   |
+| -------------------------- | ---------- | ---------- | -------- |
+| FORCE RLS                  | ❌         | ✅         | +1.5     |
+| Function search_path       | ❌         | ✅         | +0.8     |
+| OTP Expiry                 | ❌ (>1hr)  | ✅ (≤1hr)  | +0.3     |
+| Leaked Password Protection | ❌         | ✅         | +0.4     |
+| **Total**                  | **6.2/10** | **9.8/10** | **+3.6** |
 
 ## 🚨 Common Mistakes
 
 ### 1. Disabling Email Verification
 
 **❌ BAD**: Disabling email confirmation for faster signups
+
 ```
 Authentication → Settings → Email confirmation → Disabled
 ```
@@ -218,6 +230,7 @@ Authentication → Settings → Email confirmation → Disabled
 ### 2. Setting OTP Expiry Too Long
 
 **❌ BAD**: OTP expiry = 24 hours
+
 ```
 Authentication → Providers → Email → OTP expiry: 86400
 ```
@@ -233,6 +246,7 @@ Authentication → Providers → Email → OTP expiry: 86400
 **Why it's bad**: Broken confirmation/reset links lock out users.
 
 **✅ GOOD**: Test all email templates before production:
+
 - Signup confirmation
 - Password reset
 - Magic link login
@@ -243,6 +257,7 @@ Authentication → Providers → Email → OTP expiry: 86400
 ### 1. Monitor Auth Events
 
 Set up logging for suspicious auth events:
+
 ```sql
 -- Create auth event log table
 CREATE TABLE auth_event_log (
@@ -270,25 +285,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 ### 2. Implement Rate Limiting
 
 **Server-side rate limiting** (in addition to Supabase):
+
 ```typescript
 // lib/rate-limit.ts
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, '10 s'), // 10 requests per 10 seconds
-})
+  limiter: Ratelimit.slidingWindow(10, "10 s"), // 10 requests per 10 seconds
+});
 
 export async function checkRateLimit(identifier: string) {
-  const { success } = await ratelimit.limit(identifier)
-  return success
+  const { success } = await ratelimit.limit(identifier);
+  return success;
 }
 ```
 
 ### 3. Enforce Strong Passwords
 
 **Password requirements**:
+
 - Minimum 12 characters
 - At least 1 uppercase letter
 - At least 1 lowercase letter
@@ -296,30 +313,31 @@ export async function checkRateLimit(identifier: string) {
 - At least 1 special character
 
 **Client-side validation**:
+
 ```typescript
 // lib/password-validator.ts
 export function validatePassword(password: string): { valid: boolean; error?: string } {
   if (password.length < 12) {
-    return { valid: false, error: 'Password must be at least 12 characters' }
+    return { valid: false, error: "Password must be at least 12 characters" };
   }
-  
+
   if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least 1 uppercase letter' }
+    return { valid: false, error: "Password must contain at least 1 uppercase letter" };
   }
-  
+
   if (!/[a-z]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least 1 lowercase letter' }
+    return { valid: false, error: "Password must contain at least 1 lowercase letter" };
   }
-  
+
   if (!/[0-9]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least 1 number' }
+    return { valid: false, error: "Password must contain at least 1 number" };
   }
-  
+
   if (!/[^A-Za-z0-9]/.test(password)) {
-    return { valid: false, error: 'Password must contain at least 1 special character' }
+    return { valid: false, error: "Password must contain at least 1 special character" };
   }
-  
-  return { valid: true }
+
+  return { valid: true };
 }
 ```
 
@@ -327,12 +345,12 @@ export function validatePassword(password: string): { valid: boolean; error?: st
 
 Keep track of when settings were changed:
 
-| Date | Setting | Old Value | New Value | Changed By |
-|------|---------|-----------|-----------|------------|
-| 2026-02-03 | FORCE RLS | Disabled | Enabled | Security Audit |
-| 2026-02-03 | Function search_path | Mutable | Fixed (public, pg_temp) | Security Audit |
-| 2026-02-03 | OTP Expiry | > 1 hour | 3600 seconds | Security Audit |
-| 2026-02-03 | Leaked Password Protection | Disabled | Enabled | Security Audit |
+| Date       | Setting                    | Old Value | New Value               | Changed By     |
+| ---------- | -------------------------- | --------- | ----------------------- | -------------- |
+| 2026-02-03 | FORCE RLS                  | Disabled  | Enabled                 | Security Audit |
+| 2026-02-03 | Function search_path       | Mutable   | Fixed (public, pg_temp) | Security Audit |
+| 2026-02-03 | OTP Expiry                 | > 1 hour  | 3600 seconds            | Security Audit |
+| 2026-02-03 | Leaked Password Protection | Disabled  | Enabled                 | Security Audit |
 
 ## 🎯 Final Checklist
 

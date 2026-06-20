@@ -1,13 +1,13 @@
-import { Image } from '@unpic/react'
+import { Image } from "@unpic/react";
 
 export function Logo({
-  className = '',
+  className = "",
   width = 18,
   height = 18,
 }: {
-  className?: string
-  width?: number
-  height?: number
+  className?: string;
+  width?: number;
+  height?: number;
 }) {
   return (
     <Image
@@ -17,5 +17,5 @@ export function Logo({
       className={className}
       alt="Shadcnblocks"
     />
-  )
+  );
 }

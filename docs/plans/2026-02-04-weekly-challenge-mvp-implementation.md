@@ -13,6 +13,7 @@
 ### Task 1: Create Challenge Tables + RLS
 
 **Files:**
+
 - Create: `scripts/20_add_challenges_tables.sql`
 
 **Step 1: Write the failing test**
@@ -147,6 +148,7 @@ git commit -m "feat: add weekly challenge tables and rls"
 ### Task 2: Seed One Active Challenge
 
 **Files:**
+
 - Create: `scripts/21_seed_challenges.sql`
 
 **Step 1: Write the failing test**
@@ -199,6 +201,7 @@ git commit -m "feat: seed weekly challenge"
 ### Task 3: Add Types and Server Actions
 
 **Files:**
+
 - Create: `types/challenges.ts`
 - Create: `lib/actions/challenges.ts`
 
@@ -207,19 +210,19 @@ git commit -m "feat: seed weekly challenge"
 Add a small action validation test in `tests/unit/challenge-actions.spec.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-import { validateChallengeSubmission } from '@/lib/actions/challenges'
+import { describe, expect, it } from "vitest";
+import { validateChallengeSubmission } from "@/lib/actions/challenges";
 
-describe('challenge actions', () => {
-  it('rejects non-https urls', () => {
+describe("challenge actions", () => {
+  it("rejects non-https urls", () => {
     const result = validateChallengeSubmission({
-      title: 'Demo',
-      projectUrl: 'http://example.com',
-      writeup: 'a'.repeat(200),
-    })
-    expect(result.success).toBe(false)
-  })
-})
+      title: "Demo",
+      projectUrl: "http://example.com",
+      writeup: "a".repeat(200),
+    });
+    expect(result.success).toBe(false);
+  });
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -235,160 +238,156 @@ Expected: FAIL with "validateChallengeSubmission is not a function"
 ```ts
 // types/challenges.ts
 export interface Challenge {
-  id: string
-  slug: string
-  title: string
-  prompt: string
-  starts_at: string
-  ends_at: string
-  prize_text: string | null
-  status: 'draft' | 'active' | 'closed' | 'archived'
+  id: string;
+  slug: string;
+  title: string;
+  prompt: string;
+  starts_at: string;
+  ends_at: string;
+  prize_text: string | null;
+  status: "draft" | "active" | "closed" | "archived";
 }
 
 export interface ChallengeSubmission {
-  id: string
-  challenge_id: string
-  user_id: string
-  title: string
-  project_url: string
-  writeup: string
-  status: 'visible' | 'hidden'
-  created_at: string
+  id: string;
+  challenge_id: string;
+  user_id: string;
+  title: string;
+  project_url: string;
+  writeup: string;
+  status: "visible" | "hidden";
+  created_at: string;
 }
 
 export interface ChallengeLeaderboardEntry extends ChallengeSubmission {
-  vote_count: number
+  vote_count: number;
   author?: {
-    id: string
-    display_name: string
-    username: string
-    avatar_url: string | null
-  }
+    id: string;
+    display_name: string;
+    username: string;
+    avatar_url: string | null;
+  };
 }
 ```
 
 ```ts
 // lib/actions/challenges.ts
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
 export function validateChallengeSubmission(input: {
-  title: string
-  projectUrl: string
-  writeup: string
+  title: string;
+  projectUrl: string;
+  writeup: string;
 }) {
-  if (!input.title.trim()) return { success: false, error: 'Title required' }
-  if (!/^https:/.test(input.projectUrl)) return { success: false, error: 'URL must be https' }
-  if (input.writeup.trim().length < 100) return { success: false, error: 'Writeup too short' }
-  if (input.writeup.trim().length > 1200) return { success: false, error: 'Writeup too long' }
-  return { success: true }
+  if (!input.title.trim()) return { success: false, error: "Title required" };
+  if (!/^https:/.test(input.projectUrl)) return { success: false, error: "URL must be https" };
+  if (input.writeup.trim().length < 100) return { success: false, error: "Writeup too short" };
+  if (input.writeup.trim().length > 1200) return { success: false, error: "Writeup too long" };
+  return { success: true };
 }
 
 export async function getActiveChallenges() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data, error } = await supabase
-    .from('challenges')
-    .select('*')
-    .eq('status', 'active')
-    .order('starts_at', { ascending: false })
-  return { challenges: data ?? [], error: error?.message }
+    .from("challenges")
+    .select("*")
+    .eq("status", "active")
+    .order("starts_at", { ascending: false });
+  return { challenges: data ?? [], error: error?.message };
 }
 
 export async function getChallengeBySlug(slug: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('challenges')
-    .select('*')
-    .eq('slug', slug)
-    .single()
-  return { challenge: data, error: error?.message }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("challenges").select("*").eq("slug", slug).single();
+  return { challenge: data, error: error?.message };
 }
 
 export async function getChallengeLeaderboard(challengeId: string) {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data, error } = await supabase
-    .from('challenge_submissions')
-    .select('*, users(id, display_name, username, avatar_url), challenge_votes(count)')
-    .eq('challenge_id', challengeId)
-    .eq('status', 'visible')
-    .order('created_at', { ascending: true })
+    .from("challenge_submissions")
+    .select("*, users(id, display_name, username, avatar_url), challenge_votes(count)")
+    .eq("challenge_id", challengeId)
+    .eq("status", "visible")
+    .order("created_at", { ascending: true });
 
   const entries = (data ?? []).map((row: any) => ({
     ...row,
     vote_count: row.challenge_votes?.[0]?.count ?? 0,
     author: row.users,
-  }))
+  }));
 
-  return { entries, error: error?.message }
+  return { entries, error: error?.message };
 }
 
 export async function submitChallengeEntry(challengeId: string, formData: FormData) {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: 'Unauthorized' }
+    if (!user) return { success: false, error: "Unauthorized" };
 
-    const title = String(formData.get('title') || '')
-    const projectUrl = String(formData.get('project_url') || '')
-    const writeup = String(formData.get('writeup') || '')
+    const title = String(formData.get("title") || "");
+    const projectUrl = String(formData.get("project_url") || "");
+    const writeup = String(formData.get("writeup") || "");
 
-    const validation = validateChallengeSubmission({ title, projectUrl, writeup })
-    if (!validation.success) return validation
+    const validation = validateChallengeSubmission({ title, projectUrl, writeup });
+    if (!validation.success) return validation;
 
-    const { error } = await supabase.from('challenge_submissions').insert({
+    const { error } = await supabase.from("challenge_submissions").insert({
       challenge_id: challengeId,
       user_id: user.id,
       title: title.trim(),
       project_url: projectUrl.trim(),
       writeup: writeup.trim(),
-    })
+    });
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: error.message };
 
-    revalidatePath(`/challenges/${challengeId}`)
-    return { success: true }
+    revalidatePath(`/challenges/${challengeId}`);
+    return { success: true };
   } catch (_error) {
-    return { success: false, error: 'Failed to submit challenge' }
+    return { success: false, error: "Failed to submit challenge" };
   }
 }
 
 export async function toggleChallengeVote(submissionId: string) {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: 'Unauthorized' }
+    if (!user) return { success: false, error: "Unauthorized" };
 
     const { data: existing } = await supabase
-      .from('challenge_votes')
-      .select('id')
-      .eq('submission_id', submissionId)
-      .eq('user_id', user.id)
-      .maybeSingle()
+      .from("challenge_votes")
+      .select("id")
+      .eq("submission_id", submissionId)
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     if (existing?.id) {
-      await supabase.from('challenge_votes').delete().eq('id', existing.id)
-      return { success: true, voted: false }
+      await supabase.from("challenge_votes").delete().eq("id", existing.id);
+      return { success: true, voted: false };
     }
 
-    const { error } = await supabase.from('challenge_votes').insert({
+    const { error } = await supabase.from("challenge_votes").insert({
       submission_id: submissionId,
       user_id: user.id,
-    })
+    });
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: error.message };
 
-    revalidatePath('/challenges')
-    return { success: true, voted: true }
+    revalidatePath("/challenges");
+    return { success: true, voted: true };
   } catch (_error) {
-    return { success: false, error: 'Failed to vote' }
+    return { success: false, error: "Failed to vote" };
   }
 }
 ```
@@ -413,6 +412,7 @@ git commit -m "feat: add challenge actions and types"
 ### Task 4: Challenge UI Components (Card, Leaderboard, Vote Button, Form)
 
 **Files:**
+
 - Create: `components/challenges/challenge-card.tsx`
 - Create: `components/challenges/challenge-leaderboard.tsx`
 - Create: `components/challenges/challenge-vote-button.tsx`
@@ -424,13 +424,13 @@ Add an E2E test skeleton that expects a leaderboard list and vote button:
 
 ```ts
 // tests/challenges.spec.ts
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-test('shows leaderboard and vote buttons', async ({ page }) => {
-  await page.goto('/challenges/weekly-ai-build-1')
-  await page.waitForLoadState('networkidle')
-  await expect(page.getByTestId('challenge-leaderboard')).toBeVisible()
-})
+test("shows leaderboard and vote buttons", async ({ page }) => {
+  await page.goto("/challenges/weekly-ai-build-1");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByTestId("challenge-leaderboard")).toBeVisible();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -445,9 +445,9 @@ Expected: FAIL (404 or missing test id)
 
 ```tsx
 // components/challenges/challenge-card.tsx
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Challenge } from '@/types/challenges'
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Challenge } from "@/types/challenges";
 
 export function ChallengeCard({ challenge }: { challenge: Challenge }) {
   return (
@@ -462,20 +462,20 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
         </Link>
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
 ```tsx
 // components/challenges/challenge-vote-button.tsx
-'use client'
+"use client";
 
-import { useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { toggleChallengeVote } from '@/lib/actions/challenges'
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { toggleChallengeVote } from "@/lib/actions/challenges";
 
 export function ChallengeVoteButton({ submissionId }: { submissionId: string }) {
-  const [pending, startTransition] = useTransition()
+  const [pending, startTransition] = useTransition();
 
   return (
     <Button
@@ -483,20 +483,22 @@ export function ChallengeVoteButton({ submissionId }: { submissionId: string }) 
       variant="outline"
       disabled={pending}
       data-testid="vote-button"
-      onClick={() => startTransition(async () => {
-        await toggleChallengeVote(submissionId)
-      })}
+      onClick={() =>
+        startTransition(async () => {
+          await toggleChallengeVote(submissionId);
+        })
+      }
     >
       Vote
     </Button>
-  )
+  );
 }
 ```
 
 ```tsx
 // components/challenges/challenge-leaderboard.tsx
-import { ChallengeVoteButton } from './challenge-vote-button'
-import type { ChallengeLeaderboardEntry } from '@/types/challenges'
+import { ChallengeVoteButton } from "./challenge-vote-button";
+import type { ChallengeLeaderboardEntry } from "@/types/challenges";
 
 export function ChallengeLeaderboard({ entries }: { entries: ChallengeLeaderboardEntry[] }) {
   return (
@@ -512,29 +514,29 @@ export function ChallengeLeaderboard({ entries }: { entries: ChallengeLeaderboar
         </div>
       ))}
     </div>
-  )
+  );
 }
 ```
 
 ```tsx
 // components/challenges/challenge-submission-form.tsx
-'use client'
+"use client";
 
-import { useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { submitChallengeEntry } from '@/lib/actions/challenges'
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { submitChallengeEntry } from "@/lib/actions/challenges";
 
 export function ChallengeSubmissionForm({ challengeId }: { challengeId: string }) {
-  const [pending, startTransition] = useTransition()
+  const [pending, startTransition] = useTransition();
 
   return (
     <form
       action={(formData) => {
         startTransition(async () => {
-          await submitChallengeEntry(challengeId, formData)
-        })
+          await submitChallengeEntry(challengeId, formData);
+        });
       }}
       className="space-y-4"
     >
@@ -545,7 +547,7 @@ export function ChallengeSubmissionForm({ challengeId }: { challengeId: string }
         Submit
       </Button>
     </form>
-  )
+  );
 }
 ```
 
@@ -569,6 +571,7 @@ git commit -m "feat: add challenge ui components"
 ### Task 5: Challenges List Page
 
 **Files:**
+
 - Create: `app/challenges/page.tsx`
 
 **Step 1: Write the failing test**
@@ -576,10 +579,10 @@ git commit -m "feat: add challenge ui components"
 Add list page test:
 
 ```ts
-test('shows weekly challenge list', async ({ page }) => {
-  await page.goto('/challenges')
-  await expect(page.getByRole('heading', { name: /weekly challenge/i })).toBeVisible()
-})
+test("shows weekly challenge list", async ({ page }) => {
+  await page.goto("/challenges");
+  await expect(page.getByRole("heading", { name: /weekly challenge/i })).toBeVisible();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -594,15 +597,15 @@ Expected: FAIL (404)
 
 ```tsx
 // app/challenges/page.tsx
-import { ChallengeCard } from '@/components/challenges/challenge-card'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { getActiveChallenges } from '@/lib/actions/challenges'
-import { getCurrentUser } from '@/lib/server/auth'
+import { ChallengeCard } from "@/components/challenges/challenge-card";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { getActiveChallenges } from "@/lib/actions/challenges";
+import { getCurrentUser } from "@/lib/server/auth";
 
 export default async function ChallengesPage() {
-  const user = await getCurrentUser()
-  const { challenges } = await getActiveChallenges()
+  const user = await getCurrentUser();
+  const { challenges } = await getActiveChallenges();
 
   return (
     <div className="bg-grid-pattern relative min-h-screen">
@@ -620,7 +623,7 @@ export default async function ChallengesPage() {
 
       <Footer />
     </div>
-  )
+  );
 }
 ```
 
@@ -644,16 +647,17 @@ git commit -m "feat: add challenges list page"
 ### Task 6: Challenge Detail Page + Leaderboard Data
 
 **Files:**
+
 - Create: `app/challenges/[slug]/page.tsx`
 
 **Step 1: Write the failing test**
 
 ```ts
-test('shows challenge prompt and leaderboard', async ({ page }) => {
-  await page.goto('/challenges/weekly-ai-build-1')
-  await expect(page.getByText(/bangun fitur sederhana/i)).toBeVisible()
-  await expect(page.getByTestId('challenge-leaderboard')).toBeVisible()
-})
+test("shows challenge prompt and leaderboard", async ({ page }) => {
+  await page.goto("/challenges/weekly-ai-build-1");
+  await expect(page.getByText(/bangun fitur sederhana/i)).toBeVisible();
+  await expect(page.getByTestId("challenge-leaderboard")).toBeVisible();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -668,24 +672,24 @@ Expected: FAIL (404)
 
 ```tsx
 // app/challenges/[slug]/page.tsx
-import { notFound } from 'next/navigation'
-import { ChallengeLeaderboard } from '@/components/challenges/challenge-leaderboard'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { getChallengeBySlug, getChallengeLeaderboard } from '@/lib/actions/challenges'
-import { getCurrentUser } from '@/lib/server/auth'
+import { notFound } from "next/navigation";
+import { ChallengeLeaderboard } from "@/components/challenges/challenge-leaderboard";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { getChallengeBySlug, getChallengeLeaderboard } from "@/lib/actions/challenges";
+import { getCurrentUser } from "@/lib/server/auth";
 
 export default async function ChallengeDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params
-  const user = await getCurrentUser()
-  const { challenge } = await getChallengeBySlug(slug)
-  if (!challenge) notFound()
+  const { slug } = await params;
+  const user = await getCurrentUser();
+  const { challenge } = await getChallengeBySlug(slug);
+  if (!challenge) notFound();
 
-  const { entries } = await getChallengeLeaderboard(challenge.id)
+  const { entries } = await getChallengeLeaderboard(challenge.id);
 
   return (
     <div className="bg-grid-pattern relative min-h-screen">
@@ -705,7 +709,7 @@ export default async function ChallengeDetailPage({
 
       <Footer />
     </div>
-  )
+  );
 }
 ```
 
@@ -729,21 +733,22 @@ git commit -m "feat: add challenge detail page"
 ### Task 7: Submission Page (Auth Required)
 
 **Files:**
+
 - Create: `app/challenges/[slug]/submit/page.tsx`
 
 **Step 1: Write the failing test**
 
 ```ts
-test('allows authenticated submission', async ({ page }) => {
-  await page.goto('/user/auth')
-  await page.fill('input[name="email"]', '123@gmail.com')
-  await page.fill('input[name="password"]', '123456')
-  await page.click('button[type="submit"]')
+test("allows authenticated submission", async ({ page }) => {
+  await page.goto("/user/auth");
+  await page.fill('input[name="email"]', "123@gmail.com");
+  await page.fill('input[name="password"]', "123456");
+  await page.click('button[type="submit"]');
 
-  await page.goto('/challenges/weekly-ai-build-1/submit')
-  await page.getByTestId('challenge-submit-button').click()
-  await expect(page.getByText(/success/i)).toBeVisible()
-})
+  await page.goto("/challenges/weekly-ai-build-1/submit");
+  await page.getByTestId("challenge-submit-button").click();
+  await expect(page.getByText(/success/i)).toBeVisible();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -758,48 +763,56 @@ Expected: FAIL (page missing or no form)
 
 ```tsx
 // app/challenges/[slug]/submit/page.tsx
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChallengeSubmissionForm } from '@/components/challenges/challenge-submission-form'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChallengeSubmissionForm } from "@/components/challenges/challenge-submission-form";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ChallengeSubmitPage({ params }: { params: { slug: string } }) {
-  const router = useRouter()
-  const [challengeId, setChallengeId] = useState<string | null>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const router = useRouter();
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const load = async () => {
-      const supabase = createClient()
-      const { data: auth } = await supabase.auth.getUser()
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
-        router.push('/user/auth')
-        return
+        router.push("/user/auth");
+        return;
       }
-      setIsLoggedIn(true)
-      const { data: profile } = await supabase.from('users').select('*').eq('id', auth.user.id).single()
+      setIsLoggedIn(true);
+      const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", auth.user.id)
+        .single();
       setUser({
         id: profile?.id,
         name: profile?.display_name,
-        email: auth.user.email || '',
+        email: auth.user.email || "",
         avatar_url: profile?.avatar_url,
         username: profile?.username,
         role: profile?.role,
-      })
+      });
 
-      const { data: challenge } = await supabase.from('challenges').select('id').eq('slug', params.slug).single()
-      if (challenge?.id) setChallengeId(challenge.id)
-    }
+      const { data: challenge } = await supabase
+        .from("challenges")
+        .select("id")
+        .eq("slug", params.slug)
+        .single();
+      if (challenge?.id) setChallengeId(challenge.id);
+    };
 
-    load()
-  }, [params.slug, router])
+    load();
+  }, [params.slug, router]);
 
-  if (!challengeId) return null
+  if (!challengeId) return null;
 
   return (
     <div className="bg-grid-pattern relative min-h-screen">
@@ -813,7 +826,7 @@ export default function ChallengeSubmitPage({ params }: { params: { slug: string
       </div>
       <Footer />
     </div>
-  )
+  );
 }
 ```
 
@@ -837,6 +850,7 @@ git commit -m "feat: add challenge submission page"
 ### Task 8: Update Sitemap + Translations
 
 **Files:**
+
 - Modify: `app/sitemap.ts`
 - Modify: `messages/en.json`
 - Modify: `messages/id.json`
@@ -846,14 +860,14 @@ git commit -m "feat: add challenge submission page"
 Add a small unit check in `tests/unit/challenge-sitemap.spec.ts`:
 
 ```ts
-import { expect, test } from '@playwright/test'
-import sitemap from '@/app/sitemap'
+import { expect, test } from "@playwright/test";
+import sitemap from "@/app/sitemap";
 
-test('sitemap includes challenges route', async () => {
-  const entries = await sitemap()
-  const urls = entries.map((entry) => entry.url)
-  expect(urls.some((url) => url.endsWith('/challenges'))).toBe(true)
-})
+test("sitemap includes challenges route", async () => {
+  const entries = await sitemap();
+  const urls = entries.map((entry) => entry.url);
+  expect(urls.some((url) => url.endsWith("/challenges"))).toBe(true);
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -868,7 +882,16 @@ Expected: FAIL (route missing)
 
 ```ts
 // app/sitemap.ts
-const routes = ['', '/project/list', '/project/submit', '/user/auth', '/terms', '/calendar', '/ai/ranking', '/challenges']
+const routes = [
+  "",
+  "/project/list",
+  "/project/submit",
+  "/user/auth",
+  "/terms",
+  "/calendar",
+  "/ai/ranking",
+  "/challenges",
+];
 ```
 
 Add translation keys:
@@ -911,6 +934,7 @@ git commit -m "feat: add challenge route to sitemap"
 ### Task 9: Full E2E Coverage
 
 **Files:**
+
 - Modify: `tests/challenges.spec.ts`
 
 **Step 1: Write the failing test**
@@ -918,21 +942,21 @@ git commit -m "feat: add challenge route to sitemap"
 Add full flow:
 
 ```ts
-test('submit and vote flow', async ({ page }) => {
-  await page.goto('/user/auth')
-  await page.fill('input[name="email"]', '123@gmail.com')
-  await page.fill('input[name="password"]', '123456')
-  await page.click('button[type="submit"]')
+test("submit and vote flow", async ({ page }) => {
+  await page.goto("/user/auth");
+  await page.fill('input[name="email"]', "123@gmail.com");
+  await page.fill('input[name="password"]', "123456");
+  await page.click('button[type="submit"]');
 
-  await page.goto('/challenges/weekly-ai-build-1/submit')
-  await page.fill('input[name="title"]', 'AI Note App')
-  await page.fill('input[name="project_url"]', 'https://example.com')
-  await page.fill('textarea[name="writeup"]', 'a'.repeat(200))
-  await page.getByTestId('challenge-submit-button').click()
+  await page.goto("/challenges/weekly-ai-build-1/submit");
+  await page.fill('input[name="title"]', "AI Note App");
+  await page.fill('input[name="project_url"]', "https://example.com");
+  await page.fill('textarea[name="writeup"]', "a".repeat(200));
+  await page.getByTestId("challenge-submit-button").click();
 
-  await page.goto('/challenges/weekly-ai-build-1')
-  await page.getByTestId('vote-button').first().click()
-})
+  await page.goto("/challenges/weekly-ai-build-1");
+  await page.getByTestId("vote-button").first().click();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -965,11 +989,13 @@ git commit -m "test: add weekly challenge e2e"
 ---
 
 ## Docs to Review Before Coding
+
 - `WARP.md` (background pattern + navbar/footer rules)
 - `docs/design-system.md` (typography, spacing, components)
 - `docs/security/RLS_POLICIES.md` (RLS conventions)
 
 ## Verification Checklist
+
 - `bun tsc --noEmit`
 - `bun lint`
 - `bun format`

@@ -1,66 +1,44 @@
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/env-config";
-import type { AIEvent, EventCategory, EventLocationType } from "@/types/events";
+import { and, asc, eq, ne } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { toEventDto } from "@/lib/db/mappers";
+import { events } from "@/lib/db/schema";
+import type { EventDto } from "@/types/domain";
 
-interface EventRow {
-  id: string;
-  slug: string;
-  name: string;
-  date: string;
-  time: string;
-  end_date: string | null;
-  end_time: string | null;
-  location_type: EventLocationType;
-  location_detail: string;
-  description: string;
-  organizer: string;
-  registration_url: string;
-  cover_image: string;
-  category: EventCategory;
-  status: AIEvent["status"];
+export async function fetchApprovedEvents(): Promise<EventDto[]> {
+  const db = getDb();
+
+  const rows = await db
+    .select()
+    .from(events)
+    .where(eq(events.approved, true))
+    .orderBy(asc(events.date));
+
+  return rows.map(toEventDto);
 }
 
-function mapEventFromDB(data: EventRow): AIEvent {
-  return {
-    id: data.id,
-    slug: data.slug,
-    name: data.name,
-    date: data.date,
-    time: data.time,
-    endDate: data.end_date ?? undefined,
-    endTime: data.end_time ?? undefined,
-    locationType: data.location_type,
-    locationDetail: data.location_detail,
-    description: data.description,
-    organizer: data.organizer,
-    registrationUrl: data.registration_url,
-    coverImage: data.cover_image,
-    category: data.category,
-    status: data.status,
-  };
-}
-
-export async function fetchApprovedEvents(): Promise<AIEvent[]> {
-  const { url, anonKey } = getSupabaseConfig();
-  const supabase = createClient(url, anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-    global: {
-      fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
-    },
-  });
-
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("approved", true)
-    .order("date", { ascending: true });
-
-  if (error || !data) {
-    return [];
+export async function fetchEventBySlug(slug: string): Promise<EventDto | null> {
+  const sanitizedSlug = slug.trim().toLowerCase();
+  if (!sanitizedSlug || sanitizedSlug.length > 200) {
+    return null;
   }
 
-  return data.map((event) => mapEventFromDB(event as EventRow));
+  const db = getDb();
+  const [row] = await db.select().from(events).where(eq(events.slug, sanitizedSlug)).limit(1);
+
+  return row ? toEventDto(row) : null;
+}
+
+export async function fetchRelatedEvents(
+  category: string,
+  excludeId: string,
+  limit: number = 3,
+): Promise<EventDto[]> {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(events)
+    .where(and(eq(events.category, category), eq(events.approved, true), ne(events.id, excludeId)))
+    .limit(limit);
+
+  return rows.map(toEventDto);
 }

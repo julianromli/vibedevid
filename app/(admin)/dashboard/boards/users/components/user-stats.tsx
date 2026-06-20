@@ -1,16 +1,22 @@
-'use client'
+"use client";
 
-import { IconFolder, IconHeart, IconMessageCircle, IconNews } from '@tabler/icons-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
-import type { AdminUser } from '@/lib/actions/admin/users'
+import { IconFolder, IconHeart, IconMessageCircle, IconNews } from "@tabler/icons-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import type { AdminUser } from "@/lib/actions/admin/users";
 
 interface UserStatsProps {
-  user: AdminUser
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  user: AdminUser;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function UserStats({ user, open, onOpenChange }: UserStatsProps) {
@@ -20,26 +26,23 @@ export function UserStats({ user, open, onOpenChange }: UserStatsProps) {
     user.stats.comments_count,
     user.stats.likes_received,
     1,
-  )
+  );
 
   const getRoleName = (role: number) => {
     switch (role) {
       case 0:
-        return 'Admin'
+        return "Admin";
       case 1:
-        return 'Moderator'
+        return "Moderator";
       case 2:
-        return 'User'
+        return "User";
       default:
-        return 'Unknown'
+        return "Unknown";
     }
-  }
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>User Statistics</DialogTitle>
@@ -49,16 +52,15 @@ export function UserStats({ user, open, onOpenChange }: UserStatsProps) {
         <div className="py-4 space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage
-                src={user.avatar_url || ''}
-                alt={user.display_name}
-              />
+              <AvatarImage src={user.avatar_url || ""} alt={user.display_name} />
               <AvatarFallback>{user.display_name[0]}</AvatarFallback>
             </Avatar>
             <div>
               <h3 className="font-semibold text-lg">{user.display_name}</h3>
               <p className="text-muted-foreground">@{user.username}</p>
-              <Badge variant={user.role === 0 ? 'default' : 'secondary'}>{getRoleName(user.role)}</Badge>
+              <Badge variant={user.role === 0 ? "default" : "secondary"}>
+                {getRoleName(user.role)}
+              </Badge>
             </div>
           </div>
 
@@ -129,5 +131,5 @@ export function UserStats({ user, open, onOpenChange }: UserStatsProps) {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

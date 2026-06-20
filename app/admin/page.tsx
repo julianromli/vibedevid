@@ -1,4 +1,4 @@
-import { VideoVibeCodingManager } from '@/components/ui/video-vibe-coding-manager'
+import { VideoVibeCodingManager } from "@/components/ui/video-vibe-coding-manager";
 
 export default function AdminPage() {
   return (
@@ -12,7 +12,9 @@ export default function AdminPage() {
           {/* Header Section */}
           <div className="space-y-2 text-center sm:space-y-4">
             <h1 className="text-foreground text-2xl font-bold sm:text-4xl">Admin Dashboard 🚀</h1>
-            <p className="text-muted-foreground text-base sm:text-xl">Manage Video Vibe Coding Section</p>
+            <p className="text-muted-foreground text-base sm:text-xl">
+              Manage Video Vibe Coding Section
+            </p>
           </div>
 
           {/* Video Vibe Coding Manager */}
@@ -20,5 +22,5 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

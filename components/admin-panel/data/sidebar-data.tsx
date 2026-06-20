@@ -6,70 +6,70 @@ import {
   IconNews,
   IconShield,
   IconUsers,
-} from '@tabler/icons-react'
-import type { NavGroup } from '../types'
+} from "@tabler/icons-react";
+import type { NavGroup } from "../types";
 
 // Navigation groups for admin sidebar
 export const sidebarData: { navGroups: NavGroup[] } = {
   navGroups: [
     {
-      title: 'General',
+      title: "General",
       items: [
         {
-          title: 'Dashboard',
+          title: "Dashboard",
           icon: IconLayoutDashboard,
           items: [
             {
-              title: 'Overview',
-              url: '/dashboard',
+              title: "Overview",
+              url: "/dashboard",
             },
             {
-              title: 'Analytics',
-              url: '/dashboard?tab=analytics',
+              title: "Analytics",
+              url: "/dashboard?tab=analytics",
             },
           ],
         },
       ],
     },
     {
-      title: 'Content',
+      title: "Content",
       items: [
         {
-          title: 'Projects',
-          url: '/dashboard?tab=projects',
+          title: "Projects",
+          url: "/dashboard?tab=projects",
           icon: IconFolder,
         },
         {
-          title: 'Blog Posts',
-          url: '/dashboard?tab=blog',
+          title: "Blog Posts",
+          url: "/dashboard?tab=blog",
           icon: IconNews,
         },
         {
-          title: 'Events',
-          url: '/dashboard?tab=events-approval',
+          title: "Events",
+          url: "/dashboard?tab=events-approval",
           icon: IconCalendarEvent,
         },
       ],
     },
     {
-      title: 'Community',
+      title: "Community",
       items: [
         {
-          title: 'Users',
-          url: '/dashboard?tab=users',
+          title: "Users",
+          url: "/dashboard?tab=users",
           icon: IconUsers,
         },
         {
-          title: 'Admin management',
-          url: '/dashboard?tab=admin-management',
+          title: "Admin management",
+          url: "/dashboard?tab=admin-management",
           icon: IconShield,
         },
         {
-          title: 'Comments',
-          url: '/dashboard?tab=comments',
+          title: "Comments",
+          url: "/dashboard?tab=comments",
           icon: IconMessageCircle,
         },
       ],
     },
   ],
-}
+};

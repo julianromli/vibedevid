@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { Flag, Loader2, MessageCircle, Send } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
-import { Textarea } from '@/components/ui/textarea'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import { createCommentFn, getCommentsFn, reportCommentFn } from '@/lib/actions/comments.functions'
-import type { Comment, CommentSectionProps } from '@/types/comments'
+import { Flag, Loader2, MessageCircle, Send } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { UserDisplayName } from "@/components/ui/user-display-name";
+import { createCommentFn, getCommentsFn, reportCommentFn } from "@/lib/actions/comments.functions";
+import type { Comment, CommentSectionProps } from "@/types/comments";
 
 /**
  * Unified CommentSection component for both Blog and Project pages
@@ -33,21 +33,21 @@ export function CommentSection({
   currentUser,
   allowGuest = false,
 }: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>(initialComments)
-  const [newComment, setNewComment] = useState('')
-  const [guestName, setGuestName] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [reportingId, setReportingId] = useState<string | null>(null)
+  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [newComment, setNewComment] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const canSubmit = isLoggedIn
     ? newComment.trim().length >= 2
-    : allowGuest && newComment.trim().length >= 2 && guestName.trim().length >= 2
+    : allowGuest && newComment.trim().length >= 2 && guestName.trim().length >= 2;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!canSubmit) return
+    e.preventDefault();
+    if (!canSubmit) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     const result = await createCommentFn({
       data: {
@@ -56,61 +56,61 @@ export function CommentSection({
         content: newComment.trim(),
         guestName: !isLoggedIn ? guestName.trim() : undefined,
       },
-    })
+    });
 
     if (result.success) {
-      setNewComment('')
-      if (!isLoggedIn) setGuestName('')
-      toast.success('Comment posted successfully')
+      setNewComment("");
+      if (!isLoggedIn) setGuestName("");
+      toast.success("Comment posted successfully");
 
       // Refresh comments
-      const { comments: updatedComments } = await getCommentsFn({ data: { entityType, entityId } })
-      setComments(updatedComments)
+      const { comments: updatedComments } = await getCommentsFn({ data: { entityType, entityId } });
+      setComments(updatedComments);
     } else {
-      toast.error(result.error ?? 'Failed to post comment')
+      toast.error(result.error ?? "Failed to post comment");
     }
 
-    setIsSubmitting(false)
-  }
+    setIsSubmitting(false);
+  };
 
   const handleReport = async (commentId: string) => {
     if (!isLoggedIn) {
-      toast.error('You must be logged in to report comments')
-      return
+      toast.error("You must be logged in to report comments");
+      return;
     }
 
-    setReportingId(commentId)
+    setReportingId(commentId);
 
-    const result = await reportCommentFn({ data: { commentId, reason: 'inappropriate' } })
+    const result = await reportCommentFn({ data: { commentId, reason: "inappropriate" } });
 
     if (result.success) {
-      toast.success('Comment reported for review')
+      toast.success("Comment reported for review");
     } else {
-      toast.error(result.error ?? 'Failed to report comment')
+      toast.error(result.error ?? "Failed to report comment");
     }
 
-    setReportingId(null)
-  }
+    setReportingId(null);
+  };
 
   const formatTimestamp = (dateString: string): string => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       if (diffHours === 0) {
-        const diffMinutes = Math.floor(diffMs / (1000 * 60))
-        return diffMinutes <= 1 ? 'Just now' : `${diffMinutes}m ago`
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        return diffMinutes <= 1 ? "Just now" : `${diffMinutes}m ago`;
       }
-      return `${diffHours}h ago`
+      return `${diffHours}h ago`;
     }
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays}d ago`
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays}d ago`;
 
-    return date.toLocaleDateString()
-  }
+    return date.toLocaleDateString();
+  };
 
   return (
     <section className="space-y-6">
@@ -125,10 +125,7 @@ export function CommentSection({
       {/* Comment Form */}
       <Card>
         <CardContent className="p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Guest name input (only when not logged in and guest allowed) */}
             {!isLoggedIn && allowGuest && (
               <input
@@ -147,10 +144,10 @@ export function CommentSection({
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={
                 isLoggedIn
-                  ? `Share your thoughts${currentUser?.name ? `, ${currentUser.name}` : ''}...`
+                  ? `Share your thoughts${currentUser?.name ? `, ${currentUser.name}` : ""}...`
                   : allowGuest
-                    ? 'Share your thoughts...'
-                    : 'Sign in to leave a comment'
+                    ? "Share your thoughts..."
+                    : "Sign in to leave a comment"
               }
               className="min-h-[100px] resize-none"
               disabled={!isLoggedIn && !allowGuest}
@@ -161,22 +158,16 @@ export function CommentSection({
             <div className="flex items-center justify-between">
               {!isLoggedIn && !allowGuest ? (
                 <p className="text-muted-foreground text-sm">
-                  <Link
-                    to="/user/auth"
-                    className="text-primary hover:underline"
-                  >
+                  <Link to="/user/auth" className="text-primary hover:underline">
                     Sign in
-                  </Link>{' '}
+                  </Link>{" "}
                   to leave a comment
                 </p>
               ) : (
                 <div /> // Spacer
               )}
 
-              <Button
-                type="submit"
-                disabled={!canSubmit || isSubmitting}
-              >
+              <Button type="submit" disabled={!canSubmit || isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -199,7 +190,9 @@ export function CommentSection({
         {comments.length === 0 ? (
           <div className="py-8 text-center">
             <MessageCircle className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-            <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+            <p className="text-muted-foreground">
+              No comments yet. Be the first to share your thoughts!
+            </p>
           </div>
         ) : (
           comments.map((comment) => (
@@ -208,7 +201,7 @@ export function CommentSection({
                 <div className="flex items-start gap-3">
                   <OptimizedAvatar
                     src={comment.author?.avatarUrl}
-                    alt={comment.author?.displayName ?? 'Anonymous'}
+                    alt={comment.author?.displayName ?? "Anonymous"}
                     size="sm"
                     isGuest={comment.isGuest}
                     showSkeleton={true}
@@ -218,14 +211,18 @@ export function CommentSection({
                     <div className="mb-1 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <UserDisplayName
-                          name={comment.author?.displayName ?? 'Anonymous'}
+                          name={comment.author?.displayName ?? "Anonymous"}
                           role={comment.author?.role ?? null}
                           className="text-sm font-medium"
                         />
                         {comment.isGuest && (
-                          <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">Guest</span>
+                          <span className="text-muted-foreground bg-muted rounded px-2 py-0.5 text-xs">
+                            Guest
+                          </span>
                         )}
-                        <span className="text-muted-foreground text-xs">{formatTimestamp(comment.createdAt)}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {formatTimestamp(comment.createdAt)}
+                        </span>
                       </div>
 
                       {/* Report button (only for logged in users) */}
@@ -247,7 +244,9 @@ export function CommentSection({
                       )}
                     </div>
 
-                    <p className="text-foreground whitespace-pre-wrap break-words">{comment.content}</p>
+                    <p className="text-foreground whitespace-pre-wrap break-words">
+                      {comment.content}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -256,5 +255,5 @@ export function CommentSection({
         )}
       </div>
     </section>
-  )
+  );
 }

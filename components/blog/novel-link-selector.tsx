@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { Check, Link, Trash, X } from 'lucide-react'
-import { EditorBubbleItem, useEditor } from 'novel'
-import { useCallback, useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Check, Link, Trash, X } from "lucide-react";
+import { EditorBubbleItem, useEditor } from "novel";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface NovelLinkSelectorProps {
-  className?: string
+  className?: string;
 }
 
 /**
@@ -15,81 +15,85 @@ interface NovelLinkSelectorProps {
  * Allows setting and removing links on selected text
  */
 export function NovelLinkSelector({ className }: NovelLinkSelectorProps) {
-  const { editor } = useEditor()
-  const [isOpen, setIsOpen] = useState(false)
-  const [url, setUrl] = useState('')
+  const { editor } = useEditor();
+  const [isOpen, setIsOpen] = useState(false);
+  const [url, setUrl] = useState("");
 
   // Check if current selection has a link
-  const isActive = editor?.isActive('link') ?? false
+  const isActive = editor?.isActive("link") ?? false;
 
   // Get current link URL when selection changes
   useEffect(() => {
-    if (!editor) return
+    if (!editor) return;
 
     const updateLinkState = () => {
-      const attrs = editor.getAttributes('link')
+      const attrs = editor.getAttributes("link");
       if (attrs.href) {
-        setUrl(attrs.href)
+        setUrl(attrs.href);
       } else {
-        setUrl('')
+        setUrl("");
       }
-    }
+    };
 
-    editor.on('selectionUpdate', updateLinkState)
-    updateLinkState()
+    editor.on("selectionUpdate", updateLinkState);
+    updateLinkState();
 
     return () => {
-      editor.off('selectionUpdate', updateLinkState)
-    }
-  }, [editor])
+      editor.off("selectionUpdate", updateLinkState);
+    };
+  }, [editor]);
 
   const handleSetLink = useCallback(() => {
-    if (!editor || !url.trim()) return
+    if (!editor || !url.trim()) return;
 
     // Add https:// if no protocol is specified
-    let finalUrl = url.trim()
-    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-      finalUrl = `https://${finalUrl}`
+    let finalUrl = url.trim();
+    if (!finalUrl.startsWith("http://") && !finalUrl.startsWith("https://")) {
+      finalUrl = `https://${finalUrl}`;
     }
 
-    editor.chain().focus().extendMarkRange('link').setLink({ href: finalUrl }).run()
+    editor.chain().focus().extendMarkRange("link").setLink({ href: finalUrl }).run();
 
-    setIsOpen(false)
-  }, [editor, url])
+    setIsOpen(false);
+  }, [editor, url]);
 
   const handleUnsetLink = useCallback(() => {
-    if (!editor) return
+    if (!editor) return;
 
-    editor.chain().focus().unsetLink().run()
-    setUrl('')
-    setIsOpen(false)
-  }, [editor])
+    editor.chain().focus().unsetLink().run();
+    setUrl("");
+    setIsOpen(false);
+  }, [editor]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        handleSetLink()
-      } else if (e.key === 'Escape') {
-        setIsOpen(false)
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSetLink();
+      } else if (e.key === "Escape") {
+        setIsOpen(false);
       }
     },
     [handleSetLink],
-  )
+  );
 
-  if (!editor) return null
+  if (!editor) return null;
 
   return (
-    <div className={cn('relative flex items-center', className)}>
+    <div className={cn("relative flex items-center", className)}>
       <EditorBubbleItem
         onSelect={() => {
-          setIsOpen(!isOpen)
+          setIsOpen(!isOpen);
         }}
       >
         <Button
           size="sm"
           variant="ghost"
-          className={cn('h-8 gap-1 rounded-none border-none px-2', isActive && 'text-blue-500', isOpen && 'bg-accent')}
+          className={cn(
+            "h-8 gap-1 rounded-none border-none px-2",
+            isActive && "text-blue-500",
+            isOpen && "bg-accent",
+          )}
         >
           <Link className="h-4 w-4" />
         </Button>
@@ -135,5 +139,5 @@ export function NovelLinkSelector({ className }: NovelLinkSelectorProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

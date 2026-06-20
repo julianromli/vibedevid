@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { Upload } from 'lucide-react'
-import { motion } from 'motion/react'
-import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import { Upload } from "lucide-react";
+import { motion } from "motion/react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 interface FloatingWriteButtonProps {
   /** Whether the user is logged in */
-  isLoggedIn: boolean
+  isLoggedIn: boolean;
 }
 
 /**
@@ -17,7 +17,7 @@ interface FloatingWriteButtonProps {
  */
 export function FloatingWriteButton({ isLoggedIn }: FloatingWriteButtonProps) {
   if (!isLoggedIn) {
-    return null
+    return null;
   }
 
   return (
@@ -26,7 +26,7 @@ export function FloatingWriteButton({ isLoggedIn }: FloatingWriteButtonProps) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{
-        type: 'spring',
+        type: "spring",
         stiffness: 260,
         damping: 20,
         delay: 0.3,
@@ -45,5 +45,5 @@ export function FloatingWriteButton({ isLoggedIn }: FloatingWriteButtonProps) {
         </Button>
       </Link>
     </motion.div>
-  )
+  );
 }

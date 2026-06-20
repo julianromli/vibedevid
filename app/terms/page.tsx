@@ -1,85 +1,73 @@
-'use client'
+"use client";
 
-import { AlertTriangle, ArrowLeft, CheckCircle, FileText, Globe, Lock, Mail, Shield, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { Separator } from '@/components/ui/separator'
-import { useRouter } from '@/lib/navigation'
-import { createClient } from '@/lib/supabase/client'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle,
+  FileText,
+  Globe,
+  Lock,
+  Mail,
+  Shield,
+  Users,
+} from "lucide-react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { Separator } from "@/components/ui/separator";
+import { useRouter } from "@/lib/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TermsPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    const supabase = createClient()
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        setIsLoggedIn(true)
-      }
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        setIsLoggedIn(true)
-      } else {
-        setUser(null)
-        setIsLoggedIn(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  const router = useRouter();
+  const { isLoggedIn, user } = useAuth();
 
   const sections = [
-    { id: 'acceptance', title: 'Acceptance of Terms', icon: CheckCircle },
-    { id: 'service', title: 'Description of Service', icon: Globe },
-    { id: 'accounts', title: 'User Accounts', icon: Users },
-    { id: 'content', title: 'Content & Conduct', icon: FileText },
-    { id: 'community', title: 'Community Guidelines', icon: Users },
-    { id: 'privacy', title: 'Privacy & Data', icon: Lock },
-    { id: 'prohibited', title: 'Prohibited Uses', icon: AlertTriangle },
-    { id: 'termination', title: 'Termination', icon: Shield },
-  ]
+    { id: "acceptance", title: "Acceptance of Terms", icon: CheckCircle },
+    { id: "service", title: "Description of Service", icon: Globe },
+    { id: "accounts", title: "User Accounts", icon: Users },
+    { id: "content", title: "Content & Conduct", icon: FileText },
+    { id: "community", title: "Community Guidelines", icon: Users },
+    { id: "privacy", title: "Privacy & Data", icon: Lock },
+    { id: "prohibited", title: "Prohibited Uses", icon: AlertTriangle },
+    { id: "termination", title: "Termination", icon: Shield },
+  ];
 
   const scrollToSection = (sectionId: string) => {
     // Handle internal sections first
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      return
+      element.scrollIntoView({ behavior: "smooth" });
+      return;
     }
 
     // For homepage sections, redirect
-    if (['projects', 'features', 'reviews', 'faq'].includes(sectionId)) {
-      router.navigate({ to: `/#${sectionId}` })
+    if (["projects", "features", "reviews", "faq"].includes(sectionId)) {
+      router.navigate({ to: `/#${sectionId}` });
     }
-  }
+  };
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-    >
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <div className="bg-background min-h-screen">
         <Navbar
           showNavigation={true}
           isLoggedIn={isLoggedIn}
-          user={user}
+          user={
+            user
+              ? {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                  avatar: user.avatar,
+                  username: user.username,
+                  role: user.role,
+                }
+              : undefined
+          }
         />
 
         <main className="pt-20 pb-12">
@@ -107,7 +95,7 @@ export default function TermsPage() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {sections.map((section) => {
-                    const IconComponent = section.icon
+                    const IconComponent = section.icon;
                     return (
                       <Button
                         key={section.id}
@@ -119,7 +107,7 @@ export default function TermsPage() {
                         <IconComponent className="mr-2 h-4 w-4" />
                         <span className="text-sm">{section.title}</span>
                       </Button>
-                    )
+                    );
                   })}
                 </div>
               </CardContent>
@@ -137,12 +125,13 @@ export default function TermsPage() {
                 </CardHeader>
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <p>
-                    Welcome to VibeDev ID ("we," "our," or "us"). By accessing or using our platform at any domain
-                    associated with VibeDev ID (the "Service"), you ("User" or "you") agree to be bound by these Terms
-                    and Conditions ("Terms").
+                    Welcome to VibeDev ID ("we," "our," or "us"). By accessing or using our platform
+                    at any domain associated with VibeDev ID (the "Service"), you ("User" or "you")
+                    agree to be bound by these Terms and Conditions ("Terms").
                   </p>
                   <p className="text-muted-foreground bg-accent/30 rounded-lg p-4 text-sm">
-                    <strong>Important:</strong> If you do not agree to these Terms, please do not use our Service.
+                    <strong>Important:</strong> If you do not agree to these Terms, please do not
+                    use our Service.
                   </p>
                 </CardContent>
               </Card>
@@ -157,8 +146,8 @@ export default function TermsPage() {
                 </CardHeader>
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <p>
-                    VibeDev ID is a community platform for Indonesian developers, AI enthusiasts, and tech innovators.
-                    Our Service allows users to:
+                    VibeDev ID is a community platform for Indonesian developers, AI enthusiasts,
+                    and tech innovators. Our Service allows users to:
                   </p>
                   <ul className="grid list-none grid-cols-1 gap-2 md:grid-cols-2">
                     <li className="flex items-center gap-2">
@@ -232,30 +221,20 @@ export default function TermsPage() {
                 <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
                   <div className="space-y-6">
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold text-green-600">✅ Allowed Content</h4>
+                      <h4 className="mb-3 text-lg font-semibold text-green-600">
+                        ✅ Allowed Content
+                      </h4>
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <Badge
-                          variant="outline"
-                          className="justify-center"
-                        >
+                        <Badge variant="outline" className="justify-center">
                           Project descriptions
                         </Badge>
-                        <Badge
-                          variant="outline"
-                          className="justify-center"
-                        >
+                        <Badge variant="outline" className="justify-center">
                           Code snippets
                         </Badge>
-                        <Badge
-                          variant="outline"
-                          className="justify-center"
-                        >
+                        <Badge variant="outline" className="justify-center">
                           Profile information
                         </Badge>
-                        <Badge
-                          variant="outline"
-                          className="justify-center"
-                        >
+                        <Badge variant="outline" className="justify-center">
                           Community discussions
                         </Badge>
                       </div>
@@ -264,15 +243,17 @@ export default function TermsPage() {
                     <Separator />
 
                     <div>
-                      <h4 className="mb-3 text-lg font-semibold text-red-600">❌ Prohibited Content</h4>
+                      <h4 className="mb-3 text-lg font-semibold text-red-600">
+                        ❌ Prohibited Content
+                      </h4>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         {[
-                          'Illegal or harmful content',
-                          'Hate speech or harassment',
-                          'Copyright infringement',
-                          'Malicious code or viruses',
-                          'Spam or fraudulent content',
-                          'Adult or explicit material',
+                          "Illegal or harmful content",
+                          "Hate speech or harassment",
+                          "Copyright infringement",
+                          "Malicious code or viruses",
+                          "Spam or fraudulent content",
+                          "Adult or explicit material",
                         ].map((item, index) => (
                           <div
                             key={index}
@@ -314,7 +295,9 @@ export default function TermsPage() {
                           <CheckCircle className="mt-0.5 h-5 w-5 text-green-600" />
                           <div>
                             <strong>Constructive Feedback</strong>
-                            <p className="text-muted-foreground text-sm">Provide helpful and constructive criticism</p>
+                            <p className="text-muted-foreground text-sm">
+                              Provide helpful and constructive criticism
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -332,7 +315,9 @@ export default function TermsPage() {
                           <CheckCircle className="mt-0.5 h-5 w-5 text-green-600" />
                           <div>
                             <strong>Knowledge Sharing</strong>
-                            <p className="text-muted-foreground text-sm">Share knowledge and help others learn</p>
+                            <p className="text-muted-foreground text-sm">
+                              Share knowledge and help others learn
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -356,7 +341,7 @@ export default function TermsPage() {
                       <ul className="space-y-2">
                         <li className="flex items-center gap-2">
                           <Lock className="h-4 w-4 text-green-600" />
-                          Secure authentication via Supabase
+                          Secure authentication via Better Auth
                         </li>
                         <li className="flex items-center gap-2">
                           <Lock className="h-4 w-4 text-green-600" />
@@ -404,19 +389,16 @@ export default function TermsPage() {
                     </p>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {[
-                        'Violate laws or regulations',
-                        'Impersonate others',
-                        'Gain unauthorized system access',
-                        'Interfere with service functionality',
-                        'Harvest user information',
-                        'Use automated access systems',
-                        'Reverse engineer our platform',
-                        'Distribute malicious content',
+                        "Violate laws or regulations",
+                        "Impersonate others",
+                        "Gain unauthorized system access",
+                        "Interfere with service functionality",
+                        "Harvest user information",
+                        "Use automated access systems",
+                        "Reverse engineer our platform",
+                        "Distribute malicious content",
                       ].map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2"
-                        >
+                        <div key={index} className="flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
                           <span className="text-sm">{item}</span>
                         </div>
@@ -439,15 +421,15 @@ export default function TermsPage() {
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">By You</h4>
                       <p>
-                        You may terminate your account at any time. Termination does not relieve you of obligations
-                        incurred before termination.
+                        You may terminate your account at any time. Termination does not relieve you
+                        of obligations incurred before termination.
                       </p>
                     </div>
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">By Us</h4>
                       <p>
-                        We may terminate accounts for Terms violations, prohibited conduct, security risks, or extended
-                        inactivity.
+                        We may terminate accounts for Terms violations, prohibited conduct, security
+                        risks, or extended inactivity.
                       </p>
                     </div>
                   </div>
@@ -467,8 +449,8 @@ export default function TermsPage() {
                     <div>
                       <h4 className="mb-3 text-lg font-semibold">Governing Law</h4>
                       <p>
-                        These Terms are governed by the laws of the Republic of Indonesia. Disputes should be resolved
-                        through Indonesian courts.
+                        These Terms are governed by the laws of the Republic of Indonesia. Disputes
+                        should be resolved through Indonesian courts.
                       </p>
                     </div>
                     <div>
@@ -504,7 +486,9 @@ export default function TermsPage() {
                   <CardTitle className="text-center">🇮🇩 Ringkasan Bahasa Indonesia</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="mb-4 text-lg">Dengan menggunakan platform VibeDev ID, Anda setuju untuk:</p>
+                  <p className="mb-4 text-lg">
+                    Dengan menggunakan platform VibeDev ID, Anda setuju untuk:
+                  </p>
                   <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-2">
                     <div className="space-y-2">
                       <p className="flex items-center gap-2">
@@ -534,10 +518,12 @@ export default function TermsPage() {
               <Card className="border-primary border-2">
                 <CardContent className="py-8 text-center">
                   <h3 className="mb-4 text-xl font-bold">
-                    By using VibeDev ID, you acknowledge that you have read, understood, and agree to be bound by these
-                    Terms and Conditions.
+                    By using VibeDev ID, you acknowledge that you have read, understood, and agree
+                    to be bound by these Terms and Conditions.
                   </h3>
-                  <p className="text-muted-foreground">Last updated: September 2025 • Effective: January 2025</p>
+                  <p className="text-muted-foreground">
+                    Last updated: September 2025 • Effective: January 2025
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -546,7 +532,7 @@ export default function TermsPage() {
             <div className="mt-12 text-center">
               <Button
                 variant="outline"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4 rotate-90" />
@@ -559,5 +545,5 @@ export default function TermsPage() {
         <Footer />
       </div>
     </ThemeProvider>
-  )
+  );
 }

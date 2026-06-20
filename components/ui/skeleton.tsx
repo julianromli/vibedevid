@@ -1,18 +1,18 @@
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
-      className={cn('bg-muted animate-pulse rounded-md skeleton-shimmer', className)}
+      className={cn("bg-muted animate-pulse rounded-md skeleton-shimmer", className)}
       {...props}
     />
-  )
+  );
 }
 
 function getSkeletonKeys(prefix: string, count: number) {
-  return Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`)
+  return Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`);
 }
 
 function ProjectImageSkeleton() {
@@ -22,7 +22,7 @@ function ProjectImageSkeleton() {
         <Skeleton className="h-full w-full" />
       </div>
     </div>
-  )
+  );
 }
 
 function ProjectInfoSkeleton() {
@@ -67,7 +67,7 @@ function ProjectInfoSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function CommentsSkeleton() {
@@ -87,11 +87,8 @@ function CommentsSkeleton() {
       </div>
 
       <div className="space-y-4">
-        {getSkeletonKeys('comment', 2).map((key) => (
-          <div
-            key={key}
-            className="rounded-lg border p-4"
-          >
+        {getSkeletonKeys("comment", 2).map((key) => (
+          <div key={key} className="rounded-lg border p-4">
             <div className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
               <div className="flex-1 space-y-2">
@@ -108,7 +105,7 @@ function CommentsSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function BlogHeaderSkeleton() {
@@ -121,17 +118,14 @@ function BlogHeaderSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function BlogGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {getSkeletonKeys('blog-card', count).map((key) => (
-        <div
-          key={key}
-          className="space-y-4"
-        >
+      {getSkeletonKeys("blog-card", count).map((key) => (
+        <div key={key} className="space-y-4">
           <div className="bg-muted relative overflow-hidden rounded-lg">
             <div className="aspect-video">
               <Skeleton className="h-full w-full" />
@@ -155,7 +149,7 @@ function BlogGridSkeleton({ count = 6 }: { count?: number }) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function ArticleHeaderSkeleton() {
@@ -190,7 +184,7 @@ function ArticleHeaderSkeleton() {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 function ArticleContentSkeleton() {
@@ -210,7 +204,7 @@ function ArticleContentSkeleton() {
         <Skeleton className="h-4 w-5/6" />
       </div>
     </>
-  )
+  );
 }
 
 function ProjectStatsSkeleton() {
@@ -231,11 +225,8 @@ function ProjectStatsSkeleton() {
       <div className="rounded-lg border p-6">
         <Skeleton className="mb-4 h-5 w-24" />
         <div className="space-y-3">
-          {getSkeletonKeys('stat-row', 3).map((key) => (
-            <div
-              key={key}
-              className="flex items-center justify-between"
-            >
+          {getSkeletonKeys("stat-row", 3).map((key) => (
+            <div key={key} className="flex items-center justify-between">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-6 w-8" />
             </div>
@@ -247,7 +238,7 @@ function ProjectStatsSkeleton() {
         <Skeleton className="h-9 w-full" />
       </div>
     </div>
-  )
+  );
 }
 
 function ProfileHeaderSkeleton() {
@@ -285,11 +276,8 @@ function ProfileHeaderSkeleton() {
         </div>
 
         <div className="flex justify-center gap-6 md:flex-col md:items-end md:justify-start md:gap-3">
-          {getSkeletonKeys('profile-stat', 3).map((key) => (
-            <div
-              key={key}
-              className="bg-muted/30 min-w-[80px] rounded-xl p-4 text-center"
-            >
+          {getSkeletonKeys("profile-stat", 3).map((key) => (
+            <div key={key} className="bg-muted/30 min-w-[80px] rounded-xl p-4 text-center">
               <Skeleton className="mx-auto mb-1 h-8 w-8" />
               <Skeleton className="mx-auto h-3 w-12" />
             </div>
@@ -297,7 +285,7 @@ function ProfileHeaderSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function ProjectGridSkeleton({
@@ -305,19 +293,17 @@ function ProjectGridSkeleton({
   columns = 3,
   className,
 }: {
-  count?: number
-  columns?: number
-  className?: string
+  count?: number;
+  columns?: number;
+  className?: string;
 }) {
-  const gridCols = columns === 2 ? 'md:grid-cols-2' : columns === 3 ? 'md:grid-cols-3' : `md:grid-cols-${columns}`
+  const gridCols =
+    columns === 2 ? "md:grid-cols-2" : columns === 3 ? "md:grid-cols-3" : `md:grid-cols-${columns}`;
 
   return (
     <div className={className ?? `grid ${gridCols} gap-6`}>
-      {getSkeletonKeys('project-card', count).map((key) => (
-        <div
-          key={key}
-          className="space-y-4"
-        >
+      {getSkeletonKeys("project-card", count).map((key) => (
+        <div key={key} className="space-y-4">
           <div className="bg-muted relative overflow-hidden rounded-lg">
             <div className="aspect-video">
               <Skeleton className="h-full w-full" />
@@ -341,7 +327,7 @@ function ProjectGridSkeleton({
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function ProfileProjectsSkeleton() {
@@ -349,13 +335,10 @@ function ProfileProjectsSkeleton() {
     <div className="rounded-lg border">
       <div className="p-6">
         <Skeleton className="mb-6 h-6 w-20" />
-        <ProjectGridSkeleton
-          count={4}
-          columns={2}
-        />
+        <ProjectGridSkeleton count={4} columns={2} />
       </div>
     </div>
-  )
+  );
 }
 
 export {
@@ -371,4 +354,4 @@ export {
   ProfileHeaderSkeleton,
   ProfileProjectsSkeleton,
   ProjectGridSkeleton,
-}
+};

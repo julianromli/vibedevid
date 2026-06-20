@@ -1,16 +1,16 @@
-import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface SourceStepProps {
-  mounted: boolean
-  githubRepoUrl: string
-  setGithubRepoUrl: (value: string) => void
-  isLoading: boolean
-  isUploading: boolean
-  isImporting: boolean
-  onImport: () => void
+  mounted: boolean;
+  githubRepoUrl: string;
+  setGithubRepoUrl: (value: string) => void;
+  isLoading: boolean;
+  isUploading: boolean;
+  isImporting: boolean;
+  onImport: () => void;
 }
 
 export function SourceStep({
@@ -22,21 +22,17 @@ export function SourceStep({
   isImporting,
   onImport,
 }: SourceStepProps) {
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
-    <div
-      className="space-y-4"
-      data-testid="github-import"
-    >
+    <div className="space-y-4" data-testid="github-import">
       <div className="space-y-2">
-        <Label
-          htmlFor="github_repo"
-          className="text-lg font-medium"
-        >
+        <Label htmlFor="github_repo" className="text-lg font-medium">
           Import from GitHub
         </Label>
-        <p className="text-sm text-muted-foreground">Save time by importing project details from your repository.</p>
+        <p className="text-sm text-muted-foreground">
+          Save time by importing project details from your repository.
+        </p>
         <div className="flex gap-2 mt-4">
           <Input
             id="github_repo"
@@ -58,14 +54,15 @@ export function SourceStep({
                 Importing...
               </>
             ) : (
-              'Import'
+              "Import"
             )}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          We&apos;ll pull name, description, homepage, tags, and preview. You can manually edit these in the next steps.
+          We&apos;ll pull name, description, homepage, tags, and preview. You can manually edit
+          these in the next steps.
         </p>
       </div>
     </div>
-  )
+  );
 }

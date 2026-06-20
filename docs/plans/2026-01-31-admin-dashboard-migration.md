@@ -4,7 +4,7 @@
 
 **Goal:** Integrate the Admin Kit dashboard template into the main website under a secluded `/dashboard` route, adhering to the project's architecture and Shadcn UI patterns.
 
-**Architecture:** 
+**Architecture:**
 We will use a Route Group `(admin)` to isolate the admin layout from the main marketing website. The admin components will reside in `components/admin-panel` to avoid cluttering the main `components/ui`. We will leverage existing project dependencies where possible (e.g., `sonner` for toasts) but install specific admin requirements like `recharts` and `@tabler/icons-react`.
 
 **Tech Stack:** Next.js 16 (App Router), Tailwind CSS v4, Shadcn UI, Recharts, Tanstack Table.
@@ -14,6 +14,7 @@ We will use a Route Group `(admin)` to isolate the admin layout from the main ma
 ### Task 1: Dependencies & Environment Setup
 
 **Files:**
+
 - Modify: `package.json`
 
 **Step 1: Install Missing Dependencies**
@@ -24,6 +25,7 @@ bun add @tabler/icons-react @tanstack/react-table recharts country-region-data d
 ```
 
 **Step 2: Commit**
+
 ```bash
 git add package.json bun.lock
 git commit -m "chore: install admin dashboard dependencies"
@@ -34,6 +36,7 @@ git commit -m "chore: install admin dashboard dependencies"
 ### Task 2: Admin Component Structure
 
 **Files:**
+
 - Create: `components/admin-panel/` directory
 
 **Step 1: Create Component Directories**
@@ -45,14 +48,15 @@ mkdir components/admin-panel
 
 **Step 2: Port Layout Components**
 Copy the layout components from `admin-kit` to the new directory.
-*Note: We assume `admin-kit` source is available locally in `./admin-kit` folder.*
+_Note: We assume `admin-kit` source is available locally in `./admin-kit` folder._
 
 Read `admin-kit/src/components/layout/` and create counterparts in `components/admin-panel/`.
 Common files usually include `sidebar.tsx`, `navbar.tsx`, `admin-layout.tsx` (or similar).
 
-*Specific copy actions will be determined by reading `admin-kit/src/components/layout` content in the execution phase.*
+_Specific copy actions will be determined by reading `admin-kit/src/components/layout` content in the execution phase._
 
 **Step 3: Commit**
+
 ```bash
 git add components/admin-panel
 git commit -m "feat: scaffold admin panel components"
@@ -63,6 +67,7 @@ git commit -m "feat: scaffold admin panel components"
 ### Task 3: Route Group & Layout Configuration
 
 **Files:**
+
 - Create: `app/(admin)/layout.tsx`
 - Create: `app/(admin)/dashboard/page.tsx` (Move from admin-kit)
 
@@ -76,12 +81,13 @@ mkdir -p "app/(admin)/dashboard"
 **Step 2: Implement Admin Layout**
 Create `app/(admin)/layout.tsx`. This layout must import the Sidebar/Navbar from `components/admin-panel` and NOT use the main website's header/footer.
 
-*Reference `admin-kit/src/app/(dashboard)/layout.tsx` for the implementation details.*
+_Reference `admin-kit/src/app/(dashboard)/layout.tsx` for the implementation details._
 
 **Step 3: Port Dashboard Page**
 Copy `admin-kit/src/app/(dashboard)/page.tsx` (or `dashboard-1`, `dashboard-2` etc, we'll start with the main one) to `app/(admin)/dashboard/page.tsx`.
 
 **Step 4: Commit**
+
 ```bash
 git add app/(admin)
 git commit -m "feat: setup admin route group and layout"
@@ -92,6 +98,7 @@ git commit -m "feat: setup admin route group and layout"
 ### Task 4: Fix Imports & Refactor
 
 **Files:**
+
 - Modify: `components/admin-panel/*.tsx`
 - Modify: `app/(admin)/**/*.tsx`
 
@@ -110,6 +117,7 @@ Identify missing components and install them.
 ```
 
 **Step 3: Commit**
+
 ```bash
 git add .
 git commit -m "refactor: fix admin panel imports and dependencies"
@@ -120,6 +128,7 @@ git commit -m "refactor: fix admin panel imports and dependencies"
 ### Task 5: Verification
 
 **Files:**
+
 - Test: Browser check
 
 **Step 1: Build & Run**
@@ -130,8 +139,9 @@ bun build
 ```
 
 **Step 2: Start Dev Server**
+
 ```bash
 bun dev
 ```
-*User Action: Open http://localhost:3000/dashboard to verify.*
 
+_User Action: Open http://localhost:3000/dashboard to verify._

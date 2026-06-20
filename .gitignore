@@ -11,6 +11,7 @@
 /build
 .output/
 .tanstack/
+app/routeTree.gen.ts
 
 # debug
 npm-debug.log*

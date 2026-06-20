@@ -48,13 +48,13 @@ Warna menggunakan **OKLCH color space** untuk konsistensi yang lebih baik.
 
 ```tsx
 // Warna semantic
-className = 'bg-background text-foreground'
-className = 'bg-primary text-primary-foreground'
-className = 'bg-muted text-muted-foreground'
-className = 'border-border'
+className = "bg-background text-foreground";
+className = "bg-primary text-primary-foreground";
+className = "bg-muted text-muted-foreground";
+className = "border-border";
 
 // Kombinasi
-className = 'bg-card text-card-foreground border'
+className = "bg-card text-card-foreground border";
 ```
 
 ---
@@ -123,9 +123,9 @@ Paragraphs use `max-w-[65ch]` (65 characters) for optimal line length and readab
 ### Usage
 
 ```tsx
-className = 'font-sans' // Geist (default)
-className = 'font-mono' // Geist Mono
-className = 'font-serif' // Instrument Serif
+className = "font-sans"; // Geist (default)
+className = "font-mono"; // Geist Mono
+className = "font-serif"; // Instrument Serif
 ```
 
 ### Letter Spacing
@@ -133,33 +133,32 @@ className = 'font-serif' // Instrument Serif
 Custom letter spacing dengan `--tracking-normal: -0.01em` untuk teks yang lebih rapat dan modern.
 
 ```tsx
-className = 'tracking-tighter' // -0.06em
-className = 'tracking-tight' // -0.035em
-className = 'tracking-normal' // -0.01em (default)
-className = 'tracking-wide' // 0.015em
+className = "tracking-tighter"; // -0.06em
+className = "tracking-tight"; // -0.035em
+className = "tracking-normal"; // -0.01em (default)
+className = "tracking-wide"; // 0.015em
 ```
 
 ### Heading Scale
 
 ```tsx
 // Hero/Display
-className =
-  'text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight'
+className = "text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight";
 
 // Page Title
-className = 'text-3xl md:text-4xl font-bold'
+className = "text-3xl md:text-4xl font-bold";
 
 // Section Title
-className = 'text-2xl md:text-3xl font-semibold'
+className = "text-2xl md:text-3xl font-semibold";
 
 // Card Title
-className = 'font-semibold leading-none'
+className = "font-semibold leading-none";
 
 // Body Text
-className = 'text-base' // atau tidak perlu class (default)
+className = "text-base"; // atau tidak perlu class (default)
 
 // Small/Muted
-className = 'text-sm text-muted-foreground'
+className = "text-sm text-muted-foreground";
 ```
 
 ---
@@ -174,20 +173,20 @@ className = 'text-sm text-muted-foreground'
 
 ```tsx
 // Section padding
-className = 'py-20 lg:py-32'
+className = "py-20 lg:py-32";
 
 // Container
-className = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'
+className = "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8";
 
 // Card internal
-className = 'p-6' // atau gap-6 untuk flex/grid
+className = "p-6"; // atau gap-6 untuk flex/grid
 
 // Component gaps
-className = 'gap-2' // 8px - small
-className = 'gap-4' // 16px - medium
-className = 'gap-6' // 24px - large
-className = 'gap-8' // 32px - section spacing
-className = 'gap-12' // 48px - large section
+className = "gap-2"; // 8px - small
+className = "gap-4"; // 16px - medium
+className = "gap-6"; // 24px - large
+className = "gap-8"; // 32px - section spacing
+className = "gap-12"; // 48px - large section
 ```
 
 ---
@@ -203,10 +202,10 @@ className = 'gap-12' // 48px - large section
 | `--radius-xl` | `12px`         | Large containers |
 
 ```tsx
-className = 'rounded-sm' // 4px
-className = 'rounded-md' // 6px
-className = 'rounded-lg' // 8px
-className = 'rounded-xl' // 12px
+className = "rounded-sm"; // 4px
+className = "rounded-md"; // 6px
+className = "rounded-lg"; // 8px
+className = "rounded-xl"; // 12px
 ```
 
 ---
@@ -214,14 +213,14 @@ className = 'rounded-xl' // 12px
 ## Shadows
 
 ```tsx
-className = 'shadow-2xs' // Minimal shadow
-className = 'shadow-xs' // Extra small
-className = 'shadow-sm' // Small (default card)
-className = 'shadow' // Base shadow
-className = 'shadow-md' // Medium
-className = 'shadow-lg' // Large
-className = 'shadow-xl' // Extra large
-className = 'shadow-2xl' // Maximum
+className = "shadow-2xs"; // Minimal shadow
+className = "shadow-xs"; // Extra small
+className = "shadow-sm"; // Small (default card)
+className = "shadow"; // Base shadow
+className = "shadow-md"; // Medium
+className = "shadow-lg"; // Large
+className = "shadow-xl"; // Extra large
+className = "shadow-2xl"; // Maximum
 ```
 
 ---
@@ -285,8 +284,8 @@ import {
   CardContent,
   CardFooter,
   CardAction,
-} from '@/components/ui/card'
-;<Card>
+} from "@/components/ui/card";
+<Card>
   <CardHeader>
     <CardTitle>Title</CardTitle>
     <CardDescription>Description</CardDescription>
@@ -300,7 +299,7 @@ import {
   <CardFooter>
     <Button>Action</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 ---
@@ -319,29 +318,29 @@ import {
 
 ```tsx
 // 3 column responsive
-className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
 
 // 4 column responsive
-className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6";
 
 // Auto-fit
-className = 'grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6'
+className = "grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6";
 ```
 
 ### Flex Patterns
 
 ```tsx
 // Center content
-className = 'flex items-center justify-center'
+className = "flex items-center justify-center";
 
 // Space between
-className = 'flex items-center justify-between'
+className = "flex items-center justify-between";
 
 // Stack (column)
-className = 'flex flex-col gap-4'
+className = "flex flex-col gap-4";
 
 // Row with wrap
-className = 'flex flex-wrap gap-4'
+className = "flex flex-wrap gap-4";
 ```
 
 ---
@@ -364,13 +363,13 @@ className = 'flex flex-wrap gap-4'
 
 ```tsx
 // Quick transitions
-className = 'transition-all duration-200'
+className = "transition-all duration-200";
 
 // Smooth transitions
-className = 'transition-all duration-300'
+className = "transition-all duration-300";
 
 // Enter animations
-className = 'transition-all duration-700 ease-out'
+className = "transition-all duration-700 ease-out";
 ```
 
 ### Reduced Motion
@@ -396,12 +395,12 @@ Menggunakan `next-themes` dengan class-based dark mode.
 
 ```tsx
 // Toggle theme
-import { useTheme } from 'next-themes'
-const { theme, setTheme } = useTheme()
+import { useTheme } from "next-themes";
+const { theme, setTheme } = useTheme();
 
 // Component styling
-className = 'bg-background dark:bg-background'
-className = 'text-foreground'
+className = "bg-background dark:bg-background";
+className = "text-foreground";
 ```
 
 ### Custom Dark Variant
@@ -472,24 +471,24 @@ className={cn(
 Untuk component variants:
 
 ```tsx
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva, type VariantProps } from "class-variance-authority";
 
-const variants = cva('base-classes', {
+const variants = cva("base-classes", {
   variants: {
     variant: {
-      default: 'variant-default',
-      secondary: 'variant-secondary',
+      default: "variant-default",
+      secondary: "variant-secondary",
     },
     size: {
-      default: 'size-default',
-      sm: 'size-small',
+      default: "size-default",
+      sm: "size-small",
     },
   },
   defaultVariants: {
-    variant: 'default',
-    size: 'default',
+    variant: "default",
+    size: "default",
   },
-})
+});
 ```
 
 ---
@@ -500,35 +499,26 @@ const variants = cva('base-classes', {
 
 ```tsx
 // Dot grid background
-className = 'bg-grid-pattern'
+className = "bg-grid-pattern";
 ```
 
 CSS:
 
 ```css
 .bg-grid-pattern {
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgba(0, 0, 0, 0.4) 1px,
-    transparent 0
-  );
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.4) 1px, transparent 0);
   background-size: 20px 20px;
 }
 
 .dark .bg-grid-pattern {
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    rgba(255, 255, 255, 0.3) 1px,
-    transparent 0
-  );
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.3) 1px, transparent 0);
 }
 ```
 
 ### Gradient Overlays
 
 ```tsx
-className =
-  'from-background/80 via-background/60 to-background/80 bg-gradient-to-b'
+className = "from-background/80 via-background/60 to-background/80 bg-gradient-to-b";
 ```
 
 ---
@@ -544,9 +534,9 @@ className =
 | `2xl`      | 1536px    | Extra large      |
 
 ```tsx
-className = 'text-base md:text-lg lg:text-xl'
-className = 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-className = 'px-4 sm:px-6 lg:px-8'
+className = "text-base md:text-lg lg:text-xl";
+className = "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+className = "px-4 sm:px-6 lg:px-8";
 ```
 
 ---

@@ -10,13 +10,13 @@ Migrasi penuh dari `RichTextEditor` (Tiptap basic) ke Novel Editor dengan fitur 
 
 ## 📋 Summary
 
-| Aspek              | Detail                                                           |
-| ------------------ | ---------------------------------------------------------------- |
-| **AI Model**       | `google/gemini-3-flash-preview` via OpenRouter                   |
-| **AI Features**    | Full: Autocomplete (`++`) + AI Commands (improve, grammar, dll)  |
-| **Image Upload**   | Integrasi dengan UploadThing yang sudah ada                      |
-| **Slash Commands** | Default Novel commands                                           |
-| **Risk Level**     | 🟢 Low (content format compatible)                               |
+| Aspek              | Detail                                                          |
+| ------------------ | --------------------------------------------------------------- |
+| **AI Model**       | `google/gemini-3-flash-preview` via OpenRouter                  |
+| **AI Features**    | Full: Autocomplete (`++`) + AI Commands (improve, grammar, dll) |
+| **Image Upload**   | Integrasi dengan UploadThing yang sudah ada                     |
+| **Slash Commands** | Default Novel commands                                          |
+| **Risk Level**     | 🟢 Low (content format compatible)                              |
 
 ---
 
@@ -111,12 +111,12 @@ OPENROUTER_API_KEY=sk-or-v1-xxxx
  * Maintainable: Ganti model dengan mengubah AI_MODEL constant
  * Docs: https://openrouter.ai/docs
  */
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 // ============================================
 // 🔧 CONFIGURABLE: Change model here
 // ============================================
-export const AI_MODEL = 'google/gemini-3-flash-preview'
+export const AI_MODEL = "google/gemini-3-flash-preview";
 
 // Alternative models (for future reference):
 // - 'google/gemini-2.5-flash-preview-09-2025' (cheaper)
@@ -125,18 +125,18 @@ export const AI_MODEL = 'google/gemini-3-flash-preview'
 
 export const createAIClient = () => {
   if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is not set')
+    throw new Error("OPENROUTER_API_KEY is not set");
   }
 
   return createOpenRouter({
     apiKey: process.env.OPENROUTER_API_KEY,
-  })
-}
+  });
+};
 
 export const getAIModel = () => {
-  const client = createAIClient()
-  return client.chat(AI_MODEL)
-}
+  const client = createAIClient();
+  return client.chat(AI_MODEL);
+};
 ```
 
 #### Step 1.3: Create AI Completion API Route
@@ -144,19 +144,19 @@ export const getAIModel = () => {
 **File:** `app/api/ai/completion/route.ts`
 
 ```typescript
-import { streamText } from 'ai'
-import { getAIModel } from '@/lib/ai/openrouter'
+import { streamText } from "ai";
+import { getAIModel } from "@/lib/ai/openrouter";
 
-export const runtime = 'edge'
+export const runtime = "edge";
 
 export async function POST(req: Request) {
-  const { prompt } = await req.json()
+  const { prompt } = await req.json();
 
   const result = streamText({
     model: getAIModel(),
     messages: [
       {
-        role: 'system',
+        role: "system",
         content: `You are an AI writing assistant that continues existing text based on context.
 Give more weight to the later characters than the beginning ones.
 Limit your response to no more than 200 characters.
@@ -164,15 +164,15 @@ Construct complete sentences.
 Use Markdown formatting when appropriate.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: prompt,
       },
     ],
     temperature: 0.7,
     maxTokens: 200,
-  })
+  });
 
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse();
 }
 ```
 

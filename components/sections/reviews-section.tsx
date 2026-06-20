@@ -3,54 +3,50 @@
  * Displays testimonials from community members
  */
 
-'use client'
+"use client";
 
-import { lazy, Suspense } from 'react'
-import { useTranslation } from 'react-i18next'
-import { ScaleIn, ScrollReveal } from '@/components/ui/motion-wrapper'
-import type { Testimonial } from '@/types/homepage'
+import { lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
+import { ScaleIn, ScrollReveal } from "@/components/ui/motion-wrapper";
+import type { Testimonial } from "@/types/homepage";
 
 // Lazy load TestimonialsColumns component
 const TestimonialsColumns = lazy(() =>
-  import('@/components/ui/testimonials-columns').then((module) => ({
+  import("@/components/ui/testimonials-columns").then((module) => ({
     default: module.TestimonialsColumns,
   })),
-)
+);
 
 export function ReviewsSection() {
-  const { t } = useTranslation('reviews')
-  const testimonialsRaw = t('testimonials', { returnObjects: true }) as Record<
+  const { t } = useTranslation("reviews");
+  const testimonialsRaw = t("testimonials", { returnObjects: true }) as Record<
     string,
     { text: string; name: string; role: string }
-  >
+  >;
 
   // Convert translations to Testimonial array with images
   const images = [
-    'https://github.com/shadcn.png',
-    '/professional-woman-dark-hair.png',
-    '/blonde-woman-glasses.png',
-    '/asian-man-short-hair.png',
-    'https://github.com/shadcn.png',
-    'https://github.com/shadcn.png',
-  ]
+    "https://github.com/shadcn.png",
+    "/professional-woman-dark-hair.png",
+    "/blonde-woman-glasses.png",
+    "/asian-man-short-hair.png",
+    "https://github.com/shadcn.png",
+    "https://github.com/shadcn.png",
+  ];
 
   const testimonials: Testimonial[] = Object.values(testimonialsRaw).map((item, index) => ({
     text: item.text,
     image: images[index],
     name: item.name,
     role: item.role,
-  }))
+  }));
 
   return (
-    <section
-      id="reviews"
-      className="bg-muted/20 py-20"
-      data-animate
-    >
+    <section id="reviews" className="bg-muted/20 py-20" data-animate>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
-          <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t("title")}</h2>
+          <p className="text-muted-foreground text-xl">{t("subtitle")}</p>
         </ScrollReveal>
 
         <ScaleIn className="flex max-h-[600px] justify-center gap-6 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)]">
@@ -59,10 +55,7 @@ export function ReviewsSection() {
               <div className="flex justify-center gap-6">
                 <div className="flex flex-col space-y-4">
                   {Array.from({ length: 3 }).map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-muted/20 w-80 animate-pulse rounded-lg p-4"
-                    >
+                    <div key={idx} className="bg-muted/20 w-80 animate-pulse rounded-lg p-4">
                       <div className="bg-muted/30 mb-3 h-20 rounded"></div>
                       <div className="flex items-center space-x-3">
                         <div className="bg-muted/30 h-10 w-10 rounded-full"></div>
@@ -77,10 +70,7 @@ export function ReviewsSection() {
               </div>
             }
           >
-            <TestimonialsColumns
-              testimonials={testimonials.slice(0, 3)}
-              duration={15}
-            />
+            <TestimonialsColumns testimonials={testimonials.slice(0, 3)} duration={15} />
             <TestimonialsColumns
               testimonials={testimonials.slice(3, 6)}
               className="hidden md:block"
@@ -95,5 +85,5 @@ export function ReviewsSection() {
         </ScaleIn>
       </div>
     </section>
-  )
+  );
 }

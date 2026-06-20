@@ -70,7 +70,6 @@ function RootLayout() {
         {import.meta.env.DEV && (
           <script src="//unpkg.com/react-grab/dist/index.global.js" crossOrigin="anonymous" />
         )}
-        <link rel="preconnect" href="https://qabfrhpbfvjcgdrxdlba.supabase.co" />
         <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
         <link rel="dns-prefetch" href="//utfs.io" />
         <script type="application/ld+json">

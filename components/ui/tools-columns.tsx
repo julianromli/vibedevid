@@ -1,58 +1,61 @@
-'use client'
+"use client";
 
-import { ExternalLink } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import type * as React from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { cn } from '@/lib/utils'
+import { ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import type * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 export interface Tool {
-  title: string
-  description: string
-  link: string
-  icon: React.ReactNode
-  gradient: string
+  title: string;
+  description: string;
+  link: string;
+  icon: React.ReactNode;
+  gradient: string;
 }
 
 interface ToolsColumnsProps {
-  tools: Tool[]
-  duration?: number
-  className?: string
+  tools: Tool[];
+  duration?: number;
+  className?: string;
 }
 
 export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsProps) {
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const renderedTools = prefersReducedMotion
     ? tools.map((tool) => ({ key: tool.title, tool }))
-    : ['first', 'second'].flatMap((loopKey) => tools.map((tool) => ({ key: `${loopKey}-${tool.title}`, tool })))
+    : ["first", "second"].flatMap((loopKey) =>
+        tools.map((tool) => ({ key: `${loopKey}-${tool.title}`, tool })),
+      );
 
   return (
-    <div className={cn('flex flex-col space-y-4 overflow-hidden', className)}>
+    <div className={cn("flex flex-col space-y-4 overflow-hidden", className)}>
       <div
         className={cn(
-          'flex flex-col space-y-4',
+          "flex flex-col space-y-4",
           !prefersReducedMotion &&
-            'animate-scroll-up hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]',
+            "animate-scroll-up hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]",
         )}
         style={{
           animationDuration: prefersReducedMotion ? undefined : `${duration}s`,
         }}
       >
         {renderedTools.map(({ key, tool }) => (
-          <Card
-            key={key}
-            className="w-80 flex-shrink-0 p-6"
-          >
+          <Card key={key} className="w-80 flex-shrink-0 p-6">
             <div className="relative">
               <div className="mb-4 flex items-start space-x-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${tool.gradient}`}>
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${tool.gradient}`}
+                >
                   {tool.icon}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="mb-2 text-base font-medium">{tool.title}</h3>
-                  <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">{tool.description}</p>
+                  <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
+                    {tool.description}
+                  </p>
                 </div>
               </div>
 
@@ -63,11 +66,7 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
                   size="sm"
                   className="gap-1 pr-2 text-xs shadow-none"
                 >
-                  <Link
-                    to={tool.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <Link to={tool.link} target="_blank" rel="noopener noreferrer">
                     Try It
                     <ExternalLink className="ml-0 !size-3 opacity-50" />
                   </Link>
@@ -97,5 +96,5 @@ export function ToolsColumns({ tools, duration = 20, className }: ToolsColumnsPr
         }}
       />
     </div>
-  )
+  );
 }

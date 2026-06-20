@@ -1,54 +1,17 @@
+import { asc } from "drizzle-orm";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import HomePageClient from "@/app/home-page-client";
 import { fetchProjectsWithSorting } from "@/lib/actions";
 import { getCategories } from "@/lib/categories";
+import { getDb } from "@/lib/db";
+import { vibeVideos } from "@/lib/db/schema";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/server/auth";
 import { getVideoIconKey } from "@/lib/video-icon-key";
 import type { Project, ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
-
-interface VibeVideoRow {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  video_id: string;
-  published_at: string;
-  view_count: string;
-  position: number;
-}
-
-async function getUserData(userId: string, email: string): Promise<User | null> {
-  const supabase = await createClient();
-  const { data: profile, error } = await supabase
-    .from("users")
-    .select("id, display_name, avatar_url, username, role")
-    .eq("id", userId)
-    .single();
-
-  if (error) {
-    if (error.code !== "PGRST116") {
-      console.error("[getUserData] Supabase error fetching profile:", error);
-    }
-    return null;
-  }
-
-  if (!profile) {
-    return null;
-  }
-
-  return {
-    id: profile.id,
-    name: profile.display_name,
-    email,
-    avatar: profile.avatar_url || "/vibedev-guest-avatar.png",
-    username: profile.username,
-    role: profile.role ?? null,
-  };
-}
 
 async function getVibeVideos(): Promise<VibeVideo[]> {
   const fallbackVideos: VibeVideo[] = [
@@ -75,27 +38,21 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
   ];
 
   try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("vibe_videos")
-      .select("id, title, description, thumbnail, video_id, published_at, view_count, position")
-      .order("position", { ascending: true });
+    const db = getDb();
+    const data = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position));
 
-    if (error || !data || data.length === 0) {
-      if (error) {
-        console.error("[getVibeVideos] supabase error:", error.message);
-      }
+    if (!data || data.length === 0) {
       return fallbackVideos;
     }
 
-    return (data as VibeVideoRow[]).map((video) => ({
+    return data.map((video) => ({
       id: video.id,
       title: video.title,
       description: video.description,
       thumbnail: video.thumbnail,
-      videoId: video.video_id,
-      publishedAt: video.published_at,
-      viewCount: video.view_count,
+      videoId: video.videoId,
+      publishedAt: video.publishedAt,
+      viewCount: video.viewCount ?? "0",
       position: video.position,
       iconKey: getVideoIconKey(video.title, video.description),
     }));
@@ -118,10 +75,7 @@ const loadHomeData = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data: search }) => {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const currentUser = await getCurrentUser();
 
     const [categories, initialVibeVideos] = await Promise.all([getCategories(), getVibeVideos()]);
 
@@ -144,13 +98,19 @@ const loadHomeData = createServerFn({ method: "GET" })
       ),
     ]);
 
-    let userData: User | null = null;
-    if (user) {
-      userData = await getUserData(user.id, user.email || "");
-    }
+    const userData: User | null = currentUser
+      ? {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar: currentUser.avatar,
+          username: currentUser.username,
+          role: currentUser.role ?? null,
+        }
+      : null;
 
     return {
-      initialIsLoggedIn: !!user,
+      initialIsLoggedIn: !!currentUser,
       initialUser: userData,
       initialProjects: (initialProjects ?? []) as Project[],
       initialCategories: categoryOptions,

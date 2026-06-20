@@ -1,11 +1,11 @@
-import type { getPendingEvents } from '@/lib/actions/events'
-import { PendingEventsTable } from './components/pending-events-table'
+import type { getPendingEvents } from "@/lib/actions/events";
+import { PendingEventsTable } from "./components/pending-events-table";
 
-type PendingEventsResult = Awaited<ReturnType<typeof getPendingEvents>>
+type PendingEventsResult = Awaited<ReturnType<typeof getPendingEvents>>;
 
 export interface EventsApprovalBoardProps {
-  events: PendingEventsResult['events']
-  error?: PendingEventsResult['error']
+  events: PendingEventsResult["events"];
+  error?: PendingEventsResult["error"];
 }
 
 export default function EventsApprovalPage({ events, error }: EventsApprovalBoardProps) {
@@ -15,12 +15,12 @@ export default function EventsApprovalPage({ events, error }: EventsApprovalBoar
         <div className="text-destructive">Failed to load pending events</div>
         <div className="text-sm text-muted-foreground mt-1">{error}</div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
       <PendingEventsTable events={events} />
     </div>
-  )
+  );
 }

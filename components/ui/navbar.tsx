@@ -1,61 +1,71 @@
-'use client'
+"use client";
 
-import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { Link } from '@tanstack/react-router'
-import { useRouter } from '@/lib/navigation'
-import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { toast } from 'sonner'
-import { MenuToggleIcon } from '@/components/menu-toggle-icon'
-import { AdaptiveLogo } from '@/components/ui/adaptive-logo'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Link } from "@tanstack/react-router";
+import { useRouter } from "@/lib/navigation";
+import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "sonner";
+import { MenuToggleIcon } from "@/components/menu-toggle-icon";
+import { AdaptiveLogo } from "@/components/ui/adaptive-logo";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { UserAvatar } from '@/components/ui/user-avatar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import { useScroll } from '@/hooks/use-scroll'
-import { createClient } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/dropdown-menu";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { UserDisplayName } from "@/components/ui/user-display-name";
+import { useScroll } from "@/hooks/use-scroll";
+import { signOut } from "@/lib/auth/client";
+import { cn } from "@/lib/utils";
 
 const springTransition = {
-  type: 'spring' as const,
+  type: "spring" as const,
   stiffness: 300,
   damping: 30,
-}
+};
 
 interface UserInfo {
-  id?: string
-  name: string
-  email: string
-  avatar?: string
-  avatar_url?: string
-  username?: string
-  role?: number | null
+  id?: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  avatar_url?: string;
+  username?: string;
+  role?: number | null;
 }
 
-type NavItem = { label: string; href: string; type: 'link' } | { label: string; action: () => void; type: 'button' }
+type NavItem =
+  | { label: string; href: string; type: "link" }
+  | { label: string; action: () => void; type: "button" };
 
-function MobileMenuPortal({ open, children, className }: { children: React.ReactNode; className?: string; open: boolean }) {
+function MobileMenuPortal({
+  open,
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  open: boolean;
+}) {
   const menuTransition = {
     duration: 0.5,
     ease: [0.16, 1, 0.3, 1] as const,
-  }
+  };
 
   const content = (
     <AnimatePresence>
       {open && (
         <motion.div
           className={cn(
-            'fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
+            "fixed inset-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80",
             className,
           )}
           initial={{ opacity: 0 }}
@@ -75,70 +85,76 @@ function MobileMenuPortal({ open, children, className }: { children: React.React
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 
-  if (typeof document === 'undefined') {
-    return null
+  if (typeof document === "undefined") {
+    return null;
   }
 
-  return createPortal(content, document.body)
+  return createPortal(content, document.body);
 }
 
 function NavItem({ item, closeMenu }: { item: NavItem; closeMenu?: () => void }) {
-  if (item.type === 'link') {
+  if (item.type === "link") {
     return (
       <Link
         to={item.href}
         onClick={closeMenu}
-        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground hover:text-foreground')}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "text-muted-foreground hover:text-foreground",
+        )}
       >
         {item.label}
       </Link>
-    )
+    );
   }
 
   return (
     <button
       type="button"
       onClick={() => {
-        item.action()
-        closeMenu?.()
+        item.action();
+        closeMenu?.();
       }}
       className={cn(
-        buttonVariants({ variant: 'ghost', size: 'sm' }),
-        'cursor-pointer text-muted-foreground hover:text-foreground',
+        buttonVariants({ variant: "ghost", size: "sm" }),
+        "cursor-pointer text-muted-foreground hover:text-foreground",
       )}
     >
       {item.label}
     </button>
-  )
+  );
 }
 
 function MobileNavItem({ item, closeMenu }: { item: NavItem; closeMenu: () => void }) {
-  if (item.type === 'link') {
+  if (item.type === "link") {
     return (
       <Link
         to={item.href}
         onClick={closeMenu}
-        className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "lg" }),
+          "h-12 justify-start text-lg",
+        )}
       >
         {item.label}
       </Link>
-    )
+    );
   }
 
   return (
     <button
       type="button"
       onClick={() => {
-        item.action()
-        closeMenu()
+        item.action();
+        closeMenu();
       }}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'lg' }), 'h-12 justify-start text-lg')}
+      className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "h-12 justify-start text-lg")}
     >
       {item.label}
     </button>
-  )
+  );
 }
 
 function UserMenu({
@@ -146,55 +162,40 @@ function UserMenu({
   userIsLoggedIn,
   onSignOut,
   onProfile,
-  size = 'desktop',
+  size = "desktop",
   onClose,
 }: {
-  user: UserInfo
-  userIsLoggedIn: boolean
-  onSignOut: () => void
-  onProfile: () => void
-  size?: 'desktop' | 'mobile'
-  onClose?: () => void
+  user: UserInfo;
+  userIsLoggedIn: boolean;
+  onSignOut: () => void;
+  onProfile: () => void;
+  size?: "desktop" | "mobile";
+  onClose?: () => void;
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const safeUser = {
     ...user,
-    avatar: user.avatar_url || user.avatar || '/placeholder.svg',
-  }
+    avatar: user.avatar_url || user.avatar || "/placeholder.svg",
+  };
 
   if (!userIsLoggedIn) {
-    if (size === 'mobile') {
+    if (size === "mobile") {
       return (
-        <Button
-          asChild
-          size="icon"
-          variant="ghost"
-          className="h-11 w-11"
-        >
-          <Link
-            to="/user/auth"
-            onClick={onClose}
-            aria-label={t('common.signIn')}
-          >
+        <Button asChild size="icon" variant="ghost" className="h-11 w-11">
+          <Link to="/user/auth" onClick={onClose} aria-label={t("common.signIn")}>
             <LogIn className="size-6" />
           </Link>
         </Button>
-      )
+      );
     }
 
     return (
-      <Button
-        asChild
-        size="sm"
-      >
-        <Link
-          to="/user/auth"
-          onClick={onClose}
-        >
-          {t('common.signIn')}
+      <Button asChild size="sm">
+        <Link to="/user/auth" onClick={onClose}>
+          {t("common.signIn")}
         </Link>
       </Button>
-    )
+    );
   }
 
   return (
@@ -203,8 +204,8 @@ function UserMenu({
         <Button
           variant="ghost"
           size="icon"
-          className={size === 'mobile' ? 'h-11 w-11 rounded-full' : 'h-9 w-9 rounded-full'}
-          aria-label={t('common.profile')}
+          className={size === "mobile" ? "h-11 w-11 rounded-full" : "h-9 w-9 rounded-full"}
+          aria-label={t("common.profile")}
         >
           <UserAvatar user={safeUser} size="md" />
         </Button>
@@ -217,51 +218,51 @@ function UserMenu({
           </div>
         </div>
         <DropdownMenuSeparator />
-        {size === 'mobile' && (
+        {size === "mobile" && (
           <DropdownMenuItem asChild>
             <Link to="/project/submit" className="flex items-center">
               <Upload className="mr-2 h-4 w-4" />
-              <span>{t('common.submitProject')}</span>
+              <span>{t("common.submitProject")}</span>
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem
           onClick={() => {
-            onProfile()
-            onClose?.()
+            onProfile();
+            onClose?.();
           }}
         >
           <User className="mr-2 h-4 w-4" />
-          <span>{t('common.profile')}</span>
+          <span>{t("common.profile")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/dashboard/posts" className="flex items-center">
             <FileText className="mr-2 h-4 w-4" />
-            <span>{t('common.myPosts')}</span>
+            <span>{t("common.myPosts")}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            onSignOut()
-            onClose?.()
+            onSignOut();
+            onClose?.();
           }}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{t('common.signOut')}</span>
+          <span>{t("common.signOut")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 
 export interface NavbarProps {
-  showBackButton?: boolean
-  showNavigation?: boolean
-  isLoggedIn?: boolean
-  user?: UserInfo
-  onSignOut?: () => void
-  onProfile?: () => void
+  showBackButton?: boolean;
+  showNavigation?: boolean;
+  isLoggedIn?: boolean;
+  user?: UserInfo;
+  onSignOut?: () => void;
+  onProfile?: () => void;
 }
 
 export function Navbar({
@@ -272,76 +273,75 @@ export function Navbar({
   onSignOut,
   onProfile,
 }: NavbarProps) {
-  const [open, setOpen] = useState(false)
-  const scrolled = useScroll(10)
-  const router = useRouter()
-  const { t } = useTranslation()
+  const [open, setOpen] = useState(false);
+  const scrolled = useScroll(10);
+  const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const safeUser = user
     ? {
         ...user,
-        avatar: user.avatar_url || user.avatar || '/placeholder.svg',
+        avatar: user.avatar_url || user.avatar || "/placeholder.svg",
       }
-    : { name: 'User', email: '', avatar: '/placeholder.svg' }
+    : { name: "User", email: "", avatar: "/placeholder.svg" };
 
-  const userIsLoggedIn = Boolean(isLoggedIn)
+  const userIsLoggedIn = Boolean(isLoggedIn);
 
   const handleSignOut = async () => {
     if (onSignOut) {
-      onSignOut()
+      onSignOut();
     } else {
       try {
-        const supabase = createClient()
-        const { error } = await supabase.auth.signOut()
+        const { error } = await signOut();
         if (error) {
-          toast.error(t('toast.signOutError'))
-          return
+          toast.error(t("toast.signOutError"));
+          return;
         }
-        toast.success(t('toast.signOutSuccess'))
-        await router.refresh()
-        router.navigate({ to: '/' })
+        toast.success(t("toast.signOutSuccess"));
+        await router.refresh();
+        router.navigate({ to: "/" });
       } catch (_error) {
-        toast.error(t('toast.generalError'))
+        toast.error(t("toast.generalError"));
       }
     }
-  }
+  };
 
   const handleProfile = () => {
     if (onProfile) {
-      onProfile()
+      onProfile();
     } else {
       if (safeUser.username) {
-        router.navigate({ to: `/${safeUser.username}` })
+        router.navigate({ to: `/${safeUser.username}` });
       }
     }
-  }
+  };
 
   const navItems: NavItem[] = [
-    { label: t('navbar.home'), href: '/', type: 'link' },
-    { label: t('navbar.projects'), href: '/project/list', type: 'link' },
-    { label: t('navbar.blogs'), href: '/blog', type: 'link' },
-    { label: t('navbar.events'), href: '/event/list', type: 'link' },
-  ]
+    { label: t("navbar.home"), href: "/", type: "link" },
+    { label: t("navbar.projects"), href: "/project/list", type: "link" },
+    { label: t("navbar.blogs"), href: "/blog", type: "link" },
+    { label: t("navbar.events"), href: "/event/list", type: "link" },
+  ];
 
   return (
     <header className="fixed top-0 z-50 w-full">
       <motion.div
         className={cn(
-          'mx-auto w-full border-b',
+          "mx-auto w-full border-b",
           scrolled
-            ? 'border-border bg-background/80 backdrop-blur-md md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:shadow-md md:backdrop-blur-xl'
-            : 'border-transparent bg-transparent',
+            ? "border-border bg-background/80 backdrop-blur-md md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:shadow-md md:backdrop-blur-xl"
+            : "border-transparent bg-transparent",
         )}
         initial={false}
         animate={{
@@ -349,7 +349,7 @@ export function Navbar({
           borderRadius: scrolled ? 16 : 0,
         }}
         transition={springTransition}
-        style={{ marginLeft: 'auto', marginRight: 'auto' }}
+        style={{ marginLeft: "auto", marginRight: "auto" }}
       >
         <nav className="relative flex h-16 items-center justify-between px-4 md:px-6">
           {/* Brand */}
@@ -384,7 +384,7 @@ export function Navbar({
               transition={springTransition}
             >
               {navItems.map((item) => (
-                <NavItem key={item.type === 'link' ? item.href : `nav-${item.label}`} item={item} />
+                <NavItem key={item.type === "link" ? item.href : `nav-${item.label}`} item={item} />
               ))}
             </motion.div>
           )}
@@ -402,18 +402,15 @@ export function Navbar({
             <LanguageSwitcher />
             <ThemeToggle />
             {!userIsLoggedIn ? (
-              <Button
-                asChild
-                size="sm"
-              >
-                <Link to="/user/auth">{t('common.signIn')}</Link>
+              <Button asChild size="sm">
+                <Link to="/user/auth">{t("common.signIn")}</Link>
               </Button>
             ) : (
               <>
                 <Link to="/project/submit">
                   <Button size="sm" variant="outline" className="gap-1.5">
                     <Upload className="h-4 w-4" />
-                    {t('common.submitProject')}
+                    {t("common.submitProject")}
                   </Button>
                 </Link>
                 <UserMenu
@@ -440,7 +437,7 @@ export function Navbar({
               onClick={() => setOpen(!open)}
               size="icon"
               variant="ghost"
-              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-label={open ? "Close menu" : "Open menu"}
             >
               <MenuToggleIcon className="size-6" duration={300} open={open} />
             </Button>
@@ -455,7 +452,7 @@ export function Navbar({
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <MobileNavItem
-                  key={item.type === 'link' ? item.href : `nav-${item.label}`}
+                  key={item.type === "link" ? item.href : `nav-${item.label}`}
                   item={item}
                   closeMenu={() => setOpen(false)}
                 />
@@ -464,27 +461,24 @@ export function Navbar({
 
             <div className="flex flex-col gap-3 border-t pt-4">
               <div className="flex items-center justify-between px-4">
-                <span className="text-sm font-medium text-muted-foreground">{t('settings.language')}</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t("settings.language")}
+                </span>
                 <LanguageSwitcher />
               </div>
               <div className="flex items-center justify-between px-4">
-                <span className="text-sm font-medium text-muted-foreground">{t('settings.theme')}</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t("settings.theme")}
+                </span>
                 <ThemeToggle />
               </div>
             </div>
 
             <div className="flex flex-col gap-4">
               {!userIsLoggedIn ? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full"
-                >
-                  <Link
-                    to="/user/auth"
-                    onClick={() => setOpen(false)}
-                  >
-                    {t('common.signIn')}
+                <Button asChild size="lg" className="w-full">
+                  <Link to="/user/auth" onClick={() => setOpen(false)}>
+                    {t("common.signIn")}
                   </Link>
                 </Button>
               ) : (
@@ -492,14 +486,18 @@ export function Navbar({
                   <Link to="/project/submit" onClick={() => setOpen(false)}>
                     <Button className="w-full gap-2" size="lg">
                       <Upload className="h-4 w-4" />
-                      {t('common.submitProject')}
+                      {t("common.submitProject")}
                     </Button>
                   </Link>
 
                   <div className="flex items-center gap-3">
                     <UserAvatar user={safeUser} size="md" />
                     <div>
-                      <UserDisplayName name={safeUser.name} role={safeUser.role} className="font-medium" />
+                      <UserDisplayName
+                        name={safeUser.name}
+                        role={safeUser.role}
+                        className="font-medium"
+                      />
                       <p className="text-muted-foreground text-sm">{safeUser.email}</p>
                     </div>
                   </div>
@@ -508,15 +506,15 @@ export function Navbar({
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => {
-                        handleProfile()
-                        setOpen(false)
+                        handleProfile();
+                        setOpen(false);
                       }}
                     >
-                      <User className="mr-2 h-4 w-4" /> {t('common.profile')}
+                      <User className="mr-2 h-4 w-4" /> {t("common.profile")}
                     </Button>
                     <Button variant="outline" className="w-full justify-start" asChild>
                       <Link to="/dashboard/posts" onClick={() => setOpen(false)}>
-                        <FileText className="mr-2 h-4 w-4" /> {t('common.myPosts')}
+                        <FileText className="mr-2 h-4 w-4" /> {t("common.myPosts")}
                       </Link>
                     </Button>
                   </div>
@@ -524,11 +522,11 @@ export function Navbar({
                     variant="outline"
                     className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => {
-                      handleSignOut()
-                      setOpen(false)
+                      handleSignOut();
+                      setOpen(false);
                     }}
                   >
-                    <LogOut className="mr-2 h-4 w-4" /> {t('common.signOut')}
+                    <LogOut className="mr-2 h-4 w-4" /> {t("common.signOut")}
                   </Button>
                 </div>
               )}
@@ -537,5 +535,5 @@ export function Navbar({
         </MobileMenuPortal>
       )}
     </header>
-  )
+  );
 }

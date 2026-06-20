@@ -1,16 +1,12 @@
 import { revalidatePath } from "@/lib/revalidation";
 import { normalizeProjectWebsiteUrl } from "../../project-url";
-import { createAdminClient } from "../../supabase/admin";
-import { createClient } from "../../supabase/server";
+import { getDb } from "@/lib/db";
+import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
+import { toProjectDto } from "@/lib/db/mappers";
+import { requireUser } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/auth/permissions";
+import { eq, and, gte, lte, desc, count, or, ilike, inArray, asc } from "drizzle-orm";
 
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const;
-
-// IMPORTANT-7: Extract hardcoded page size to constant
 const DEFAULT_PAGE_SIZE = 20;
 
 export interface AdminProject {
@@ -52,27 +48,12 @@ export interface ProjectFilters {
 }
 
 async function checkAdminAccess() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single();
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error("Admin access required");
-  }
-
+  const user = await requireUser();
+  await requireAdmin(user.id);
   return user;
 }
 
-// CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
 function sanitizeSearchInput(search: string): string {
-  // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
   return search.replace(/[%_]/g, "\\$&");
 }
 
@@ -84,110 +65,128 @@ export async function getAllProjects(
   try {
     await checkAdminAccess();
 
-    const supabase = await createClient();
+    const db = getDb();
+    const conditions = [];
 
-    let query = supabase.from("projects").select(
-      `
-        *,
-        users:author_id (
-          username,
-          display_name,
-          avatar_url
-        )
-      `,
-      { count: "exact" },
-    );
-
-    // Apply filters
     if (filters.status === "featured") {
-      query = query.eq("featured", true);
+      conditions.push(eq(projects.featured, true));
     } else if (filters.status === "regular") {
-      query = query.eq("featured", false);
+      conditions.push(eq(projects.featured, false));
     }
 
     if (filters.category && filters.category !== "all") {
-      query = query.eq("category", filters.category);
+      conditions.push(eq(projects.category, filters.category));
     }
 
     if (filters.dateFrom) {
-      query = query.gte("created_at", filters.dateFrom);
+      conditions.push(gte(projects.createdAt, new Date(filters.dateFrom)));
     }
 
     if (filters.dateTo) {
-      query = query.lte("created_at", filters.dateTo);
+      conditions.push(lte(projects.createdAt, new Date(filters.dateTo)));
     }
 
     if (filters.search) {
-      // CRITICAL-2: Sanitize search to prevent SQL injection
       const sanitized = sanitizeSearchInput(filters.search);
-      query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
+      const pattern = `%${sanitized}%`;
+      conditions.push(or(ilike(projects.title, pattern), ilike(projects.description, pattern)));
     }
 
-    // Pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to).order("created_at", { ascending: false });
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * pageSize;
 
-    const { data: projects, error, count } = await query;
-
-    if (error) {
-      console.error("Get all projects error:", error);
-      return { projects: [], totalCount: 0, error: error.message };
-    }
-
-    // Get analytics for each project
-    const projectIds = projects?.map((p) => p.id) || [];
-
-    const [likesResult, viewsResult, commentsResult] = await Promise.all([
-      supabase.from("likes").select("project_id").in("project_id", projectIds),
-      supabase.from("views").select("project_id").in("project_id", projectIds),
-      supabase.from("comments").select("project_id").in("project_id", projectIds),
+    const [totalResult, projectRows] = await Promise.all([
+      db.select({ value: count() }).from(projects).where(whereClause),
+      db
+        .select({
+          project: projects,
+          authorUsername: users.username,
+          authorDisplayName: users.displayName,
+          authorAvatarUrl: users.avatarUrl,
+        })
+        .from(projects)
+        .innerJoin(users, eq(projects.authorId, users.id))
+        .where(whereClause)
+        .orderBy(desc(projects.createdAt))
+        .limit(pageSize)
+        .offset(offset),
     ]);
 
-    // Count analytics per project
+    const projectIds = projectRows.map((row) => row.project.id);
+
+    const [likeRows, viewRows, commentRows] = await Promise.all([
+      projectIds.length > 0
+        ? db
+            .select({ projectId: likes.projectId })
+            .from(likes)
+            .where(inArray(likes.projectId, projectIds))
+        : Promise.resolve([]),
+      projectIds.length > 0
+        ? db
+            .select({ projectId: views.projectId })
+            .from(views)
+            .where(inArray(views.projectId, projectIds))
+        : Promise.resolve([]),
+      projectIds.length > 0
+        ? db
+            .select({ projectId: comments.projectId })
+            .from(comments)
+            .where(inArray(comments.projectId, projectIds))
+        : Promise.resolve([]),
+    ]);
+
     const likesCount: Record<number, number> = {};
     const viewsCount: Record<number, number> = {};
     const commentsCount: Record<number, number> = {};
 
-    likesResult.data?.forEach((like) => {
-      likesCount[like.project_id] = (likesCount[like.project_id] || 0) + 1;
+    likeRows.forEach((like) => {
+      if (like.projectId) {
+        likesCount[like.projectId] = (likesCount[like.projectId] || 0) + 1;
+      }
     });
 
-    viewsResult.data?.forEach((view) => {
-      viewsCount[view.project_id] = (viewsCount[view.project_id] || 0) + 1;
+    viewRows.forEach((view) => {
+      if (view.projectId) {
+        viewsCount[view.projectId] = (viewsCount[view.projectId] || 0) + 1;
+      }
     });
 
-    commentsResult.data?.forEach((comment) => {
-      commentsCount[comment.project_id] = (commentsCount[comment.project_id] || 0) + 1;
+    commentRows.forEach((comment) => {
+      if (comment.projectId) {
+        commentsCount[comment.projectId] = (commentsCount[comment.projectId] || 0) + 1;
+      }
     });
 
-    const formattedProjects: AdminProject[] = (projects || []).map((project) => ({
-      id: project.id,
-      slug: project.slug,
-      title: project.title,
-      description: project.description,
-      category: project.category,
-      website_url: project.website_url,
-      image_url: project.image_url,
-      tagline: project.tagline,
-      tags: project.tags || [],
-      featured: project.featured || false,
-      author_id: project.author_id,
-      author: project.users || {
-        username: "unknown",
-        display_name: "Unknown",
-        avatar_url: null,
-      },
-      created_at: project.created_at,
-      updated_at: project.updated_at,
-      likes_count: likesCount[project.id] || 0,
-      views_count: viewsCount[project.id] || 0,
-      comments_count: commentsCount[project.id] || 0,
-    }));
+    const formattedProjects: AdminProject[] = projectRows.map((row) => {
+      const mapped = toProjectDto(row.project);
+      return {
+        id: mapped.id,
+        slug: mapped.slug,
+        title: mapped.title,
+        description: mapped.description,
+        category: mapped.category,
+        website_url: mapped.websiteUrl,
+        image_url: mapped.imageUrl,
+        tagline: mapped.tagline,
+        tags: mapped.tags || [],
+        featured: mapped.featured || false,
+        author_id: mapped.authorId,
+        author: {
+          username: row.authorUsername || "unknown",
+          display_name: row.authorDisplayName || "Unknown",
+          avatar_url: row.authorAvatarUrl,
+        },
+        created_at: mapped.createdAt ?? "",
+        updated_at: mapped.updatedAt ?? "",
+        likes_count: likesCount[mapped.id] || 0,
+        views_count: viewsCount[mapped.id] || 0,
+        comments_count: commentsCount[mapped.id] || 0,
+      };
+    });
 
     return {
       projects: formattedProjects,
-      totalCount: count || 0,
+      totalCount: totalResult[0]?.value || 0,
     };
   } catch (error) {
     console.error("Get all projects error:", error);
@@ -206,7 +205,6 @@ export async function adminUpdateProject(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
     const normalizedWebsiteUrl =
       updates.website_url === undefined
         ? undefined
@@ -225,27 +223,24 @@ export async function adminUpdateProject(
       return { success: false, error: "Enter a valid website URL" };
     }
 
-    const { data: updatedRows, error } = await supabase
-      .from("projects")
-      .update({
-        title: updates.title,
-        description: updates.description,
-        category: updates.category,
-        website_url: normalizedWebsiteUrl,
-        image_url: updates.image_url,
-        tagline: updates.tagline,
-        tags: updates.tags,
-        featured: updates.featured,
-        updated_at: new Date().toISOString(),
+    const db = getDb();
+    const updatedRows = await db
+      .update(projects)
+      .set({
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.category !== undefined && { category: updates.category }),
+        ...(updates.website_url !== undefined && { websiteUrl: normalizedWebsiteUrl }),
+        ...(updates.image_url !== undefined && { imageUrl: updates.image_url }),
+        ...(updates.tagline !== undefined && { tagline: updates.tagline }),
+        ...(updates.tags !== undefined && { tags: updates.tags }),
+        ...(updates.featured !== undefined && { featured: updates.featured }),
+        updatedAt: new Date(),
       })
-      .eq("id", projectId)
-      .select("id");
+      .where(eq(projects.id, projectId))
+      .returning({ id: projects.id });
 
-    if (error) {
-      console.error("Admin update project error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!updatedRows || updatedRows.length === 0) {
+    if (!updatedRows.length) {
       return {
         success: false,
         error: "Project not found or no changes applied",
@@ -271,35 +266,20 @@ export async function adminDeleteProject(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
 
-    // Delete related records first
-    const [commentsDelete, likesDelete, viewsDelete] = await Promise.all([
-      supabase.from("comments").delete().eq("project_id", projectId),
-      supabase.from("likes").delete().eq("project_id", projectId),
-      supabase.from("views").delete().eq("project_id", projectId),
+    await Promise.all([
+      db.delete(comments).where(eq(comments.projectId, projectId)),
+      db.delete(likes).where(eq(likes.projectId, projectId)),
+      db.delete(views).where(eq(views.projectId, projectId)),
     ]);
-    if (commentsDelete.error || likesDelete.error || viewsDelete.error) {
-      const deleteError =
-        commentsDelete.error ||
-        likesDelete.error ||
-        viewsDelete.error ||
-        new Error("Unknown error");
-      return { success: false, error: deleteError.message };
-    }
 
-    // Delete the project
-    const { data: deletedRows, error } = await supabase
-      .from("projects")
-      .delete()
-      .eq("id", projectId)
-      .select("id");
+    const deletedRows = await db
+      .delete(projects)
+      .where(eq(projects.id, projectId))
+      .returning({ id: projects.id });
 
-    if (error) {
-      console.error("Admin delete project error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!deletedRows || deletedRows.length === 0) {
+    if (!deletedRows.length) {
       return { success: false, error: "Project could not be deleted" };
     }
 
@@ -323,19 +303,14 @@ export async function toggleProjectFeatured(
   try {
     await checkAdminAccess();
 
-    const supabase = await createAdminClient();
+    const db = getDb();
+    const updatedRows = await db
+      .update(projects)
+      .set({ featured, updatedAt: new Date() })
+      .where(eq(projects.id, projectId))
+      .returning({ id: projects.id });
 
-    const { data: updatedRows, error } = await supabase
-      .from("projects")
-      .update({ featured, updated_at: new Date().toISOString() })
-      .eq("id", projectId)
-      .select("id");
-
-    if (error) {
-      console.error("Toggle project featured error:", error);
-      return { success: false, error: error.message };
-    }
-    if (!updatedRows || updatedRows.length === 0) {
+    if (!updatedRows.length) {
       return { success: false, error: "Project not found" };
     }
 
@@ -357,22 +332,16 @@ export async function getProjectCategories(): Promise<{
   error?: string;
 }> {
   try {
-    // CRITICAL-1: Add missing admin access check
     await checkAdminAccess();
 
-    const supabase = await createClient();
+    const db = getDb();
+    const data = await db
+      .select({ name: categories.name })
+      .from(categories)
+      .where(eq(categories.isActive, true))
+      .orderBy(asc(categories.sortOrder));
 
-    const { data, error } = await supabase
-      .from("categories")
-      .select("name")
-      .eq("is_active", true)
-      .order("sort_order");
-
-    if (error) {
-      return { categories: [], error: error.message };
-    }
-
-    return { categories: data?.map((c) => c.name) || [] };
+    return { categories: data.map((c) => c.name) };
   } catch (error) {
     return {
       categories: [],

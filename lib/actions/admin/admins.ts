@@ -1,7 +1,10 @@
 import { revalidatePath } from "@/lib/revalidation";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { getDb } from "@/lib/db";
+import { users, authUser } from "@/lib/db/schema";
+import { requireUser } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { ROLES, RoleSchema, UserIdSchema } from "./schemas";
+import { eq, and, asc, inArray, or, ilike, count, sql } from "drizzle-orm";
 
 function sanitizeSearchInput(search: string): string {
   return search.replace(/[%_]/g, "\\$&");
@@ -49,42 +52,24 @@ export interface UserSearchResult {
 }
 
 async function getAdminSession() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single();
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error("Admin access required");
-  }
-
+  const user = await requireUser();
+  await requireAdmin(user.id);
   return { userId: user.id };
 }
 
 async function getEmailMap(userIds: string[]) {
-  const adminClient = await createAdminClient();
   const emailMap: Record<string, string> = {};
 
   if (userIds.length === 0) return emailMap;
 
-  const { data: authData, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+  const db = getDb();
+  const authRows = await db
+    .select({ id: authUser.id, email: authUser.email })
+    .from(authUser)
+    .where(inArray(authUser.id, userIds));
 
-  if (error) {
-    console.error("List auth users error:", error);
-    return emailMap;
-  }
-
-  const idSet = new Set(userIds);
-  authData?.users?.forEach((authUser) => {
-    if (idSet.has(authUser.id)) {
-      emailMap[authUser.id] = authUser.email || "";
-    }
+  authRows.forEach((row) => {
+    emailMap[row.id] = row.email || "";
   });
 
   return emailMap;
@@ -117,21 +102,32 @@ function formatPrivilegedUser(
 export async function getPrivilegedUsers(): Promise<PrivilegedUsersResult> {
   try {
     const { userId } = await getAdminSession();
-    const adminClient = await createAdminClient();
+    const db = getDb();
 
-    const { data: users, error } = await adminClient
-      .from("users")
-      .select("id, username, display_name, avatar_url, role, joined_at")
-      .in("role", [ROLES.ADMIN, ROLES.MODERATOR])
-      .order("role", { ascending: true })
-      .order("joined_at", { ascending: true });
+    const rows = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        role: users.role,
+        joinedAt: users.joinedAt,
+      })
+      .from(users)
+      .where(inArray(users.role, [ROLES.ADMIN, ROLES.MODERATOR]))
+      .orderBy(asc(users.role), asc(users.joinedAt));
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
+    const formattedRows = rows.map((row) => ({
+      id: row.id,
+      username: row.username,
+      display_name: row.displayName,
+      avatar_url: row.avatarUrl,
+      role: row.role,
+      joined_at: row.joinedAt?.toISOString() ?? "",
+    }));
 
-    const emailMap = await getEmailMap(users?.map((u) => u.id) || []);
-    const formatted = (users || []).map((user) => formatPrivilegedUser(user, emailMap, userId));
+    const emailMap = await getEmailMap(formattedRows.map((u) => u.id));
+    const formatted = formattedRows.map((user) => formatPrivilegedUser(user, emailMap, userId));
 
     return {
       success: true,
@@ -150,53 +146,73 @@ export async function getPrivilegedUsers(): Promise<PrivilegedUsersResult> {
 }
 
 async function searchUsersByProfile(
-  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
   sanitized: string,
   limit: number,
 ): Promise<{ users: UserProfileRow[]; error?: string }> {
   const pattern = `%${sanitized}%`;
+  const db = getDb();
 
-  const { data, error } = await adminClient
-    .from("users")
-    .select("id, username, display_name, avatar_url, role")
-    .or(`username.ilike.${pattern},display_name.ilike.${pattern}`)
-    .order("display_name", { ascending: true })
-    .limit(limit);
+  try {
+    const rows = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        role: users.role,
+      })
+      .from(users)
+      .where(or(ilike(users.username, pattern), ilike(users.displayName, pattern)))
+      .orderBy(asc(users.displayName))
+      .limit(limit);
 
-  if (error) {
-    return { users: [], error: error.message };
+    return {
+      users: rows.map((row) => ({
+        id: row.id,
+        username: row.username,
+        display_name: row.displayName,
+        avatar_url: row.avatarUrl,
+        role: row.role,
+      })),
+    };
+  } catch (error) {
+    const pgError = error as { message?: string };
+    return { users: [], error: pgError.message || "Search failed" };
   }
-
-  return { users: data || [] };
 }
 
-async function searchUsersByEmail(
-  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
-  query: string,
-  limit: number,
-): Promise<UserProfileRow[]> {
-  const lowerQuery = query.toLowerCase();
-  const { data: authData, error } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+async function searchUsersByEmail(query: string, limit: number): Promise<UserProfileRow[]> {
+  const db = getDb();
 
-  if (error || !authData?.users?.length) {
-    return [];
-  }
+  const authRows = await db
+    .select({ id: authUser.id })
+    .from(authUser)
+    .where(sql`${authUser.email} ilike ${"%" + query + "%"}`)
+    .limit(limit);
 
-  const matchingIds = authData.users
-    .filter((authUser) => authUser.email?.toLowerCase().includes(lowerQuery))
-    .map((authUser) => authUser.id)
-    .slice(0, limit);
-
+  const matchingIds = authRows.map((row) => row.id);
   if (matchingIds.length === 0) {
     return [];
   }
 
-  const { data } = await adminClient
-    .from("users")
-    .select("id, username, display_name, avatar_url, role")
-    .in("id", matchingIds);
+  const profileRows = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      avatarUrl: users.avatarUrl,
+      role: users.role,
+    })
+    .from(users)
+    .where(inArray(users.id, matchingIds));
 
-  return data || [];
+  return profileRows.map((row) => ({
+    id: row.id,
+    username: row.username,
+    display_name: row.displayName,
+    avatar_url: row.avatarUrl,
+    role: row.role,
+  }));
 }
 
 export async function searchUsersForAdminGrant(query: string): Promise<UserSearchResult> {
@@ -209,12 +225,11 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
     }
 
     const sanitized = sanitizeSearchInput(trimmed);
-    const adminClient = await createAdminClient();
     const limit = 20;
 
     const [profileResult, emailUsers] = await Promise.all([
-      searchUsersByProfile(adminClient, sanitized, limit),
-      searchUsersByEmail(adminClient, trimmed, limit),
+      searchUsersByProfile(sanitized, limit),
+      searchUsersByEmail(trimmed, limit),
     ]);
 
     if (profileResult.error) {
@@ -226,15 +241,15 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
       merged.set(user.id, user);
     }
 
-    const users = Array.from(merged.values())
+    const foundUsers = Array.from(merged.values())
       .sort((a, b) => a.display_name.localeCompare(b.display_name))
       .slice(0, limit);
 
-    const emailMap = await getEmailMap(users.map((u) => u.id));
+    const emailMap = await getEmailMap(foundUsers.map((u) => u.id));
 
     return {
       success: true,
-      users: users.map((user) => ({
+      users: foundUsers.map((user) => ({
         id: user.id,
         username: user.username,
         display_name: user.display_name,
@@ -252,17 +267,13 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
   }
 }
 
-async function countAdmins(adminClient: Awaited<ReturnType<typeof createAdminClient>>) {
-  const { count, error } = await adminClient
-    .from("users")
-    .select("*", { count: "exact", head: true })
-    .eq("role", ROLES.ADMIN);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return count || 0;
+async function countAdmins() {
+  const db = getDb();
+  const [result] = await db
+    .select({ value: count() })
+    .from(users)
+    .where(eq(users.role, ROLES.ADMIN));
+  return result?.value || 0;
 }
 
 export async function setPrivilegedUserRole(
@@ -273,15 +284,20 @@ export async function setPrivilegedUserRole(
     const parsedUserId = UserIdSchema.parse(userId);
     const parsedRole = RoleSchema.parse(role);
     const { userId: currentUserId } = await getAdminSession();
-    const adminClient = await createAdminClient();
+    const db = getDb();
 
-    const { data: targetUser, error: fetchError } = await adminClient
-      .from("users")
-      .select("id, role, username, display_name")
-      .eq("id", parsedUserId)
-      .single();
+    const [targetUser] = await db
+      .select({
+        id: users.id,
+        role: users.role,
+        username: users.username,
+        displayName: users.displayName,
+      })
+      .from(users)
+      .where(eq(users.id, parsedUserId))
+      .limit(1);
 
-    if (fetchError || !targetUser) {
+    if (!targetUser) {
       return { success: false, error: "User not found" };
     }
 
@@ -293,20 +309,16 @@ export async function setPrivilegedUserRole(
         return { success: false, error: "You cannot remove your own admin access" };
       }
 
-      const adminCount = await countAdmins(adminClient);
+      const adminCount = await countAdmins();
       if (adminCount <= 1) {
         return { success: false, error: "Cannot remove the last admin on the platform" };
       }
     }
 
-    const { error: updateError } = await adminClient
-      .from("users")
-      .update({ role: parsedRole, updated_at: new Date().toISOString() })
-      .eq("id", parsedUserId);
-
-    if (updateError) {
-      return { success: false, error: updateError.message };
-    }
+    await db
+      .update(users)
+      .set({ role: parsedRole, updatedAt: new Date() })
+      .where(eq(users.id, parsedUserId));
 
     revalidatePath("/dashboard");
 

@@ -1,20 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { PrivacyPolicyClient } from '@/app/privacy-policy/privacy-policy-client'
+import { createFileRoute } from "@tanstack/react-router";
+import { PrivacyPolicyClient } from "@/app/privacy-policy/privacy-policy-client";
 
-export const Route = createFileRoute('/privacy-policy')({
+export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
     meta: [
-      { title: 'Privacy Policy' },
+      { title: "Privacy Policy" },
       {
-        name: 'description',
+        name: "description",
         content:
-          'Kebijakan Privasi VibeDev ID untuk menjelaskan pengumpulan, penggunaan, perlindungan, dan hak pengguna atas data pribadi.',
+          "Kebijakan Privasi VibeDev ID untuk menjelaskan pengumpulan, penggunaan, perlindungan, dan hak pengguna atas data pribadi.",
       },
     ],
   }),
   component: PrivacyPolicyRoute,
-})
+});
 
 function PrivacyPolicyRoute() {
-  return <PrivacyPolicyClient />
+  return <PrivacyPolicyClient />;
 }

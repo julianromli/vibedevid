@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Heart } from 'lucide-react'
-import * as React from 'react'
+import { Heart } from "lucide-react";
+import * as React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,18 +11,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { getLikeStatusClient, toggleLikeClient } from '@/lib/client-likes'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { getProjectLikeStatusFn, toggleLikeFn } from "@/lib/actions/likes";
+import { cn } from "@/lib/utils";
 
 export interface ProminentLikeButtonProps {
-  projectId: string
-  initialLikes?: number
-  initialIsLiked?: boolean
-  isLoggedIn?: boolean
-  onLikeChange?: (likes: number, isLiked: boolean) => void
+  projectId: string;
+  initialLikes?: number;
+  initialIsLiked?: boolean;
+  isLoggedIn?: boolean;
+  onLikeChange?: (likes: number, isLiked: boolean) => void;
 }
 
 export function ProminentLikeButton({
@@ -32,80 +32,74 @@ export function ProminentLikeButton({
   isLoggedIn = false,
   onLikeChange,
 }: ProminentLikeButtonProps) {
-  const [isLiked, setIsLiked] = React.useState(initialIsLiked)
-  const [likes, setLikes] = React.useState(initialLikes)
-  const [isAnimating, setIsAnimating] = React.useState(false)
-  const [showAuthDialog, setShowAuthDialog] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const [isLiked, setIsLiked] = React.useState(initialIsLiked);
+  const [likes, setLikes] = React.useState(initialLikes);
+  const [isAnimating, setIsAnimating] = React.useState(false);
+  const [showAuthDialog, setShowAuthDialog] = React.useState(false);
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
-  // Sync with database on mount and when logged in status changes
   React.useEffect(() => {
-    if (!projectId) return
+    if (!projectId) return;
 
-    let isCurrentRequest = true
+    let isCurrentRequest = true;
 
-    setIsLoading(true)
-    void getLikeStatusClient(projectId)
+    void getProjectLikeStatusFn({ data: { projectIdentifier: projectId } })
       .then(({ totalLikes, isLiked: dbIsLiked, error }) => {
         if (!error && isCurrentRequest) {
-          setLikes(totalLikes)
-          setIsLiked(isLoggedIn ? dbIsLiked : initialIsLiked)
+          setLikes(totalLikes);
+          setIsLiked(isLoggedIn ? dbIsLiked : false);
         }
       })
       .catch(() => {
-        // Keep the optimistic initial state if the status refresh fails.
-      })
-      .finally(() => {
-        if (isCurrentRequest) {
-          setIsLoading(false)
-        }
-      })
+        // Keep SSR-provided initial state when refresh fails.
+      });
 
     return () => {
-      isCurrentRequest = false
-    }
-  }, [projectId, isLoggedIn, initialIsLiked])
-
-  // Fallback to initial props if database sync fails
-  React.useEffect(() => {
-    if (!isLoading) {
-      setIsLiked(initialIsLiked)
-      setLikes(initialLikes)
-    }
-  }, [initialIsLiked, initialLikes, isLoading])
+      isCurrentRequest = false;
+    };
+  }, [projectId, isLoggedIn]);
 
   const handleClick = async () => {
     if (!isLoggedIn) {
-      setShowAuthDialog(true)
-      return
+      setShowAuthDialog(true);
+      return;
     }
 
-    setIsAnimating(true)
+    const previousLikes = likes;
+    const previousIsLiked = isLiked;
+    const newIsLiked = !isLiked;
+    const newLikes = newIsLiked ? likes + 1 : Math.max(0, likes - 1);
 
-    const newIsLiked = !isLiked
-    const newLikes = newIsLiked ? likes + 1 : likes - 1
-
-    setIsLiked(newIsLiked)
-    setLikes(newLikes)
-    onLikeChange?.(newLikes, newIsLiked)
+    setIsAnimating(true);
+    setIsLiked(newIsLiked);
+    setLikes(newLikes);
+    onLikeChange?.(newLikes, newIsLiked);
 
     try {
-      const result = await toggleLikeClient(projectId)
+      const result = await toggleLikeFn({ data: { projectIdentifier: projectId } });
 
       if (result.error) {
-        setIsLiked(!newIsLiked)
-        setLikes(newIsLiked ? likes - 1 : likes + 1)
-        onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)
+        setIsLiked(previousIsLiked);
+        setLikes(previousLikes);
+        onLikeChange?.(previousLikes, previousIsLiked);
+        return;
+      }
+
+      if (typeof result.totalLikes === "number") {
+        setLikes(result.totalLikes);
+      }
+      if (typeof result.isLiked === "boolean") {
+        setIsLiked(result.isLiked);
+        onLikeChange?.(result.totalLikes ?? newLikes, result.isLiked);
       }
     } catch {
-      setIsLiked(!newIsLiked)
-      setLikes(newIsLiked ? likes - 1 : likes + 1)
-      onLikeChange?.(newIsLiked ? likes - 1 : likes + 1, !newIsLiked)
+      setIsLiked(previousIsLiked);
+      setLikes(previousLikes);
+      onLikeChange?.(previousLikes, previousIsLiked);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 300);
     }
-
-    setTimeout(() => setIsAnimating(false), 300)
-  }
+  };
 
   return (
     <>
@@ -113,13 +107,19 @@ export function ProminentLikeButton({
         className="py-0 pe-0 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
         variant="default"
         onClick={handleClick}
-        title={!isLoggedIn ? 'Sign in to like projects' : isLiked ? 'Unlike this project' : 'Like this project'}
+        title={
+          !isLoggedIn
+            ? "Sign in to like projects"
+            : isLiked
+              ? "Unlike this project"
+              : "Like this project"
+        }
       >
         <Heart
           className={cn(
-            'me-2 transition-[color,fill,transform] duration-200 ease-out motion-reduce:transition-none',
-            isLiked ? 'fill-red-500 text-red-500' : 'text-primary-foreground opacity-80',
-            isAnimating && !prefersReducedMotion && 'scale-105 animate-heart-beat',
+            "me-2 transition-[color,fill,transform] duration-200 ease-out motion-reduce:transition-none",
+            isLiked ? "fill-red-500 text-red-500" : "text-primary-foreground opacity-80",
+            isAnimating && !prefersReducedMotion && "scale-105 animate-heart-beat",
           )}
           size={16}
           strokeWidth={2}
@@ -131,23 +131,20 @@ export function ProminentLikeButton({
         </span>
       </Button>
 
-      {/* Auth Required Dialog */}
-      <AlertDialog
-        open={showAuthDialog}
-        onOpenChange={setShowAuthDialog}
-      >
+      <AlertDialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Masuk untuk Memberi Like</AlertDialogTitle>
             <AlertDialogDescription>
-              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung ke VibeDev community!
+              Kamu harus masuk untuk memberi like pada project ini. Yuk, gabung ke VibeDev
+              community!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                window.location.href = '/user/auth'
+                window.location.href = "/user/auth";
               }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
@@ -157,5 +154,5 @@ export function ProminentLikeButton({
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

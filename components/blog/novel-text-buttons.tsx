@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import { Bold, Code, Italic, Strikethrough } from 'lucide-react'
-import { EditorBubbleItem, useEditor } from 'novel'
-import { Toggle } from '@/components/ui/toggle'
-import { cn } from '@/lib/utils'
+import { Bold, Code, Italic, Strikethrough } from "lucide-react";
+import { EditorBubbleItem, useEditor } from "novel";
+import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
 
 interface TextButton {
-  name: string
-  icon: React.ReactNode
-  isActive: (editor: ReturnType<typeof useEditor>['editor']) => boolean
-  action: (editor: ReturnType<typeof useEditor>['editor']) => void
+  name: string;
+  icon: React.ReactNode;
+  isActive: (editor: ReturnType<typeof useEditor>["editor"]) => boolean;
+  action: (editor: ReturnType<typeof useEditor>["editor"]) => void;
 }
 
 const TEXT_BUTTONS: TextButton[] = [
   {
-    name: 'Bold',
+    name: "Bold",
     icon: <Bold className="h-4 w-4" />,
-    isActive: (editor) => editor?.isActive('bold') ?? false,
+    isActive: (editor) => editor?.isActive("bold") ?? false,
     action: (editor) => editor?.chain().focus().toggleBold().run(),
   },
   {
-    name: 'Italic',
+    name: "Italic",
     icon: <Italic className="h-4 w-4" />,
-    isActive: (editor) => editor?.isActive('italic') ?? false,
+    isActive: (editor) => editor?.isActive("italic") ?? false,
     action: (editor) => editor?.chain().focus().toggleItalic().run(),
   },
   {
-    name: 'Strikethrough',
+    name: "Strikethrough",
     icon: <Strikethrough className="h-4 w-4" />,
-    isActive: (editor) => editor?.isActive('strike') ?? false,
+    isActive: (editor) => editor?.isActive("strike") ?? false,
     action: (editor) => editor?.chain().focus().toggleStrike().run(),
   },
   {
-    name: 'Code',
+    name: "Code",
     icon: <Code className="h-4 w-4" />,
-    isActive: (editor) => editor?.isActive('code') ?? false,
+    isActive: (editor) => editor?.isActive("code") ?? false,
     action: (editor) => editor?.chain().focus().toggleCode().run(),
   },
-]
+];
 
 interface NovelTextButtonsProps {
-  className?: string
+  className?: string;
 }
 
 /**
@@ -48,17 +48,14 @@ interface NovelTextButtonsProps {
  * Includes Bold, Italic, Strikethrough, and Code
  */
 export function NovelTextButtons({ className }: NovelTextButtonsProps) {
-  const { editor } = useEditor()
+  const { editor } = useEditor();
 
-  if (!editor) return null
+  if (!editor) return null;
 
   return (
-    <div className={cn('flex items-center', className)}>
+    <div className={cn("flex items-center", className)}>
       {TEXT_BUTTONS.map((button) => (
-        <EditorBubbleItem
-          key={button.name}
-          onSelect={() => button.action(editor)}
-        >
+        <EditorBubbleItem key={button.name} onSelect={() => button.action(editor)}>
           <Toggle
             size="sm"
             pressed={button.isActive(editor)}
@@ -70,5 +67,5 @@ export function NovelTextButtons({ className }: NovelTextButtonsProps) {
         </EditorBubbleItem>
       ))}
     </div>
-  )
+  );
 }

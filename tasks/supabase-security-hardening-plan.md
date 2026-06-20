@@ -21,15 +21,15 @@ A user reported all tables are "EXPOSED" — publicly accessible via the anon ke
 
 ## Current Architecture
 
-| File | Purpose | Key Detail |
-|------|---------|------------|
-| `lib/supabase/client.ts` | Browser client | Uses `anonKey` via `createBrowserClient` |
-| `lib/supabase/server.ts` | Server client | Uses `anonKey` + cookies via `createServerClient` |
-| `lib/supabase/admin.ts` | Admin client | Uses `serviceRoleKey` — server-only |
-| `lib/supabase/middleware.ts` | Session refresh | Uses `anonKey` in middleware |
-| `lib/env-config.ts` | Env validation | `getSupabaseConfig()` / `getSupabaseServerConfig()` |
-| `lib/client-analytics.ts` | Client views tracking | Directly inserts to `views` via client |
-| `lib/client-likes.ts` | Client like toggle | Directly inserts/deletes on `likes` via client |
+| File                         | Purpose               | Key Detail                                          |
+| ---------------------------- | --------------------- | --------------------------------------------------- |
+| `lib/supabase/client.ts`     | Browser client        | Uses `anonKey` via `createBrowserClient`            |
+| `lib/supabase/server.ts`     | Server client         | Uses `anonKey` + cookies via `createServerClient`   |
+| `lib/supabase/admin.ts`      | Admin client          | Uses `serviceRoleKey` — server-only                 |
+| `lib/supabase/middleware.ts` | Session refresh       | Uses `anonKey` in middleware                        |
+| `lib/env-config.ts`          | Env validation        | `getSupabaseConfig()` / `getSupabaseServerConfig()` |
+| `lib/client-analytics.ts`    | Client views tracking | Directly inserts to `views` via client              |
+| `lib/client-likes.ts`        | Client like toggle    | Directly inserts/deletes on `likes` via client      |
 
 ---
 
@@ -44,6 +44,7 @@ A user reported all tables are "EXPOSED" — publicly accessible via the anon ke
 The `views` table currently exposes `ip_address` (inet type) to everyone. This is a privacy violation.
 
 **Approach**: Replace the blanket `USING (true)` SELECT policy with one that excludes sensitive columns. Since RLS operates at row level (not column level), we need to either:
+
 - (A) Create a VIEW that excludes `ip_address` and have the app query the view, OR
 - (B) Keep the policy but ensure app code never selects `ip_address` on the client side, OR
 - (C) Move view tracking entirely server-side (recommended)
@@ -51,6 +52,7 @@ The `views` table currently exposes `ip_address` (inet type) to everyone. This i
 **Decision**: Option C — Move view tracking to server action.
 
 **Steps**:
+
 1. Create server action `trackView()` in `lib/actions.ts` using server client
 2. Update `lib/client-analytics.ts` to call the server action instead of direct DB insert
 3. Remove the anonymous INSERT policy on `views` — only server (via admin client or authenticated server client) should insert
@@ -93,6 +95,7 @@ WITH CHECK (user_id = (select auth.uid()));
 ```
 
 **Codebase changes**:
+
 - `lib/client-analytics.ts`: Replace direct Supabase insert with server action call
 - `lib/actions.ts`: Add `trackView()` server action using admin client for anonymous visitors
 
@@ -157,6 +160,7 @@ WITH CHECK (
 ```
 
 **Verification**:
+
 - [ ] Authenticated users can still comment
 - [ ] Guest comments require `author_name` (non-empty)
 - [ ] Guest comments cannot set `user_id` (must be NULL)
@@ -175,6 +179,7 @@ WITH CHECK (
 **Key question**: Should anonymous users (without login) be able to read projects, posts, users?
 
 **Answer**: YES — this is a public showcase site. Public reads are intentional for:
+
 - `projects` — public showcase (core feature)
 - `posts` — published blog posts (SEO)
 - `users` — public developer profiles
@@ -435,6 +440,7 @@ USING ((select auth.uid()) = user_id);
 ### Task 3.1: Move view tracking to server action
 
 **Files to modify**:
+
 - `lib/actions.ts` — Add `trackView()` server action
 - `lib/client-analytics.ts` — Replace direct DB insert with server action call
 - Remove IP address collection from client-side (was never appropriate)
@@ -443,40 +449,38 @@ USING ((select auth.uid()) = user_id);
 
 ```typescript
 // lib/actions.ts — ADD:
-export async function trackView(input: {
-  projectId?: number
-  postId?: string
-  sessionId: string
-}) {
-  const supabase = await createClient()
+export async function trackView(input: { projectId?: number; postId?: string; sessionId: string }) {
+  const supabase = await createClient();
 
   const insertData: Record<string, unknown> = {
     session_id: input.sessionId,
-    view_date: new Date().toISOString().split('T')[0],
-  }
+    view_date: new Date().toISOString().split("T")[0],
+  };
 
-  if (input.projectId) insertData.project_id = input.projectId
-  if (input.postId) insertData.post_id = input.postId
+  if (input.projectId) insertData.project_id = input.projectId;
+  if (input.postId) insertData.post_id = input.postId;
 
   // Check auth status — if logged in, attach user_id
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) insertData.user_id = user.id
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) insertData.user_id = user.id;
 
-  const { error } = await supabase.from('views').insert(insertData)
+  const { error } = await supabase.from("views").insert(insertData);
   if (error) {
-    console.error('Track view error:', error)
+    console.error("Track view error:", error);
   }
 }
 ```
 
 ```typescript
 // lib/client-analytics.ts — REPLACE direct insert:
-'use client'
-import { trackView } from '@/lib/actions'
+"use client";
+import { trackView } from "@/lib/actions";
 
 export async function trackProjectView(projectId: number, sessionId: string) {
   try {
-    await trackView({ projectId, sessionId })
+    await trackView({ projectId, sessionId });
   } catch {
     // Fail silently
   }
@@ -489,7 +493,8 @@ After Phase 2 changes, `lib/client-likes.ts` uses the browser client (anon key).
 
 **Check**: The browser client uses cookies for auth — if user is logged in, requests go as `authenticated` role. This should still work since likes require login in the UI anyway.
 
-**Test**: 
+**Test**:
+
 - [ ] Logged-in user can like a project
 - [ ] Logged-in user can unlike a project
 - [ ] Anonymous user cannot like (UI already prevents this)
@@ -498,7 +503,7 @@ After Phase 2 changes, `lib/client-likes.ts` uses the browser client (anon key).
 
 ```sql
 -- In migration 21: Consolidate events SELECT policies
--- Currently: "Public events are viewable by everyone" (approved=true) 
+-- Currently: "Public events are viewable by everyone" (approved=true)
 --   + "Users can view their own pending events" (auth.uid()=submitted_by)
 -- Problem: Multiple permissive policies for authenticated role on SELECT
 
@@ -574,7 +579,7 @@ Phase 1 (Critical) ← DO FIRST, can be done independently
   Task 1.1: Fix views table (migration + code)
   Task 1.2: Fix vibe_videos policies (migration)
   Task 1.3: Fix comments anonymous INSERT (migration)
-  
+
 Phase 2 (Hardening) ← Depends on Phase 1
   Task 2.1: Confirm public read model (decision only)
   Task 2.2: Fix auth.uid() performance (migration)
@@ -596,13 +601,16 @@ Phase 4 (Cleanup) ← Independent
 ## Testing Strategy
 
 ### Per-Migration Testing
+
 After each SQL migration:
+
 1. Run `bun dev` — verify app still loads
 2. Test as anonymous user — can browse projects, posts, profiles
 3. Test as authenticated user — can like, comment, submit project
 4. Test as admin — can manage vibe_videos, faqs, blog reports
 
 ### Regression Checklist
+
 - [ ] Homepage loads (projects showcase)
 - [ ] Project listing page works (filtering, search)
 - [ ] Project detail page works (views tracked)
@@ -630,6 +638,7 @@ Each phase can be rolled back independently:
 4. **Phase 4**: No rollback needed (documentation, dashboard settings)
 
 Always take a database backup before running migrations:
+
 ```sql
 -- Query to backup current policies before changes
 SELECT * FROM pg_policies WHERE schemaname = 'public';
@@ -638,11 +647,13 @@ SELECT * FROM pg_policies WHERE schemaname = 'public';
 ## Files Affected
 
 **SQL Migrations (new)**:
+
 - `scripts/20_fix_critical_security.sql`
 - `scripts/21_fix_rls_performance.sql`
 - `scripts/22_cleanup_unused_indexes.sql`
 
 **Code Changes**:
+
 - `lib/actions.ts` — Add `trackView()` server action
 - `lib/client-analytics.ts` — Replace direct DB with server action
 - `docs/security/RLS_POLICIES.md` — Update documentation

@@ -1,74 +1,57 @@
-import { revalidatePath } from '@/lib/revalidation'
-import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from "@/lib/revalidation";
+import { getDb } from "@/lib/db";
+import { users, projects, posts, comments, likes, authUser } from "@/lib/db/schema";
+import { toUserProfile } from "@/lib/db/mappers";
+import { requireUser } from "@/lib/server/auth";
+import { requireAdmin } from "@/lib/auth/permissions";
+import { ROLES } from "./schemas";
+import { eq, and, or, ilike, desc, count, inArray, isNull } from "drizzle-orm";
 
-// IMPORTANT-5: Role constants for maintainability
-const ROLES = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const
-
-// IMPORTANT-7: Extract hardcoded page size to constant
-const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 20;
 
 export interface AdminUser {
-  id: string
-  username: string
-  display_name: string
-  email: string
-  bio: string | null
-  avatar_url: string | null
-  location: string | null
-  website: string | null
-  github_url: string | null
-  twitter_url: string | null
-  role: number
-  joined_at: string
-  updated_at: string
-  is_suspended: boolean
+  id: string;
+  username: string;
+  display_name: string;
+  email: string;
+  bio: string | null;
+  avatar_url: string | null;
+  location: string | null;
+  website: string | null;
+  github_url: string | null;
+  twitter_url: string | null;
+  role: number;
+  joined_at: string;
+  updated_at: string;
+  is_suspended: boolean;
   stats: {
-    projects_count: number
-    posts_count: number
-    comments_count: number
-    likes_received: number
-  }
+    projects_count: number;
+    posts_count: number;
+    comments_count: number;
+    likes_received: number;
+  };
 }
 
 export interface GetAllUsersResult {
-  users: AdminUser[]
-  totalCount: number
-  error?: string
+  users: AdminUser[];
+  totalCount: number;
+  error?: string;
 }
 
 export interface UserFilters {
-  search?: string
-  role?: 'all' | 'admin' | 'moderator' | 'user'
-  status?: 'all' | 'active' | 'suspended'
+  search?: string;
+  role?: "all" | "admin" | "moderator" | "user";
+  status?: "all" | "active" | "suspended";
 }
 
 async function checkAdminAccess() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-
-  if (!userData || userData.role !== ROLES.ADMIN) {
-    throw new Error('Admin access required')
-  }
-
-  return user
+  const user = await requireUser();
+  await requireAdmin(user.id);
+  return user;
 }
 
-// CRITICAL-2: Sanitize search input to prevent SQL injection via ilike patterns
 function sanitizeSearchInput(search: string): string {
-  // Escape special SQL LIKE characters: % (wildcard) and _ (single char match)
-  return search.replace(/[%_]/g, '\\$&')
+  return search.replace(/[%_]/g, "\\$&");
 }
 
 export async function getAllUsers(
@@ -77,151 +60,167 @@ export async function getAllUsers(
   pageSize: number = DEFAULT_PAGE_SIZE,
 ): Promise<GetAllUsersResult> {
   try {
-    await checkAdminAccess()
+    await checkAdminAccess();
 
-    const supabase = await createClient()
+    const db = getDb();
+    const conditions = [];
 
-    let query = supabase.from('users').select('*', { count: 'exact' })
-
-    // Apply filters
-    if (filters.role && filters.role !== 'all') {
+    if (filters.role && filters.role !== "all") {
       const roleMap: Record<string, number> = {
         admin: ROLES.ADMIN,
         moderator: ROLES.MODERATOR,
         user: ROLES.USER,
-      }
-      query = query.eq('role', roleMap[filters.role])
+      };
+      conditions.push(eq(users.role, roleMap[filters.role]));
     }
 
-    if (filters.status === 'suspended') {
-      query = query.eq('is_suspended', true)
-    } else if (filters.status === 'active') {
-      query = query.eq('is_suspended', false).or('is_suspended.is.null')
+    if (filters.status === "suspended") {
+      conditions.push(eq(users.isSuspended, true));
+    } else if (filters.status === "active") {
+      conditions.push(or(eq(users.isSuspended, false), isNull(users.isSuspended)));
     }
 
     if (filters.search) {
-      // CRITICAL-2: Sanitize search to prevent SQL injection
-      const sanitized = sanitizeSearchInput(filters.search)
-      query = query.or(`username.ilike.%${sanitized}%,display_name.ilike.%${sanitized}%`)
+      const sanitized = sanitizeSearchInput(filters.search);
+      const pattern = `%${sanitized}%`;
+      conditions.push(or(ilike(users.username, pattern), ilike(users.displayName, pattern)));
     }
 
-    // Pagination
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
-    query = query.range(from, to).order('joined_at', { ascending: false })
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (page - 1) * pageSize;
 
-    const { data: users, error, count } = await query
+    const [totalResult, userRows] = await Promise.all([
+      db.select({ value: count() }).from(users).where(whereClause),
+      db
+        .select()
+        .from(users)
+        .where(whereClause)
+        .orderBy(desc(users.joinedAt))
+        .limit(pageSize)
+        .offset(offset),
+    ]);
 
-    if (error) {
-      console.error('Get all users error:', error)
-      return { users: [], totalCount: 0, error: error.message }
-    }
+    const userIds = userRows.map((u) => u.id);
 
-    // Get user stats in parallel
-    const userIds = users?.map((u) => u.id) || []
+    const [projectRows, postRows, commentRows, likeRows, authRows] = await Promise.all([
+      userIds.length > 0
+        ? db
+            .select({ authorId: projects.authorId })
+            .from(projects)
+            .where(inArray(projects.authorId, userIds))
+        : Promise.resolve([]),
+      userIds.length > 0
+        ? db
+            .select({ authorId: posts.authorId })
+            .from(posts)
+            .where(inArray(posts.authorId, userIds))
+        : Promise.resolve([]),
+      userIds.length > 0
+        ? db
+            .select({ userId: comments.userId })
+            .from(comments)
+            .where(inArray(comments.userId, userIds))
+        : Promise.resolve([]),
+      userIds.length > 0
+        ? db.select({ userId: likes.userId }).from(likes).where(inArray(likes.userId, userIds))
+        : Promise.resolve([]),
+      userIds.length > 0
+        ? db
+            .select({ id: authUser.id, email: authUser.email })
+            .from(authUser)
+            .where(inArray(authUser.id, userIds))
+        : Promise.resolve([]),
+    ]);
 
-    const [projectsResult, postsResult, commentsResult, likesResult] = await Promise.all([
-      supabase.from('projects').select('author_id').in('author_id', userIds),
-      supabase.from('posts').select('author_id').in('author_id', userIds),
-      supabase.from('comments').select('user_id').in('user_id', userIds),
-      supabase.from('likes').select('user_id').in('user_id', userIds),
-    ])
+    const projectsCount: Record<string, number> = {};
+    const postsCount: Record<string, number> = {};
+    const commentsCount: Record<string, number> = {};
+    const likesCount: Record<string, number> = {};
 
-    // Count stats per user
-    const projectsCount: Record<string, number> = {}
-    const postsCount: Record<string, number> = {}
-    const commentsCount: Record<string, number> = {}
-    const likesCount: Record<string, number> = {}
+    projectRows.forEach((project) => {
+      projectsCount[project.authorId] = (projectsCount[project.authorId] || 0) + 1;
+    });
 
-    projectsResult.data?.forEach((project) => {
-      projectsCount[project.author_id] = (projectsCount[project.author_id] || 0) + 1
-    })
+    postRows.forEach((post) => {
+      postsCount[post.authorId] = (postsCount[post.authorId] || 0) + 1;
+    });
 
-    postsResult.data?.forEach((post) => {
-      postsCount[post.author_id] = (postsCount[post.author_id] || 0) + 1
-    })
-
-    commentsResult.data?.forEach((comment) => {
-      if (comment.user_id) {
-        commentsCount[comment.user_id] = (commentsCount[comment.user_id] || 0) + 1
+    commentRows.forEach((comment) => {
+      if (comment.userId) {
+        commentsCount[comment.userId] = (commentsCount[comment.userId] || 0) + 1;
       }
-    })
+    });
 
-    likesResult.data?.forEach((like) => {
-      if (like.user_id) {
-        likesCount[like.user_id] = (likesCount[like.user_id] || 0) + 1
+    likeRows.forEach((like) => {
+      if (like.userId) {
+        likesCount[like.userId] = (likesCount[like.userId] || 0) + 1;
       }
-    })
+    });
 
-    // Get email from auth.users
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const emailMap: Record<string, string> = {}
-    authUsers?.users?.forEach((authUser) => {
-      emailMap[authUser.id] = authUser.email || ''
-    })
+    const emailMap: Record<string, string> = {};
+    authRows.forEach((authRow) => {
+      emailMap[authRow.id] = authRow.email || "";
+    });
 
-    const formattedUsers: AdminUser[] = (users || []).map((user) => ({
-      id: user.id,
-      username: user.username,
-      display_name: user.display_name,
-      email: emailMap[user.id] || '',
-      bio: user.bio,
-      avatar_url: user.avatar_url,
-      location: user.location,
-      website: user.website,
-      github_url: user.github_url,
-      twitter_url: user.twitter_url,
-      role: user.role || 2,
-      joined_at: user.joined_at,
-      updated_at: user.updated_at,
-      is_suspended: user.is_suspended || false,
-      stats: {
-        projects_count: projectsCount[user.id] || 0,
-        posts_count: postsCount[user.id] || 0,
-        comments_count: commentsCount[user.id] || 0,
-        likes_received: likesCount[user.id] || 0,
-      },
-    }))
+    const formattedUsers: AdminUser[] = userRows.map((row) => {
+      const mapped = toUserProfile(row);
+      return {
+        id: mapped.id,
+        username: mapped.username,
+        display_name: mapped.displayName,
+        email: emailMap[mapped.id] || "",
+        bio: mapped.bio,
+        avatar_url: mapped.avatarUrl,
+        location: mapped.location,
+        website: mapped.website,
+        github_url: mapped.githubUrl,
+        twitter_url: mapped.twitterUrl,
+        role: mapped.role || 2,
+        joined_at: mapped.joinedAt ?? "",
+        updated_at: mapped.updatedAt ?? "",
+        is_suspended: mapped.isSuspended || false,
+        stats: {
+          projects_count: projectsCount[mapped.id] || 0,
+          posts_count: postsCount[mapped.id] || 0,
+          comments_count: commentsCount[mapped.id] || 0,
+          likes_received: likesCount[mapped.id] || 0,
+        },
+      };
+    });
 
     return {
       users: formattedUsers,
-      totalCount: count || 0,
-    }
+      totalCount: totalResult[0]?.value || 0,
+    };
   } catch (error) {
-    console.error('Get all users error:', error)
+    console.error("Get all users error:", error);
     return {
       users: [],
       totalCount: 0,
-      error: error instanceof Error ? error.message : 'Failed to load users',
-    }
+      error: error instanceof Error ? error.message : "Failed to load users",
+    };
   }
 }
 
-export async function updateUserRole(userId: string, role: number): Promise<{ success: boolean; error?: string }> {
+export async function updateUserRole(
+  userId: string,
+  role: number,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await checkAdminAccess();
 
-    const supabase = await createClient()
+    const db = getDb();
+    await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
 
-    const { error } = await supabase
-      .from('users')
-      .update({ role, updated_at: new Date().toISOString() })
-      .eq('id', userId)
+    revalidatePath("/dashboard");
 
-    if (error) {
-      console.error('Update user role error:', error)
-      return { success: false, error: error.message }
-    }
-
-    revalidatePath('/dashboard')
-
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Update user role error:', error)
+    console.error("Update user role error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update user role',
-    }
+      error: error instanceof Error ? error.message : "Failed to update user role",
+    };
   }
 }
 
@@ -231,68 +230,62 @@ export async function suspendUser(
   reason?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await checkAdminAccess()
+    await checkAdminAccess();
 
-    const supabase = await createClient()
-
-    const { error } = await supabase
-      .from('users')
-      .update({
-        is_suspended: suspended,
-        suspension_reason: reason || null,
-        suspended_at: suspended ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
+    const db = getDb();
+    await db
+      .update(users)
+      .set({
+        isSuspended: suspended,
+        suspensionReason: reason || null,
+        suspendedAt: suspended ? new Date() : null,
+        updatedAt: new Date(),
       })
-      .eq('id', userId)
+      .where(eq(users.id, userId));
 
-    if (error) {
-      console.error('Suspend user error:', error)
-      return { success: false, error: error.message }
-    }
+    revalidatePath("/dashboard");
 
-    revalidatePath('/dashboard')
-
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Suspend user error:', error)
+    console.error("Suspend user error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update user suspension status',
-    }
+      error: error instanceof Error ? error.message : "Failed to update user suspension status",
+    };
   }
 }
 
 export async function getUserStats(userId: string): Promise<{
-  success: boolean
-  stats?: AdminUser['stats']
-  error?: string
+  success: boolean;
+  stats?: AdminUser["stats"];
+  error?: string;
 }> {
   try {
-    await checkAdminAccess()
+    await checkAdminAccess();
 
-    const supabase = await createClient()
+    const db = getDb();
 
     const [projectsResult, postsResult, commentsResult, likesResult] = await Promise.all([
-      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('author_id', userId),
-      supabase.from('posts').select('*', { count: 'exact', head: true }).eq('author_id', userId),
-      supabase.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-      supabase.from('likes').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-    ])
+      db.select({ value: count() }).from(projects).where(eq(projects.authorId, userId)),
+      db.select({ value: count() }).from(posts).where(eq(posts.authorId, userId)),
+      db.select({ value: count() }).from(comments).where(eq(comments.userId, userId)),
+      db.select({ value: count() }).from(likes).where(eq(likes.userId, userId)),
+    ]);
 
     return {
       success: true,
       stats: {
-        projects_count: projectsResult.count || 0,
-        posts_count: postsResult.count || 0,
-        comments_count: commentsResult.count || 0,
-        likes_received: likesResult.count || 0,
+        projects_count: projectsResult[0]?.value || 0,
+        posts_count: postsResult[0]?.value || 0,
+        comments_count: commentsResult[0]?.value || 0,
+        likes_received: likesResult[0]?.value || 0,
       },
-    }
+    };
   } catch (error) {
-    console.error('Get user stats error:', error)
+    console.error("Get user stats error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to load user stats',
-    }
+      error: error instanceof Error ? error.message : "Failed to load user stats",
+    };
   }
 }

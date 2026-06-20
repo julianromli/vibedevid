@@ -1,94 +1,94 @@
-import { UploadButton } from '@uploadthing/react'
-import { CheckCircle, Loader2, X } from 'lucide-react'
-import { Image } from '@unpic/react'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import MultipleSelector, { type Option } from '@/components/ui/multiselect'
-import { getFaviconUrl } from '@/lib/favicon-utils'
-import { normalizeProjectWebsiteUrl } from '@/lib/project-url'
-import type { OurFileRouter } from '@/lib/uploadthing-router'
-import type { UploadResult } from '@/components/ui/submit-project-form/types'
+import { UploadButton } from "@uploadthing/react";
+import { CheckCircle, Loader2, X } from "lucide-react";
+import { Image } from "@unpic/react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import MultipleSelector, { type Option } from "@/components/ui/multiselect";
+import { getFaviconUrl } from "@/lib/favicon-utils";
+import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
+import type { OurFileRouter } from "@/lib/uploadthing-router";
+import type { UploadResult } from "@/components/ui/submit-project-form/types";
 
 const techOptions: Option[] = [
-  { value: 'next.js', label: 'Next.js' },
-  { value: 'react', label: 'React' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'vue', label: 'Vue.js' },
-  { value: 'angular', label: 'Angular' },
-  { value: 'svelte', label: 'Svelte' },
-  { value: 'tailwindcss', label: 'Tailwind CSS' },
-  { value: 'css', label: 'CSS' },
-  { value: 'scss', label: 'SCSS' },
-  { value: 'nodejs', label: 'Node.js' },
-  { value: 'express', label: 'Express.js' },
-  { value: 'fastify', label: 'Fastify' },
-  { value: 'nestjs', label: 'NestJS' },
-  { value: 'python', label: 'Python' },
-  { value: 'django', label: 'Django' },
-  { value: 'flask', label: 'Flask' },
-  { value: 'fastapi', label: 'FastAPI' },
-  { value: 'java', label: 'Java' },
-  { value: 'spring', label: 'Spring Boot' },
-  { value: 'csharp', label: 'C#' },
-  { value: 'dotnet', label: '.NET' },
-  { value: 'go', label: 'Go' },
-  { value: 'rust', label: 'Rust' },
-  { value: 'php', label: 'PHP' },
-  { value: 'laravel', label: 'Laravel' },
-  { value: 'mongodb', label: 'MongoDB' },
-  { value: 'postgresql', label: 'PostgreSQL' },
-  { value: 'mysql', label: 'MySQL' },
-  { value: 'sqlite', label: 'SQLite' },
-  { value: 'redis', label: 'Redis' },
-  { value: 'supabase', label: 'Supabase' },
-  { value: 'firebase', label: 'Firebase' },
-  { value: 'aws', label: 'AWS' },
-  { value: 'vercel', label: 'Vercel' },
-  { value: 'netlify', label: 'Netlify' },
-  { value: 'docker', label: 'Docker' },
-  { value: 'kubernetes', label: 'Kubernetes' },
-  { value: 'graphql', label: 'GraphQL' },
-  { value: 'apollo', label: 'Apollo' },
-  { value: 'trpc', label: 'tRPC' },
-  { value: 'prisma', label: 'Prisma' },
-  { value: 'drizzle', label: 'Drizzle' },
-  { value: 'shadcn', label: 'shadcn/ui' },
-  { value: 'chakra', label: 'Chakra UI' },
-  { value: 'mantine', label: 'Mantine' },
-  { value: 'antd', label: 'Ant Design' },
-  { value: 'material-ui', label: 'Material-UI' },
-]
+  { value: "next.js", label: "Next.js" },
+  { value: "react", label: "React" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "vue", label: "Vue.js" },
+  { value: "angular", label: "Angular" },
+  { value: "svelte", label: "Svelte" },
+  { value: "tailwindcss", label: "Tailwind CSS" },
+  { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "nodejs", label: "Node.js" },
+  { value: "express", label: "Express.js" },
+  { value: "fastify", label: "Fastify" },
+  { value: "nestjs", label: "NestJS" },
+  { value: "python", label: "Python" },
+  { value: "django", label: "Django" },
+  { value: "flask", label: "Flask" },
+  { value: "fastapi", label: "FastAPI" },
+  { value: "java", label: "Java" },
+  { value: "spring", label: "Spring Boot" },
+  { value: "csharp", label: "C#" },
+  { value: "dotnet", label: ".NET" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "php", label: "PHP" },
+  { value: "laravel", label: "Laravel" },
+  { value: "mongodb", label: "MongoDB" },
+  { value: "postgresql", label: "PostgreSQL" },
+  { value: "mysql", label: "MySQL" },
+  { value: "sqlite", label: "SQLite" },
+  { value: "redis", label: "Redis" },
+  { value: "supabase", label: "Supabase" },
+  { value: "firebase", label: "Firebase" },
+  { value: "aws", label: "AWS" },
+  { value: "vercel", label: "Vercel" },
+  { value: "netlify", label: "Netlify" },
+  { value: "docker", label: "Docker" },
+  { value: "kubernetes", label: "Kubernetes" },
+  { value: "graphql", label: "GraphQL" },
+  { value: "apollo", label: "Apollo" },
+  { value: "trpc", label: "tRPC" },
+  { value: "prisma", label: "Prisma" },
+  { value: "drizzle", label: "Drizzle" },
+  { value: "shadcn", label: "shadcn/ui" },
+  { value: "chakra", label: "Chakra UI" },
+  { value: "mantine", label: "Mantine" },
+  { value: "antd", label: "Ant Design" },
+  { value: "material-ui", label: "Material-UI" },
+];
 
 function isValidWebsiteUrl(value: string): boolean {
   try {
-    const url = new URL(value.startsWith('http') ? value : `https://${value}`)
-    return Boolean(url.hostname) && url.hostname.includes('.')
+    const url = new URL(value.startsWith("http") ? value : `https://${value}`);
+    return Boolean(url.hostname) && url.hostname.includes(".");
   } catch {
-    return false
+    return false;
   }
 }
 
 export interface LinksMediaStepProps {
-  websiteUrl: string
-  setWebsiteUrl: (value: string) => void
-  faviconUrl: string
-  setFaviconUrl: (value: string) => void
-  selectedTags: Option[]
-  setSelectedTags: (value: Option[]) => void
-  uploadedImageUrls: string[]
-  setUploadedImageUrls: (value: string[] | ((prev: string[]) => string[])) => void
-  uploadedImageKeys: string[]
-  setUploadedImageKeys: (value: string[] | ((prev: string[]) => string[])) => void
-  importedImageUrl: string
-  setImportedImageUrl: (value: string) => void
-  isLoading: boolean
-  isUploading: boolean
-  onUploadBegin: (name: string) => void
-  onUploadComplete: (res: UploadResult[] | undefined) => void
-  onUploadError: (error: Error) => void
+  websiteUrl: string;
+  setWebsiteUrl: (value: string) => void;
+  faviconUrl: string;
+  setFaviconUrl: (value: string) => void;
+  selectedTags: Option[];
+  setSelectedTags: (value: Option[]) => void;
+  uploadedImageUrls: string[];
+  setUploadedImageUrls: (value: string[] | ((prev: string[]) => string[])) => void;
+  uploadedImageKeys: string[];
+  setUploadedImageKeys: (value: string[] | ((prev: string[]) => string[])) => void;
+  importedImageUrl: string;
+  setImportedImageUrl: (value: string) => void;
+  isLoading: boolean;
+  isUploading: boolean;
+  onUploadBegin: (name: string) => void;
+  onUploadComplete: (res: UploadResult[] | undefined) => void;
+  onUploadError: (error: Error) => void;
 }
 
 export function LinksMediaStep({
@@ -110,20 +110,20 @@ export function LinksMediaStep({
   onUploadComplete,
   onUploadError,
 }: LinksMediaStepProps) {
-  const trimmedWebsiteUrl = websiteUrl.trim()
-  const normalizedWebsiteUrl = normalizeProjectWebsiteUrl(websiteUrl)
+  const trimmedWebsiteUrl = websiteUrl.trim();
+  const normalizedWebsiteUrl = normalizeProjectWebsiteUrl(websiteUrl);
   const normalizedWebsitePreview =
-    normalizedWebsiteUrl && normalizedWebsiteUrl !== trimmedWebsiteUrl ? normalizedWebsiteUrl : null
+    normalizedWebsiteUrl && normalizedWebsiteUrl !== trimmedWebsiteUrl
+      ? normalizedWebsiteUrl
+      : null;
 
-  const activeImageUrls = uploadedImageUrls.length > 0 ? uploadedImageUrls : importedImageUrl ? [importedImageUrl] : []
+  const activeImageUrls =
+    uploadedImageUrls.length > 0 ? uploadedImageUrls : importedImageUrl ? [importedImageUrl] : [];
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label
-          htmlFor="website_url"
-          className="form-label-enhanced"
-        >
+        <Label htmlFor="website_url" className="form-label-enhanced">
           Website URL
         </Label>
         <Input
@@ -142,20 +142,17 @@ export function LinksMediaStep({
         />
         <p className="form-helper-text mt-1 text-xs">
           {!trimmedWebsiteUrl
-            ? 'Optional. You can paste a full URL or just type google.com and we\u2019ll save it as https://google.com.'
+            ? "Optional. You can paste a full URL or just type google.com and we\u2019ll save it as https://google.com."
             : normalizedWebsitePreview
               ? `Will be saved as ${normalizedWebsitePreview}`
               : isValidWebsiteUrl(websiteUrl)
-                ? 'Looking good! ✨'
-                : 'Enter a valid website URL or leave it empty'}
+                ? "Looking good! ✨"
+                : "Enter a valid website URL or leave it empty"}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label
-          htmlFor="favicon_url"
-          className="form-label-enhanced"
-        >
+        <Label htmlFor="favicon_url" className="form-label-enhanced">
           Favicon URL
         </Label>
         <div className="flex items-center gap-2">
@@ -164,7 +161,7 @@ export function LinksMediaStep({
               src={faviconUrl || getFaviconUrl(websiteUrl)}
               alt="Website favicon"
               className="h-4 w-4 flex-shrink-0"
-              onError={() => setFaviconUrl('')}
+              onError={() => setFaviconUrl("")}
               width={16}
               height={16}
             />
@@ -175,8 +172,8 @@ export function LinksMediaStep({
             type="url"
             placeholder={
               websiteUrl
-                ? 'Auto-fetch dari website atau manual URL'
-                : 'https://example.com/favicon.ico atau https://example.com/favicon.svg'
+                ? "Auto-fetch dari website atau manual URL"
+                : "https://example.com/favicon.ico atau https://example.com/favicon.svg"
             }
             className="form-input-enhanced"
             value={faviconUrl}
@@ -186,8 +183,8 @@ export function LinksMediaStep({
         </div>
         <p className="form-helper-text mt-1 text-xs">
           {websiteUrl
-            ? 'Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override.'
-            : 'Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯'}
+            ? "Favicon akan otomatis ke-fetch dari website ini! 🌐 Atau masukkan URL manual untuk override."
+            : "Masukkan URL favicon manual untuk project lo! Icon kecil yang muncul di browser tab 🎯"}
         </p>
       </div>
 
@@ -198,11 +195,13 @@ export function LinksMediaStep({
           onChange={setSelectedTags}
           defaultOptions={techOptions}
           placeholder="Select technologies used in your project..."
-          emptyIndicator={<p className="text-muted-foreground text-center text-sm">No technologies found.</p>}
+          emptyIndicator={
+            <p className="text-muted-foreground text-center text-sm">No technologies found.</p>
+          }
           creatable
           maxSelected={10}
           disabled={isLoading || isUploading}
-          commandProps={{ label: 'Select tech stack' }}
+          commandProps={{ label: "Select tech stack" }}
         />
         <p className="form-helper-text mt-1 text-xs">
           Pilih teknologi yang lo pakai di project ini. Bisa nambah sendiri kalau gak ada! 🚀
@@ -216,10 +215,7 @@ export function LinksMediaStep({
             <div className="space-y-4 mb-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {uploadedImageUrls.map((url, index) => (
-                  <div
-                    key={url}
-                    className="relative"
-                  >
+                  <div key={url} className="relative">
                     <AspectRatio ratio={16 / 9}>
                       <Image
                         src={url}
@@ -236,8 +232,8 @@ export function LinksMediaStep({
                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
                       data-testid={`remove-uploaded-image-${index}`}
                       onClick={() => {
-                        setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index))
-                        setUploadedImageKeys((prev) => prev.filter((_, i) => i !== index))
+                        setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
+                        setUploadedImageKeys((prev) => prev.filter((_, i) => i !== index));
                       }}
                       disabled={isLoading}
                     >
@@ -252,7 +248,8 @@ export function LinksMediaStep({
               <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                 <CheckCircle className="h-4 w-4" />
                 <span>
-                  {uploadedImageUrls.length} uploaded screenshot{uploadedImageUrls.length !== 1 ? 's' : ''} active
+                  {uploadedImageUrls.length} uploaded screenshot
+                  {uploadedImageUrls.length !== 1 ? "s" : ""} active
                 </span>
               </div>
             </div>
@@ -275,7 +272,7 @@ export function LinksMediaStep({
                     type="button"
                     variant="destructive"
                     size="sm"
-                    onClick={() => setImportedImageUrl('')}
+                    onClick={() => setImportedImageUrl("")}
                   >
                     Remove Imported Preview
                   </Button>
@@ -299,42 +296,45 @@ export function LinksMediaStep({
                     <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
                     Uploading...
                   </div>
-                  <p className="text-muted-foreground text-sm">Please wait while your images are being uploaded</p>
+                  <p className="text-muted-foreground text-sm">
+                    Please wait while your images are being uploaded
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <UploadButton<OurFileRouter, 'projectImageUploader'>
+                  <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
                     onUploadBegin={onUploadBegin}
                     onClientUploadComplete={onUploadComplete}
                     onUploadError={onUploadError}
                     onUploadProgress={() => {}}
-                    config={{ mode: 'auto' }}
+                    config={{ mode: "auto" }}
                     content={{
                       button({ ready }: { ready: boolean }) {
                         if (ready) {
-                          const remaining = 10 - uploadedImageUrls.length
-                          return <div>Add More Images ({remaining} left)</div>
+                          const remaining = 10 - uploadedImageUrls.length;
+                          return <div>Add More Images ({remaining} left)</div>;
                         }
-                        return 'Getting ready...'
+                        return "Getting ready...";
                       },
                       allowedContent({
                         ready,
                         fileTypes,
                         isUploading: uploadingFlag,
                       }: {
-                        ready: boolean
-                        fileTypes: string[]
-                        isUploading: boolean
+                        ready: boolean;
+                        fileTypes: string[];
+                        isUploading: boolean;
                       }) {
-                        if (!ready) return 'Checking what you allow'
-                        if (uploadingFlag) return 'Uploading...'
-                        return `${fileTypes.join(', ')} (max 10 images)`
+                        if (!ready) return "Checking what you allow";
+                        if (uploadingFlag) return "Uploading...";
+                        return `${fileTypes.join(", ")} (max 10 images)`;
                       },
                     }}
                     appearance={{
-                      button: 'bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md',
-                      allowedContent: 'text-sm text-muted-foreground mt-2',
+                      button:
+                        "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
+                      allowedContent: "text-sm text-muted-foreground mt-2",
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -347,5 +347,5 @@ export function LinksMediaStep({
         </div>
       </div>
     </div>
-  )
+  );
 }

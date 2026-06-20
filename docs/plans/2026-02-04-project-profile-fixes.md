@@ -13,6 +13,7 @@
 ## Task 1: Create Server Action for Profile Update
 
 **Files:**
+
 - Modify: `lib/actions/user.ts` (add new server action)
 
 **Step 1: Add the `updateUserProfile` server action**
@@ -21,76 +22,76 @@ Add the following to `lib/actions/user.ts`:
 
 ```typescript
 // Add these imports at the top if not present
-import { revalidatePath } from 'next/cache'
+import { revalidatePath } from "next/cache";
 
 // Add this interface after the imports
 interface UpdateProfileData {
-  username: string
-  displayName: string
-  bio: string
-  avatar_url: string
-  location: string
-  website: string
-  github_url: string
-  twitter_url: string
+  username: string;
+  displayName: string;
+  bio: string;
+  avatar_url: string;
+  location: string;
+  website: string;
+  github_url: string;
+  twitter_url: string;
 }
 
 // Add this interface for the result
 interface UpdateProfileResult {
-  success: boolean
-  error?: string
-  data?: UpdateProfileData
-  usernameChanged?: boolean
-  newUsername?: string
+  success: boolean;
+  error?: string;
+  data?: UpdateProfileData;
+  usernameChanged?: boolean;
+  newUsername?: string;
 }
 
 // Add this function after getCurrentUser
 export async function updateUserProfile(
   currentUsername: string,
-  profileData: UpdateProfileData
+  profileData: UpdateProfileData,
 ): Promise<UpdateProfileResult> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // Validate user is authenticated
-    const { data: authData, error: authError } = await supabase.auth.getUser()
+    const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData.user) {
-      return { success: false, error: 'Not authenticated' }
+      return { success: false, error: "Not authenticated" };
     }
 
     // Verify user owns this profile
     const { data: currentUser, error: userError } = await supabase
-      .from('users')
-      .select('id, username')
-      .eq('username', currentUsername)
-      .single()
+      .from("users")
+      .select("id, username")
+      .eq("username", currentUsername)
+      .single();
 
     if (userError || !currentUser) {
-      return { success: false, error: 'Profile not found' }
+      return { success: false, error: "Profile not found" };
     }
 
     if (currentUser.id !== authData.user.id) {
-      return { success: false, error: 'Not authorized to edit this profile' }
+      return { success: false, error: "Not authorized to edit this profile" };
     }
 
     // Check username uniqueness if changed
-    const usernameChanged = profileData.username !== currentUsername
+    const usernameChanged = profileData.username !== currentUsername;
     if (usernameChanged) {
       const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('username', profileData.username)
-        .neq('id', currentUser.id)
-        .single()
+        .from("users")
+        .select("id")
+        .eq("username", profileData.username)
+        .neq("id", currentUser.id)
+        .single();
 
       if (existingUser) {
-        return { success: false, error: 'Username is already taken' }
+        return { success: false, error: "Username is already taken" };
       }
     }
 
     // Perform the update
     const { data, error } = await supabase
-      .from('users')
+      .from("users")
       .update({
         username: profileData.username,
         display_name: profileData.displayName,
@@ -102,18 +103,18 @@ export async function updateUserProfile(
         twitter_url: profileData.twitter_url,
         updated_at: new Date().toISOString(),
       })
-      .eq('username', currentUsername)
-      .select()
+      .eq("username", currentUsername)
+      .select();
 
     if (error) {
-      console.error('Error updating profile:', error)
-      return { success: false, error: error.message }
+      console.error("Error updating profile:", error);
+      return { success: false, error: error.message };
     }
 
     // Revalidate the profile page
-    revalidatePath(`/${currentUsername}`)
+    revalidatePath(`/${currentUsername}`);
     if (usernameChanged) {
-      revalidatePath(`/${profileData.username}`)
+      revalidatePath(`/${profileData.username}`);
     }
 
     return {
@@ -121,10 +122,10 @@ export async function updateUserProfile(
       data: profileData,
       usernameChanged,
       newUsername: usernameChanged ? profileData.username : undefined,
-    }
+    };
   } catch (error) {
-    console.error('Error updating profile:', error)
-    return { success: false, error: 'Failed to update profile' }
+    console.error("Error updating profile:", error);
+    return { success: false, error: "Failed to update profile" };
   }
 }
 ```
@@ -146,6 +147,7 @@ git commit -m "feat: add updateUserProfile server action with username validatio
 ## Task 2: Update Profile Page to Use Server Action
 
 **Files:**
+
 - Modify: `app/[username]/page.tsx`
 
 **Step 1: Remove client-side `updateUserProfile` function**
@@ -157,8 +159,8 @@ Remove lines 22-48 (the `updateUserProfile` function defined in the page).
 Add these imports at the top of the file:
 
 ```typescript
-import { toast } from 'sonner'
-import { updateUserProfile } from '@/lib/actions/user'
+import { toast } from "sonner";
+import { updateUserProfile } from "@/lib/actions/user";
 ```
 
 **Step 3: Update `handleSaveProfile` to use server action and toast**
@@ -167,20 +169,20 @@ Replace the `handleSaveProfile` function (around lines 353-390) with:
 
 ```typescript
 const handleSaveProfile = async (profileData: {
-  displayName: string
-  username: string
-  bio: string
-  location: string
-  website: string
-  github_url: string
-  twitter_url: string
-  avatar_url: string
+  displayName: string;
+  username: string;
+  bio: string;
+  location: string;
+  website: string;
+  github_url: string;
+  twitter_url: string;
+  avatar_url: string;
 }) => {
-  setSaving(true)
+  setSaving(true);
   try {
-    const result = await updateUserProfile(username, profileData)
+    const result = await updateUserProfile(username, profileData);
     if (result.success) {
-      setShowEditDialog(false)
+      setShowEditDialog(false);
 
       const updatedUser = {
         ...user,
@@ -192,24 +194,24 @@ const handleSaveProfile = async (profileData: {
         github_url: profileData.github_url,
         twitter_url: profileData.twitter_url,
         avatar_url: profileData.avatar_url,
-      }
+      };
 
-      setUser(updatedUser)
-      toast.success('Profile updated successfully')
+      setUser(updatedUser);
+      toast.success("Profile updated successfully");
 
       if (result.usernameChanged && result.newUsername) {
-        router.push(`/${result.newUsername}`)
+        router.push(`/${result.newUsername}`);
       }
     } else {
-      toast.error(result.error || 'Failed to update profile')
+      toast.error(result.error || "Failed to update profile");
     }
   } catch (error) {
-    console.error('Error saving profile:', error)
-    toast.error('Error saving profile')
+    console.error("Error saving profile:", error);
+    toast.error("Error saving profile");
   } finally {
-    setSaving(false)
+    setSaving(false);
   }
-}
+};
 ```
 
 **Step 4: Verify the file compiles**
@@ -229,6 +231,7 @@ git commit -m "refactor: use server action for profile update with toast notific
 ## Task 3: Replace `any` Types with Proper Interfaces
 
 **Files:**
+
 - Modify: `app/[username]/page.tsx`
 
 **Step 1: Import the User type**
@@ -236,7 +239,7 @@ git commit -m "refactor: use server action for profile update with toast notific
 Add this import at the top of the file:
 
 ```typescript
-import type { User } from '@/types/homepage'
+import type { User } from "@/types/homepage";
 ```
 
 **Step 2: Create ProfileUser interface for the page state**
@@ -245,35 +248,35 @@ Add this interface after the imports (around line 21):
 
 ```typescript
 interface ProfileUser {
-  id: string
-  username: string
-  display_name: string | null
-  bio: string | null
-  avatar_url: string | null
-  location: string | null
-  website: string | null
-  github_url: string | null
-  twitter_url: string | null
-  joined_at: string
-  role?: number | null
+  id: string;
+  username: string;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  location: string | null;
+  website: string | null;
+  github_url: string | null;
+  twitter_url: string | null;
+  joined_at: string;
+  role?: number | null;
 }
 
 interface UserProject {
-  id: string
-  slug: string
-  title: string
-  description: string | null
-  category: string | null
-  website_url: string | null
-  image_url: string | null
-  thumbnail_url: string | null
-  url: string | null
-  author_id: string
-  created_at: string
-  updated_at: string | null
-  likes: number
-  views_count: number
-  comments_count: number
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  website_url: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  url: string | null;
+  author_id: string;
+  created_at: string;
+  updated_at: string | null;
+  likes: number;
+  views_count: number;
+  comments_count: number;
 }
 ```
 
@@ -283,14 +286,14 @@ Replace the state declarations (around lines 268-271):
 
 ```typescript
 // Before
-const [currentUser, setCurrentUser] = useState<any>(null)
-const [user, setUser] = useState<any>(null)
-const [userProjects, setUserProjects] = useState<any[]>([])
+const [currentUser, setCurrentUser] = useState<any>(null);
+const [user, setUser] = useState<any>(null);
+const [userProjects, setUserProjects] = useState<any[]>([]);
 
 // After
-const [currentUser, setCurrentUser] = useState<User | null>(null)
-const [user, setUser] = useState<ProfileUser | null>(null)
-const [userProjects, setUserProjects] = useState<UserProject[]>([])
+const [currentUser, setCurrentUser] = useState<User | null>(null);
+const [user, setUser] = useState<ProfileUser | null>(null);
+const [userProjects, setUserProjects] = useState<UserProject[]>([]);
 ```
 
 **Step 4: Update function signatures**
@@ -319,6 +322,7 @@ git commit -m "refactor: replace any types with proper TypeScript interfaces"
 ## Task 4: Replace `alert()` with Toast in ProjectEditClient
 
 **Files:**
+
 - Modify: `components/project/ProjectEditClient.tsx`
 
 **Step 1: Add sonner import**
@@ -326,34 +330,37 @@ git commit -m "refactor: replace any types with proper TypeScript interfaces"
 Add this import at the top of the file:
 
 ```typescript
-import { toast } from 'sonner'
+import { toast } from "sonner";
 ```
 
 **Step 2: Replace alert() calls with toast**
 
 Replace line 112:
+
 ```typescript
 // Before
-alert(result.error || 'Failed to update project')
+alert(result.error || "Failed to update project");
 
 // After
-toast.error(result.error || 'Failed to update project')
+toast.error(result.error || "Failed to update project");
 ```
 
 Replace line 115:
+
 ```typescript
 // Before
-alert('Failed to update project')
+alert("Failed to update project");
 
 // After
-toast.error('Failed to update project')
+toast.error("Failed to update project");
 ```
 
 **Step 3: Add success toast after successful update (optional improvement)**
 
 After line 110 (inside the `if (result.success)` block), before `window.location.reload()`:
+
 ```typescript
-toast.success('Project updated successfully')
+toast.success("Project updated successfully");
 ```
 
 **Step 4: Verify the file compiles**
@@ -373,6 +380,7 @@ git commit -m "refactor: replace alert() with toast notifications in ProjectEdit
 ## Task 5: Replace `alert()` with Toast in ProjectActionsClient
 
 **Files:**
+
 - Modify: `components/project/ProjectActionsClient.tsx`
 
 **Step 1: Add sonner import**
@@ -380,18 +388,19 @@ git commit -m "refactor: replace alert() with toast notifications in ProjectEdit
 Add this import at the top of the file:
 
 ```typescript
-import { toast } from 'sonner'
+import { toast } from "sonner";
 ```
 
 **Step 2: Replace alert() with toast**
 
 Replace line 36:
+
 ```typescript
 // Before
-alert(result.error || 'Failed to delete project')
+alert(result.error || "Failed to delete project");
 
 // After
-toast.error(result.error || 'Failed to delete project')
+toast.error(result.error || "Failed to delete project");
 ```
 
 **Step 3: Verify the file compiles**
@@ -411,25 +420,29 @@ git commit -m "refactor: replace alert() with toast notifications in ProjectActi
 ## Task 6: Fix Broken Link `/project/new` → `/project/submit`
 
 **Files:**
+
 - Modify: `app/[username]/page.tsx`
 
 **Step 1: Fix the broken link**
 
 Find line 524 and replace:
+
 ```typescript
 // Before
-actionLink="/project/new"
+actionLink = "/project/new";
 
 // After
-actionLink="/project/submit"
+actionLink = "/project/submit";
 ```
 
 **Step 2: Verify the change**
 
 Search the file for any other occurrences of `/project/new`:
+
 ```bash
 findstr /i "project/new" "app/[username]/page.tsx"
 ```
+
 Expected: No results (only the fixed line should exist)
 
 **Step 3: Commit**
@@ -485,14 +498,14 @@ git commit -m "chore: format files after refactoring"
 
 ## Summary of Changes
 
-| Task | File | Change |
-|------|------|--------|
-| 1 | `lib/actions/user.ts` | Add `updateUserProfile` server action with username validation |
-| 2 | `app/[username]/page.tsx` | Use server action, add toast notifications |
-| 3 | `app/[username]/page.tsx` | Replace `any` types with `User`, `ProfileUser`, `UserProject` |
-| 4 | `components/project/ProjectEditClient.tsx` | Replace `alert()` with `toast.error()` |
-| 5 | `components/project/ProjectActionsClient.tsx` | Replace `alert()` with `toast.error()` |
-| 6 | `app/[username]/page.tsx` | Fix link from `/project/new` to `/project/submit` |
+| Task | File                                          | Change                                                         |
+| ---- | --------------------------------------------- | -------------------------------------------------------------- |
+| 1    | `lib/actions/user.ts`                         | Add `updateUserProfile` server action with username validation |
+| 2    | `app/[username]/page.tsx`                     | Use server action, add toast notifications                     |
+| 3    | `app/[username]/page.tsx`                     | Replace `any` types with `User`, `ProfileUser`, `UserProject`  |
+| 4    | `components/project/ProjectEditClient.tsx`    | Replace `alert()` with `toast.error()`                         |
+| 5    | `components/project/ProjectActionsClient.tsx` | Replace `alert()` with `toast.error()`                         |
+| 6    | `app/[username]/page.tsx`                     | Fix link from `/project/new` to `/project/submit`              |
 
 ## Files Modified
 

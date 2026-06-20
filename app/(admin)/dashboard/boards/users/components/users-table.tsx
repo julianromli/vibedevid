@@ -1,49 +1,56 @@
-'use client'
+"use client";
 
-import { IconFolder, IconHeart, IconMessageCircle, IconNews } from '@tabler/icons-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { AdminUser } from '@/lib/actions/admin/users'
-import { UserActions } from './user-actions'
-import { UserRoleDialog } from './user-role-dialog'
-import { UserStats } from './user-stats'
-import { UserSuspendDialog } from './user-suspend-dialog'
+import { IconFolder, IconHeart, IconMessageCircle, IconNews } from "@tabler/icons-react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { AdminUser } from "@/lib/actions/admin/users";
+import { UserActions } from "./user-actions";
+import { UserRoleDialog } from "./user-role-dialog";
+import { UserStats } from "./user-stats";
+import { UserSuspendDialog } from "./user-suspend-dialog";
 
 interface UsersTableProps {
-  users: AdminUser[]
-  totalCount: number
-  currentPage: number
+  users: AdminUser[];
+  totalCount: number;
+  currentPage: number;
 }
 
 export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) {
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
-  const [suspendingUser, setSuspendingUser] = useState<AdminUser | null>(null)
-  const [viewingStats, setViewingStats] = useState<AdminUser | null>(null)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [suspendingUser, setSuspendingUser] = useState<AdminUser | null>(null);
+  const [viewingStats, setViewingStats] = useState<AdminUser | null>(null);
 
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg">
         <p className="text-muted-foreground">No users found</p>
       </div>
-    )
+    );
   }
 
   const getRoleBadge = (role: number) => {
     switch (role) {
       case 0:
-        return <Badge className="bg-red-500/10 text-red-600">Admin</Badge>
+        return <Badge className="bg-red-500/10 text-red-600">Admin</Badge>;
       case 1:
-        return <Badge className="bg-blue-500/10 text-blue-600">Moderator</Badge>
+        return <Badge className="bg-blue-500/10 text-blue-600">Moderator</Badge>;
       case 2:
-        return <Badge variant="secondary">User</Badge>
+        return <Badge variant="secondary">User</Badge>;
       default:
-        return <Badge variant="secondary">Unknown</Badge>
+        return <Badge variant="secondary">Unknown</Badge>;
     }
-  }
+  };
 
   return (
     <>
@@ -65,10 +72,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={user.avatar_url || ''}
-                        alt={user.display_name}
-                      />
+                      <AvatarImage src={user.avatar_url || ""} alt={user.display_name} />
                       <AvatarFallback>{user.display_name[0]}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -116,7 +120,9 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-muted-foreground">{new Date(user.joined_at).toLocaleDateString()}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {new Date(user.joined_at).toLocaleDateString()}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   <UserActions
@@ -142,9 +148,9 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
             size="sm"
             disabled={currentPage <= 1}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage - 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage - 1));
+              window.location.search = params.toString();
             }}
           >
             Previous
@@ -154,9 +160,9 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
             size="sm"
             disabled={users.length < 20}
             onClick={() => {
-              const params = new URLSearchParams(window.location.search)
-              params.set('page', String(currentPage + 1))
-              window.location.search = params.toString()
+              const params = new URLSearchParams(window.location.search);
+              params.set("page", String(currentPage + 1));
+              window.location.search = params.toString();
             }}
           >
             Next
@@ -188,5 +194,5 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
         />
       )}
     </>
-  )
+  );
 }

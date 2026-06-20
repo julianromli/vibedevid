@@ -30,19 +30,20 @@ Use localStorage for persistence:
 
 ```typescript
 // In page component or custom hook
-const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('eventViewMode') as 'grid' | 'list' || 'grid'
+const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+  if (typeof window !== "undefined") {
+    return (localStorage.getItem("eventViewMode") as "grid" | "list") || "grid";
   }
-  return 'grid'
-})
+  return "grid";
+});
 
 useEffect(() => {
-  localStorage.setItem('eventViewMode', viewMode)
-}, [viewMode])
+  localStorage.setItem("eventViewMode", viewMode);
+}, [viewMode]);
 ```
 
 Grid container changes:
+
 - Grid view: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
 - List view: `flex flex-col gap-4` (single column)
 
@@ -60,6 +61,7 @@ Grid container changes:
 ```
 
 Key differences from grid:
+
 - No description (too long for horizontal)
 - Badges below image instead of overlay
 - Compact vertical spacing

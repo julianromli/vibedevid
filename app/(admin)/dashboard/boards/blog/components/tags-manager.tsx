@@ -1,61 +1,68 @@
-'use client'
+"use client";
 
-import { IconPlus, IconTrash } from '@tabler/icons-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { createTag, deleteTag, type Tag } from '@/lib/actions/admin/posts'
+import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { createTag, deleteTag, type Tag } from "@/lib/actions/admin/posts";
 
 interface TagsManagerProps {
-  tags: Tag[]
+  tags: Tag[];
 }
 
 export function TagsManager({ tags: initialTags }: TagsManagerProps) {
-  const [tags, setTags] = useState<Tag[]>(initialTags)
-  const [newTagName, setNewTagName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [tags, setTags] = useState<Tag[]>(initialTags);
+  const [newTagName, setNewTagName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateTag = async () => {
-    if (!newTagName.trim()) return
+    if (!newTagName.trim()) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await createTag(newTagName.trim())
+      const result = await createTag(newTagName.trim());
       if (result.success && result.tag) {
-        setTags([...tags, result.tag])
-        setNewTagName('')
-        toast.success('Tag created successfully')
+        setTags([...tags, result.tag]);
+        setNewTagName("");
+        toast.success("Tag created successfully");
       } else {
-        toast.error(result.error || 'Failed to create tag')
+        toast.error(result.error || "Failed to create tag");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDeleteTag = async (tagId: string) => {
-    if (!confirm('Are you sure you want to delete this tag?')) return
+    if (!confirm("Are you sure you want to delete this tag?")) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await deleteTag(tagId)
+      const result = await deleteTag(tagId);
       if (result.success) {
-        setTags(tags.filter((tag) => tag.id !== tagId))
-        toast.success('Tag deleted successfully')
+        setTags(tags.filter((tag) => tag.id !== tagId));
+        toast.success("Tag deleted successfully");
       } else {
-        toast.error(result.error || 'Failed to delete tag')
+        toast.error(result.error || "Failed to delete tag");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -64,13 +71,10 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
           placeholder="New tag name..."
           value={newTagName}
           onChange={(e) => setNewTagName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
+          onKeyDown={(e) => e.key === "Enter" && handleCreateTag()}
           className="max-w-sm"
         />
-        <Button
-          onClick={handleCreateTag}
-          disabled={isLoading || !newTagName.trim()}
-        >
+        <Button onClick={handleCreateTag} disabled={isLoading || !newTagName.trim()}>
           <IconPlus className="h-4 w-4 mr-1" />
           Add Tag
         </Button>
@@ -89,10 +93,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
           <TableBody>
             {tags.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center text-muted-foreground py-8"
-                >
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                   No tags found
                 </TableCell>
               </TableRow>
@@ -102,7 +103,9 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
                   <TableCell>
                     <Badge variant="secondary">{tag.name}</Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">{tag.slug}</TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">
+                    {tag.slug}
+                  </TableCell>
                   <TableCell>{new Date(tag.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -122,5 +125,5 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
         </Table>
       </div>
     </div>
-  )
+  );
 }

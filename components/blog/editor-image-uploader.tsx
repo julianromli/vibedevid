@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useUploadThing } from '@/lib/uploadthing-client'
-import { cn } from '@/lib/utils'
+import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import { cn } from "@/lib/utils";
 
 interface EditorImageUploaderProps {
-  value: string
-  onChange: (value: string) => void
-  isUploading: boolean
-  onUploadStart: () => void
-  onUploadComplete: (url: string) => void
-  onUploadError: (error: Error) => void
-  disabled?: boolean
-  onInsert?: () => void
+  value: string;
+  onChange: (value: string) => void;
+  isUploading: boolean;
+  onUploadStart: () => void;
+  onUploadComplete: (url: string) => void;
+  onUploadError: (error: Error) => void;
+  disabled?: boolean;
+  onInsert?: () => void;
 }
 
 function UrlInputSection({
@@ -27,19 +27,16 @@ function UrlInputSection({
   onInsert,
   showInsert,
 }: {
-  value: string
-  onChange: (value: string) => void
-  disabled: boolean
-  isUploading: boolean
-  onInsert?: () => void
-  showInsert?: boolean
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  isUploading: boolean;
+  onInsert?: () => void;
+  showInsert?: boolean;
 }) {
   return (
     <div className="space-y-2">
-      <Label
-        htmlFor="image-url"
-        className="text-sm font-medium"
-      >
+      <Label htmlFor="image-url" className="text-sm font-medium">
         Image URL
       </Label>
       <div className="relative flex gap-2">
@@ -49,14 +46,14 @@ function UrlInputSection({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled || isUploading}
-          className={cn('flex-1 transition-all duration-200', value && 'pr-10')}
+          className={cn("flex-1 transition-all duration-200", value && "pr-10")}
         />
         {value && (
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => onChange('')}
+            onClick={() => onChange("")}
             disabled={disabled || isUploading}
             className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
           >
@@ -76,16 +73,22 @@ function UrlInputSection({
         </Button>
       )}
     </div>
-  )
+  );
 }
 
-function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFileSelect: (file: File) => void }) {
+function UploadZone({
+  isUploading,
+  onFileSelect,
+}: {
+  isUploading: boolean;
+  onFileSelect: (file: File) => void;
+}) {
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-lg border-2 border-dashed transition-all duration-300',
-        'border-border hover:border-primary/50 hover:bg-muted/30',
-        isUploading && 'pointer-events-none opacity-50',
+        "group relative overflow-hidden rounded-lg border-2 border-dashed transition-all duration-300",
+        "border-border hover:border-primary/50 hover:bg-muted/30",
+        isUploading && "pointer-events-none opacity-50",
       )}
     >
       <div className="bg-grid-pattern pointer-events-none absolute inset-0 opacity-[0.03]" />
@@ -93,11 +96,15 @@ function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFil
       <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
         <div
           className={cn(
-            'relative flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300',
-            'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary',
+            "relative flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300",
+            "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
           )}
         >
-          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+          {isUploading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Upload className="h-5 w-5" />
+          )}
         </div>
 
         <div className="space-y-1">
@@ -119,13 +126,13 @@ function UploadZone({ isUploading, onFileSelect }: { isUploading: boolean; onFil
           className="absolute inset-0 cursor-pointer opacity-0"
           disabled={isUploading}
           onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) onFileSelect(file)
+            const file = e.target.files?.[0];
+            if (file) onFileSelect(file);
           }}
         />
       </div>
     </div>
-  )
+  );
 }
 
 export function EditorImageUploader({
@@ -138,44 +145,41 @@ export function EditorImageUploader({
   disabled = false,
   onInsert,
 }: EditorImageUploaderProps) {
-  const { startUpload } = useUploadThing('blogImageUploader', {
+  const { startUpload } = useUploadThing("blogImageUploader", {
     onUploadBegin: () => {
-      onUploadStart()
+      onUploadStart();
     },
     onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url
+      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
       if (url) {
-        onUploadComplete(url)
+        onUploadComplete(url);
       } else {
-        onUploadError(new Error('No URL returned from upload'))
+        onUploadError(new Error("No URL returned from upload"));
       }
     },
     onUploadError: (error) => {
-      onUploadError(error)
+      onUploadError(error);
     },
-  })
+  });
 
   const handleFileSelect = useCallback(
     async (file: File) => {
       try {
-        await startUpload([file])
+        await startUpload([file]);
       } catch (err) {
-        onUploadError(err instanceof Error ? err : new Error('Upload failed'))
+        onUploadError(err instanceof Error ? err : new Error("Upload failed"));
       }
     },
     [startUpload, onUploadError],
-  )
+  );
 
-  const hasImage = value.trim() !== ''
+  const hasImage = value.trim() !== "";
 
   return (
     <div className="space-y-4">
       {!hasImage ? (
         <>
-          <UploadZone
-            isUploading={isUploading}
-            onFileSelect={handleFileSelect}
-          />
+          <UploadZone isUploading={isUploading} onFileSelect={handleFileSelect} />
 
           <UrlInputSection
             value={value}
@@ -186,7 +190,9 @@ export function EditorImageUploader({
             showInsert={!!onInsert}
           />
 
-          <p className="text-muted-foreground/60 text-[10px]">Paste a URL or upload an image (max 4MB)</p>
+          <p className="text-muted-foreground/60 text-[10px]">
+            Paste a URL or upload an image (max 4MB)
+          </p>
         </>
       ) : (
         <div className="space-y-3">
@@ -205,7 +211,7 @@ export function EditorImageUploader({
                 type="button"
                 variant="destructive"
                 size="sm"
-                onClick={() => onChange('')}
+                onClick={() => onChange("")}
                 disabled={isUploading}
                 className="gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               >
@@ -228,5 +234,5 @@ export function EditorImageUploader({
         </div>
       )}
     </div>
-  )
+  );
 }

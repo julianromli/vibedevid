@@ -1,31 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import BlogEditorClient from "@/app/blog/editor/blog-editor-client";
 import { NOINDEX_META } from "@/lib/seo/site-url";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/server/auth";
 import type { User } from "@/types/homepage";
-
-async function getUserData(userId: string, email: string): Promise<User | null> {
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id, display_name, avatar_url, username, role")
-    .eq("id", userId)
-    .single();
-
-  if (!profile) {
-    return null;
-  }
-
-  return {
-    id: profile.id,
-    name: profile.display_name,
-    email,
-    avatar: profile.avatar_url || "/vibedev-guest-avatar.png",
-    username: profile.username,
-    role: profile.role ?? null,
-  };
-}
 
 export const Route = createFileRoute("/blog/editor")({
   loader: async () => loadBlogEditorData(),
@@ -35,25 +13,24 @@ export const Route = createFileRoute("/blog/editor")({
   component: BlogEditorRoute,
 });
 
-/**
- * Server-only data fetching for the blog editor. Wrapped in `createServerFn` so
- * the server-only Supabase client never executes (or gets bundled) on the
- * client when the loader re-runs during client-side navigation.
- */
 const loadBlogEditorData = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const currentUser = await getCurrentUser();
 
-  if (!user) {
+  if (!currentUser) {
     throw redirect({ to: "/user/auth", search: { redirectTo: "/blog/editor" } });
   }
 
-  const userData = await getUserData(user.id, user.email || "");
+  const userData: User = {
+    id: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+    avatar: currentUser.avatar,
+    username: currentUser.username,
+    role: currentUser.role ?? null,
+  };
 
-  if (!userData) {
-    console.error("[BlogEditor] User profile not found for user:", user.id);
+  if (!userData.username) {
+    console.error("[BlogEditor] User profile not found for user:", currentUser.id);
     throw redirect({ to: "/user/auth", search: { redirectTo: "/blog/editor" } });
   }
 

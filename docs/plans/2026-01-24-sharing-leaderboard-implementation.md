@@ -59,6 +59,7 @@ CREATE POLICY "share_stats_update_system" ON share_stats FOR UPDATE USING (true)
 ```
 
 **Steps**:
+
 1. Create SQL file in `scripts/`
 2. Run migration in Supabase dashboard
 3. Verify tables created with correct indexes
@@ -69,35 +70,35 @@ CREATE POLICY "share_stats_update_system" ON share_stats FOR UPDATE USING (true)
 
 ```typescript
 export interface Share {
-  id: string
-  userId: string
-  platform: 'twitter' | 'linkedin'
-  contentType: 'post' | 'project'
-  contentId: string
-  contentUrl: string
-  sharedUrl: string
-  verifiedAt: string | null
-  createdAt: string
+  id: string;
+  userId: string;
+  platform: "twitter" | "linkedin";
+  contentType: "post" | "project";
+  contentId: string;
+  contentUrl: string;
+  sharedUrl: string;
+  verifiedAt: string | null;
+  createdAt: string;
 }
 
 export interface ShareStats {
-  userId: string
-  totalShares: number
-  monthlyShares: number
-  currentMonth: string
-  badgesEarned: Badge[]
-  updatedAt: string
+  userId: string;
+  totalShares: number;
+  monthlyShares: number;
+  currentMonth: string;
+  badgesEarned: Badge[];
+  updatedAt: string;
 }
 
-export type Badge = 'bronze' | 'silver' | 'gold' | 'platinum'
+export type Badge = "bronze" | "silver" | "gold" | "platinum";
 
 export interface LeaderboardUser {
-  userId: string
-  name: string
-  avatar: string | null
-  shareCount: number
-  badge: Badge | null
-  rank: number
+  userId: string;
+  name: string;
+  avatar: string | null;
+  shareCount: number;
+  badge: Badge | null;
+  rank: number;
 }
 ```
 
@@ -106,32 +107,34 @@ export interface LeaderboardUser {
 **File**: `lib/actions/sharing.ts`
 
 ```typescript
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/server'
-import { Share, ShareStats } from '@/types/sharing'
+import { createClient } from "@/lib/supabase/server";
+import { Share, ShareStats } from "@/types/sharing";
 
 export async function logShare(
-  contentType: 'post' | 'project',
+  contentType: "post" | "project",
   contentId: string,
   contentUrl: string,
-  platform: 'twitter' | 'linkedin'
+  platform: "twitter" | "linkedin",
 ): Promise<{ success: boolean; trackingLink?: string; error?: string }> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return { success: false, error: 'Not authenticated' }
+      return { success: false, error: "Not authenticated" };
     }
 
     // Generate tracking link (simple: use share ID as token)
-    const trackingToken = crypto.randomUUID()
-    const trackingLink = `${process.env.NEXT_PUBLIC_APP_URL}/share/${trackingToken}`
+    const trackingToken = crypto.randomUUID();
+    const trackingLink = `${process.env.NEXT_PUBLIC_APP_URL}/share/${trackingToken}`;
 
     // Insert share record
     const { data, error } = await supabase
-      .from('shares')
+      .from("shares")
       .insert({
         user_id: user.id,
         platform,
@@ -141,39 +144,39 @@ export async function logShare(
         shared_url: trackingLink,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    return { success: true, trackingLink }
+    return { success: true, trackingLink };
   } catch (err) {
-    return { success: false, error: String(err) }
+    return { success: false, error: String(err) };
   }
 }
 
 export async function getLeaderboard(
-  period: 'month' | 'allTime'
+  period: "month" | "allTime",
 ): Promise<{ success: boolean; users?: any[]; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
-    const column = period === 'month' ? 'monthly_shares' : 'total_shares'
+    const column = period === "month" ? "monthly_shares" : "total_shares";
 
     const { data, error } = await supabase
-      .from('share_stats')
-      .select('*, users(id, name, avatar_url)')
+      .from("share_stats")
+      .select("*, users(id, name, avatar_url)")
       .order(column, { ascending: false })
-      .limit(10)
+      .limit(10);
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    return { success: true, users: data }
+    return { success: true, users: data };
   } catch (err) {
-    return { success: false, error: String(err) }
+    return { success: false, error: String(err) };
   }
 }
 ```
@@ -300,10 +303,12 @@ export function ShareModal({
 ### Task 1.5: Add Share Button to Posts & Projects
 
 **Files to modify**:
+
 - `components/blog/post-content.tsx` - Add share button
 - `components/project/ProjectActionsClient.tsx` - Add share button
 
 **Pattern**:
+
 ```typescript
 const [shareOpen, setShareOpen] = useState(false)
 
@@ -327,14 +332,16 @@ return (
 **File**: `.env.example`
 
 Add:
+
 ```
 NEXT_PUBLIC_SHARING_LEADERBOARD_ENABLED=true
 ```
 
 **Usage in components**:
+
 ```typescript
-if (process.env.NEXT_PUBLIC_SHARING_LEADERBOARD_ENABLED !== 'true') {
-  return null
+if (process.env.NEXT_PUBLIC_SHARING_LEADERBOARD_ENABLED !== "true") {
+  return null;
 }
 ```
 
@@ -347,23 +354,23 @@ if (process.env.NEXT_PUBLIC_SHARING_LEADERBOARD_ENABLED !== 'true') {
 **File**: `lib/sharing-utils.ts`
 
 ```typescript
-import { Badge } from '@/types/sharing'
+import { Badge } from "@/types/sharing";
 
 export function calculateBadges(totalShares: number): Badge[] {
-  const badges: Badge[] = []
-  if (totalShares >= 5) badges.push('bronze')
-  if (totalShares >= 25) badges.push('silver')
-  if (totalShares >= 50) badges.push('gold')
-  if (totalShares >= 100) badges.push('platinum')
-  return badges
+  const badges: Badge[] = [];
+  if (totalShares >= 5) badges.push("bronze");
+  if (totalShares >= 25) badges.push("silver");
+  if (totalShares >= 50) badges.push("gold");
+  if (totalShares >= 100) badges.push("platinum");
+  return badges;
 }
 
 export function getHighestBadge(badges: Badge[]): Badge | null {
-  const order: Badge[] = ['platinum', 'gold', 'silver', 'bronze']
+  const order: Badge[] = ["platinum", "gold", "silver", "bronze"];
   for (const badge of order) {
-    if (badges.includes(badge)) return badge
+    if (badges.includes(badge)) return badge;
   }
-  return null
+  return null;
 }
 ```
 
@@ -374,50 +381,48 @@ export function getHighestBadge(badges: Badge[]): Badge | null {
 ```typescript
 export async function verifyShare(shareId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // Mark as verified (manual for MVP)
     const { error: updateError } = await supabase
-      .from('shares')
+      .from("shares")
       .update({ verified_at: new Date().toISOString() })
-      .eq('id', shareId)
+      .eq("id", shareId);
 
     if (updateError) {
-      return { success: false, error: updateError.message }
+      return { success: false, error: updateError.message };
     }
 
     // Update stats
     const { data: share } = await supabase
-      .from('shares')
-      .select('user_id')
-      .eq('id', shareId)
-      .single()
+      .from("shares")
+      .select("user_id")
+      .eq("id", shareId)
+      .single();
 
     if (share) {
       const { data: stats } = await supabase
-        .from('share_stats')
-        .select('*')
-        .eq('user_id', share.user_id)
-        .single()
+        .from("share_stats")
+        .select("*")
+        .eq("user_id", share.user_id)
+        .single();
 
-      const newTotal = (stats?.total_shares || 0) + 1
-      const newMonthly = (stats?.monthly_shares || 0) + 1
-      const badges = calculateBadges(newTotal)
+      const newTotal = (stats?.total_shares || 0) + 1;
+      const newMonthly = (stats?.monthly_shares || 0) + 1;
+      const badges = calculateBadges(newTotal);
 
-      await supabase
-        .from('share_stats')
-        .upsert({
-          user_id: share.user_id,
-          total_shares: newTotal,
-          monthly_shares: newMonthly,
-          badges_earned: badges,
-          updated_at: new Date().toISOString(),
-        })
+      await supabase.from("share_stats").upsert({
+        user_id: share.user_id,
+        total_shares: newTotal,
+        monthly_shares: newMonthly,
+        badges_earned: badges,
+        updated_at: new Date().toISOString(),
+      });
     }
 
-    return { success: true }
+    return { success: true };
   } catch (err) {
-    return { success: false, error: String(err) }
+    return { success: false, error: String(err) };
   }
 }
 ```
@@ -563,6 +568,7 @@ export function ShareBadge({ badge, size = 'md' }: ShareBadgeProps) {
 ## Checklist
 
 ### Phase 1
+
 - [ ] SQL migration created and applied
 - [ ] Types defined in `types/sharing.ts`
 - [ ] Server actions implemented
@@ -575,6 +581,7 @@ export function ShareBadge({ badge, size = 'md' }: ShareBadgeProps) {
 - [ ] Test: Share logged to database
 
 ### Phase 2
+
 - [ ] Badge calculation logic implemented
 - [ ] Verification function created
 - [ ] Stats update on verification
@@ -582,6 +589,7 @@ export function ShareBadge({ badge, size = 'md' }: ShareBadgeProps) {
 - [ ] Test: Stats update correctly
 
 ### Phase 3
+
 - [ ] Leaderboard page created
 - [ ] Share badge component built
 - [ ] Profile updated with share stats

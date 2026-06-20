@@ -1,5 +1,5 @@
-import FeaturesSection from '@/components/features-8'
+import FeaturesSection from "@/components/features-8";
 
 export function CommunityFeaturesSection() {
-  return <FeaturesSection />
+  return <FeaturesSection />;
 }

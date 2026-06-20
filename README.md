@@ -8,7 +8,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ## Features
 
-- 🔐 **User Authentication** - Secure login with Supabase Auth (email + OAuth)
+- 🔐 **User Authentication** - Secure login with Better Auth (email + Google/GitHub OAuth)
 - 👤 **Developer Profiles** - Customizable profiles with bio, skills, and social links
 - 📝 **Project Showcase** - Share dan showcase project keren lo
 - 💬 **Community Interaction** - Comments, likes, dan diskusi project
@@ -40,8 +40,8 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Framework**: TanStack Start (Vite + Nitro) with `@tanstack/react-router` file-based routing
 - **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
-- **Database**: Supabase (PostgreSQL) with RLS policies
-- **Authentication**: Supabase Auth (email/password + OAuth)
+- **Database**: Neon Postgres (Drizzle ORM) — migrated from Supabase. All server data access uses Drizzle via `getDb()` with Better Auth session checks (`requireUser`, `requireAdminOrModeratorUser`). One-time Supabase → Neon scripts live in `scripts/migrate-to-neon.ts`.
+- **Authentication**: Better Auth (`/api/auth/*`) with email/password + Google/GitHub OAuth
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
 - **Animations**: Motion (Framer Motion) — shared scroll-reveal primitives in `components/ui/motion-wrapper.tsx` (`ScrollReveal`, `StaggerContainer`/`StaggerItem`, `ScaleIn`) applied across the landing page and the `/project/list`, `/blog`, `/event/list`, and `/[username]` profile pages (header/stats entrance reveal, staggered project/blog card grids, scaled tab-content reveals); Radix dropdown menus (e.g. avatar menu) and the FAQ accordion animate open/close via Framer Motion, all with `prefers-reduced-motion` support
@@ -67,7 +67,8 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 - Node.js 18+ or **Bun** (recommended)
 - [Vite+](https://viteplus.dev/) (`vp` CLI) — this project uses the Vite+ unified toolchain
-- A Supabase account and project
+- A [Neon](https://neon.tech) Postgres database
+- Better Auth OAuth apps (Google + GitHub) for social login
 
 ### Installation
 
@@ -89,26 +90,42 @@ vp install
 3. Set up environment variables:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-4. Update `.env.local` with your Supabase credentials:
+4. Update `.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require
+BETTER_AUTH_SECRET=your-secret-min-32-chars
+BETTER_AUTH_URL=http://localhost:3000
+VITE_BETTER_AUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
 UPLOADTHING_TOKEN=your-uploadthing-token-here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+VITE_SITE_URL=http://localhost:3000
+OPENROUTER_API_KEY=sk-or-v1-...
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@yourdomain.com
 ```
 
 5. Set up the database:
 
-Run the SQL scripts in the `scripts/` folder in your Supabase SQL editor:
+```bash
+bun run migrate:schema   # first-time Neon schema
+# Migrating from Supabase (set SUPABASE_DB_URL, SUPABASE_URL, SUPABASE_ANON_KEY in .env.local):
+bun run migrate:staging -- --force  # auth.users → staging (destructive staging reset)
+bun run migrate:users    # staging → Better Auth
+bun run migrate:data -- --force     # public tables (destructive target reset)
+bun run migrate:verify -- --fail-on-mismatch
+bun run migrate:status  # checkpoints + Neon counts
+# Or: bun run migrate:run  # schema → staging → users → data → verify, skipping checkpoints
+```
 
-- `01_create_tables.sql` - Creates the database schema
-- `02_seed_data.sql` - Adds sample data
-- `03_create_storage_bucket.sql` - Sets up file storage
+See [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md) for the full migration guide.
 
 6. Run the development server:
 
@@ -165,56 +182,60 @@ bunx playwright test -g "should track views when visiting project page"
 
 ## Environment Variables
 
-| Variable                        | Description                                   | Required |
-| ------------------------------- | --------------------------------------------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL                     | Yes      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key                   | Yes      |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Your Supabase service role key (keep secret!) | Yes      |
-| `UPLOADTHING_TOKEN`             | Your UploadThing API token (keep secret!)     | Yes      |
-| `NEXT_PUBLIC_SITE_URL`          | Your site URL (for production)                | Yes      |
+| Variable                                    | Description                                  | Required |
+| ------------------------------------------- | -------------------------------------------- | -------- |
+| `DATABASE_URL`                              | Neon Postgres connection string (pooled)     | Yes      |
+| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars) | Yes      |
+| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks            | Yes      |
+| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                 | Yes      |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                 | Yes      |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                 | Yes      |
+| `UPLOADTHING_TOKEN`                         | UploadThing API token (keep secret!)         | Yes      |
+| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)            | Yes      |
+| `VITE_SITE_URL`                             | Same URL, exposed to browser                 | Yes      |
+| `OPENROUTER_API_KEY`                        | AI blog features                             | Yes      |
+| `RESEND_API_KEY`                            | Resend API key for auth verification/reset   | Yes      |
+| `EMAIL_FROM`                                | Verified sender address for Resend           | Yes      |
 
 ## Deployment (Cloudflare Workers)
 
 The app deploys to Cloudflare Workers using the Nitro `cloudflare_module` preset
 (configured in `vite.config.ts`) plus `wrangler.jsonc` at the repo root.
+Production site: [https://vibedevid.com](https://vibedevid.com).
 
 ```bash
-# 1. Build the Worker output (.output/server + .output/public)
+# 1. Build with production client URLs baked in (VITE_* are compile-time)
+NEXT_PUBLIC_SITE_URL=https://vibedevid.com \
+VITE_SITE_URL=https://vibedevid.com \
+VITE_BETTER_AUTH_URL=https://vibedevid.com \
 bun run build
 
-# 2. Preview locally on Workers runtime (needs .dev.vars, see below)
+# 2. Preview locally on Workers runtime (copy .env.local → .dev.vars)
 bunx wrangler dev
 
-# 3. Deploy
+# 3. Set Worker secrets (runtime — see list below), then deploy
+bun run scripts/sync-wrangler-secrets.ts   # reads .env.local → wrangler secret bulk
 bunx wrangler deploy
 ```
 
 Notes:
 
-- `compatibility_flags: ["nodejs_compat"]` and a compatibility date of
-  `2024-09-19` (required for Workers Static Assets) are set in `wrangler.jsonc`.
-- `@supabase/node-fetch` imports `node:http`, which is unavailable on Workers.
-  It is aliased to `lib/supabase/node-fetch-shim.mjs` (runtime-native `fetch`)
-  in `vite.config.ts`.
+- `compatibility_flags: ["nodejs_compat"]` and compatibility date `2024-09-19`
+  (required for Workers Static Assets) are set in `wrangler.jsonc`.
 - Server-only secrets must be read via `getServerRuntimeSecrets()`
   (`lib/server/runtime-secrets.ts`), not `process.env` directly. On Workers,
-  `process.env` does not reliably expose secrets; the helper reads the
-  per-request Cloudflare bindings from `globalThis.__env__` and falls back to
-  `process.env` for node-server/dev. Used by `createAdminClient()`, the
-  OpenRouter client, and the UploadThing route. Public client-side values
-  (`VITE_*`) are still inlined at build time.
-- Server secrets/vars are stored as Worker secrets, not in `wrangler.jsonc`.
-  Set them with `wrangler secret put <NAME>` or in bulk:
-
-  ```bash
-  # keys: SUPABASE_SERVICE_ROLE_KEY, UPLOADTHING_TOKEN, OPENROUTER_API_KEY,
-  #       NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SITE_URL
-  bunx wrangler secret bulk <secrets.json>
-  ```
-
+  bindings are exposed on `globalThis.__env__` per request.
+- **`VITE_*` values are inlined at build time** — rebuild before deploy whenever
+  `VITE_BETTER_AUTH_URL` or `VITE_SITE_URL` changes.
+- Worker secrets (runtime): `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
+  `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`,
+  `GITHUB_CLIENT_SECRET`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`,
+  `OPENROUTER_API_KEY`, `RESEND_API_KEY`, and `EMAIL_FROM`.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
-- Add the deployed URL + `/auth/callback` to your Supabase
-  Authentication → URL Configuration redirect allowlist.
+- Add OAuth redirect URLs in Google/GitHub developer consoles:
+  - `https://vibedevid.com/api/auth/callback/google`
+  - `https://vibedevid.com/api/auth/callback/github`
+- After cutover, remove legacy Supabase secrets from the Worker if still present.
 
 ## Database Schema
 
@@ -248,10 +269,10 @@ Notes:
 
 ### Security
 
-- Row Level Security (RLS) enabled on all tables
-- Public read access untuk semua data
+- Authorization enforced in application code (Drizzle queries + `requireUser` /
+  `requireAdminOrModeratorUser`) — no Supabase RLS on Neon
 - Authenticated insert/update untuk data milik user sendiri
-- Guest comments diizinkan dengan author_name field
+- Guest comments diizinkan dengan `author_name` field
 - Admin/moderator role diperlukan untuk moderation
 - Email domain whitelist untuk registration
 
@@ -287,8 +308,9 @@ Notes:
 ├── hooks/                  # Custom React hooks
 ├── lib/
 │   ├── actions/            # Server data/mutations + *.functions.ts (createServerFn)
-│   ├── supabase/           # Supabase client/server/admin configuration
-│   ├── server/             # Server-only utilities (auth, request middleware)
+│   ├── db/                 # Drizzle schema + `getDb()` (Neon serverless)
+│   ├── auth/               # Better Auth server/client config
+│   ├── server/             # Server-only utilities (auth, runtime secrets)
 │   ├── routes/             # Route helpers (server locale/translations)
 │   ├── uploadthing.ts      # UploadThing server router
 │   ├── uploadthing-client.ts   # Client upload helpers
@@ -372,7 +394,7 @@ Search-engine optimization is handled at the route level:
 
 - **Server-rendered meta** - Per-route `head()` blocks emit title, description, Open Graph, and Twitter Card tags (rendered in SSR HTML, verifiable with a Googlebot user-agent).
 - **Structured data** - Organization + WebSite JSON-LD in the root route.
-- **Dynamic sitemap** - `app/routes/sitemap[.]xml.ts` queries Supabase for published posts, projects, approved events, and public profiles, plus static routes. Auth-gated pages are excluded; `lastmod` uses real content timestamps with a fallback.
+- **Dynamic sitemap** - `app/routes/sitemap[.]xml.ts` queries Neon (Drizzle) for published posts, projects, approved events, and public profiles, plus static routes. Auth-gated pages are excluded; `lastmod` uses real content timestamps with a fallback.
 - **robots.txt** - `app/routes/robots[.]txt.ts` serves a single `User-agent: *` group, disallows private/API paths, and references the sitemap. Note: if Cloudflare's managed robots.txt is enabled it will shadow this route — keep only one source of truth.
 - **Canonical URLs** - Self-referencing canonicals on content and list pages; the homepage and `/project/list` consolidate `?filter`/`?sort` variants onto their clean URLs.
 - **noindex** - Admin, dashboard, blog editor, project submit, and auth routes emit `robots: noindex, nofollow` via the shared `NOINDEX_META` helper in `lib/seo/site-url.ts`.

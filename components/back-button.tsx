@@ -1,17 +1,13 @@
-'use client'
+"use client";
 
-import { useRouter } from '@/lib/navigation'
-import { Button, type ButtonProps } from './ui/button'
+import { useRouter } from "@/lib/navigation";
+import { Button, type ButtonProps } from "./ui/button";
 
-export function BackButton({ variant = 'outline', children = 'Go Back', ...props }: ButtonProps) {
-  const router = useRouter()
+export function BackButton({ variant = "outline", children = "Go Back", ...props }: ButtonProps) {
+  const router = useRouter();
   return (
-    <Button
-      variant={variant}
-      onClick={() => router.back()}
-      {...props}
-    >
+    <Button variant={variant} onClick={() => router.back()} {...props}>
       {children}
     </Button>
-  )
+  );
 }

@@ -78,28 +78,24 @@ git commit -m "feat: add blog schema columns and tables"
 
 ```typescript
 // tests/unit/blog-actions.spec.ts
-import {
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
-} from '@/lib/actions/blog'
-import { createClient } from '@/lib/supabase/client'
+import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/actions/blog";
+import { createClient } from "@/lib/supabase/client";
 
-vi.mock('@/lib/supabase/client')
+vi.mock("@/lib/supabase/client");
 
-describe('blog actions', () => {
-  it('createBlogPost returns error for short title', async () => {
-    const result = await createBlogPost({ title: 'Hi', content: {} })
-    expect(result.success).toBe(false)
-    expect(result.error).toContain('5 characters')
-  })
+describe("blog actions", () => {
+  it("createBlogPost returns error for short title", async () => {
+    const result = await createBlogPost({ title: "Hi", content: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("5 characters");
+  });
 
-  it('createBlogPost returns error for empty content', async () => {
-    const result = await createBlogPost({ title: 'Valid Title', content: {} })
-    expect(result.success).toBe(false)
-    expect(result.error).toContain('too short')
-  })
-})
+  it("createBlogPost returns error for empty content", async () => {
+    const result = await createBlogPost({ title: "Valid Title", content: {} });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("too short");
+  });
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -111,49 +107,47 @@ Expected: FAIL (action not defined)
 
 ```typescript
 // lib/actions/blog.ts
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/client'
-import { revalidatePath } from 'next/cache'
-import { slugify } from '@/lib/slug'
+import { createClient } from "@/lib/supabase/client";
+import { revalidatePath } from "next/cache";
+import { slugify } from "@/lib/slug";
 
 export async function createBlogPost(data: {
-  title: string
-  content: Record<string, any>
-  excerpt?: string
-  cover_image?: string
+  title: string;
+  content: Record<string, any>;
+  excerpt?: string;
+  cover_image?: string;
 }) {
-  const supabase = createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
 
   if (!data.title || data.title.length < 5) {
-    return { success: false, error: 'Title must be at least 5 characters' }
+    return { success: false, error: "Title must be at least 5 characters" };
   }
 
   if (!data.content || JSON.stringify(data.content).length < 100) {
-    return { success: false, error: 'Content is too short' }
+    return { success: false, error: "Content is too short" };
   }
 
-  const baseSlug = slugify(data.title)
+  const baseSlug = slugify(data.title);
   const { data: existing } = await supabase
-    .from('posts')
-    .select('slug')
-    .like('slug', `${baseSlug}%`)
+    .from("posts")
+    .select("slug")
+    .like("slug", `${baseSlug}%`);
 
-  let slug = baseSlug
+  let slug = baseSlug;
   if (existing?.some((p) => p.slug === slug)) {
-    slug = `${baseSlug}-${Date.now().toString(36)}`
+    slug = `${baseSlug}-${Date.now().toString(36)}`;
   }
 
-  const readTime = Math.ceil(
-    JSON.stringify(data.content).split(' ').length / 200,
-  )
+  const readTime = Math.ceil(JSON.stringify(data.content).split(" ").length / 200);
 
-  const { error } = await supabase.from('posts').insert({
+  const { error } = await supabase.from("posts").insert({
     title: data.title,
     slug,
     content: data.content,
@@ -161,101 +155,95 @@ export async function createBlogPost(data: {
     cover_image: data.cover_image,
     author_id: authData.user.id,
     read_time_minutes: readTime,
-    status: 'published',
+    status: "published",
     published_at: new Date().toISOString(),
-  })
+  });
 
   if (error) {
-    console.error('Create post error:', error)
-    return { success: false, error: 'Failed to create post' }
+    console.error("Create post error:", error);
+    return { success: false, error: "Failed to create post" };
   }
 
-  revalidatePath('/blog')
-  return { success: true, slug }
+  revalidatePath("/blog");
+  return { success: true, slug };
 }
 
 export async function updateBlogPost(
   id: string,
   data: Partial<{
-    title: string
-    content: Record<string, any>
-    excerpt: string
-    cover_image: string
+    title: string;
+    content: Record<string, any>;
+    excerpt: string;
+    cover_image: string;
   }>,
 ) {
-  const supabase = createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
 
-  const { data: post } = await supabase
-    .from('posts')
-    .select('author_id')
-    .eq('id', id)
-    .single()
+  const { data: post } = await supabase.from("posts").select("author_id").eq("id", id).single();
 
   if (!post || post.author_id !== authData.user.id) {
-    return { success: false, error: 'Not authorized' }
+    return { success: false, error: "Not authorized" };
   }
 
-  const updateData: any = { ...data, updated_at: new Date().toISOString() }
+  const updateData: any = { ...data, updated_at: new Date().toISOString() };
 
   if (data.title) {
-    updateData.slug = slugify(data.title)
+    updateData.slug = slugify(data.title);
   }
 
   if (data.content) {
-    updateData.read_time_minutes = Math.ceil(
-      JSON.stringify(data.content).split(' ').length / 200,
-    )
+    updateData.read_time_minutes = Math.ceil(JSON.stringify(data.content).split(" ").length / 200);
   }
 
-  const { error } = await supabase.from('posts').update(updateData).eq('id', id)
+  const { error } = await supabase.from("posts").update(updateData).eq("id", id);
 
   if (error) {
-    return { success: false, error: 'Failed to update post' }
+    return { success: false, error: "Failed to update post" };
   }
 
-  revalidatePath('/blog')
-  revalidatePath(`/blog/${id}`)
-  return { success: true }
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${id}`);
+  return { success: true };
 }
 
 export async function deleteBlogPost(id: string) {
-  const supabase = createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
 
   const { data: post } = await supabase
-    .from('posts')
-    .select('author_id, status')
-    .eq('id', id)
-    .single()
+    .from("posts")
+    .select("author_id, status")
+    .eq("id", id)
+    .single();
 
   if (!post) {
-    return { success: false, error: 'Post not found' }
+    return { success: false, error: "Post not found" };
   }
 
-  const isAuthor = post.author_id === authData.user.id
-  const isAdmin = authData.user.user_metadata.role === 0
+  const isAuthor = post.author_id === authData.user.id;
+  const isAdmin = authData.user.user_metadata.role === 0;
 
   if (!isAuthor && !isAdmin) {
-    return { success: false, error: 'Not authorized' }
+    return { success: false, error: "Not authorized" };
   }
 
-  const { error } = await supabase.from('posts').delete().eq('id', id)
+  const { error } = await supabase.from("posts").delete().eq("id", id);
 
   if (error) {
-    return { success: false, error: 'Failed to delete post' }
+    return { success: false, error: "Failed to delete post" };
   }
 
-  revalidatePath('/blog')
-  return { success: true }
+  revalidatePath("/blog");
+  return { success: true };
 }
 ```
 
@@ -283,19 +271,19 @@ git commit -m "feat: add blog CRUD server actions"
 
 ```typescript
 // tests/unit/comment-actions.spec.ts
-import { createComment, reportComment } from '@/lib/actions/comments'
+import { createComment, reportComment } from "@/lib/actions/comments";
 
-describe('comment actions', () => {
-  it('createComment returns error for empty content', async () => {
-    const result = await createComment('post-id', '')
-    expect(result.success).toBe(false)
-  })
+describe("comment actions", () => {
+  it("createComment returns error for empty content", async () => {
+    const result = await createComment("post-id", "");
+    expect(result.success).toBe(false);
+  });
 
-  it('reportComment creates a report', async () => {
-    const result = await reportComment('comment-id', 'spam')
-    expect(result.success).toBe(true)
-  })
-})
+  it("reportComment creates a report", async () => {
+    const result = await reportComment("comment-id", "spam");
+    expect(result.success).toBe(true);
+  });
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -307,63 +295,63 @@ Expected: FAIL
 
 ```typescript
 // lib/actions/comments.ts
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/client'
-import { revalidatePath } from 'next/cache'
+import { createClient } from "@/lib/supabase/client";
+import { revalidatePath } from "next/cache";
 
 export async function createComment(postId: string, content: string) {
-  const supabase = createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
 
   if (!content || content.trim().length < 2) {
-    return { success: false, error: 'Comment too short' }
+    return { success: false, error: "Comment too short" };
   }
 
-  const { error } = await supabase.from('comments').insert({
+  const { error } = await supabase.from("comments").insert({
     post_id: postId,
     user_id: authData.user.id,
     content: content.trim(),
-  })
+  });
 
   if (error) {
-    return { success: false, error: 'Failed to add comment' }
+    return { success: false, error: "Failed to add comment" };
   }
 
-  revalidatePath(`/blog`)
-  return { success: true }
+  revalidatePath(`/blog`);
+  return { success: true };
 }
 
 export async function reportComment(commentId: string, reason: string) {
-  const supabase = createClient()
-  const { data: authData } = await supabase.auth.getUser()
+  const supabase = createClient();
+  const { data: authData } = await supabase.auth.getUser();
 
   if (!authData.user) {
-    return { success: false, error: 'Unauthorized' }
+    return { success: false, error: "Unauthorized" };
   }
 
-  const { error } = await supabase.from('blog_reports').insert({
+  const { error } = await supabase.from("blog_reports").insert({
     comment_id: commentId,
     reporter_id: authData.user.id,
     reason,
-  })
+  });
 
   if (error) {
-    return { success: false, error: 'Failed to report comment' }
+    return { success: false, error: "Failed to report comment" };
   }
 
-  return { success: true }
+  return { success: true };
 }
 
 export async function getComments(postId: string) {
-  const supabase = createClient()
+  const supabase = createClient();
 
   const { data, error } = await supabase
-    .from('comments')
+    .from("comments")
     .select(
       `
       id,
@@ -372,14 +360,14 @@ export async function getComments(postId: string) {
       user:users!comments_user_id_fkey(id, display_name, avatar_url)
     `,
     )
-    .eq('post_id', postId)
-    .order('created_at', { ascending: true })
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
 
   if (error) {
-    return []
+    return [];
   }
 
-  return data
+  return data;
 }
 ```
 
@@ -727,12 +715,12 @@ git commit -m "feat: add Tiptap rich text editor"
 
 ```typescript
 // tests/e2e/blog-listing.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect } from "@playwright/test";
 
-test('blog listing shows published posts', async ({ page }) => {
-  await page.goto('/blog')
-  await expect(page.locator('h1')).toContainText('Blog')
-})
+test("blog listing shows published posts", async ({ page }) => {
+  await page.goto("/blog");
+  await expect(page.locator("h1")).toContainText("Blog");
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -845,12 +833,12 @@ git commit -m "feat: add blog listing page"
 
 ```typescript
 // tests/e2e/blog-post.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect } from "@playwright/test";
 
-test('blog post page shows content', async ({ page }) => {
-  await page.goto('/blog/some-post-id')
-  await expect(page.locator('article')).toBeInTheDocument()
-})
+test("blog post page shows content", async ({ page }) => {
+  await page.goto("/blog/some-post-id");
+  await expect(page.locator("article")).toBeInTheDocument();
+});
 ```
 
 **Step 2: Run test to verify it fails**
@@ -1085,12 +1073,12 @@ git commit -m "feat: add blog post detail page"
 
 ```typescript
 // tests/e2e/blog-editor.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect } from "@playwright/test";
 
-test('blog editor loads for authenticated user', async ({ page }) => {
-  await page.goto('/blog/editor')
-  await expect(page.locator('[data-editor]')).toBeInTheDocument()
-})
+test("blog editor loads for authenticated user", async ({ page }) => {
+  await page.goto("/blog/editor");
+  await expect(page.locator("[data-editor]")).toBeInTheDocument();
+});
 ```
 
 **Step 2: Run test to verify it fails**

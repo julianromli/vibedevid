@@ -1,36 +1,36 @@
-import { format } from 'date-fns'
-import { ArrowLeft, Calendar, Clock, Eye } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { CommentSection } from '@/components/ui/comment-section'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { UserDisplayName } from '@/components/ui/user-display-name'
-import type { getComments } from '@/lib/actions/comments'
-import { contentToHtml } from '@/lib/blog-utils'
-import { slugifyTitle } from '@/lib/slug'
+import { format } from "date-fns";
+import { ArrowLeft, Calendar, Clock, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { BlogViewTracker } from "@/components/blog/blog-view-tracker";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { CommentSection } from "@/components/ui/comment-section";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { UserDisplayName } from "@/components/ui/user-display-name";
+import type { getComments } from "@/lib/actions/comments";
+import { contentToHtml } from "@/lib/blog-utils";
+import { slugifyTitle } from "@/lib/slug";
 
-type InitialComments = Awaited<ReturnType<typeof getComments>>['comments']
+type InitialComments = Awaited<ReturnType<typeof getComments>>["comments"];
 
 interface BlogUserData {
-  id: string
-  name: string
-  email: string
-  avatar: string
-  username: string
-  role: number | null
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  username: string;
+  role: number | null;
 }
 
 export interface BlogPostDataProps {
   // biome-ignore lint/suspicious/noExplicitAny: post shape comes from a wide Supabase select
-  post: any
-  viewCount: number
-  initialComments: InitialComments
-  isLoggedIn: boolean
-  userData: BlogUserData | null
-  commentUser: { id: string; name: string; avatar?: string } | null
+  post: any;
+  viewCount: number;
+  initialComments: InitialComments;
+  isLoggedIn: boolean;
+  userData: BlogUserData | null;
+  commentUser: { id: string; name: string; avatar?: string } | null;
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: legacy page with lots of UI
@@ -44,30 +44,28 @@ export default function BlogPostData({
 }: BlogPostDataProps) {
   // Flatten tags from nested structure
   const postTags: string[] =
-    post?.tags?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name).filter(Boolean) ?? []
-  const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null
+    post?.tags
+      ?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name)
+      .filter(Boolean) ?? [];
+  const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null;
   const authorContent = (
     <>
       <Avatar className="h-8 w-8">
         <AvatarImage src={post.author?.avatar_url ?? undefined} />
-        <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
+        <AvatarFallback>{post.author?.display_name?.charAt(0) ?? "A"}</AvatarFallback>
       </Avatar>
       <UserDisplayName
-        name={post.author?.display_name ?? 'Anonymous'}
+        name={post.author?.display_name ?? "Anonymous"}
         role={post.author?.role ?? null}
         className="font-medium text-foreground"
       />
     </>
-  )
+  );
 
   return (
     <article className="min-h-screen bg-background">
       <BlogViewTracker postId={post.id} />
-      <Navbar
-        showNavigation={true}
-        isLoggedIn={isLoggedIn}
-        user={userData ?? undefined}
-      />
+      <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={userData ?? undefined} />
 
       <header className="relative min-h-[60vh] overflow-hidden pt-16">
         {post.cover_image ? (
@@ -114,7 +112,7 @@ export default function BlogPostData({
               {post.published_at && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(post.published_at), 'MMMM d, yyyy')}
+                  {format(new Date(post.published_at), "MMMM d, yyyy")}
                 </span>
               )}
 
@@ -151,10 +149,12 @@ export default function BlogPostData({
       </header>
 
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
-        {post.excerpt && <p className="mb-8 text-muted-foreground text-xl italic">{post.excerpt}</p>}
+        {post.excerpt && (
+          <p className="mb-8 text-muted-foreground text-xl italic">{post.excerpt}</p>
+        )}
 
         <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
-          {post.content && typeof post.content === 'object' ? (
+          {post.content && typeof post.content === "object" ? (
             /* biome-ignore lint/security/noDangerouslySetInnerHtml: post content is sanitized/serialized before render */
             <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
           ) : (
@@ -176,5 +176,5 @@ export default function BlogPostData({
 
       <Footer />
     </article>
-  )
+  );
 }

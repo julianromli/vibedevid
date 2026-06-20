@@ -1,41 +1,41 @@
-'use client'
+"use client";
 
-import { Link } from '@tanstack/react-router'
-import { FileText, PenSquare } from 'lucide-react'
-import { BlogCard } from '@/components/blog/blog-card'
-import { FloatingWriteButton } from '@/components/blog/floating-write-button'
-import { Button } from '@/components/ui/button'
-import { Footer } from '@/components/ui/footer'
-import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
-import { Navbar } from '@/components/ui/navbar'
-import type { User } from '@/types/homepage'
+import { Link } from "@tanstack/react-router";
+import { FileText, PenSquare } from "lucide-react";
+import { BlogCard } from "@/components/blog/blog-card";
+import { FloatingWriteButton } from "@/components/blog/floating-write-button";
+import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/ui/footer";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
+import { Navbar } from "@/components/ui/navbar";
+import type { User } from "@/types/homepage";
 
 interface BlogAuthor {
-  display_name: string
-  avatar_url: string | null
+  display_name: string;
+  avatar_url: string | null;
 }
 
 interface BlogPostTag {
-  post_tags: { name: string } | null
+  post_tags: { name: string } | null;
 }
 
 interface BlogPostListItem {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  cover_image: string | null
-  published_at: string | null
-  read_time_minutes: number | null
-  author: BlogAuthor | null
-  author_id?: string
-  tags?: BlogPostTag[]
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  cover_image: string | null;
+  published_at: string | null;
+  read_time_minutes: number | null;
+  author: BlogAuthor | null;
+  author_id?: string;
+  tags?: BlogPostTag[];
 }
 
 interface BlogPageClientProps {
-  isLoggedIn: boolean
-  user: User | null
-  posts: BlogPostListItem[]
+  isLoggedIn: boolean;
+  user: User | null;
+  posts: BlogPostListItem[];
 }
 
 export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClientProps) {
@@ -43,15 +43,11 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
   const flattenedPosts = posts.map((post) => ({
     ...post,
     tags: (post.tags?.map((t) => t.post_tags?.name).filter(Boolean) as string[]) || [],
-  }))
+  }));
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar
-        showNavigation={true}
-        isLoggedIn={isLoggedIn}
-        user={user ?? undefined}
-      />
+      <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={user ?? undefined} />
 
       <main className="py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -69,10 +65,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
               {isLoggedIn && (
                 <div className="flex flex-wrap items-center gap-3">
                   <Link to="/dashboard/posts">
-                    <Button
-                      variant="outline"
-                      className="gap-2"
-                    >
+                    <Button variant="outline" className="gap-2">
                       <FileText className="h-4 w-4" />
                       My Posts
                     </Button>
@@ -102,7 +95,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                       published_at: post.published_at,
                       read_time_minutes: post.read_time_minutes,
                       author: post.author ?? {
-                        display_name: 'Anonymous',
+                        display_name: "Anonymous",
                         avatar_url: null,
                       },
                       tags: post.tags,
@@ -118,7 +111,9 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                 <FileText className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="mb-2 font-medium text-lg">No blog posts yet</p>
-              <p className="mb-6 text-muted-foreground">Be the first to share your knowledge with the community!</p>
+              <p className="mb-6 text-muted-foreground">
+                Be the first to share your knowledge with the community!
+              </p>
               {isLoggedIn ? (
                 <Link to="/blog/editor">
                   <Button className="gap-2">
@@ -127,10 +122,7 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
                   </Button>
                 </Link>
               ) : (
-                <Link
-                  to="/user/auth"
-                  search={{ redirectTo: '/blog/editor' }}
-                >
+                <Link to="/user/auth" search={{ redirectTo: "/blog/editor" }}>
                   <Button className="gap-2">Sign in to write</Button>
                 </Link>
               )}
@@ -144,5 +136,5 @@ export default function BlogPageClient({ isLoggedIn, user, posts }: BlogPageClie
 
       <Footer />
     </div>
-  )
+  );
 }

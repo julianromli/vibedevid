@@ -3,20 +3,26 @@
  * Displays AI tool/integration cards with icon, title, description, and link
  */
 
-import { ExternalLink } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface IntegrationCardProps {
-  title: string
-  description: string
-  buttonLabel: string
-  children: React.ReactNode
-  link?: string
+  title: string;
+  description: string;
+  buttonLabel: string;
+  children: React.ReactNode;
+  link?: string;
 }
 
-export function IntegrationCard({ title, description, buttonLabel, children, link = '#' }: IntegrationCardProps) {
+export function IntegrationCard({
+  title,
+  description,
+  buttonLabel,
+  children,
+  link = "#",
+}: IntegrationCardProps) {
   return (
     <Card className="p-6">
       <div className="relative">
@@ -28,17 +34,8 @@ export function IntegrationCard({ title, description, buttonLabel, children, lin
         </div>
 
         <div className="flex gap-3 border-t border-dashed pt-6">
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            className="gap-1 pr-2 shadow-none"
-          >
-            <Link
-              to={link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+          <Button asChild variant="secondary" size="sm" className="gap-1 pr-2 shadow-none">
+            <Link to={link} target="_blank" rel="noopener noreferrer">
               {buttonLabel}
               <ExternalLink className="ml-0 !size-3.5 opacity-50" />
             </Link>
@@ -46,5 +43,5 @@ export function IntegrationCard({ title, description, buttonLabel, children, lin
         </div>
       </div>
     </Card>
-  )
+  );
 }

@@ -1,21 +1,23 @@
-'use client'
+"use client";
 
-import { Image } from '@unpic/react'
-import { Shield, Users } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { Card, CardContent } from '@/components/ui/card'
-import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
+import { Image } from "@unpic/react";
+import { Shield, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
 
 export default function FeaturesSection() {
-  const { t } = useTranslation('features')
+  const { t } = useTranslation("features");
 
   return (
     <section className="bg-muted/20 py-16 md:py-32">
       <div className="mx-auto max-w-5xl px-6">
         {/* Section Header */}
         <ScrollReveal className="mb-12 text-center md:mb-16">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">{t('subtitle')}</p>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t("title")}</h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
+            {t("subtitle")}
+          </p>
         </ScrollReveal>
 
         <div className="relative">
@@ -36,9 +38,11 @@ export default function FeaturesSection() {
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="mx-auto block w-fit text-5xl font-semibold">{t('stats.count')}</span>
+                    <span className="mx-auto block w-fit text-5xl font-semibold">
+                      {t("stats.count")}
+                    </span>
                   </div>
-                  <h2 className="mt-6 text-center text-3xl font-semibold">{t('stats.title')}</h2>
+                  <h2 className="mt-6 text-center text-3xl font-semibold">{t("stats.title")}</h2>
                 </CardContent>
               </Card>
             </StaggerItem>
@@ -80,10 +84,7 @@ export default function FeaturesSection() {
                           y2="72"
                           gradientUnits="userSpaceOnUse"
                         >
-                          <stop
-                            stopColor="white"
-                            stopOpacity="0"
-                          />
+                          <stop stopColor="white" stopOpacity="0" />
                           <stop
                             className="text-primary-600 dark:text-primary-500"
                             offset="1"
@@ -91,21 +92,16 @@ export default function FeaturesSection() {
                           />
                         </linearGradient>
                         <clipPath id="clip0_0_1">
-                          <rect
-                            width="129"
-                            height="72"
-                            fill="white"
-                            transform="translate(41)"
-                          />
+                          <rect width="129" height="72" fill="white" transform="translate(41)" />
                         </clipPath>
                       </defs>
                     </svg>
                   </div>
                   <div className="relative z-10 mt-6 space-y-2 text-center">
                     <h2 className="text-foreground hover:text-primary text-lg font-medium transition">
-                      {t('trusted.title')}
+                      {t("trusted.title")}
                     </h2>
-                    <p className="text-foreground">{t('trusted.description')}</p>
+                    <p className="text-foreground">{t("trusted.description")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -121,11 +117,7 @@ export default function FeaturesSection() {
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <rect
-                        width="386"
-                        height="123"
-                        rx="10"
-                      />
+                      <rect width="386" height="123" rx="10" />
                       <g clipPath="url(#clip0_0_106)">
                         <circle
                           className="text-muted-foreground dark:text-muted"
@@ -190,19 +182,14 @@ export default function FeaturesSection() {
                           />
                         </linearGradient>
                         <clipPath id="clip0_0_106">
-                          <rect
-                            width="358"
-                            height="30"
-                            fill="white"
-                            transform="translate(14 14)"
-                          />
+                          <rect width="358" height="30" fill="white" transform="translate(14 14)" />
                         </clipPath>
                       </defs>
                     </svg>
                   </div>
                   <div className="relative z-10 mt-14 space-y-2 text-center">
-                    <h2 className="text-lg font-medium transition">{t('levelUp.title')}</h2>
-                    <p className="text-foreground">{t('levelUp.description')}</p>
+                    <h2 className="text-lg font-medium transition">{t("levelUp.title")}</h2>
+                    <p className="text-foreground">{t("levelUp.description")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -212,16 +199,13 @@ export default function FeaturesSection() {
                 <CardContent className="grid pt-6 sm:grid-cols-2">
                   <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
                     <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
-                      <Shield
-                        className="m-auto size-5"
-                        strokeWidth={1}
-                      />
+                      <Shield className="m-auto size-5" strokeWidth={1} />
                     </div>
                     <div className="space-y-2">
                       <h2 className="text-foreground hover:text-primary text-lg font-medium transition">
-                        {t('safeSpace.title')}
+                        {t("safeSpace.title")}
                       </h2>
-                      <p className="text-foreground">{t('safeSpace.description')}</p>
+                      <p className="text-foreground">{t("safeSpace.description")}</p>
                     </div>
                   </div>
                   <div className="relative mt-6 -mr-6 -mb-6 h-fit rounded-tl-(--radius) border-t border-l p-6 py-6 sm:ml-6">
@@ -280,20 +264,19 @@ export default function FeaturesSection() {
                 <CardContent className="grid h-full pt-6 sm:grid-cols-2">
                   <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
                     <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
-                      <Users
-                        className="m-auto size-6"
-                        strokeWidth={1}
-                      />
+                      <Users className="m-auto size-6" strokeWidth={1} />
                     </div>
                     <div className="space-y-2">
-                      <h2 className="text-lg font-medium transition">{t('collaboration.title')}</h2>
-                      <p className="text-foreground">{t('collaboration.description')}</p>
+                      <h2 className="text-lg font-medium transition">{t("collaboration.title")}</h2>
+                      <p className="text-foreground">{t("collaboration.description")}</p>
                     </div>
                   </div>
                   <div className="relative mt-6 before:absolute before:inset-0 before:mx-auto before:w-px before:bg-(--color-border) sm:-my-6 sm:-mr-6">
                     <div className="relative flex h-full flex-col justify-center space-y-6 py-6">
                       <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
-                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">Likeur</span>
+                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
+                          Likeur
+                        </span>
                         <div className="ring-background relative size-7 ring-4">
                           <Image
                             layout="fullWidth"
@@ -312,10 +295,14 @@ export default function FeaturesSection() {
                             alt="M. Irung avatar"
                           />
                         </div>
-                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">M. Irung</span>
+                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
+                          M. Irung
+                        </span>
                       </div>
                       <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
-                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">B. Ng</span>
+                        <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
+                          B. Ng
+                        </span>
                         <div className="ring-background relative size-7 ring-4">
                           <Image
                             layout="fullWidth"
@@ -334,5 +321,5 @@ export default function FeaturesSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

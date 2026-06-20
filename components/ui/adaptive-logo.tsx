@@ -1,11 +1,14 @@
-import { Image } from '@unpic/react'
+import { Image } from "@unpic/react";
 
 interface AdaptiveLogoProps {
-  className?: string
-  alt?: string
+  className?: string;
+  alt?: string;
 }
 
-export function AdaptiveLogo({ className = 'h-7 w-auto md:h-8', alt = 'VibeDev ID Logo' }: AdaptiveLogoProps) {
+export function AdaptiveLogo({
+  className = "h-7 w-auto md:h-8",
+  alt = "VibeDev ID Logo",
+}: AdaptiveLogoProps) {
   return (
     <div className="relative">
       {/* Light mode logo - visible in light mode, hidden in dark mode */}
@@ -27,5 +30,5 @@ export function AdaptiveLogo({ className = 'h-7 w-auto md:h-8', alt = 'VibeDev I
         height={120}
       />
     </div>
-  )
+  );
 }

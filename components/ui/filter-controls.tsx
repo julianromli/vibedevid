@@ -6,20 +6,20 @@
  * have to lift dropdown UI state into the parent.
  */
 
-'use client'
+"use client";
 
-import { ChevronDown } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { useClickOutside } from '@/hooks/useClickOutside'
-import { cn } from '@/lib/utils'
-import type { ProjectFilterOption } from '@/types/homepage'
+import { ChevronDown } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { cn } from "@/lib/utils";
+import type { ProjectFilterOption } from "@/types/homepage";
 
 interface FilterControlsProps {
-  filterOptions: ProjectFilterOption[]
-  selectedFilter: string
-  setSelectedFilter: (filter: string) => void
-  triggerClassName?: string
+  filterOptions: ProjectFilterOption[];
+  selectedFilter: string;
+  setSelectedFilter: (filter: string) => void;
+  triggerClassName?: string;
 }
 
 export function FilterControls({
@@ -28,27 +28,24 @@ export function FilterControls({
   setSelectedFilter,
   triggerClassName,
 }: FilterControlsProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const close = useCallback(() => setIsOpen(false), [])
-  useClickOutside(containerRef, close, isOpen)
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setIsOpen(false), []);
+  useClickOutside(containerRef, close, isOpen);
 
-  const selectedOption = filterOptions.find((option) => option.value === selectedFilter)
+  const selectedOption = filterOptions.find((option) => option.value === selectedFilter);
 
   return (
-    <div
-      className="relative"
-      ref={containerRef}
-    >
+    <div className="relative" ref={containerRef}>
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className={cn('flex items-center gap-2', triggerClassName)}
+        className={cn("flex items-center gap-2", triggerClassName)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
-        {selectedOption?.label ?? 'All'}
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {selectedOption?.label ?? "All"}
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </Button>
 
       {isOpen && (
@@ -59,11 +56,13 @@ export function FilterControls({
                 key={option.value}
                 type="button"
                 onClick={() => {
-                  setSelectedFilter(option.value)
-                  setIsOpen(false)
+                  setSelectedFilter(option.value);
+                  setIsOpen(false);
                 }}
                 className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selectedFilter === option.value ? 'bg-muted text-foreground' : 'text-muted-foreground'
+                  selectedFilter === option.value
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
                 {option.label}
@@ -73,5 +72,5 @@ export function FilterControls({
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { Loader2, Plus } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { SubmitEventModal } from '@/components/event/submit-event-modal'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import type { User } from '@/types/homepage'
+import { Loader2, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { SubmitEventModal } from "@/components/event/submit-event-modal";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { User } from "@/types/homepage";
 
 interface SubmitEventSectionProps {
-  isLoggedIn: boolean
-  user: User | null
+  isLoggedIn: boolean;
+  user: User | null;
 }
 
 export function SubmitEventSection({ isLoggedIn, user }: SubmitEventSectionProps) {
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Determine auth ready state - if we have props passed down, we consider auth "ready"
   // For the purpose of this section, we just rely on the passed props
-  const authReady = true
+  const authReady = true;
 
   const handleSubmitClick = () => {
     if (!isLoggedIn || !user?.id) {
-      return
+      return;
     }
-    setModalOpen(true)
-  }
+    setModalOpen(true);
+  };
 
   return (
     <section className="relative py-16">
@@ -33,7 +33,8 @@ export function SubmitEventSection({ isLoggedIn, user }: SubmitEventSectionProps
         <div className="rounded-lg border bg-card p-8 shadow-sm">
           <h2 className="mb-4 font-bold text-3xl">Punya Event AI?</h2>
           <p className="mb-6 text-lg text-muted-foreground">
-            Bagikan event AI kamu dengan komunitas! Submit event kamu dan jangkau lebih banyak peserta.
+            Bagikan event AI kamu dengan komunitas! Submit event kamu dan jangkau lebih banyak
+            peserta.
           </p>
 
           {!authReady ? (
@@ -47,28 +48,19 @@ export function SubmitEventSection({ isLoggedIn, user }: SubmitEventSectionProps
             </div>
           ) : isLoggedIn && user?.id ? (
             <>
-              <Button
-                size="lg"
-                onClick={handleSubmitClick}
-                className="gap-2"
-              >
+              <Button size="lg" onClick={handleSubmitClick} className="gap-2">
                 <Plus className="h-5 w-5" />
                 Submit Event
               </Button>
 
-              <SubmitEventModal
-                open={modalOpen}
-                onOpenChange={setModalOpen}
-                userId={user.id}
-              />
+              <SubmitEventModal open={modalOpen} onOpenChange={setModalOpen} userId={user.id} />
             </>
           ) : (
             <div className="space-y-4">
-              <p className="text-muted-foreground text-sm">Silakan login terlebih dahulu untuk submit event</p>
-              <Button
-                size="lg"
-                asChild
-              >
+              <p className="text-muted-foreground text-sm">
+                Silakan login terlebih dahulu untuk submit event
+              </p>
+              <Button size="lg" asChild>
                 <Link to="/user/auth">Login</Link>
               </Button>
             </div>
@@ -76,5 +68,5 @@ export function SubmitEventSection({ isLoggedIn, user }: SubmitEventSectionProps
         </div>
       </div>
     </section>
-  )
+  );
 }

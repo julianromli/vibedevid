@@ -2,10 +2,10 @@
 
 ## Current state
 
-| Area | Status |
-|------|--------|
-| **Overview tab** | Real data via `lib/actions/analytics.ts` (totals, engagement time series, top projects/posts) |
-| **Analytics tab** | Demo admin-kit widgets (Sales, Visitors, Traffic Source, Customers, Buyers Profile) with hardcoded chart data |
+| Area               | Status                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| **Overview tab**   | Real data via `lib/actions/analytics.ts` (totals, engagement time series, top projects/posts)                      |
+| **Analytics tab**  | Demo admin-kit widgets (Sales, Visitors, Traffic Source, Customers, Buyers Profile) with hardcoded chart data      |
 | **Server actions** | `getPlatformStats`, `getAnalyticsTimeSeries`, `getMostViewedProjects`, `getMostViewedPosts` already query Supabase |
 
 ## Goal
@@ -14,31 +14,31 @@ Replace the Analytics tab demo with **VibeDev-specific insights** from existing 
 
 ## Data sources (already in DB)
 
-| Table | Metrics |
-|-------|---------|
-| `users` | `joined_at`, `role` (0/1/2), `is_suspended` |
-| `projects` | `category`, `featured`, `created_at` |
-| `posts` | `status` (draft/published/archived), `featured`, `created_at`, `view_count` |
-| `events` | `approved` (pending vs live) |
-| `blog_reports` | `status` (pending moderation) |
-| `views`, `likes`, `comments` | Engagement time series (reuse existing action) |
+| Table                        | Metrics                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `users`                      | `joined_at`, `role` (0/1/2), `is_suspended`                                 |
+| `projects`                   | `category`, `featured`, `created_at`                                        |
+| `posts`                      | `status` (draft/published/archived), `featured`, `created_at`, `view_count` |
+| `events`                     | `approved` (pending vs live)                                                |
+| `blog_reports`               | `status` (pending moderation)                                               |
+| `views`, `likes`, `comments` | Engagement time series (reuse existing action)                              |
 
 ## Tab differentiation
 
-| Overview | Analytics |
-|----------|-----------|
-| Platform totals + “new today” | Growth & composition over selected range |
-| Views/likes/comments trend | **Content creation** trend (users, projects, posts) |
-| Top projects/posts tables | **Breakdown charts** (category, role, post status) |
-| — | **Community health** strip (pending events/reports) |
+| Overview                      | Analytics                                           |
+| ----------------------------- | --------------------------------------------------- |
+| Platform totals + “new today” | Growth & composition over selected range            |
+| Views/likes/comments trend    | **Content creation** trend (users, projects, posts) |
+| Top projects/posts tables     | **Breakdown charts** (category, role, post status)  |
+| —                             | **Community health** strip (pending events/reports) |
 
 ## New server actions (`lib/actions/analytics.ts`)
 
-1. **`getContentGrowthTimeSeries(days)`** — per day: new users, projects, posts  
-2. **`getProjectsByCategory()`** — `{ category, count }[]` (top N categories)  
-3. **`getUsersByRole()`** — admin / moderator / user counts (+ suspended if column exists)  
-4. **`getPostsByStatus()`** — draft / published / archived counts  
-5. **`getCommunityHealthCounts()`** — pending events, approved events, pending blog reports, featured projects/posts  
+1. **`getContentGrowthTimeSeries(days)`** — per day: new users, projects, posts
+2. **`getProjectsByCategory()`** — `{ category, count }[]` (top N categories)
+3. **`getUsersByRole()`** — admin / moderator / user counts (+ suspended if column exists)
+4. **`getPostsByStatus()`** — draft / published / archived counts
+5. **`getCommunityHealthCounts()`** — pending events, approved events, pending blog reports, featured projects/posts
 
 All reuse existing `checkAdminAccess()` (admin-only).
 
@@ -62,12 +62,12 @@ Client component (pattern matches Overview):
 
 ## Files to change
 
-| Action | Path |
-|--------|------|
-| Extend | `lib/actions/analytics.ts` |
-| Replace | `app/(admin)/dashboard/boards/analytics/index.tsx` |
-| Add | `boards/analytics/components/*.tsx` (real charts only) |
-| Delete | Demo: `sales-card`, `visitors-card`, `traffic-source-card`, `customers-card`, `buyers-profile-card`, `stats-card` |
+| Action  | Path                                                                                                              |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| Extend  | `lib/actions/analytics.ts`                                                                                        |
+| Replace | `app/(admin)/dashboard/boards/analytics/index.tsx`                                                                |
+| Add     | `boards/analytics/components/*.tsx` (real charts only)                                                            |
+| Delete  | Demo: `sales-card`, `visitors-card`, `traffic-source-card`, `customers-card`, `buyers-profile-card`, `stats-card` |
 
 ## Out of scope
 

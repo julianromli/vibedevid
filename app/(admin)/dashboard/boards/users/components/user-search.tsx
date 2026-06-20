@@ -1,51 +1,57 @@
-'use client'
+"use client";
 
-import { IconFilter, IconSearch } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
-import { useNavigate, useSearchParams } from '@/lib/navigation'
+import { IconFilter, IconSearch } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { DashboardTabValue } from "@/lib/admin/dashboard-tabs";
+import { useNavigate, useSearchParams } from "@/lib/navigation";
 
-const BOARD_TAB: DashboardTabValue = 'users'
+const BOARD_TAB: DashboardTabValue = "users";
 
 export function UserSearch() {
-  const navigate = useNavigate()
-  const searchParams = useSearchParams()
+  const navigate = useNavigate();
+  const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get('search') || '')
-  const [role, setRole] = useState(searchParams.get('role') || 'all')
-  const [status, setStatus] = useState(searchParams.get('status') || 'all')
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [role, setRole] = useState(searchParams.get("role") || "all");
+  const [status, setStatus] = useState(searchParams.get("status") || "all");
 
   // Sync state with URL params when they change
   useEffect(() => {
-    setSearch(searchParams.get('search') || '')
-    setRole(searchParams.get('role') || 'all')
-    setStatus(searchParams.get('status') || 'all')
-  }, [searchParams])
+    setSearch(searchParams.get("search") || "");
+    setRole(searchParams.get("role") || "all");
+    setStatus(searchParams.get("status") || "all");
+  }, [searchParams]);
 
   const applyFilters = () => {
     navigate({
-      to: '/dashboard',
+      to: "/dashboard",
       search: {
         tab: BOARD_TAB,
         search: search || undefined,
-        role: role !== 'all' ? role : undefined,
-        status: status !== 'all' ? status : undefined,
+        role: role !== "all" ? role : undefined,
+        status: status !== "all" ? status : undefined,
         page: undefined,
       },
-    })
-  }
+    });
+  };
 
   const clearFilters = () => {
-    setSearch('')
-    setRole('all')
-    setStatus('all')
-    navigate({ to: '/dashboard', search: { tab: BOARD_TAB } })
-  }
+    setSearch("");
+    setRole("all");
+    setStatus("all");
+    navigate({ to: "/dashboard", search: { tab: BOARD_TAB } });
+  };
 
-  const hasFilters = search || role !== 'all' || status !== 'all'
+  const hasFilters = search || role !== "all" || status !== "all";
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -55,16 +61,13 @@ export function UserSearch() {
           placeholder="Search users..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+          onKeyDown={(e) => e.key === "Enter" && applyFilters()}
           className="pl-10"
         />
       </div>
 
       <div className="flex items-center gap-2">
-        <Select
-          value={role}
-          onValueChange={setRole}
-        >
+        <Select value={role} onValueChange={setRole}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Role" />
           </SelectTrigger>
@@ -76,10 +79,7 @@ export function UserSearch() {
           </SelectContent>
         </Select>
 
-        <Select
-          value={status}
-          onValueChange={setStatus}
-        >
+        <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -90,25 +90,17 @@ export function UserSearch() {
           </SelectContent>
         </Select>
 
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={applyFilters}
-        >
+        <Button variant="secondary" size="sm" onClick={applyFilters}>
           <IconFilter className="h-4 w-4 mr-1" />
           Filter
         </Button>
 
         {hasFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearFilters}
-          >
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
             Clear
           </Button>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -20,6 +20,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Data Structure
 
 **`shares` table**:
+
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key to users)
 - `platform` (enum: 'twitter' | 'linkedin')
@@ -31,6 +32,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 - `created_at` (timestamp)
 
 **`share_stats` table**:
+
 - `user_id` (uuid, primary key)
 - `total_shares` (integer, all-time count)
 - `monthly_shares` (integer, resets monthly)
@@ -43,12 +45,14 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 **Points System**: 1 point = 1 verified share
 
 **Badge Milestones**:
+
 - Bronze: 5 shares
 - Silver: 25 shares
 - Gold: 50 shares
 - Platinum: 100+ shares
 
 **Leaderboard Views**:
+
 - Monthly: Top 10 users by `monthly_shares` (resets on 1st of month)
 - All-Time: Top 10 users by `total_shares`
 
@@ -59,6 +63,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Leaderboard Page (`/leaderboard`)
 
 **Layout**:
+
 - Tab switcher: "This Month" | "All Time"
 - Top 10 list with columns: Rank | Avatar | Name | Share Count | Badge | Action (View Profile)
 - Responsive: Stack on mobile, table on desktop
@@ -71,6 +76,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 **Placement**: Blog posts and project pages (near existing like/comment buttons)
 
 **Share Modal**:
+
 1. Title: "Share this [post/project]"
 2. Copy link button (copies VibeDev URL)
 3. Twitter button (opens Twitter intent with pre-filled text)
@@ -79,12 +85,14 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 6. Toast notification on verification: "Your share was verified! +1 point"
 
 **Pre-filled Text**:
+
 - Twitter: "Check out this [post/project] on VibeDev ID 🚀 [link]"
 - LinkedIn: "Sharing from VibeDev ID community: [title] [link]"
 
 ### Profile Enhancement
 
 **User Profile Page**:
+
 - Display share badge prominently (if earned)
 - Show total shares count
 - Show monthly rank (if in top 10)
@@ -102,6 +110,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Phase 1: MVP (Database + Share Tracking)
 
 **Tasks**:
+
 1. Create `shares` and `share_stats` tables in Supabase
 2. Build share modal component (`components/ui/share-modal.tsx`)
 3. Add share button to blog posts and projects
@@ -109,6 +118,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 5. Add feature flag: `NEXT_PUBLIC_SHARING_LEADERBOARD_ENABLED`
 
 **Deliverables**:
+
 - Share button appears on posts/projects
 - Modal opens with Twitter/LinkedIn options
 - Share logged to database (unverified)
@@ -118,6 +128,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Phase 2: Verification & Stats
 
 **Tasks**:
+
 1. Integrate URL shortener (bit.ly API or custom tracking)
 2. Generate tracking links for each share
 3. Build verification job (cron or manual check)
@@ -125,6 +136,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 5. Add badge calculation logic
 
 **Deliverables**:
+
 - Shares marked as verified when confirmed
 - Badges awarded automatically
 - Stats updated in real-time
@@ -134,6 +146,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Phase 3: Leaderboard & Profile Display
 
 **Tasks**:
+
 1. Create `/leaderboard` page
 2. Build leaderboard component with tabs
 3. Add badge display to user profiles
@@ -141,6 +154,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 5. Add monthly rank display
 
 **Deliverables**:
+
 - Public leaderboard page
 - Badges visible on profiles
 - Share stats visible on profiles
@@ -154,6 +168,7 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Server Actions
 
 **`logShare(contentType, contentId, platform)`**:
+
 - Validates user is logged in
 - Creates entry in `shares` table
 - Generates tracking link
@@ -161,12 +176,14 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 - Returns `{ success: boolean, trackingLink?: string, error?: string }`
 
 **`verifyShare(shareId)`**:
+
 - Checks if tracking link exists on user's social profile
 - Updates `verified_at` timestamp
 - Recalculates badges in `share_stats`
 - Returns `{ success: boolean, verified: boolean }`
 
 **`getLeaderboard(period: 'month' | 'allTime')`**:
+
 - Queries top 10 from `share_stats`
 - Returns user data + badges
 - Returns `{ users: LeaderboardUser[], period: string }`
@@ -174,17 +191,20 @@ The Sharing Leaderboard incentivizes users to share blog posts and projects on s
 ### Components
 
 **`ShareModal.tsx`**:
+
 - Props: `contentType`, `contentId`, `contentUrl`, `title`
 - State: Loading, tracking link, verification status
 - Handles Twitter/LinkedIn intent URLs
 - Shows toast on verification
 
 **`LeaderboardPage.tsx`**:
+
 - Tabs for "This Month" / "All Time"
 - Renders leaderboard table
 - Responsive design
 
 **`ShareBadge.tsx`**:
+
 - Props: `badge` (bronze | silver | gold | platinum)
 - Displays badge icon + label
 - Used on profiles and leaderboard
@@ -223,12 +243,12 @@ Allows safe testing in production before full rollout.
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|-----------|
-| Social API rate limits | Start with manual verification, automate later |
-| False negatives (user deletes post) | Allow manual verification requests |
-| Gaming (fake shares) | Require actual social post, periodic audits |
-| Privacy concerns | Only track public shares, no DM/private content |
+| Risk                                | Mitigation                                      |
+| ----------------------------------- | ----------------------------------------------- |
+| Social API rate limits              | Start with manual verification, automate later  |
+| False negatives (user deletes post) | Allow manual verification requests              |
+| Gaming (fake shares)                | Require actual social post, periodic audits     |
+| Privacy concerns                    | Only track public shares, no DM/private content |
 
 ### Monitoring
 

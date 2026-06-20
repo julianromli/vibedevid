@@ -1,22 +1,22 @@
-import { getPrivilegedUsers } from '@/lib/actions/admin/admins'
-import { getReportedComments } from '@/lib/actions/admin/comments'
-import { getAllPosts, getAllTags } from '@/lib/actions/admin/posts'
-import { getAllProjects, getProjectCategories } from '@/lib/actions/admin/projects'
-import { getAllUsers } from '@/lib/actions/admin/users'
-import { getPendingEvents } from '@/lib/actions/events'
-import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import { getPrivilegedUsers } from "@/lib/actions/admin/admins";
+import { getReportedComments } from "@/lib/actions/admin/comments";
+import { getAllPosts, getAllTags } from "@/lib/actions/admin/posts";
+import { getAllProjects, getProjectCategories } from "@/lib/actions/admin/projects";
+import { getAllUsers } from "@/lib/actions/admin/users";
+import { getPendingEvents } from "@/lib/actions/events";
+import type { DashboardTabValue } from "@/lib/admin/dashboard-tabs";
 
 export interface DashboardSearchParams {
-  search?: string
-  role?: string
-  status?: string
-  page?: string
-  tab?: string
-  category?: string
+  search?: string;
+  role?: string;
+  status?: string;
+  page?: string;
+  tab?: string;
+  category?: string;
 }
 
 function parsePage(page?: string): number {
-  return page ? Number.parseInt(page, 10) || 1 : 1
+  return page ? Number.parseInt(page, 10) || 1 : 1;
 }
 
 /**
@@ -30,14 +30,14 @@ export async function loadDashboardBoardData(
   tab: DashboardTabValue,
   search: DashboardSearchParams,
 ): Promise<any> {
-  const page = parsePage(search.page)
+  const page = parsePage(search.page);
 
   switch (tab) {
-    case 'projects': {
+    case "projects": {
       const [{ projects, totalCount, error }, { categories }] = await Promise.all([
         getAllProjects(
           {
-            status: search.status as 'all' | 'featured' | 'regular' | undefined,
+            status: search.status as "all" | "featured" | "regular" | undefined,
             category: search.category,
             search: search.search,
           },
@@ -45,52 +45,52 @@ export async function loadDashboardBoardData(
           20,
         ),
         getProjectCategories(),
-      ])
-      return { projects, totalCount, error, categories, page }
+      ]);
+      return { projects, totalCount, error, categories, page };
     }
-    case 'blog': {
+    case "blog": {
       const [{ posts, totalCount, error }, { tags }] = await Promise.all([
         getAllPosts(
           {
-            status: search.status as 'all' | 'draft' | 'published' | 'archived' | undefined,
+            status: search.status as "all" | "draft" | "published" | "archived" | undefined,
             search: search.search,
           },
           page,
           20,
         ),
         getAllTags(),
-      ])
-      return { posts, totalCount, error, tags, page }
+      ]);
+      return { posts, totalCount, error, tags, page };
     }
-    case 'users': {
+    case "users": {
       const { users, totalCount, error } = await getAllUsers(
         {
           search: search.search,
-          role: search.role as 'all' | 'admin' | 'moderator' | 'user' | undefined,
-          status: search.status as 'all' | 'active' | 'suspended' | undefined,
+          role: search.role as "all" | "admin" | "moderator" | "user" | undefined,
+          status: search.status as "all" | "active" | "suspended" | undefined,
         },
         page,
         20,
-      )
-      return { users, totalCount, error, page }
+      );
+      return { users, totalCount, error, page };
     }
-    case 'comments': {
+    case "comments": {
       const { reports, totalCount, error } = await getReportedComments(
-        { status: search.status as 'all' | 'pending' | 'reviewed' | 'dismissed' | undefined },
+        { status: search.status as "all" | "pending" | "reviewed" | "dismissed" | undefined },
         page,
         20,
-      )
-      return { reports, totalCount, error, page }
+      );
+      return { reports, totalCount, error, page };
     }
-    case 'events-approval': {
-      const { events, error } = await getPendingEvents()
-      return { events, error }
+    case "events-approval": {
+      const { events, error } = await getPendingEvents();
+      return { events, error };
     }
-    case 'admin-management': {
-      const result = await getPrivilegedUsers()
-      return { result }
+    case "admin-management": {
+      const result = await getPrivilegedUsers();
+      return { result };
     }
     default:
-      return null
+      return null;
   }
 }

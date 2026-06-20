@@ -6,12 +6,18 @@
 // bindings to `globalThis.__env__`, which is the portable way to read secrets
 // at runtime. We fall back to `process.env` for node-server / local dev / tests.
 //
-// NEVER import this module from client-reachable code — it exposes the
-// Supabase service role key and other secrets.
+// NEVER import this module from client-reachable code — it exposes secrets.
 
 interface ServerRuntimeSecrets {
-  supabaseServiceRoleKey: string;
-  supabaseUrl: string;
+  databaseUrl: string;
+  betterAuthSecret: string;
+  betterAuthUrl: string;
+  googleClientId: string;
+  googleClientSecret: string;
+  githubClientId: string;
+  githubClientSecret: string;
+  resendApiKey: string;
+  emailFrom: string;
   openrouterApiKey: string;
   uploadthingToken: string;
   siteUrl: string;
@@ -20,24 +26,29 @@ interface ServerRuntimeSecrets {
 type EnvRecord = Record<string, string | undefined>;
 
 function readEnv(name: string): string {
-  // Cloudflare Workers: per-request bindings set by the Nitro CF handler.
   const cfEnv = (globalThis as { __env__?: EnvRecord }).__env__;
   const fromCf = cfEnv?.[name];
   if (typeof fromCf === "string" && fromCf.length > 0) {
     return fromCf;
   }
 
-  // node-server / dev / tests.
   const fromProcess = typeof process !== "undefined" ? process.env?.[name] : undefined;
   return fromProcess || "";
 }
 
 export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
   return {
-    supabaseServiceRoleKey: readEnv("SUPABASE_SERVICE_ROLE_KEY"),
-    supabaseUrl: readEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    databaseUrl: readEnv("DATABASE_URL"),
+    betterAuthSecret: readEnv("BETTER_AUTH_SECRET"),
+    betterAuthUrl: readEnv("BETTER_AUTH_URL") || readEnv("NEXT_PUBLIC_SITE_URL"),
+    googleClientId: readEnv("GOOGLE_CLIENT_ID"),
+    googleClientSecret: readEnv("GOOGLE_CLIENT_SECRET"),
+    githubClientId: readEnv("GITHUB_CLIENT_ID"),
+    githubClientSecret: readEnv("GITHUB_CLIENT_SECRET"),
+    resendApiKey: readEnv("RESEND_API_KEY"),
+    emailFrom: readEnv("EMAIL_FROM"),
     openrouterApiKey: readEnv("OPENROUTER_API_KEY"),
     uploadthingToken: readEnv("UPLOADTHING_TOKEN"),
-    siteUrl: readEnv("NEXT_PUBLIC_SITE_URL"),
+    siteUrl: readEnv("NEXT_PUBLIC_SITE_URL") || readEnv("VITE_SITE_URL"),
   };
 }

@@ -1,19 +1,26 @@
-'use client'
+"use client";
 
-import type { LucideIcon } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import type { LucideIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  icon: LucideIcon
-  title: string
-  description: string
-  actionLabel?: string
-  actionLink?: string
-  isOwner?: boolean
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  actionLabel?: string;
+  actionLink?: string;
+  isOwner?: boolean;
 }
 
-export function EmptyState({ icon: Icon, title, description, actionLabel, actionLink, isOwner }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+  actionLink,
+  isOwner,
+}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center animate-in fade-in-50">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mb-4">
@@ -28,5 +35,5 @@ export function EmptyState({ icon: Icon, title, description, actionLabel, action
         </Button>
       )}
     </div>
-  )
+  );
 }

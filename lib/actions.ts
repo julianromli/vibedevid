@@ -3,8 +3,11 @@ import { getCategories, getCategoryDisplayName } from "./categories";
 import { fetchFavicon } from "./favicon-utils";
 import { normalizeProjectWebsiteUrl } from "./project-url";
 import { getProjectIdBySlug } from "./slug";
-import { createAdminClient } from "./supabase/admin";
-import { createClient } from "./supabase/server";
+import { getDb } from "@/lib/db";
+import { projects, users, likes, views, comments } from "@/lib/db/schema";
+import { toProjectDto } from "@/lib/db/mappers";
+import { getServerSession, requireUser } from "@/lib/server/auth";
+import { eq, and, desc, count, inArray, isNotNull } from "drizzle-orm";
 
 function toLoggableError(error: unknown): string | Record<string, string | number> {
   if (typeof error === "string") {
@@ -43,117 +46,79 @@ function toLoggableError(error: unknown): string | Record<string, string | numbe
   return "Unknown error";
 }
 
-function isAuthSessionMissingError(error: unknown): boolean {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const source = error as Record<string, unknown>;
-  const name = typeof source.name === "string" ? source.name : "";
-  const message = typeof source.message === "string" ? source.message : "";
-
-  return (
-    name === "AuthSessionMissingError" || message.toLowerCase().includes("auth session missing")
-  );
-}
-
-// NOTE: Comment functions have been moved to @/lib/actions/comments.ts
-// Use createComment, getComments, reportComment from there instead
-
 export async function getProjectBySlug(slug: string) {
-  const supabase = await createClient();
-
   try {
     if (!slug || typeof slug !== "string" || slug.trim() === "") {
       return { project: null, error: "Project slug is required" };
     }
 
-    const { data: project, error: projectError } = await supabase
-      .from("projects")
-      .select(
-        `
-        *,
-        users:author_id (
-          username,
-          display_name,
-          avatar_url,
-          role,
-          bio,
-          location
-        )
-      `,
-      )
-      .eq("slug", slug.trim())
-      .single();
+    const db = getDb();
+    const [row] = await db
+      .select({
+        project: projects,
+        authorUsername: users.username,
+        authorDisplayName: users.displayName,
+        authorAvatarUrl: users.avatarUrl,
+        authorRole: users.role,
+        authorBio: users.bio,
+        authorLocation: users.location,
+      })
+      .from(projects)
+      .innerJoin(users, eq(projects.authorId, users.id))
+      .where(eq(projects.slug, slug.trim()))
+      .limit(1);
 
-    if (projectError) {
-      console.error("Get project by slug error:", projectError);
-      return { project: null, error: projectError.message };
+    if (!row) {
+      return { project: null, error: "Project not found" };
     }
 
-    if (!project?.users) {
-      console.error("Get project error: Author not found");
-      return { project: null, error: "Project author not found" };
-    }
+    const mapped = toProjectDto(row.project);
+    const projectPk = mapped.id;
+    const today = new Date().toISOString().split("T")[0];
 
-    const projectPk = project.id;
-
-    const [
-      { count: likesCount },
-      { count: totalViews },
-      { count: uniqueViews },
-      { count: todayViews },
-    ] = await Promise.all([
-      supabase
-        .from("likes")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", projectPk),
-      supabase
-        .from("views")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", projectPk),
-      supabase
-        .from("views")
-        .select("session_id", { count: "exact", head: true })
-        .eq("project_id", projectPk)
-        .not("session_id", "is", null),
-      supabase
-        .from("views")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", projectPk)
-        .eq("view_date", new Date().toISOString().split("T")[0]),
+    const [likesResult, totalViewsResult, uniqueViewsResult, todayViewsResult] = await Promise.all([
+      db.select({ value: count() }).from(likes).where(eq(likes.projectId, projectPk)),
+      db.select({ value: count() }).from(views).where(eq(views.projectId, projectPk)),
+      db
+        .select({ value: count() })
+        .from(views)
+        .where(and(eq(views.projectId, projectPk), isNotNull(views.sessionId))),
+      db
+        .select({ value: count() })
+        .from(views)
+        .where(and(eq(views.projectId, projectPk), eq(views.viewDate, today))),
     ]);
 
-    const categoryDisplayName = await getCategoryDisplayName(project.category);
+    const categoryDisplayName = await getCategoryDisplayName(mapped.category);
 
     const formattedProject = {
-      id: project.id,
-      slug: project.slug,
-      title: project.title,
-      description: project.description,
-      fullDescription: project.description,
-      image: project.image_url,
-      imageUrls: project.image_urls || (project.image_url ? [project.image_url] : []),
-      imageKeys: project.image_keys || [],
+      id: mapped.id,
+      slug: mapped.slug,
+      title: mapped.title,
+      description: mapped.description ?? "",
+      fullDescription: mapped.description ?? "",
+      image: mapped.imageUrl,
+      imageUrls: mapped.imageUrls || (mapped.imageUrl ? [mapped.imageUrl] : []),
+      imageKeys: mapped.imageKeys || [],
       author: {
-        name: project.users.display_name,
-        username: project.users.username,
-        role: project.users.role ?? null,
-        avatar: project.users.avatar_url || "/placeholder.svg",
-        bio: project.users.bio || "Community member",
-        location: project.users.location || "Unknown location",
+        name: row.authorDisplayName,
+        username: row.authorUsername,
+        role: row.authorRole ?? null,
+        avatar: row.authorAvatarUrl || "/placeholder.svg",
+        bio: row.authorBio || "Community member",
+        location: row.authorLocation || "Unknown location",
       },
-      url: project.website_url,
+      url: mapped.websiteUrl,
       category: categoryDisplayName,
-      categoryRaw: project.category,
-      tagline: project.tagline || "",
-      faviconUrl: project.favicon_url || "/default-favicon.svg",
-      tags: project.tags || [],
-      likes: likesCount || 0,
-      views: totalViews || 0,
-      uniqueViews: uniqueViews || 0,
-      todayViews: todayViews || 0,
-      createdAt: project.created_at,
+      categoryRaw: mapped.category,
+      tagline: mapped.tagline || "",
+      faviconUrl: mapped.faviconUrl || "/default-favicon.svg",
+      tags: mapped.tags || [],
+      likes: likesResult[0]?.value || 0,
+      views: totalViewsResult[0]?.value || 0,
+      uniqueViews: uniqueViewsResult[0]?.value || 0,
+      todayViews: todayViewsResult[0]?.value || 0,
+      createdAt: mapped.createdAt,
     };
 
     return { project: formattedProject, error: null };
@@ -164,30 +129,33 @@ export async function getProjectBySlug(slug: string) {
 }
 
 const getPrimaryProjectImage = (project: {
-  image_url?: string | null;
-  image_urls?: string[] | null;
+  imageUrl?: string | null;
+  imageUrls?: string[] | null;
 }): string | null => {
-  const firstImageUrl = Array.isArray(project.image_urls)
-    ? project.image_urls.find((url) => typeof url === "string" && url)
+  const firstImageUrl = Array.isArray(project.imageUrls)
+    ? project.imageUrls.find((url) => typeof url === "string" && url)
     : null;
-  return firstImageUrl || project.image_url || null;
+  return firstImageUrl || project.imageUrl || null;
 };
 
-// Legacy function for backward compatibility (will be removed after migration)
 export async function getProject(projectId: string) {
   console.warn("[DEPRECATED] getProject() is deprecated. Use getProjectBySlug() instead.");
 
-  // For backward compatibility during migration phase
-  const supabase = await createClient();
+  const db = getDb();
 
   try {
-    const { data, error } = await supabase
-      .from("projects")
-      .select("slug")
-      .eq("id", projectId)
-      .single();
+    const numericId = Number(projectId);
+    if (!Number.isInteger(numericId)) {
+      return { project: null, error: "Project not found" };
+    }
 
-    if (error || !data?.slug) {
+    const [data] = await db
+      .select({ slug: projects.slug })
+      .from(projects)
+      .where(eq(projects.id, numericId))
+      .limit(1);
+
+    if (!data?.slug) {
       return { project: null, error: "Project not found" };
     }
 
@@ -204,33 +172,23 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
     return;
   }
 
-  // Resolve project ID from slug
-  const projectId = await getProjectIdBySlug(projectSlug.trim());
-  if (!projectId) {
+  const projectIdStr = await getProjectIdBySlug(projectSlug.trim());
+  if (!projectIdStr) {
     console.error("[Server] incrementProjectViews: Project not found for slug:", projectSlug);
     return;
   }
 
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const projectId = Number(projectIdStr);
+  if (!Number.isInteger(projectId)) {
+    console.error("[Server] incrementProjectViews: Invalid project ID for slug:", projectSlug);
+    return;
+  }
 
-  // Use admin client for view inserts to bypass RLS
-  // This allows tracking views for both anonymous and authenticated visitors
-  const adminClient = await createAdminClient();
+  const session = await getServerSession();
+  const db = getDb();
+  const viewDate = new Date().toISOString().split("T")[0];
 
   try {
-    // Prepare view record with session-based tracking
-    const viewRecord = {
-      project_id: projectId, // Use UUID directly, no parseInt
-      user_id: user?.id || null,
-      session_id: sessionId || null,
-      ip_address: null, // We'll skip IP tracking for now
-      view_date: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
-    };
-
     console.log(
       "[Server] Incrementing view for project slug:",
       projectSlug,
@@ -240,24 +198,26 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
       sessionId,
     );
 
-    const { data, error } = await adminClient.from("views").insert(viewRecord).select();
+    await db.insert(views).values({
+      projectId,
+      userId: session?.user?.id || null,
+      sessionId: sessionId || null,
+      ipAddress: null,
+      viewDate,
+    });
 
-    if (error) {
-      // If it's a duplicate key error, that's expected (user already viewed in this session)
-      if (
-        error.code === "23505" ||
-        error.message?.includes("duplicate") ||
-        error.message?.includes("unique")
-      ) {
-        console.log("[Server] View already tracked for this session");
-      } else {
-        console.error("[Server] Increment views error:", error);
-      }
-    } else {
-      console.log("[Server] View tracked successfully:", data);
-    }
+    console.log("[Server] View tracked successfully");
   } catch (error) {
-    console.error("[Server] Increment views error:", error);
+    const pgError = error as { code?: string; message?: string };
+    if (
+      pgError.code === "23505" ||
+      pgError.message?.includes("duplicate") ||
+      pgError.message?.includes("unique")
+    ) {
+      console.log("[Server] View already tracked for this session");
+    } else {
+      console.error("[Server] Increment views error:", error);
+    }
   }
 }
 
@@ -267,57 +227,41 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
     return;
   }
 
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Use admin client for view inserts to bypass RLS
-  // This allows tracking views for both anonymous and authenticated visitors
-  const adminClient = await createAdminClient();
+  const session = await getServerSession();
+  const db = getDb();
+  const viewDate = new Date().toISOString().split("T")[0];
 
   try {
-    // Prepare view record with session-based tracking
-    const viewRecord = {
-      post_id: postId.trim(),
-      user_id: user?.id || null,
-      session_id: sessionId || null,
-      ip_address: null,
-      view_date: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
-    };
-
     console.log("[Server] Incrementing view for blog post:", postId, "Session:", sessionId);
 
-    const { data, error } = await adminClient.from("views").insert(viewRecord).select();
+    await db.insert(views).values({
+      postId: postId.trim(),
+      userId: session?.user?.id || null,
+      sessionId: sessionId || null,
+      ipAddress: null,
+      viewDate,
+    });
 
-    if (error) {
-      // If it's a duplicate key error, that's expected (user already viewed in this session)
-      if (
-        error.code === "23505" ||
-        error.message?.includes("duplicate") ||
-        error.message?.includes("unique")
-      ) {
-        console.log("[Server] Blog view already tracked for this session");
-      } else {
-        console.error("[Server] Increment blog views error:", error);
-      }
-    } else {
-      console.log("[Server] Blog view tracked successfully:", data);
-    }
+    console.log("[Server] Blog view tracked successfully");
   } catch (error) {
-    console.error("[Server] Increment blog views error:", error);
+    const pgError = error as { code?: string; message?: string };
+    if (
+      pgError.code === "23505" ||
+      pgError.message?.includes("duplicate") ||
+      pgError.message?.includes("unique")
+    ) {
+      console.log("[Server] Blog view already tracked for this session");
+    } else {
+      console.error("[Server] Increment blog views error:", error);
+    }
   }
 }
 
 export async function toggleLike(projectId: string) {
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
     return { error: "You must be logged in to like projects" };
   }
 
@@ -325,42 +269,31 @@ export async function toggleLike(projectId: string) {
     return { error: "Project ID is required" };
   }
 
-  try {
-    // Use UUID directly, no parseInt
-    const { data: existingLike, error: checkError } = await supabase
-      .from("likes")
-      .select("id")
-      .eq("project_id", projectId.trim())
-      .eq("user_id", user.id)
-      .single();
+  const numericProjectId = Number(projectId.trim());
+  if (!Number.isInteger(numericProjectId)) {
+    return { error: "Invalid project ID" };
+  }
 
-    if (checkError && checkError.code !== "PGRST116") {
-      return { error: checkError.message };
-    }
+  const db = getDb();
+
+  try {
+    const [existingLike] = await db
+      .select({ id: likes.id })
+      .from(likes)
+      .where(and(eq(likes.projectId, numericProjectId), eq(likes.userId, user.id)))
+      .limit(1);
 
     if (existingLike) {
-      const { error: deleteError } = await supabase
-        .from("likes")
-        .delete()
-        .eq("id", existingLike.id);
-
-      if (deleteError) {
-        return { error: deleteError.message };
-      }
-
+      await db.delete(likes).where(eq(likes.id, existingLike.id));
       return { success: true, isLiked: false };
-    } else {
-      const { error: insertError } = await supabase.from("likes").insert({
-        project_id: projectId.trim(), // Use UUID directly
-        user_id: user.id,
-      });
-
-      if (insertError) {
-        return { error: insertError.message };
-      }
-
-      return { success: true, isLiked: true };
     }
+
+    await db.insert(likes).values({
+      projectId: numericProjectId,
+      userId: user.id,
+    });
+
+    return { success: true, isLiked: true };
   } catch (error) {
     console.error("Toggle like error:", error);
     return { error: "An unexpected error occurred. Please try again." };
@@ -368,11 +301,7 @@ export async function toggleLike(projectId: string) {
 }
 
 export async function getLikeStatus(projectId: string) {
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getServerSession();
 
   try {
     if (!projectId || typeof projectId !== "string" || projectId.trim() === "") {
@@ -380,36 +309,30 @@ export async function getLikeStatus(projectId: string) {
       return { totalLikes: 0, isLiked: false, error: "Project ID is required" };
     }
 
-    // Use UUID directly, no parseInt
-    const cleanProjectId = projectId.trim();
-
-    const { count: totalLikes, error: countError } = await supabase
-      .from("likes")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", cleanProjectId);
-
-    if (countError) {
-      console.error("Get likes count error:", countError.message, countError.details);
-      return { totalLikes: 0, isLiked: false, error: countError.message };
+    const numericProjectId = Number(projectId.trim());
+    if (!Number.isInteger(numericProjectId)) {
+      return { totalLikes: 0, isLiked: false, error: "Invalid project ID" };
     }
+
+    const db = getDb();
+
+    const [likesResult] = await db
+      .select({ value: count() })
+      .from(likes)
+      .where(eq(likes.projectId, numericProjectId));
 
     let isLiked = false;
-    if (user) {
-      const { data: userLike, error: userLikeError } = await supabase
-        .from("likes")
-        .select("id")
-        .eq("project_id", cleanProjectId)
-        .eq("user_id", user.id)
-        .single();
+    if (session?.user) {
+      const [userLike] = await db
+        .select({ id: likes.id })
+        .from(likes)
+        .where(and(eq(likes.projectId, numericProjectId), eq(likes.userId, session.user.id)))
+        .limit(1);
 
-      if (userLikeError && userLikeError.code !== "PGRST116") {
-        console.error("Get user like status error:", userLikeError.message, userLikeError.details);
-      } else if (userLike) {
-        isLiked = true;
-      }
+      isLiked = Boolean(userLike);
     }
 
-    return { totalLikes: totalLikes || 0, isLiked, error: null };
+    return { totalLikes: likesResult?.value || 0, isLiked, error: null };
   } catch (error) {
     console.error("Get like status error:", error);
     return {
@@ -421,8 +344,6 @@ export async function getLikeStatus(projectId: string) {
 }
 
 export async function getBatchLikeStatus(projectIds: string[]) {
-  const supabase = await createClient();
-
   try {
     if (!projectIds || projectIds.length === 0) {
       console.log("[v0] getBatchLikeStatus: No project IDs provided");
@@ -432,10 +353,10 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       };
     }
 
-    // Convert integers to strings properly
     const cleanProjectIds = projectIds
       .filter((id) => id !== null && id !== undefined && String(id).trim() !== "")
-      .map((id) => String(id).trim());
+      .map((id) => Number(String(id).trim()))
+      .filter((id) => Number.isInteger(id));
 
     if (cleanProjectIds.length === 0) {
       console.log("[v0] getBatchLikeStatus: No valid project IDs after cleaning");
@@ -447,52 +368,44 @@ export async function getBatchLikeStatus(projectIds: string[]) {
 
     console.log("[v0] getBatchLikeStatus: Fetching likes for projects:", cleanProjectIds);
 
-    // Use getUser() for secure server-side auth validation
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const session = await getServerSession();
+    const userId = session?.user?.id;
 
-    if (userError && !isAuthSessionMissingError(userError)) {
-      console.error("[v0] getBatchLikeStatus: User error:", toLoggableError(userError));
-      // Continue without user - we can still get total likes
-    }
+    console.log("[v0] getBatchLikeStatus: User status:", userId ? "logged in" : "anonymous");
 
-    console.log("[v0] getBatchLikeStatus: User status:", user ? "logged in" : "anonymous");
+    const db = getDb();
 
-    // Get all likes for these projects in one query
-    const { data: allLikes, error: likesError } = await supabase
-      .from("likes")
-      .select("project_id, user_id")
-      .in("project_id", cleanProjectIds);
-
-    if (likesError) {
+    let allLikes: { projectId: number | null; userId: string | null }[] = [];
+    try {
+      allLikes = await db
+        .select({ projectId: likes.projectId, userId: likes.userId })
+        .from(likes)
+        .where(inArray(likes.projectId, cleanProjectIds));
+    } catch (likesError) {
       console.error("[v0] getBatchLikeStatus: Likes fetch error:", toLoggableError(likesError));
-      // Return empty data instead of error to not break UI
       const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {};
       cleanProjectIds.forEach((projectId) => {
-        emptyLikesData[projectId] = { totalLikes: 0, isLiked: false };
+        emptyLikesData[String(projectId)] = { totalLikes: 0, isLiked: false };
       });
       return { likesData: emptyLikesData, error: null };
     }
 
-    console.log("[v0] getBatchLikeStatus: Raw likes data:", allLikes?.length || 0, "likes found");
+    console.log("[v0] getBatchLikeStatus: Raw likes data:", allLikes.length, "likes found");
 
     const likesByProject = new Map<string, { count: number; userLiked: boolean }>();
 
     cleanProjectIds.forEach((projectId) => {
-      likesByProject.set(projectId, { count: 0, userLiked: false });
+      likesByProject.set(String(projectId), { count: 0, userLiked: false });
     });
 
-    if (allLikes) {
-      for (const like of allLikes) {
-        const likeProjectId = String(like.project_id);
-        const entry = likesByProject.get(likeProjectId);
-        if (entry) {
-          entry.count++;
-          if (user && like.user_id === user.id) {
-            entry.userLiked = true;
-          }
+    for (const like of allLikes) {
+      if (!like.projectId) continue;
+      const likeProjectId = String(like.projectId);
+      const entry = likesByProject.get(likeProjectId);
+      if (entry) {
+        entry.count++;
+        if (userId && like.userId === userId) {
+          entry.userLiked = true;
         }
       }
     }
@@ -506,7 +419,6 @@ export async function getBatchLikeStatus(projectIds: string[]) {
     return { likesData, error: null };
   } catch (error) {
     console.error("[v0] getBatchLikeStatus: Unexpected error:", toLoggableError(error));
-    // Return safe fallback data to prevent UI breaks
     const fallbackLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {};
     if (projectIds && projectIds.length > 0) {
       projectIds.forEach((id) => {
@@ -525,35 +437,37 @@ export async function editProject(projectSlug: string, formData: FormData) {
     return { success: false, error: "Project slug is required" };
   }
 
-  // Resolve project ID from slug
-  const projectId = await getProjectIdBySlug(projectSlug.trim());
-  if (!projectId) {
+  const projectIdStr = await getProjectIdBySlug(projectSlug.trim());
+  if (!projectIdStr) {
     return { success: false, error: "Project not found" };
   }
 
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const projectId = Number(projectIdStr);
+  if (!Number.isInteger(projectId)) {
+    return { success: false, error: "Project not found" };
+  }
 
-  if (!user) {
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
     return { success: false, error: "You must be logged in to edit projects" };
   }
 
-  try {
-    // First check if user owns this project
-    const { data: project, error: checkError } = await supabase
-      .from("projects")
-      .select("author_id")
-      .eq("id", projectId) // Use UUID directly, no parseInt
-      .single();
+  const db = getDb();
 
-    if (checkError) {
+  try {
+    const [project] = await db
+      .select({ authorId: projects.authorId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project) {
       return { success: false, error: "Project not found" };
     }
 
-    if (project.author_id !== user.id) {
+    if (project.authorId !== user.id) {
       return { success: false, error: "You can only edit your own projects" };
     }
 
@@ -587,7 +501,6 @@ export async function editProject(projectSlug: string, formData: FormData) {
       return { success: false, error: "Enter a valid website URL" };
     }
 
-    // Parse tags from JSON string to array
     let tags: string[] = [];
     if (tagsString) {
       try {
@@ -597,7 +510,6 @@ export async function editProject(projectSlug: string, formData: FormData) {
       }
     }
 
-    // Auto-fetch favicon if website URL changed
     let faviconUrl: string | undefined;
     if (normalizedWebsiteUrl) {
       try {
@@ -614,28 +526,21 @@ export async function editProject(projectSlug: string, formData: FormData) {
       };
     }
 
-    // Note: Don't auto-update slug when title changes (slug stays stable for SEO)
-    const { error: updateError } = await supabase
-      .from("projects")
-      .update({
+    await db
+      .update(projects)
+      .set({
         title: title.trim(),
         description: description.trim(),
         category,
-        website_url: normalizedWebsiteUrl,
-        image_urls: imageUrls,
-        image_keys: imageKeys,
+        websiteUrl: normalizedWebsiteUrl,
+        imageUrls,
+        imageKeys,
         tagline: tagline?.trim() || null,
-        ...(faviconUrl && { favicon_url: faviconUrl }),
-        tags: tags,
-        updated_at: new Date().toISOString(),
-        // Slug remains unchanged for stability
+        ...(faviconUrl && { faviconUrl }),
+        tags,
+        updatedAt: new Date(),
       })
-      .eq("id", projectId); // Use UUID directly, no parseInt
-
-    if (updateError) {
-      console.error("Edit project error:", updateError);
-      return { success: false, error: updateError.message };
-    }
+      .where(eq(projects.id, projectId));
 
     revalidatePath(`/project/${projectSlug}`);
     revalidatePath("/project/list");
@@ -652,14 +557,7 @@ export async function fetchProjectsWithSorting(
   category?: string,
   limit: number = 20,
 ) {
-  const supabase = await createClient();
-
   try {
-    // Resolve the incoming filter value (a category `name` slug from the UI)
-    // to every representation it may be stored as on `projects.category`.
-    // Older / seeded projects store the display text (e.g. "Landing Page")
-    // while newer projects store the category `name` slug (e.g. "landing-page"),
-    // so an exact equality match would miss one of the two.
     const categories = await getCategories();
 
     const categoryMap = new Map<string, string>();
@@ -667,16 +565,15 @@ export async function fetchProjectsWithSorting(
       categoryMap.set(cat.name, cat.display_name);
     }
 
-    let query = supabase.from("projects").select(`
-        *,
-        users!author_id (
-          username,
-          display_name,
-          avatar_url,
-          role
-        )
-      `);
+    const db = getDb();
+    const CANDIDATE_MULTIPLIER = 5;
+    const MAX_CANDIDATES = 200;
+    const fetchLimit =
+      sortBy === "newest"
+        ? limit
+        : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
 
+    let categoryCondition = undefined;
     if (category && category !== "all") {
       const matchedCategory = categories.find(
         (cat) => cat.name === category || cat.display_name === category,
@@ -689,75 +586,66 @@ export async function fetchProjectsWithSorting(
         ),
       );
 
-      query =
+      categoryCondition =
         candidateValues.length > 1
-          ? query.in("category", candidateValues)
-          : query.eq("category", category);
+          ? inArray(projects.category, candidateValues)
+          : eq(projects.category, category);
     }
 
-    // For like-based sorts ('top'/'trending') the ranking key (likes) is
-    // computed separately and cannot be ordered in SQL, so a tight `limit`
-    // here would truncate the newest-N window and hide older high-like
-    // projects. Fetch a wider candidate window first, then sort + truncate
-    // to `limit` in JS below. 'newest' can be ordered + limited directly.
-    const CANDIDATE_MULTIPLIER = 5;
-    const MAX_CANDIDATES = 200;
-    const fetchLimit =
-      sortBy === "newest"
-        ? limit
-        : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
+    const projectRows = await db
+      .select({
+        project: projects,
+        authorUsername: users.username,
+        authorDisplayName: users.displayName,
+        authorAvatarUrl: users.avatarUrl,
+        authorRole: users.role,
+      })
+      .from(projects)
+      .innerJoin(users, eq(projects.authorId, users.id))
+      .where(categoryCondition)
+      .orderBy(desc(projects.createdAt))
+      .limit(fetchLimit);
 
-    query = query.order("created_at", { ascending: false }).limit(fetchLimit);
-
-    const { data: projectsWithUsers, error } = await query;
-
-    if (error) {
-      console.error("[fetchProjectsWithSorting] Error fetching projects:", toLoggableError(error));
-      return { projects: [], error: error.message };
-    }
-
-    if (!projectsWithUsers || projectsWithUsers.length === 0) {
+    if (!projectRows.length) {
       return { projects: [], error: null };
     }
 
-    const projectIds = projectsWithUsers.map((p) => p.id);
+    const projectIds = projectRows.map((p) => String(p.project.id));
     const likesResult = await getBatchLikeStatus(projectIds);
-
     const likesData = likesResult.likesData || {};
 
-    const formattedProjects = projectsWithUsers.map((project) => {
-      const projectLikesData = likesData[String(project.id)] || { totalLikes: 0, isLiked: false };
-      const categoryDisplayName = categoryMap.get(project.category) || project.category;
+    const formattedProjects = projectRows.map((row) => {
+      const mapped = toProjectDto(row.project);
+      const projectLikesData = likesData[String(mapped.id)] || { totalLikes: 0, isLiked: false };
+      const categoryDisplayName = categoryMap.get(mapped.category) || mapped.category;
 
       return {
-        id: project.id,
-        slug: project.slug,
-        title: project.title,
-        description: project.description,
-        image: getPrimaryProjectImage(project),
+        id: mapped.id,
+        slug: mapped.slug,
+        title: mapped.title,
+        description: mapped.description ?? undefined,
+        image: getPrimaryProjectImage(mapped),
         author: {
-          name: project.users?.display_name || "Unknown",
-          username: project.users?.username || "unknown",
-          role: project.users?.role ?? null,
-          avatar: project.users?.avatar_url || "/vibedev-guest-avatar.png",
+          name: row.authorDisplayName || "Unknown",
+          username: row.authorUsername || "unknown",
+          role: row.authorRole ?? null,
+          avatar: row.authorAvatarUrl || "/vibedev-guest-avatar.png",
         },
-        url: project.website_url || undefined,
+        url: mapped.websiteUrl || undefined,
         category: categoryDisplayName,
         likes: projectLikesData.totalLikes,
         views: 0,
-        createdAt: project.created_at,
+        createdAt: mapped.createdAt ?? "",
       };
     });
 
     const sortedProjects = [...formattedProjects];
 
     if (sortBy === "newest") {
-      // Already ordered by created_at desc from the query; keep as-is.
       sortedProjects.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
     } else if (sortBy === "top") {
-      // All-time best: rank purely by total likes, newest as tiebreaker.
       sortedProjects.sort((a, b) => {
         if (b.likes !== a.likes) {
           return b.likes - a.likes;
@@ -765,8 +653,6 @@ export async function fetchProjectsWithSorting(
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
     } else {
-      // Trending: likes weighted by recency so newer popular projects rank
-      // higher than equally-liked but older ones.
       const trendingScore = (likes: number, createdAt: string) => {
         const ageInDays = Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 86400000);
         return likes / ageInDays;
@@ -784,8 +670,6 @@ export async function fetchProjectsWithSorting(
       });
     }
 
-    // Truncate to the requested limit after sorting so like-based ranks are
-    // computed across the full candidate window rather than a newest-N slice.
     const limitedProjects = sortedProjects.slice(0, limit);
 
     console.log(
@@ -804,61 +688,52 @@ export async function deleteProject(projectSlug: string) {
     return { success: false, error: "Project slug is required" };
   }
 
-  // Resolve project ID from slug
-  const projectId = await getProjectIdBySlug(projectSlug.trim());
-  if (!projectId) {
+  const projectIdStr = await getProjectIdBySlug(projectSlug.trim());
+  if (!projectIdStr) {
     return { success: false, error: "Project not found" };
   }
 
-  const supabase = await createClient();
-  // Use getUser() for secure server-side auth validation
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const projectId = Number(projectIdStr);
+  if (!Number.isInteger(projectId)) {
+    return { success: false, error: "Project not found" };
+  }
 
-  if (!user) {
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
     return { success: false, error: "You must be logged in to delete projects" };
   }
 
-  try {
-    // First check if user owns this project
-    const { data: project, error: checkError } = await supabase
-      .from("projects")
-      .select("author_id")
-      .eq("id", projectId) // Use UUID directly, no parseInt
-      .single();
+  const db = getDb();
 
-    if (checkError) {
+  try {
+    const [project] = await db
+      .select({ authorId: projects.authorId, imageKeys: projects.imageKeys })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project) {
       return { success: false, error: "Project not found" };
     }
 
-    if (project.author_id !== user.id) {
+    if (project.authorId !== user.id) {
       return { success: false, error: "You can only delete your own projects" };
     }
 
-    const { data: projectWithImages } = await supabase
-      .from("projects")
-      .select("image_keys")
-      .eq("id", projectId)
-      .single();
-
     await Promise.all([
-      supabase.from("comments").delete().eq("project_id", projectId),
-      supabase.from("likes").delete().eq("project_id", projectId),
-      supabase.from("views").delete().eq("project_id", projectId),
+      db.delete(comments).where(eq(comments.projectId, projectId)),
+      db.delete(likes).where(eq(likes.projectId, projectId)),
+      db.delete(views).where(eq(views.projectId, projectId)),
     ]);
 
-    const { error: deleteError } = await supabase.from("projects").delete().eq("id", projectId);
+    await db.delete(projects).where(eq(projects.id, projectId));
 
-    if (deleteError) {
-      console.error("Delete project error:", deleteError);
-      return { success: false, error: deleteError.message };
-    }
-
-    if (projectWithImages?.image_keys?.length) {
+    if (project.imageKeys?.length) {
       try {
         const { deleteUploadthingFiles } = await import("./uploadthing");
-        await deleteUploadthingFiles(projectWithImages.image_keys);
+        await deleteUploadthingFiles(project.imageKeys);
       } catch {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }

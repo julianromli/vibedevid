@@ -1,13 +1,13 @@
-import i18n from '@/i18n'
-import type { Locale } from '@/i18n'
-import type { SortBy } from '@/types/homepage'
+import i18n from "@/i18n";
+import type { Locale } from "@/i18n";
+import type { SortBy } from "@/types/homepage";
 
 export function getSingleSearchParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export function normalizeSortParam(value: string | undefined): SortBy {
-  return value === 'top' || value === 'newest' || value === 'trending' ? value : 'newest'
+  return value === "top" || value === "newest" || value === "trending" ? value : "newest";
 }
 
 /**
@@ -18,11 +18,11 @@ export function normalizeSortParam(value: string | undefined): SortBy {
  * hydration.
  */
 export async function getServerLocale(): Promise<Locale> {
-  const { getCookie } = await import('@tanstack/react-start/server')
-  const cookie = getCookie('NEXT_LOCALE')
-  return cookie === 'en' ? 'en' : 'id'
+  const { getCookie } = await import("@tanstack/react-start/server");
+  const cookie = getCookie("NEXT_LOCALE");
+  return cookie === "en" ? "en" : "id";
 }
 
 export async function getServerT(namespace: string) {
-  return i18n.getFixedT(await getServerLocale(), namespace)
+  return i18n.getFixedT(await getServerLocale(), namespace);
 }

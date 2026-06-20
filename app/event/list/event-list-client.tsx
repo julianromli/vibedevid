@@ -1,78 +1,78 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { EventCard } from '@/components/event/event-card'
-import { EventFilterControls } from '@/components/event/event-filter-controls'
-import { SubmitEventSection } from '@/components/event/submit-event-section'
-import { Footer } from '@/components/ui/footer'
-import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
-import { Navbar } from '@/components/ui/navbar'
-import { useAuth } from '@/hooks/useAuth'
-import { applyFilters } from '@/lib/events-utils'
-import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
+import { useEffect, useState } from "react";
+import { EventCard } from "@/components/event/event-card";
+import { EventFilterControls } from "@/components/event/event-filter-controls";
+import { SubmitEventSection } from "@/components/event/submit-event-section";
+import { Footer } from "@/components/ui/footer";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
+import { Navbar } from "@/components/ui/navbar";
+import { useAuth } from "@/hooks/useAuth";
+import { applyFilters } from "@/lib/events-utils";
+import type { AIEvent, EventCategory, EventLocationType } from "@/types/events";
 
-type ViewMode = 'grid' | 'list'
-const EVENT_VIEW_MODE_STORAGE_KEY = 'eventViewMode'
+type ViewMode = "grid" | "list";
+const EVENT_VIEW_MODE_STORAGE_KEY = "eventViewMode";
 
 function getStoredViewMode(): ViewMode | null {
-  if (typeof window === 'undefined') {
-    return null
+  if (typeof window === "undefined") {
+    return null;
   }
 
   try {
-    const saved = window.localStorage.getItem(EVENT_VIEW_MODE_STORAGE_KEY)
-    if (saved === 'grid' || saved === 'list') {
-      return saved
+    const saved = window.localStorage.getItem(EVENT_VIEW_MODE_STORAGE_KEY);
+    if (saved === "grid" || saved === "list") {
+      return saved;
     }
   } catch {
-    return null
+    return null;
   }
 
-  return null
+  return null;
 }
 
 function persistViewMode(mode: ViewMode): void {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
 
   try {
-    window.localStorage.setItem(EVENT_VIEW_MODE_STORAGE_KEY, mode)
+    window.localStorage.setItem(EVENT_VIEW_MODE_STORAGE_KEY, mode);
   } catch {}
 }
 
 interface EventListClientProps {
-  initialEvents: AIEvent[]
+  initialEvents: AIEvent[];
 }
 
 export default function EventListClient({ initialEvents }: EventListClientProps) {
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, user } = useAuth();
 
   // Filter and sort state
-  const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'All'>('All')
-  const [selectedLocation, setSelectedLocation] = useState<EventLocationType | 'All'>('All')
-  const [selectedSort, setSelectedSort] = useState<'nearest' | 'latest'>('nearest')
+  const [selectedCategory, setSelectedCategory] = useState<EventCategory | "All">("All");
+  const [selectedLocation, setSelectedLocation] = useState<EventLocationType | "All">("All");
+  const [selectedSort, setSelectedSort] = useState<"nearest" | "latest">("nearest");
 
   // View mode state with localStorage persistence
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   useEffect(() => {
-    const saved = getStoredViewMode()
+    const saved = getStoredViewMode();
     if (saved) {
-      setViewMode(saved)
+      setViewMode(saved);
     }
-  }, [])
+  }, []);
 
   const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode)
-    persistViewMode(mode)
-  }
+    setViewMode(mode);
+    persistViewMode(mode);
+  };
 
   // Apply filters and sort to mock data
   const filteredEvents = applyFilters(initialEvents, {
     category: selectedCategory,
     locationType: selectedLocation,
-  })
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,11 +81,7 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
         {/* Background Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
-        <Navbar
-          showNavigation={true}
-          isLoggedIn={isLoggedIn}
-          user={user ?? undefined}
-        />
+        <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={user ?? undefined} />
 
         {/* Main Content */}
         <section className="relative bg-transparent py-12 pt-24">
@@ -96,8 +92,8 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
                 AI Events di Indonesia
               </h1>
               <p className="mx-auto max-w-2xl text-muted-foreground text-xl">
-                Temukan workshop, meetup, conference, dan hackathon AI terbaik di Indonesia. Bergabunglah dengan
-                komunitas AI dan tingkatkan skill kamu!
+                Temukan workshop, meetup, conference, dan hackathon AI terbaik di Indonesia.
+                Bergabunglah dengan komunitas AI dan tingkatkan skill kamu!
               </p>
             </ScrollReveal>
 
@@ -119,15 +115,14 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
             <StaggerContainer
               key={viewMode}
               className={
-                viewMode === 'grid' ? 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-4'
+                viewMode === "grid"
+                  ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  : "flex flex-col gap-4"
               }
             >
               {filteredEvents.map((event) => (
                 <StaggerItem key={event.id}>
-                  <EventCard
-                    event={event}
-                    variant={viewMode}
-                  />
+                  <EventCard event={event} variant={viewMode} />
                 </StaggerItem>
               ))}
             </StaggerContainer>
@@ -135,12 +130,14 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
             {/* Empty State */}
             {filteredEvents.length === 0 && (
               <div className="py-12 text-center">
-                <p className="mb-4 text-muted-foreground text-xl">Tidak ada event yang sesuai dengan filter</p>
+                <p className="mb-4 text-muted-foreground text-xl">
+                  Tidak ada event yang sesuai dengan filter
+                </p>
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedCategory('All')
-                    setSelectedLocation('All')
+                    setSelectedCategory("All");
+                    setSelectedLocation("All");
                   }}
                   className="text-primary hover:underline"
                 >
@@ -152,21 +149,20 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
             {/* Stats info */}
             {filteredEvents.length > 0 && (
               <div className="mt-8 text-center">
-                <p className="text-muted-foreground">Menampilkan {filteredEvents.length} event AI di Indonesia</p>
+                <p className="text-muted-foreground">
+                  Menampilkan {filteredEvents.length} event AI di Indonesia
+                </p>
               </div>
             )}
           </div>
         </section>
 
         {/* Submit Event Section */}
-        <SubmitEventSection
-          isLoggedIn={isLoggedIn}
-          user={user}
-        />
+        <SubmitEventSection isLoggedIn={isLoggedIn} user={user} />
 
         {/* Footer */}
         <Footer />
       </div>
     </div>
-  )
+  );
 }

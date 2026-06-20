@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { Line, LineChart } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
+import { Line, LineChart } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 
 const data = [
   {
@@ -37,18 +37,18 @@ const data = [
     revenue: 26475,
     subscription: 189,
   },
-]
+];
 
 const chartConfig = {
   revenue: {
-    label: 'Revenue',
-    color: 'var(--primary)',
+    label: "Revenue",
+    color: "var(--primary)",
   },
   subscription: {
-    label: 'Subscriptions',
-    color: 'var(--primary)',
+    label: "Subscriptions",
+    color: "var(--primary)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export default function TotalRevenue() {
   return (
@@ -59,10 +59,7 @@ export default function TotalRevenue() {
       <CardContent className="h-[calc(100%_-_52px)] pb-0">
         <div className="text-2xl font-bold">$15,231.89</div>
         <p className="text-muted-foreground text-xs">+20.1% from last month</p>
-        <ChartContainer
-          config={chartConfig}
-          className="h-[80px] w-full"
-        >
+        <ChartContainer config={chartConfig} className="h-[80px] w-full">
           <LineChart
             data={data}
             margin={{
@@ -85,5 +82,5 @@ export default function TotalRevenue() {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

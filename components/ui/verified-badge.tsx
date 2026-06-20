@@ -1,13 +1,19 @@
-'use client'
+"use client";
 
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 
-export function VerifiedBadge({ className, title = 'Verified' }: { className?: string; title?: string }) {
+export function VerifiedBadge({
+  className,
+  title = "Verified",
+}: {
+  className?: string;
+  title?: string;
+}) {
   return (
     <svg
       viewBox="0 0 22 22"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn('h-4 w-4 text-[#1d9bf0]', className)}
+      className={cn("h-4 w-4 text-[#1d9bf0]", className)}
       role="img"
       aria-label={title}
     >
@@ -16,5 +22,5 @@ export function VerifiedBadge({ className, title = 'Verified' }: { className?: s
         fill="currentColor"
       />
     </svg>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   IconCalendar,
@@ -8,34 +8,52 @@ import {
   IconMessageCircle,
   IconNews,
   IconUsers,
-} from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
-import { Line, LineChart, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { Line, LineChart, XAxis, YAxis } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   getAnalyticsTimeSeriesFn,
   getMostViewedPostsFn,
   getMostViewedProjectsFn,
   getPlatformStatsFn,
-} from '@/lib/actions/analytics.functions'
-import type { PlatformStats, TrendingItem } from '@/lib/actions/analytics'
+} from "@/lib/actions/analytics.functions";
+import type { PlatformStats, TrendingItem } from "@/lib/actions/analytics";
 
 interface TimeSeriesPoint {
-  date: string
-  views: number
-  likes: number
-  comments: number
+  date: string;
+  views: number;
+  likes: number;
+  comments: number;
 }
 
 interface AnalyticsData {
-  stats: PlatformStats | null
-  timeSeries: TimeSeriesPoint[]
-  topProjects: TrendingItem[]
-  topPosts: TrendingItem[]
+  stats: PlatformStats | null;
+  timeSeries: TimeSeriesPoint[];
+  topProjects: TrendingItem[];
+  topPosts: TrendingItem[];
 }
 
 export default function Overview() {
@@ -44,28 +62,28 @@ export default function Overview() {
     timeSeries: [],
     topProjects: [],
     topPosts: [],
-  })
-  const [days, setDays] = useState<number>(30)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  });
+  const [days, setDays] = useState<number>(30);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        const result = await fetchAnalyticsData(days)
-        setData(result)
+        const result = await fetchAnalyticsData(days);
+        setData(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchData()
-  }, [days])
+    fetchData();
+  }, [days]);
 
   if (error) {
     return (
@@ -75,7 +93,7 @@ export default function Overview() {
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -132,10 +150,7 @@ export default function Overview() {
             <CardDescription>Date Range</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select
-              value={days.toString()}
-              onValueChange={(value) => setDays(Number(value))}
-            >
+            <Select value={days.toString()} onValueChange={(value) => setDays(Number(value))}>
               <SelectTrigger className="w-[180px]">
                 <IconCalendar className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Select range" />
@@ -160,10 +175,7 @@ export default function Overview() {
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
           ) : (
-            <ChartContainer
-              config={chartConfig}
-              className="h-[300px] w-full"
-            >
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <LineChart data={data.timeSeries}>
                 <XAxis
                   dataKey="date"
@@ -172,11 +184,7 @@ export default function Overview() {
                   tickMargin={8}
                   minTickGap={32}
                 />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
+                <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Line
                   type="monotone"
@@ -221,7 +229,7 @@ export default function Overview() {
         />
       </div>
     </div>
-  )
+  );
 }
 
 async function fetchAnalyticsData(days: number): Promise<AnalyticsData> {
@@ -230,21 +238,21 @@ async function fetchAnalyticsData(days: number): Promise<AnalyticsData> {
     getAnalyticsTimeSeriesFn({ data: { days } }),
     getMostViewedProjectsFn({ data: { limit: 10 } }),
     getMostViewedPostsFn({ data: { limit: 10 } }),
-  ])
+  ]);
 
-  let stats: PlatformStats | null = null
+  let stats: PlatformStats | null = null;
   if (statsResult.success && statsResult.stats) {
-    stats = statsResult.stats
+    stats = statsResult.stats;
   }
 
-  let timeSeries: TimeSeriesPoint[] = []
+  let timeSeries: TimeSeriesPoint[] = [];
   if (timeSeriesResult.success && timeSeriesResult.data) {
     timeSeries = timeSeriesResult.data.dates.map((date, i) => ({
       date: formatDate(date),
       views: timeSeriesResult.data?.views[i] || 0,
       likes: timeSeriesResult.data?.likes[i] || 0,
       comments: timeSeriesResult.data?.comments[i] || 0,
-    }))
+    }));
   }
 
   return {
@@ -252,21 +260,28 @@ async function fetchAnalyticsData(days: number): Promise<AnalyticsData> {
     timeSeries,
     topProjects: projectsResult.success && projectsResult.projects ? projectsResult.projects : [],
     topPosts: postsResult.success && postsResult.posts ? postsResult.posts : [],
-  }
+  };
 }
 
 interface StatCardProps {
-  title: string
-  value: number
-  newToday?: number
-  icon: React.ElementType
-  loading: boolean
-  variant?: 'default' | 'secondary'
+  title: string;
+  value: number;
+  newToday?: number;
+  icon: React.ElementType;
+  loading: boolean;
+  variant?: "default" | "secondary";
 }
 
-function StatCard({ title, value, newToday, icon: Icon, loading, variant = 'default' }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  newToday,
+  icon: Icon,
+  loading,
+  variant = "default",
+}: StatCardProps) {
   return (
-    <Card className={variant === 'secondary' ? 'bg-muted/50' : undefined}>
+    <Card className={variant === "secondary" ? "bg-muted/50" : undefined}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="font-medium text-sm">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -284,14 +299,14 @@ function StatCard({ title, value, newToday, icon: Icon, loading, variant = 'defa
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 interface TopItemsCardProps {
-  title: string
-  description: string
-  items: TrendingItem[]
-  loading: boolean
+  title: string;
+  description: string;
+  items: TrendingItem[];
+  loading: boolean;
 }
 
 function TopItemsCard({ title, description, items, loading }: TopItemsCardProps) {
@@ -331,25 +346,25 @@ function TopItemsCard({ title, description, items, loading }: TopItemsCardProps)
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 const chartConfig = {
   views: {
-    label: 'Views',
-    color: 'hsl(var(--chart-1))',
+    label: "Views",
+    color: "hsl(var(--chart-1))",
   },
   likes: {
-    label: 'Likes',
-    color: 'hsl(var(--chart-2))',
+    label: "Likes",
+    color: "hsl(var(--chart-2))",
   },
   comments: {
-    label: 'Comments',
-    color: 'hsl(var(--chart-3))',
+    label: "Comments",
+    color: "hsl(var(--chart-3))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

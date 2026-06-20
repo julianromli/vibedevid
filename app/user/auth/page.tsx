@@ -1,82 +1,66 @@
-'use client'
+"use client";
 
-import { ArrowLeft, Mail, X } from 'lucide-react'
-import { Image } from '@unpic/react'
-import { Link } from '@tanstack/react-router'
-import { useSearchParams } from '@/lib/navigation'
-import { useTranslation } from 'react-i18next'
-import { Suspense, useEffect, useState } from 'react'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from '@/lib/navigation'
+import { ArrowLeft, Mail, X } from "lucide-react";
+import { Image } from "@unpic/react";
+import { Link } from "@tanstack/react-router";
+import { useSearchParams } from "@/lib/navigation";
+import { useTranslation } from "react-i18next";
+import { Suspense, useEffect, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { signIn, useSession } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 
 function getSafeAuthRedirectPath(value: string | null): string {
-  if (!value) return '/'
+  if (!value) return "/";
 
-  const trimmed = value.trim()
-  if (!trimmed.startsWith('/')) return '/'
-  if (trimmed.startsWith('//')) return '/'
-  if (trimmed.startsWith('/user/auth')) return '/'
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/")) return "/";
+  if (trimmed.startsWith("//")) return "/";
+  if (trimmed.startsWith("/user/auth")) return "/";
 
-  return trimmed
+  return trimmed;
 }
 
-type AuthMode = 'signin' | 'signup' | 'reset'
+type AuthMode = "signin" | "signup" | "reset";
 
 function parseInitialMode(value: string | null): AuthMode {
-  if (value === 'signup' || value === 'reset') return value
-  return 'signin'
+  if (value === "signup" || value === "reset") return value;
+  return "signin";
 }
 
 function AuthPageContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { t } = useTranslation('auth')
-  const safeRedirectTo = getSafeAuthRedirectPath(searchParams.get('redirectTo'))
-  const [authMode, setAuthMode] = useState<AuthMode>(() => parseInitialMode(searchParams.get('mode')))
-  const isSignUp = authMode === 'signup'
-  const isForgotPassword = authMode === 'reset'
-  const error = searchParams.get('error')
-  const success = searchParams.get('success')
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { t } = useTranslation("auth");
+  const { data: session, isPending } = useSession();
+  const safeRedirectTo = getSafeAuthRedirectPath(searchParams.get("redirectTo"));
+  const [authMode, setAuthMode] = useState<AuthMode>(() =>
+    parseInitialMode(searchParams.get("mode")),
+  );
+  const isSignUp = authMode === "signup";
+  const isForgotPassword = authMode === "reset";
+  const error = searchParams.get("error");
+  const success = searchParams.get("success");
 
   useEffect(() => {
-    let isMounted = true
-    const supabase = createClient()
+    if (isPending) return;
+    if (!session?.user?.emailVerified) return;
 
-    const redirectToTarget = () => {
-      router.navigate({ to: safeRedirectTo, replace: true })
-      router.refresh()
-    }
+    router.navigate({ to: safeRedirectTo, replace: true });
+    router.refresh();
+  }, [isPending, router, safeRedirectTo, session?.user]);
 
-    const checkExistingSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!isMounted || !user) return
-      redirectToTarget()
-    }
-
-    checkExistingSession()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isMounted) return
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-        redirectToTarget()
-      }
-    })
-
-    return () => {
-      isMounted = false
-      subscription.unsubscribe()
-    }
-  }, [router, safeRedirectTo])
+  const handleSocialSignIn = async (provider: "google" | "github") => {
+    await signIn.social({
+      provider,
+      callbackURL: safeRedirectTo,
+      errorCallbackURL: "/user/auth",
+    });
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-grid-pattern p-4">
@@ -105,44 +89,44 @@ function AuthPageContent() {
                 <div className="relative flex rounded-full bg-muted/50 p-1">
                   <div
                     className={`absolute top-1 bottom-1 rounded-full bg-foreground shadow-lg transition-all duration-200 ease-in-out ${
-                      isSignUp ? 'right-1 left-[calc(50%)]' : 'right-[calc(50%)] left-1'
+                      isSignUp ? "right-1 left-[calc(50%)]" : "right-[calc(50%)] left-1"
                     }`}
                   />
 
                   <button
                     type="button"
-                    onClick={() => setAuthMode('signin')}
-                    aria-current={!isSignUp ? 'page' : undefined}
+                    onClick={() => setAuthMode("signin")}
+                    aria-current={!isSignUp ? "page" : undefined}
                     className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300',
+                      buttonVariants({ variant: "ghost", size: "sm" }),
+                      "relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300",
                       !isSignUp
-                        ? 'text-background hover:bg-transparent hover:text-background'
-                        : 'text-muted-foreground',
+                        ? "text-background hover:bg-transparent hover:text-background"
+                        : "text-muted-foreground",
                     )}
                   >
-                    {t('signIn')}
+                    {t("signIn")}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setAuthMode('signup')}
-                    aria-current={isSignUp ? 'page' : undefined}
+                    onClick={() => setAuthMode("signup")}
+                    aria-current={isSignUp ? "page" : undefined}
                     className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'sm' }),
-                      'relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300',
+                      buttonVariants({ variant: "ghost", size: "sm" }),
+                      "relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300",
                       isSignUp
-                        ? 'text-background hover:bg-transparent hover:text-background'
-                        : 'text-muted-foreground',
+                        ? "text-background hover:bg-transparent hover:text-background"
+                        : "text-muted-foreground",
                     )}
                   >
-                    {t('signUp')}
+                    {t("signUp")}
                   </button>
                 </div>
               </div>
 
               <div className="mb-8 text-center">
                 <h1 className="mb-2 font-bold text-3xl text-foreground tracking-tight">
-                  {isSignUp ? t('createAccount') : t('welcomeBack')}
+                  {isSignUp ? t("createAccount") : t("welcomeBack")}
                 </h1>
               </div>
             </>
@@ -151,26 +135,30 @@ function AuthPageContent() {
               <div className="mb-8 flex items-center">
                 <button
                   type="button"
-                  onClick={() => setAuthMode('signin')}
+                  onClick={() => setAuthMode("signin")}
                   className={cn(
-                    buttonVariants({ variant: 'ghost', size: 'sm' }),
-                    'mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full border-0 bg-muted/50 p-0 text-muted-foreground hover:bg-muted hover:text-foreground',
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full border-0 bg-muted/50 p-0 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
-                  aria-label={t('signIn')}
+                  aria-label={t("signIn")}
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
-                <h1 className="font-bold text-3xl text-foreground tracking-tight">{t('resetPassword')}</h1>
+                <h1 className="font-bold text-3xl text-foreground tracking-tight">
+                  {t("resetPassword")}
+                </h1>
               </div>
 
               <div className="mb-8 text-center">
-                <p className="text-muted-foreground">{t('resetPasswordDescription')}</p>
+                <p className="text-muted-foreground">{t("resetPasswordDescription")}</p>
               </div>
             </>
           )}
 
           {error && (
-            <div className="mb-4 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-red-700">{error}</div>
+            <div className="mb-4 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-red-700">
+              {error}
+            </div>
           )}
 
           {success && (
@@ -182,7 +170,7 @@ function AuthPageContent() {
           {!isForgotPassword ? (
             <form
               method="POST"
-              action={isSignUp ? '/api/auth/sign-up' : '/api/auth/sign-in'}
+              action={isSignUp ? "/api/auth/sign-up" : "/api/auth/sign-in"}
               className="space-y-4"
             >
               <input type="hidden" name="redirectTo" value={safeRedirectTo} />
@@ -217,7 +205,7 @@ function AuthPageContent() {
                 type="password"
                 name="password"
                 placeholder="Enter your password"
-                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
                 required
                 className="h-12 rounded-xl border-border bg-muted/30 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
               />
@@ -236,7 +224,7 @@ function AuthPageContent() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setAuthMode('reset')}
+                    onClick={() => setAuthMode("reset")}
                     className="text-muted-foreground text-sm transition-all duration-200 hover:cursor-pointer hover:text-foreground hover:underline"
                   >
                     Forgot password?
@@ -249,7 +237,7 @@ function AuthPageContent() {
                 data-testid="auth-submit"
                 className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
-                {isSignUp ? 'Create an account' : 'Sign in'}
+                {isSignUp ? "Create an account" : "Sign in"}
               </Button>
 
               <div className="relative my-6">
@@ -258,18 +246,17 @@ function AuthPageContent() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="bg-background px-4 text-muted-foreground transition-all duration-200">
-                    {isSignUp ? 'OR SIGN UP WITH' : 'OR CONTINUE WITH'}
+                    {isSignUp ? "OR SIGN UP WITH" : "OR CONTINUE WITH"}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <a
-                  href="/api/auth/oauth/google"
-                  className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    'flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted',
-                  )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted"
+                  onClick={() => handleSocialSignIn("google")}
                 >
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/google-color-q23vP6w1nV7ElZybaSRHqpvXY2DFW7.svg"
@@ -279,13 +266,12 @@ function AuthPageContent() {
                     height={24}
                   />
                   Google
-                </a>
-                <a
-                  href="/api/auth/oauth/github"
-                  className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    'flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted',
-                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex h-12 items-center justify-center rounded-xl border-border bg-muted/30 text-foreground hover:bg-muted"
+                  onClick={() => handleSocialSignIn("github")}
                 >
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/github-qFqLvPlTz3nsK0sR6uMXsGl6YFklgn.svg"
@@ -295,7 +281,7 @@ function AuthPageContent() {
                     height={24}
                   />
                   GitHub
-                </a>
+                </Button>
               </div>
             </form>
           ) : (
@@ -328,17 +314,20 @@ function AuthPageContent() {
             <p className="text-muted-foreground text-xs">
               {!isForgotPassword ? (
                 <>
-                  By {isSignUp ? 'creating an account' : 'signing in'}, you agree to our{' '}
-                  <Link to="/terms-of-service" className="text-foreground underline hover:text-primary">
+                  By {isSignUp ? "creating an account" : "signing in"}, you agree to our{" "}
+                  <Link
+                    to="/terms-of-service"
+                    className="text-foreground underline hover:text-primary"
+                  >
                     Terms & Service
                   </Link>
                 </>
               ) : (
                 <>
-                  Remember your password?{' '}
+                  Remember your password?{" "}
                   <button
                     type="button"
-                    onClick={() => setAuthMode('signin')}
+                    onClick={() => setAuthMode("signin")}
                     className="text-foreground underline hover:text-primary"
                   >
                     Back to sign in
@@ -350,7 +339,7 @@ function AuthPageContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function AuthLoadingSkeleton() {
@@ -380,7 +369,7 @@ function AuthLoadingSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function AuthPage() {
@@ -388,5 +377,5 @@ export default function AuthPage() {
     <Suspense fallback={<AuthLoadingSkeleton />}>
       <AuthPageContent />
     </Suspense>
-  )
+  );
 }

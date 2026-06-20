@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { format } from 'date-fns'
-import { Calendar, Clock, Edit } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { format } from "date-fns";
+import { Calendar, Clock, Edit } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface BlogCardProps {
   post: {
-    id: string
-    slug: string
-    title: string
-    excerpt: string | null
-    cover_image: string | null
-    published_at: string | null
-    read_time_minutes: number | null
-    author: { display_name: string; avatar_url: string | null }
-    tags?: string[]
-  }
+    id: string;
+    slug: string;
+    title: string;
+    excerpt: string | null;
+    cover_image: string | null;
+    published_at: string | null;
+    read_time_minutes: number | null;
+    author: { display_name: string; avatar_url: string | null };
+    tags?: string[];
+  };
   /** Whether the current user is the owner of this post */
-  isOwner?: boolean
+  isOwner?: boolean;
 }
 
 export function BlogCard({ post, isOwner = false }: BlogCardProps) {
@@ -33,11 +33,7 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
           className="absolute top-3 right-3 z-10"
           onClick={(e) => e.stopPropagation()}
         >
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-8 gap-1.5 shadow-md backdrop-blur-sm"
-          >
+          <Button size="sm" variant="secondary" className="h-8 gap-1.5 shadow-md backdrop-blur-sm">
             <Edit className="h-3.5 w-3.5" />
             Edit
           </Button>
@@ -88,7 +84,7 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
               {post.published_at && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
-                  {format(new Date(post.published_at), 'MMM d, yyyy')}
+                  {format(new Date(post.published_at), "MMM d, yyyy")}
                 </span>
               )}
             </div>
@@ -102,5 +98,5 @@ export function BlogCard({ post, isOwner = false }: BlogCardProps) {
         )}
       </Link>
     </div>
-  )
+  );
 }
