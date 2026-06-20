@@ -84,7 +84,7 @@ cd vibedevid_v0
 vp install
 ```
 
-> Vite+ pins `vitest` to the exact version it bundles via the `overrides` field in `package.json` (currently `4.1.9`), while `vite`/`vitest` in `devDependencies` are npm aliases to `@voidzero-dev/vite-plus-core` / `@voidzero-dev/vite-plus-test`. If you upgrade `vite-plus` and `vp install` fails to resolve `vitest`, re-pin the `overrides.vitest` value to the version reported by `vp --version` (or rerun `vp migrate`). Do **not** route this pin through a `catalog:` reference — it must be a plain exact version.
+> Vite+ ships `vite`/`vitest` in `devDependencies` as npm aliases to `@voidzero-dev/vite-plus-core` / `@voidzero-dev/vite-plus-test`, and the `overrides` field in `package.json` pins both to those same alias specs. The `vitest` override **must match the `devDependencies.vitest` spec exactly** (i.e. the `npm:@voidzero-dev/vite-plus-test@latest` alias, not a plain version like `4.1.9`). Bun tolerates a mismatch, but npm/`npx` (used by `npx wrangler deploy` on Cloudflare) rejects it with `EOVERRIDE: Override for vitest conflicts with direct dependency`. If you upgrade `vite-plus` and `vp install` changes the alias, re-sync `overrides.vitest` to match `devDependencies.vitest`. Do **not** route this pin through a `catalog:` reference.
 
 3. Set up environment variables:
 
