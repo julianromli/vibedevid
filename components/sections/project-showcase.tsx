@@ -1,6 +1,9 @@
 /**
  * Project Showcase Section Component
- * Displays filtered and sorted project grid with load more functionality
+ * Displays filtered and sorted project grid with load more functionality.
+ *
+ * Reads filter/sort state from `ProjectShowcaseProvider` via context rather
+ * than receiving it as props. Dropdowns own their own open/close state.
  */
 
 'use client'
@@ -9,7 +12,7 @@ import { Link } from '@tanstack/react-router'
 import { Image } from '@unpic/react'
 import { ChevronDown, Plus } from 'lucide-react'
 import { motion, useInView } from 'motion/react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
@@ -20,49 +23,56 @@ import { OptimizedAvatar } from '@/components/ui/optimized-avatar'
 import { UserDisplayName } from '@/components/ui/user-display-name'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useClickOutside } from '@/hooks/useClickOutside'
-import type { Project, ProjectFilterOption, SortBy } from '@/types/homepage'
+import type { Project, SortBy } from '@/types/homepage'
+import { useProjectShowcase } from './project-showcase/project-showcase-context'
 
 const MotionDiv = motion.div
 
-interface ProjectShowcaseProps {
-  projects: Project[]
-  loading: boolean
-  selectedFilter: string
-  setSelectedFilter: (filter: string) => void
-  selectedTrending: SortBy
-  setSelectedTrending: (trending: SortBy) => void
-  filterOptions: ProjectFilterOption[]
-}
-
 const skeletonKeys = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6']
+
+type TrendingDropdownPlacement = 'mobile' | 'desktop'
 
 interface TrendingDropdownProps {
   selectedTrending: SortBy
   options: Array<{ value: SortBy; label: string }>
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
   onChange: (value: SortBy) => void
-  buttonClassName?: string
-  menuClassName?: string
+  placement: TrendingDropdownPlacement
 }
 
-function TrendingDropdown({
-  selectedTrending,
-  options,
-  isOpen,
-  setIsOpen,
-  onChange,
-  buttonClassName,
-  menuClassName,
-}: TrendingDropdownProps) {
+const TRENDING_PLACEMENT_CLASSES: Record<
+  TrendingDropdownPlacement,
+  { container: string; button: string; menu: string }
+> = {
+  mobile: {
+    container: 'relative',
+    button: 'w-full justify-between',
+    menu: 'bg-background border-border absolute top-full right-0 z-10 mt-2 w-40 rounded-lg border shadow-lg',
+  },
+  desktop: {
+    container: 'relative justify-self-end',
+    button: 'flex items-center gap-2',
+    menu: 'bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg',
+  },
+}
+
+function TrendingDropdown({ selectedTrending, options, onChange, placement }: TrendingDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setIsOpen(false), [])
+  useClickOutside(containerRef, close, isOpen)
+
+  const classes = TRENDING_PLACEMENT_CLASSES[placement]
   const selectedOption = options.find((option) => option.value === selectedTrending)
 
   return (
-    <>
+    <div
+      className={classes.container}
+      ref={containerRef}
+    >
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className={buttonClassName}
+        className={classes.button}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -71,7 +81,7 @@ function TrendingDropdown({
       </Button>
 
       {isOpen && (
-        <div className={menuClassName}>
+        <div className={classes.menu}>
           <div className="p-2">
             {options.map((option) => (
               <button
@@ -91,7 +101,7 @@ function TrendingDropdown({
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -190,36 +200,22 @@ function ProjectCard({ project, index, prefersReducedMotion }: ProjectCardProps)
   )
 }
 
-export function ProjectShowcase({
-  projects,
-  loading,
-  selectedFilter,
-  setSelectedFilter,
-  selectedTrending,
-  setSelectedTrending,
-  filterOptions,
-}: ProjectShowcaseProps) {
+export function ProjectShowcase() {
   const { t } = useTranslation('projectShowcase')
   const { t: tCommon } = useTranslation('common')
+  const {
+    state: { projects, loading, selectedFilter, selectedTrending, filterOptions },
+    actions: { setSelectedFilter, setSelectedTrending },
+  } = useProjectShowcase()
 
-  const resolvedFilterOptions: ProjectFilterOption[] = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
+  const resolvedFilterOptions = [{ value: 'all', label: tCommon('all') }, ...filterOptions]
   const trendingOptions: Array<{ value: SortBy; label: string }> = [
     { value: 'trending', label: t('trendingOptions.trending') },
     { value: 'top', label: t('trendingOptions.top') },
     { value: 'newest', label: t('trendingOptions.newest') },
   ]
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
-  const [isTrendingOpen, setIsTrendingOpen] = useState(false)
   const [visibleProjects, setVisibleProjects] = useState(6)
-  const mobileTrendingRef = useRef<HTMLDivElement>(null)
-  const desktopTrendingRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-  const trendingRefs = useMemo(() => [mobileTrendingRef, desktopTrendingRef], [])
-  const closeTrendingDropdown = useCallback(() => {
-    setIsTrendingOpen(false)
-  }, [])
-
-  useClickOutside(trendingRefs, closeTrendingDropdown, isTrendingOpen)
 
   return (
     <section
@@ -255,25 +251,15 @@ export function ProjectShowcase({
                 filterOptions={resolvedFilterOptions}
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
-                isOpen={isFiltersOpen}
-                setIsOpen={setIsFiltersOpen}
                 triggerClassName="w-full justify-between"
               />
 
-              <div
-                className="relative"
-                ref={mobileTrendingRef}
-              >
-                <TrendingDropdown
-                  selectedTrending={selectedTrending}
-                  options={trendingOptions}
-                  isOpen={isTrendingOpen}
-                  setIsOpen={setIsTrendingOpen}
-                  onChange={setSelectedTrending}
-                  buttonClassName="w-full justify-between"
-                  menuClassName="bg-background border-border absolute top-full right-0 z-10 mt-2 w-40 rounded-lg border shadow-lg"
-                />
-              </div>
+              <TrendingDropdown
+                selectedTrending={selectedTrending}
+                options={trendingOptions}
+                onChange={setSelectedTrending}
+                placement="mobile"
+              />
             </div>
           </div>
 
@@ -284,8 +270,6 @@ export function ProjectShowcase({
                 filterOptions={resolvedFilterOptions}
                 selectedFilter={selectedFilter}
                 setSelectedFilter={setSelectedFilter}
-                isOpen={isFiltersOpen}
-                setIsOpen={setIsFiltersOpen}
               />
             </div>
 
@@ -301,20 +285,12 @@ export function ProjectShowcase({
               </Button>
             </div>
 
-            <div
-              className="relative justify-self-end"
-              ref={desktopTrendingRef}
-            >
-              <TrendingDropdown
-                selectedTrending={selectedTrending}
-                options={trendingOptions}
-                isOpen={isTrendingOpen}
-                setIsOpen={setIsTrendingOpen}
-                onChange={setSelectedTrending}
-                buttonClassName="flex items-center gap-2"
-                menuClassName="bg-background border-border absolute top-full right-0 z-10 mt-2 w-32 rounded-lg border shadow-lg"
-              />
-            </div>
+            <TrendingDropdown
+              selectedTrending={selectedTrending}
+              options={trendingOptions}
+              onChange={setSelectedTrending}
+              placement="desktop"
+            />
           </div>
         </div>
 

@@ -5,15 +5,17 @@ import { CommunityFeaturesSection } from '@/components/sections/community-featur
 import { CTASection } from '@/components/sections/cta-section'
 import { FAQSection } from '@/components/sections/faq-section'
 import { HeroSection } from '@/components/sections/hero-section'
+import { HomeStructuredData } from '@/components/sections/home-structured-data'
 import { ProjectShowcase } from '@/components/sections/project-showcase'
+import { ProjectShowcaseProvider } from '@/components/sections/project-showcase/project-showcase-context'
 import { ReviewsSection } from '@/components/sections/reviews-section'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { YouTubeVideoShowcase } from '@/components/ui/youtube-video-showcase'
-import { useProjectFilters } from '@/hooks/useProjectFilters'
-import { FAQ_DATA } from '@/lib/constants/faqs'
 import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from '@/types/homepage'
+
+const JOIN_HREF = 'https://dub.sh/vibedevid-form'
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean
@@ -25,6 +27,10 @@ interface HomePageClientProps {
   initialVibeVideos: VibeVideo[]
 }
 
+function scrollToShowcase() {
+  document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 export default function HomePageClient({
   initialIsLoggedIn,
   initialUser,
@@ -34,100 +40,12 @@ export default function HomePageClient({
   initialSort,
   initialVibeVideos,
 }: HomePageClientProps) {
-  const projectFilters = useProjectFilters({
-    authReady: true,
-    initialProjects,
-    initialCategories,
-    initialFilter,
-    initialSort,
-  })
-  const handleViewShowcase = () => {
-    const element = document.getElementById('projects')
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    }
-  }
-
   return (
     <main
       id="main-content"
       className="bg-background min-h-screen"
     >
-      <script
-        id="organization-schema"
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Organization',
-            name: 'VibeDev ID',
-            alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
-            url: 'https://vibedevid.com',
-            logo: 'https://vibedevid.com/vibedev-logo.png',
-            description:
-              'Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.',
-            foundingDate: '2024',
-            address: {
-              '@type': 'PostalAddress',
-              addressCountry: 'ID',
-              addressRegion: 'Indonesia',
-            },
-            contactPoint: {
-              '@type': 'ContactPoint',
-              contactType: 'Community Support',
-              email: 'hello@vibedevid.com',
-            },
-            sameAs: [
-              'https://github.com/vibedevid',
-              'https://twitter.com/vibedevid',
-              'https://linkedin.com/company/vibedevid',
-            ],
-            memberOf: {
-              '@type': 'Organization',
-              name: 'Indonesian Developer Community',
-            },
-            keywords: [
-              'vibe coding',
-              'komunitas vibe coding',
-              'komunitas vibe coding indonesia',
-              'vibe coder indonesia',
-              'coding pake AI',
-              'AI untuk coding',
-              'developer indonesia',
-              'open source indonesia',
-            ],
-            audience: {
-              '@type': 'Audience',
-              audienceType: 'Developers, AI Enthusiasts, Tech Innovators',
-              geographicArea: 'Indonesia',
-            },
-          }),
-        }}
-      />
-
-      <script
-        id="faq-schema"
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: FAQ_DATA.map((faq) => ({
-              '@type': 'Question',
-              name: faq.question,
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: faq.answer,
-              },
-            })),
-          }),
-        }}
-      />
+      <HomeStructuredData />
 
       <Navbar
         showNavigation={true}
@@ -136,20 +54,19 @@ export default function HomePageClient({
       />
 
       <HeroSection
-        joinHref="https://dub.sh/vibedevid-form"
-        handleViewShowcase={handleViewShowcase}
+        joinHref={JOIN_HREF}
+        handleViewShowcase={scrollToShowcase}
       />
 
       <ErrorBoundary sectionName="Project Showcase">
-        <ProjectShowcase
-          projects={projectFilters.projects}
-          loading={projectFilters.loading}
-          selectedFilter={projectFilters.selectedFilter}
-          setSelectedFilter={projectFilters.setSelectedFilter}
-          selectedTrending={projectFilters.selectedTrending}
-          setSelectedTrending={projectFilters.setSelectedTrending}
-          filterOptions={projectFilters.filterOptions}
-        />
+        <ProjectShowcaseProvider
+          initialProjects={initialProjects}
+          initialCategories={initialCategories}
+          initialFilter={initialFilter}
+          initialSort={initialSort}
+        >
+          <ProjectShowcase />
+        </ProjectShowcaseProvider>
       </ErrorBoundary>
 
       <ErrorBoundary sectionName="Video Showcase">
@@ -168,7 +85,7 @@ export default function HomePageClient({
 
       <FAQSection />
 
-      <CTASection joinHref="https://dub.sh/vibedevid-form" />
+      <CTASection joinHref={JOIN_HREF} />
 
       <Footer />
     </main>

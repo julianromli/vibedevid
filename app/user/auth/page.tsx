@@ -5,7 +5,7 @@ import { Image } from '@unpic/react'
 import { Link } from '@tanstack/react-router'
 import { useSearchParams } from '@/lib/navigation'
 import { useTranslation } from 'react-i18next'
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -27,25 +27,9 @@ function getSafeAuthRedirectPath(value: string | null): string {
 
 type AuthMode = 'signin' | 'signup' | 'reset'
 
-function buildAuthHref(mode: AuthMode, searchParams: URLSearchParams): string {
-  const params = new URLSearchParams()
-  if (mode !== 'signin') {
-    params.set('mode', mode)
-  }
-  const redirectTo = searchParams.get('redirectTo')
-  if (redirectTo) {
-    params.set('redirectTo', redirectTo)
-  }
-  const success = searchParams.get('success')
-  if (success) {
-    params.set('success', success)
-  }
-  const error = searchParams.get('error')
-  if (error) {
-    params.set('error', error)
-  }
-  const query = params.toString()
-  return query ? `/user/auth?${query}` : '/user/auth'
+function parseInitialMode(value: string | null): AuthMode {
+  if (value === 'signup' || value === 'reset') return value
+  return 'signin'
 }
 
 function AuthPageContent() {
@@ -53,16 +37,9 @@ function AuthPageContent() {
   const searchParams = useSearchParams()
   const { t } = useTranslation('auth')
   const safeRedirectTo = getSafeAuthRedirectPath(searchParams.get('redirectTo'))
-  const authMode = (searchParams.get('mode') === 'signup'
-    ? 'signup'
-    : searchParams.get('mode') === 'reset'
-      ? 'reset'
-      : 'signin') satisfies AuthMode
+  const [authMode, setAuthMode] = useState<AuthMode>(() => parseInitialMode(searchParams.get('mode')))
   const isSignUp = authMode === 'signup'
   const isForgotPassword = authMode === 'reset'
-  const signInHref = buildAuthHref('signin', searchParams)
-  const signUpHref = buildAuthHref('signup', searchParams)
-  const resetHref = buildAuthHref('reset', searchParams)
   const error = searchParams.get('error')
   const success = searchParams.get('success')
 
@@ -132,28 +109,34 @@ function AuthPageContent() {
                     }`}
                   />
 
-                  <a
-                    href={signInHref}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signin')}
                     aria-current={!isSignUp ? 'page' : undefined}
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'sm' }),
                       'relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300',
-                      !isSignUp ? 'text-background' : 'text-muted-foreground',
+                      !isSignUp
+                        ? 'text-background hover:bg-transparent hover:text-background'
+                        : 'text-muted-foreground',
                     )}
                   >
                     {t('signIn')}
-                  </a>
-                  <a
-                    href={signUpHref}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signup')}
                     aria-current={isSignUp ? 'page' : undefined}
                     className={cn(
                       buttonVariants({ variant: 'ghost', size: 'sm' }),
                       'relative z-10 rounded-full px-6 py-2 text-sm transition-all duration-300',
-                      isSignUp ? 'text-background' : 'text-muted-foreground',
+                      isSignUp
+                        ? 'text-background hover:bg-transparent hover:text-background'
+                        : 'text-muted-foreground',
                     )}
                   >
                     {t('signUp')}
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -166,8 +149,9 @@ function AuthPageContent() {
           ) : (
             <>
               <div className="mb-8 flex items-center">
-                <a
-                  href={signInHref}
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signin')}
                   className={cn(
                     buttonVariants({ variant: 'ghost', size: 'sm' }),
                     'mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full border-0 bg-muted/50 p-0 text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -175,7 +159,7 @@ function AuthPageContent() {
                   aria-label={t('signIn')}
                 >
                   <ArrowLeft className="h-5 w-5" />
-                </a>
+                </button>
                 <h1 className="font-bold text-3xl text-foreground tracking-tight">{t('resetPassword')}</h1>
               </div>
 
@@ -250,12 +234,13 @@ function AuthPageContent() {
                       Remember me
                     </label>
                   </div>
-                  <a
-                    href={resetHref}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('reset')}
                     className="text-muted-foreground text-sm transition-all duration-200 hover:cursor-pointer hover:text-foreground hover:underline"
                   >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
               ) : null}
 
@@ -351,9 +336,13 @@ function AuthPageContent() {
               ) : (
                 <>
                   Remember your password?{' '}
-                  <a href={signInHref} className="text-foreground underline hover:text-primary">
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signin')}
+                    className="text-foreground underline hover:text-primary"
+                  >
                     Back to sign in
-                  </a>
+                  </button>
                 </>
               )}
             </p>

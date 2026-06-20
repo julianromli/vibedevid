@@ -1,11 +1,10 @@
 'use client'
 
+import { Link } from '@tanstack/react-router'
+import { Image } from '@unpic/react'
 import { Plus } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Image } from '@unpic/react'
-import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { Button } from '@/components/ui/button'
 import { FilterControls } from '@/components/ui/filter-controls'
@@ -121,7 +120,6 @@ export function ProjectListClient({
 }: ProjectListClientProps) {
   const { t } = useTranslation('projectList')
   const { t: tCommon } = useTranslation('common')
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const {
@@ -171,8 +169,6 @@ export function ProjectListClient({
               filterOptions={resolvedFilterOptions}
               selectedFilter={selectedFilter}
               setSelectedFilter={setSelectedFilter}
-              isOpen={isFiltersOpen}
-              setIsOpen={setIsFiltersOpen}
               triggerClassName="w-full justify-between"
             />
 
@@ -202,8 +198,6 @@ export function ProjectListClient({
               filterOptions={resolvedFilterOptions}
               selectedFilter={selectedFilter}
               setSelectedFilter={setSelectedFilter}
-              isOpen={isFiltersOpen}
-              setIsOpen={setIsFiltersOpen}
             />
           </div>
 

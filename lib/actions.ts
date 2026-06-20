@@ -618,6 +618,18 @@ export async function fetchProjectsWithSorting(
   const supabase = await createClient()
 
   try {
+    // Resolve the incoming filter value (a category `name` slug from the UI)
+    // to every representation it may be stored as on `projects.category`.
+    // Older / seeded projects store the display text (e.g. "Landing Page")
+    // while newer projects store the category `name` slug (e.g. "landing-page"),
+    // so an exact equality match would miss one of the two.
+    const categories = await getCategories()
+
+    const categoryMap = new Map<string, string>()
+    for (const cat of categories) {
+      categoryMap.set(cat.name, cat.display_name)
+    }
+
     let query = supabase.from('projects').select(`
         *,
         users!author_id (
@@ -629,10 +641,32 @@ export async function fetchProjectsWithSorting(
       `)
 
     if (category && category !== 'all') {
-      query = query.eq('category', category)
+      const matchedCategory = categories.find(
+        (cat) => cat.name === category || cat.display_name === category,
+      )
+      const candidateValues = Array.from(
+        new Set(
+          [category, matchedCategory?.name, matchedCategory?.display_name].filter(
+            (value): value is string => Boolean(value),
+          ),
+        ),
+      )
+
+      query =
+        candidateValues.length > 1 ? query.in('category', candidateValues) : query.eq('category', category)
     }
 
-    query = query.order('created_at', { ascending: false }).limit(limit)
+    // For like-based sorts ('top'/'trending') the ranking key (likes) is
+    // computed separately and cannot be ordered in SQL, so a tight `limit`
+    // here would truncate the newest-N window and hide older high-like
+    // projects. Fetch a wider candidate window first, then sort + truncate
+    // to `limit` in JS below. 'newest' can be ordered + limited directly.
+    const CANDIDATE_MULTIPLIER = 5
+    const MAX_CANDIDATES = 200
+    const fetchLimit =
+      sortBy === 'newest' ? limit : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER))
+
+    query = query.order('created_at', { ascending: false }).limit(fetchLimit)
 
     const { data: projectsWithUsers, error } = await query
 
@@ -646,12 +680,7 @@ export async function fetchProjectsWithSorting(
     }
 
     const projectIds = projectsWithUsers.map((p) => p.id)
-    const [likesResult, categories] = await Promise.all([getBatchLikeStatus(projectIds), getCategories()])
-
-    const categoryMap = new Map<string, string>()
-    for (const cat of categories) {
-      categoryMap.set(cat.name, cat.display_name)
-    }
+    const likesResult = await getBatchLikeStatus(projectIds)
 
     const likesData = likesResult.likesData || {}
 
@@ -681,8 +710,30 @@ export async function fetchProjectsWithSorting(
 
     const sortedProjects = [...formattedProjects]
 
-    if (sortBy === 'trending' || sortBy === 'top') {
+    if (sortBy === 'newest') {
+      // Already ordered by created_at desc from the query; keep as-is.
+      sortedProjects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    } else if (sortBy === 'top') {
+      // All-time best: rank purely by total likes, newest as tiebreaker.
       sortedProjects.sort((a, b) => {
+        if (b.likes !== a.likes) {
+          return b.likes - a.likes
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+    } else {
+      // Trending: likes weighted by recency so newer popular projects rank
+      // higher than equally-liked but older ones.
+      const trendingScore = (likes: number, createdAt: string) => {
+        const ageInDays = Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 86400000)
+        return likes / ageInDays
+      }
+
+      sortedProjects.sort((a, b) => {
+        const scoreDiff = trendingScore(b.likes, b.createdAt) - trendingScore(a.likes, a.createdAt)
+        if (scoreDiff !== 0) {
+          return scoreDiff
+        }
         if (b.likes !== a.likes) {
           return b.likes - a.likes
         }
@@ -690,19 +741,15 @@ export async function fetchProjectsWithSorting(
       })
     }
 
-    if (sortBy === 'trending') {
-      sortedProjects.sort((a, b) => {
-        const aRecency = a.likes / Math.max(1, (Date.now() - new Date(a.createdAt).getTime()) / 86400000)
-        const bRecency = b.likes / Math.max(1, (Date.now() - new Date(b.createdAt).getTime()) / 86400000)
-        return bRecency - aRecency
-      })
-    }
+    // Truncate to the requested limit after sorting so like-based ranks are
+    // computed across the full candidate window rather than a newest-N slice.
+    const limitedProjects = sortedProjects.slice(0, limit)
 
     console.log(
-      `[fetchProjectsWithSorting] Fetched ${sortedProjects.length} projects with sorting: ${sortBy}, category: ${category || 'all'}`,
+      `[fetchProjectsWithSorting] Fetched ${limitedProjects.length} projects with sorting: ${sortBy}, category: ${category || 'all'}`,
     )
 
-    return { projects: sortedProjects, error: null }
+    return { projects: limitedProjects, error: null }
   } catch (error) {
     console.error('[fetchProjectsWithSorting] Unexpected error:', toLoggableError(error))
     return { projects: [], error: 'Failed to fetch projects' }

@@ -3,7 +3,6 @@
  * Handles filter state, sorting, and data fetching
  */
 
-import { usePathname, useRouter, useSearchParams } from '@/lib/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { fetchProjectsWithSortingFn } from '@/lib/actions/projects.functions'
 import { getCategories } from '@/lib/categories'
@@ -18,22 +17,10 @@ interface UseProjectFiltersOptions {
 }
 
 const ALL_FILTER_VALUE = 'all'
-const DEFAULT_SORT: SortBy = 'trending'
+const DEFAULT_SORT: SortBy = 'newest'
 const PROJECT_FETCH_TIMEOUT_MS = 10_000
 
 type FetchProjectsResult = Awaited<ReturnType<typeof fetchProjectsWithSortingFn>>
-
-function normalizeSortParam(value: string | null | undefined): SortBy {
-  return value === 'top' || value === 'newest' || value === 'trending' ? value : DEFAULT_SORT
-}
-
-function normalizeFilterParam(value: string | null | undefined, categories: ProjectFilterOption[]): string {
-  if (!value || value === ALL_FILTER_VALUE) {
-    return ALL_FILTER_VALUE
-  }
-
-  return categories.some((category) => category.value === value) ? value : ALL_FILTER_VALUE
-}
 
 async function fetchProjectsWithTimeout(sortBy: SortBy, category?: string): Promise<FetchProjectsResult> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined
@@ -78,10 +65,6 @@ export function useProjectFilters({
   initialFilter = ALL_FILTER_VALUE,
   initialSort = DEFAULT_SORT,
 }: UseProjectFiltersOptions) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
   const [selectedFilter, setSelectedFilter] = useState(initialFilter)
   const [selectedTrending, setSelectedTrending] = useState<SortBy>(initialSort)
   const [visibleProjects, setVisibleProjects] = useState(6)
@@ -113,28 +96,6 @@ export function useProjectFilters({
 
     fetchFilterCategories()
   }, [initialCategories])
-
-  useEffect(() => {
-    const nextSort = normalizeSortParam(searchParams.get('sort'))
-    const nextFilter = normalizeFilterParam(searchParams.get('filter'), filterOptions)
-
-    setSelectedTrending((current) => (current === nextSort ? current : nextSort))
-    setSelectedFilter((current) => (current === nextFilter ? current : nextFilter))
-  }, [filterOptions, searchParams])
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    params.set('sort', selectedTrending)
-    params.set('filter', selectedFilter)
-
-    const nextQuery = params.toString()
-    const currentQuery = searchParams.toString()
-
-    if (nextQuery !== currentQuery) {
-      router.navigate({ to: `${pathname}?${nextQuery}`, replace: true })
-    }
-  }, [pathname, router, searchParams, selectedFilter, selectedTrending])
 
   // Fetch projects with sorting while ignoring stale responses.
   useEffect(() => {

@@ -7,7 +7,7 @@ export function getSingleSearchParam(value: string | string[] | undefined): stri
 }
 
 export function normalizeSortParam(value: string | undefined): SortBy {
-  return value === 'top' || value === 'newest' || value === 'trending' ? value : 'trending'
+  return value === 'top' || value === 'newest' || value === 'trending' ? value : 'newest'
 }
 
 /**
