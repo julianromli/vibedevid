@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { createServerClient } from '@supabase/ssr'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/api/auth-check')({
   server: {
@@ -11,7 +11,13 @@ export const Route = createFileRoute('/api/auth-check')({
         const { getCookies, setCookie } = await import('@tanstack/react-start/server')
 
         const { searchParams } = new URL(request.url)
-        const redirectTo = searchParams.get('redirectTo') || '/blog/editor'
+        const rawRedirectTo = searchParams.get('redirectTo') || '/blog/editor'
+
+        // Prevent open redirects: only allow local, single-leading-slash paths.
+        // Reject protocol-relative (`//host`), backslash, and absolute URLs.
+        const isSafeLocalPath =
+          rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//') && !rawRedirectTo.startsWith('/\\')
+        const redirectTo = isSafeLocalPath ? rawRedirectTo : '/blog/editor'
 
         const supabase = createServerClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,10 +41,7 @@ export const Route = createFileRoute('/api/auth-check')({
         } = await supabase.auth.getUser()
 
         if (!user) {
-          return Response.redirect(
-            new URL(`/user/auth?redirectTo=${encodeURIComponent(redirectTo)}`, request.url),
-            302,
-          )
+          return Response.redirect(new URL(`/user/auth?redirectTo=${encodeURIComponent(redirectTo)}`, request.url), 302)
         }
 
         return Response.redirect(new URL(redirectTo, request.url), 302)

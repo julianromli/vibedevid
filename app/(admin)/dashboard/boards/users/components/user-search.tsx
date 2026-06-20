@@ -1,17 +1,17 @@
 'use client'
 
 import { IconFilter, IconSearch } from '@tabler/icons-react'
-import { useRouter, useSearchParams } from '@/lib/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { buildDashboardBoardClearHref, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import { useNavigate, useSearchParams } from '@/lib/navigation'
 
 const BOARD_TAB: DashboardTabValue = 'users'
 
 export function UserSearch() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const searchParams = useSearchParams()
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
@@ -26,28 +26,23 @@ export function UserSearch() {
   }, [searchParams])
 
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', BOARD_TAB)
-
-    if (search) params.set('search', search)
-    else params.delete('search')
-
-    if (role !== 'all') params.set('role', role)
-    else params.delete('role')
-
-    if (status !== 'all') params.set('status', status)
-    else params.delete('status')
-
-    params.delete('page')
-
-    router.navigate({ to: `?${params.toString()}` })
+    navigate({
+      to: '/dashboard',
+      search: {
+        tab: BOARD_TAB,
+        search: search || undefined,
+        role: role !== 'all' ? role : undefined,
+        status: status !== 'all' ? status : undefined,
+        page: undefined,
+      },
+    })
   }
 
   const clearFilters = () => {
     setSearch('')
     setRole('all')
     setStatus('all')
-    router.navigate({ to: buildDashboardBoardClearHref(BOARD_TAB) })
+    navigate({ to: '/dashboard', search: { tab: BOARD_TAB } })
   }
 
   const hasFilters = search || role !== 'all' || status !== 'all'

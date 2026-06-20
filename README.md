@@ -227,6 +227,7 @@ bunx playwright test -g "should track views when visiting project page"
 │   │   ├── blog.tsx (layout) / blog.index.tsx / blog.$slug.tsx / blog.editor*.tsx
 │   │   ├── event.list.tsx / event.$slug.tsx
 │   │   ├── _admin/         # Protected admin route group (role-gated layout)
+│   │   ├── admin.tsx       # Standalone admin page (role-gated via beforeLoad)
 │   │   ├── api/            # API route handlers (server.handlers blocks)
 │   │   └── auth.callback.ts
 │   ├── routeTree.gen.ts    # Generated route tree (do not hand-edit)

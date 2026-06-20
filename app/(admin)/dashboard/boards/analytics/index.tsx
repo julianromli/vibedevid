@@ -16,12 +16,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  type CategoryCount,
-  type CommunityHealthCounts,
-  type ContentGrowthPoint,
-  type RoleCount,
-  type StatusCount,
+import type {
+  CategoryCount,
+  CommunityHealthCounts,
+  ContentGrowthPoint,
+  RoleCount,
+  StatusCount,
 } from '@/lib/actions/analytics'
 import {
   getAnalyticsTimeSeriesFn,
@@ -32,6 +32,7 @@ import {
   getProjectsByCategoryFn,
   getUsersByRoleFn,
 } from '@/lib/actions/analytics.functions'
+import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
 
 interface EngagementPoint {
   date: string
@@ -400,7 +401,7 @@ export default function Analytics() {
             title="Pending events"
             value={health?.pending_events}
             icon={IconCalendarEvent}
-            href="/dashboard?tab=events-approval"
+            tab="events-approval"
             loading={loading}
             highlight={!!health && health.pending_events > 0}
           />
@@ -408,7 +409,7 @@ export default function Analytics() {
             title="Pending reports"
             value={health?.pending_reports}
             icon={IconMessageCircle}
-            href="/dashboard?tab=comments"
+            tab="comments"
             loading={loading}
             highlight={!!health && health.pending_reports > 0}
           />
@@ -416,28 +417,28 @@ export default function Analytics() {
             title="Suspended users"
             value={health?.suspended_users}
             icon={IconShield}
-            href="/dashboard?tab=users"
+            tab="users"
             loading={loading}
           />
           <HealthCard
             title="Featured projects"
             value={health?.featured_projects}
             icon={IconStar}
-            href="/dashboard?tab=projects"
+            tab="projects"
             loading={loading}
           />
           <HealthCard
             title="Featured posts"
             value={health?.featured_posts}
             icon={IconStar}
-            href="/dashboard?tab=blog"
+            tab="blog"
             loading={loading}
           />
           <HealthCard
             title="Live events"
             value={health?.approved_events}
             icon={IconCalendarEvent}
-            href="/dashboard?tab=events-approval"
+            tab="events-approval"
             loading={loading}
           />
         </div>
@@ -505,19 +506,22 @@ function HealthCard({
   title,
   value,
   icon: Icon,
-  href,
+  tab,
   loading,
   highlight = false,
 }: {
   title: string
   value?: number
   icon: ElementType
-  href: string
+  tab: DashboardTabValue
   loading: boolean
   highlight?: boolean
 }) {
   return (
-    <Link to={href}>
+    <Link
+      to="/dashboard"
+      search={{ tab }}
+    >
       <Card
         className={
           highlight

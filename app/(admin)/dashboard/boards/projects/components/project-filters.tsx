@@ -1,12 +1,12 @@
 'use client'
 
 import { IconFilter, IconSearch } from '@tabler/icons-react'
-import { useRouter, useSearchParams } from '@/lib/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { buildDashboardBoardClearHref, type DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import type { DashboardTabValue } from '@/lib/admin/dashboard-tabs'
+import { useNavigate, useSearchParams } from '@/lib/navigation'
 
 const BOARD_TAB: DashboardTabValue = 'projects'
 
@@ -15,7 +15,7 @@ interface ProjectFiltersProps {
 }
 
 export function ProjectFilters({ categories }: ProjectFiltersProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const searchParams = useSearchParams()
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
@@ -23,28 +23,24 @@ export function ProjectFilters({ categories }: ProjectFiltersProps) {
   const [category, setCategory] = useState(searchParams.get('category') || 'all')
 
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', BOARD_TAB)
-
-    if (search) params.set('search', search)
-    else params.delete('search')
-
-    if (status !== 'all') params.set('status', status)
-    else params.delete('status')
-
-    if (category !== 'all') params.set('category', category)
-    else params.delete('category')
-
-    params.delete('page') // Reset to first page on filter change
-
-    router.navigate({ to: `?${params.toString()}` })
+    navigate({
+      to: '/dashboard',
+      search: {
+        tab: BOARD_TAB,
+        search: search || undefined,
+        status: status !== 'all' ? status : undefined,
+        category: category !== 'all' ? category : undefined,
+        // Reset to first page on filter change
+        page: undefined,
+      },
+    })
   }
 
   const clearFilters = () => {
     setSearch('')
     setStatus('all')
     setCategory('all')
-    router.navigate({ to: buildDashboardBoardClearHref(BOARD_TAB) })
+    navigate({ to: '/dashboard', search: { tab: BOARD_TAB } })
   }
 
   const hasFilters = search || status !== 'all' || category !== 'all'
