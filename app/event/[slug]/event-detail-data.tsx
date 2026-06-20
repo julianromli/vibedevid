@@ -29,7 +29,6 @@ export default function EventDetailData({ event, relatedEvents, currentUser }: E
   return (
     <div className="min-h-screen bg-background">
       <Navbar
-        showBackButton={true}
         showNavigation={true}
         isLoggedIn={!!currentUser}
         user={currentUser || undefined}

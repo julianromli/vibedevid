@@ -64,7 +64,6 @@ export default function BlogPostData({
     <article className="min-h-screen bg-background">
       <BlogViewTracker postId={post.id} />
       <Navbar
-        showBackButton={true}
         showNavigation={true}
         isLoggedIn={isLoggedIn}
         user={userData ?? undefined}

@@ -139,7 +139,6 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
       <Navbar
-        showBackButton={true}
         showNavigation={true}
         isLoggedIn={!!currentUser}
         user={currentUser || undefined}
