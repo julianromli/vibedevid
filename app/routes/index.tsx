@@ -1,13 +1,14 @@
-import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import HomePageClient from "@/app/home-page-client";
 import { fetchProjectsWithSorting } from "@/lib/actions";
 import { getCategories } from "@/lib/categories";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
+import { getSiteUrl } from "@/lib/seo/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { getVideoIconKey } from "@/lib/video-icon-key";
 import type { Project, ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
-import HomePageClient from "@/app/home-page-client";
 
 interface VibeVideoRow {
   id: string;
@@ -168,6 +169,11 @@ export const Route = createFileRoute("/")({
   loader: async ({ deps }) => {
     return loadHomeData({ data: { filter: deps.filter, sort: deps.sort } });
   },
+  // Consolidate `?filter`/`?sort` variants onto the clean homepage URL so
+  // crawlers don't treat each combination as a separate duplicate page.
+  head: () => ({
+    links: [{ rel: "canonical", href: getSiteUrl() }],
+  }),
   component: HomeRoute,
 });
 

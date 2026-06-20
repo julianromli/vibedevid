@@ -1,8 +1,8 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { I18nextProvider, useTranslation } from "react-i18next";
-import NotFoundError from "@/components/errors/not-found-error";
 import { AgentationProvider } from "@/components/agentation-provider";
 import { ClientThemeProvider } from "@/components/client-theme-provider";
+import NotFoundError from "@/components/errors/not-found-error";
 import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { getCurrentUserFn } from "@/lib/actions/user.functions";
@@ -50,7 +50,8 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: "/vibedev-guest-avatar.png" },
+        { rel: "icon", type: "image/svg+xml", href: "/default-favicon.svg" },
+        { rel: "canonical", href: siteUrl },
       ],
     };
   },

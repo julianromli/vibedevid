@@ -46,3 +46,13 @@ export function absoluteUrl(pathname: string): string {
   const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
   return `${base}${path}`;
 }
+
+/**
+ * Robots `noindex, nofollow` meta entry for private / non-indexable routes
+ * (admin, dashboards, editors, auth screens). Spread into a route's
+ * `head().meta` array.
+ */
+export const NOINDEX_META = {
+  name: "robots",
+  content: "noindex, nofollow",
+} as const;

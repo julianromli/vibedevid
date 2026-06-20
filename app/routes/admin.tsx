@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { VideoVibeCodingManager } from "@/components/ui/video-vibe-coding-manager";
 import { resolveAdminUser } from "@/lib/auth/admin-gate";
+import { NOINDEX_META } from "@/lib/seo/site-url";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     return resolveAdminUser();
   },
+  head: () => ({
+    meta: [{ title: "Admin Dashboard | VibeDev ID" }, NOINDEX_META],
+  }),
   component: AdminRoute,
 });
 

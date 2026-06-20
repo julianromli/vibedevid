@@ -33,6 +33,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 📊 **Analytics Dashboard** - Charts dan data visualization (recharts)
 - ❓ **FAQ System** - Frequently asked questions management
 - 🚨 **Content Moderation** - Report dan moderation system
+- 🔎 **SEO** - SSR meta/Open Graph, JSON-LD, dynamic sitemap, robots.txt, canonical, dan `noindex` di halaman privat
 
 ## Tech Stack
 
@@ -364,6 +365,19 @@ Session-based analytics dengan:
 - Intersection Observer lazy loading
 - AVIF/WebP automatic optimization
 - Client-safe processing (no sharp in client bundle)
+
+### SEO
+
+Search-engine optimization is handled at the route level:
+
+- **Server-rendered meta** - Per-route `head()` blocks emit title, description, Open Graph, and Twitter Card tags (rendered in SSR HTML, verifiable with a Googlebot user-agent).
+- **Structured data** - Organization + WebSite JSON-LD in the root route.
+- **Dynamic sitemap** - `app/routes/sitemap[.]xml.ts` queries Supabase for published posts, projects, approved events, and public profiles, plus static routes. Auth-gated pages are excluded; `lastmod` uses real content timestamps with a fallback.
+- **robots.txt** - `app/routes/robots[.]txt.ts` serves a single `User-agent: *` group, disallows private/API paths, and references the sitemap. Note: if Cloudflare's managed robots.txt is enabled it will shadow this route — keep only one source of truth.
+- **Canonical URLs** - Self-referencing canonicals on content and list pages; the homepage and `/project/list` consolidate `?filter`/`?sort` variants onto their clean URLs.
+- **noindex** - Admin, dashboard, blog editor, project submit, and auth routes emit `robots: noindex, nofollow` via the shared `NOINDEX_META` helper in `lib/seo/site-url.ts`.
+- **Dynamic OG image** - `app/routes/api/og.ts` renders a branded 1200×630 SVG from a `title` query param (dependency-free, Cloudflare Workers-safe).
+- **LCP-friendly images** - Below-the-fold images use `loading="lazy"`; preload is reserved for the hero/logo (above the fold).
 
 ### Email Domain Whitelist
 

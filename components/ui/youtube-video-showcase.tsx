@@ -1,58 +1,63 @@
-'use client'
+"use client";
 
-import { Image } from '@unpic/react'
-import { Calendar, Code, Play, Users, Video } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { ScaleIn, ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
-import type { VibeVideo, VideoIconKey } from '@/types/homepage'
+import { Image } from "@unpic/react";
+import { Calendar, Code, Play, Users, Video } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import {
+  ScaleIn,
+  ScrollReveal,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/ui/motion-wrapper";
+import type { VibeVideo, VideoIconKey } from "@/types/homepage";
 
 const applyThumbnailFallback = (target: HTMLImageElement) => {
-  if (target.src.includes('vibedev-guest-avatar.png')) {
+  if (target.src.includes("vibedev-guest-avatar.png")) {
     target.src =
-      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmMzRjNWQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmNDY4MmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgZmlsbD0idXJsKCNhKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+VmlkZW8gVGh1bWJuYWlsPC90ZXh0Pjwvc3ZnPg=='
-    return
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmMzRjNWQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmNDY4MmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgZmlsbD0idXJsKCNhKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+VmlkZW8gVGh1bWJuYWlsPC90ZXh0Pjwvc3ZnPg==";
+    return;
   }
 
-  target.src = '/vibedev-guest-avatar.png'
-}
+  target.src = "/vibedev-guest-avatar.png";
+};
 
 function getVideoIcon(iconKey: VideoIconKey) {
-  const iconProps = { size: 24, className: 'text-white' }
+  const iconProps = { size: 24, className: "text-white" };
 
   switch (iconKey) {
-    case 'play':
-      return <Play {...iconProps} />
-    case 'users':
-      return <Users {...iconProps} />
-    case 'video':
-      return <Video {...iconProps} />
+    case "play":
+      return <Play {...iconProps} />;
+    case "users":
+      return <Users {...iconProps} />;
+    case "video":
+      return <Video {...iconProps} />;
     default:
-      return <Code {...iconProps} />
+      return <Code {...iconProps} />;
   }
 }
 
 interface DesktopVideoOptionProps {
-  video: VibeVideo
-  index: number
-  activeIndex: number
-  onVideoClick: (index: number) => void
-  onPlayVideo: (videoId: string) => void
-  formatDate: (dateString: string) => string
-  watchLabel: string
-  videoLabel: string
-  viewsLabel: string
+  video: VibeVideo;
+  index: number;
+  activeIndex: number;
+  onVideoClick: (index: number) => void;
+  onPlayVideo: (videoId: string) => void;
+  formatDate: (dateString: string) => string;
+  watchLabel: string;
+  videoLabel: string;
+  viewsLabel: string;
 }
 
 interface DesktopVideoInfoOverlayProps {
-  video: VibeVideo
-  isActive: boolean
-  formatDate: (dateString: string) => string
-  watchLabel: string
-  videoLabel: string
-  viewsLabel: string
-  onPlayVideo: (videoId: string) => void
+  video: VibeVideo;
+  isActive: boolean;
+  formatDate: (dateString: string) => string;
+  watchLabel: string;
+  videoLabel: string;
+  viewsLabel: string;
+  onPlayVideo: (videoId: string) => void;
 }
 
 function DesktopVideoInfoOverlay({
@@ -77,8 +82,8 @@ function DesktopVideoInfoOverlay({
               className="video-title line-clamp-2 text-sm font-bold transition-all duration-700 ease-in-out md:text-base"
               style={{
                 opacity: isActive ? 1 : 0,
-                transform: isActive ? 'translateX(0)' : 'translateX(25px)',
-                textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)',
+                transform: isActive ? "translateX(0)" : "translateX(25px)",
+                textShadow: "0 2px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)",
               }}
             >
               {video.title}
@@ -87,8 +92,8 @@ function DesktopVideoInfoOverlay({
               className="video-desc line-clamp-2 text-xs text-gray-200 transition-all duration-700 ease-in-out md:text-sm"
               style={{
                 opacity: isActive ? 1 : 0,
-                transform: isActive ? 'translateX(0)' : 'translateX(25px)',
-                textShadow: '0 1px 6px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)',
+                transform: isActive ? "translateX(0)" : "translateX(25px)",
+                textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)",
               }}
             >
               {video.description}
@@ -97,8 +102,8 @@ function DesktopVideoInfoOverlay({
               className="video-meta mt-1 flex items-center gap-2 text-xs text-gray-300 transition-all duration-700 ease-in-out"
               style={{
                 opacity: isActive ? 1 : 0,
-                transform: isActive ? 'translateX(0)' : 'translateX(25px)',
-                textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)',
+                transform: isActive ? "translateX(0)" : "translateX(25px)",
+                textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,1)",
               }}
             >
               <span>{formatDate(video.publishedAt)}</span>
@@ -119,7 +124,7 @@ function DesktopVideoInfoOverlay({
             className="transition-all duration-700 ease-in-out"
             style={{
               opacity: isActive ? 1 : 0,
-              transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+              transform: isActive ? "translateY(0)" : "translateY(15px)",
             }}
           >
             <button
@@ -134,7 +139,7 @@ function DesktopVideoInfoOverlay({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function DesktopVideoOption({
@@ -148,17 +153,17 @@ function DesktopVideoOption({
   videoLabel,
   viewsLabel,
 }: DesktopVideoOptionProps) {
-  const isActive = activeIndex === index
+  const isActive = activeIndex === index;
 
   return (
     <article
       className={`video-option video-option-enter relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
-        isActive ? 'active border-primary border-2 shadow-2xl' : 'border-border border-2 shadow-lg'
+        isActive ? "active border-primary border-2 shadow-2xl" : "border-border border-2 shadow-lg"
       } `}
       style={{
         animationDelay: `${180 * index}ms`,
-        boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.25)' : '0 10px 30px rgba(0,0,0,0.15)',
-        flex: isActive ? '7 1 0%' : '1 1 0%',
+        boxShadow: isActive ? "0 20px 60px rgba(0,0,0,0.25)" : "0 10px 30px rgba(0,0,0,0.15)",
+        flex: isActive ? "7 1 0%" : "1 1 0%",
         zIndex: isActive ? 10 : 1,
       }}
     >
@@ -174,9 +179,10 @@ function DesktopVideoOption({
           src={video.thumbnail}
           alt={video.title}
           layout="fullWidth"
-          className={`h-full w-full rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? 'scale-100' : 'scale-105'}`}
+          loading="lazy"
+          className={`h-full w-full rounded-xl object-cover transition-all duration-700 ease-in-out ${isActive ? "scale-100" : "scale-105"}`}
           onError={(e) => {
-            applyThumbnailFallback(e.currentTarget as HTMLImageElement)
+            applyThumbnailFallback(e.currentTarget as HTMLImageElement);
           }}
         />
       </div>
@@ -184,11 +190,11 @@ function DesktopVideoOption({
       <div
         className="video-shadow pointer-events-none absolute right-0 left-0 transition-all duration-700 ease-in-out"
         style={{
-          bottom: isActive ? '0' : '-60px',
-          height: '160px',
+          bottom: isActive ? "0" : "-60px",
+          height: "160px",
           background: isActive
-            ? 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
-            : 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)',
+            ? "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)"
+            : "linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)",
         }}
       />
 
@@ -210,42 +216,44 @@ function DesktopVideoOption({
         onPlayVideo={onPlayVideo}
       />
     </article>
-  )
+  );
 }
 
 interface YouTubeVideoShowcaseProps {
-  vibeVideos: VibeVideo[]
+  vibeVideos: VibeVideo[];
 }
 
 export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) {
-  const { t } = useTranslation('youtubeShowcase')
-  const [activeIndex, setActiveIndex] = useState(0)
+  const { t } = useTranslation("youtubeShowcase");
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const handleVideoClick = (index: number) => {
     if (index !== activeIndex) {
-      setActiveIndex(index)
+      setActiveIndex(index);
     }
-  }
+  };
 
   const handlePlayVideo = (videoId: string) => {
-    window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
-  }
+    window.open(`https://www.youtube.com/watch?v=${videoId}`, "_blank", "noopener,noreferrer");
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="text-foreground w-full font-sans">
       {/* Header Section */}
       <ScrollReveal className="mx-auto mb-12 w-full max-w-5xl px-4 text-center sm:px-6">
-        <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
-        <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t('description')}</p>
+        <h2 className="text-foreground mb-4 text-4xl font-bold tracking-tight lg:text-5xl">
+          {t("title")}
+        </h2>
+        <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-xl">{t("description")}</p>
       </ScrollReveal>
 
       {/* Mobile: vertical list */}
@@ -258,16 +266,19 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
                   src={video.thumbnail}
                   alt={video.title}
                   layout="fullWidth"
+                  loading="lazy"
                   className="h-full w-full object-cover"
                   onError={(e) => {
-                    applyThumbnailFallback(e.currentTarget as HTMLImageElement)
+                    applyThumbnailFallback(e.currentTarget as HTMLImageElement);
                   }}
                 />
               </AspectRatio>
 
               <div className="p-4">
                 <h3 className="line-clamp-2 text-base font-semibold">{video.title}</h3>
-                <p className="text-muted-foreground line-clamp-2 mt-1 text-sm">{video.description}</p>
+                <p className="text-muted-foreground line-clamp-2 mt-1 text-sm">
+                  {video.description}
+                </p>
                 <div className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>{formatDate(video.publishedAt)}</span>
@@ -275,7 +286,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
                     <>
                       <span>•</span>
                       <span>
-                        {video.viewCount} {t('views')}
+                        {video.viewCount} {t("views")}
                       </span>
                     </>
                   )}
@@ -286,7 +297,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
                   className="mt-3 inline-flex min-h-[40px] touch-manipulation items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-red-700"
                 >
                   <Play className="h-4 w-4" />
-                  {t('watch')} {t('videoLabel')}
+                  {t("watch")} {t("videoLabel")}
                 </button>
               </div>
             </article>
@@ -298,7 +309,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
       <ScaleIn className="hidden md:block">
         <div
           className="videos-container relative mx-auto flex w-full max-w-6xl min-w-[300px] gap-1 overflow-hidden rounded-xl px-0"
-          style={{ height: 'auto', aspectRatio: '5/2' }}
+          style={{ height: "auto", aspectRatio: "5/2" }}
         >
           {vibeVideos.map((video, index) => (
             <DesktopVideoOption
@@ -309,9 +320,9 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
               onVideoClick={handleVideoClick}
               onPlayVideo={handlePlayVideo}
               formatDate={formatDate}
-              watchLabel={t('watch')}
-              videoLabel={t('videoLabel')}
-              viewsLabel={t('views')}
+              watchLabel={t("watch")}
+              videoLabel={t("videoLabel")}
+              viewsLabel={t("views")}
             />
           ))}
         </div>
@@ -325,7 +336,7 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
           rel="noopener noreferrer"
           className="text-primary hover:text-primary/80 inline-flex items-center gap-2 font-medium transition-colors duration-200"
         >
-          {t('viewAll')}
+          {t("viewAll")}
           <svg
             aria-hidden="true"
             className="h-4 w-4"
@@ -384,5 +395,5 @@ export function YouTubeVideoShowcase({ vibeVideos }: YouTubeVideoShowcaseProps) 
         }}
       />
     </div>
-  )
+  );
 }
