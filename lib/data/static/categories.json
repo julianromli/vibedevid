@@ -1,0 +1,50 @@
+[
+  {
+    "id": "static-personal-web",
+    "name": "Personal Web",
+    "display_name": "Personal Web",
+    "description": "Personal websites and portfolios",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": "static-saas",
+    "name": "SaaS",
+    "display_name": "SaaS",
+    "description": "Software-as-a-service products",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": "static-landing-page",
+    "name": "Landing Page",
+    "display_name": "Landing Page",
+    "description": "Marketing and landing pages",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": "static-mobile-app",
+    "name": "Mobile App",
+    "display_name": "Mobile App",
+    "description": "Mobile applications",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": "static-ai-tool",
+    "name": "AI Tool",
+    "display_name": "AI Tool",
+    "description": "AI-powered tools and products",
+    "sort_order": 5,
+    "is_active": true
+  },
+  {
+    "id": "static-other",
+    "name": "Other",
+    "display_name": "Other",
+    "description": "Other project types",
+    "sort_order": 99,
+    "is_active": true
+  }
+]

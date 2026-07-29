@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { eq } from "drizzle-orm";
+import { invalidateVibeVideosCache } from "@/lib/cache/invalidate";
 import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";
 import { requireAdminOrModeratorUser } from "@/lib/server/auth";
@@ -101,6 +102,8 @@ export const Route = createFileRoute("/api/vibe-videos/$id")({
             return Response.json({ error: "Video tidak ditemukan" }, { status: 404 });
           }
 
+          await invalidateVibeVideosCache();
+
           return Response.json({
             message: "Video berhasil diupdate!",
             video: transformVideo(updatedVideo),
@@ -143,6 +146,7 @@ export const Route = createFileRoute("/api/vibe-videos/$id")({
             .limit(1);
 
           await db.delete(vibeVideos).where(eq(vibeVideos.id, id));
+          await invalidateVibeVideosCache();
 
           return Response.json({
             message: `Video "${videoToDelete?.title || "Unknown"}" berhasil dihapus!`,

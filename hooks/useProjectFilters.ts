@@ -5,6 +5,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { fetchProjectsWithSortingFn } from "@/lib/actions/projects.functions";
+import { clientStorageGet, clientStorageSet } from "@/lib/cache/client-storage";
+import { CACHE_TTL, CLIENT_STORAGE_KEYS } from "@/lib/cache/keys";
 import { getCategoriesFn } from "@/lib/categories";
 import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 
@@ -52,7 +54,17 @@ function isCurrentProjectRequest(
   return isActive && currentRequestId === requestId;
 }
 
+function projectListStorageKey(sortBy: SortBy, selectedFilter: string): string {
+  return `${CLIENT_STORAGE_KEYS.projectList}:${sortBy}:${selectedFilter}`;
+}
+
 async function loadFilteredProjects(sortBy: SortBy, selectedFilter: string): Promise<Project[]> {
+  const storageKey = projectListStorageKey(sortBy, selectedFilter);
+  const cached = clientStorageGet<Project[]>(storageKey);
+  if (cached && cached.length > 0) {
+    return cached;
+  }
+
   const { projects, error } = await fetchProjectsWithTimeout(
     sortBy,
     selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
@@ -62,7 +74,9 @@ async function loadFilteredProjects(sortBy: SortBy, selectedFilter: string): Pro
     throw new Error(error);
   }
 
-  return projects || [];
+  const nextProjects = projects || [];
+  clientStorageSet(storageKey, nextProjects, CACHE_TTL.clientProjectListMs);
+  return nextProjects;
 }
 
 export function useProjectFilters({
@@ -81,27 +95,40 @@ export function useProjectFilters({
   const shouldSkipInitialFetchRef = useRef(initialProjects.length > 0);
   const latestRequestIdRef = useRef(0);
 
-  // Fetch categories for filter options
+  // Fetch categories for filter options (localStorage → serverFn → static on server)
   useEffect(() => {
     if (initialCategories.length > 0) {
+      clientStorageSet(
+        CLIENT_STORAGE_KEYS.categories,
+        initialCategories,
+        CACHE_TTL.clientCategoriesMs,
+      );
+      return;
+    }
+
+    const cachedCategories = clientStorageGet<ProjectFilterOption[]>(
+      CLIENT_STORAGE_KEYS.categories,
+    );
+    if (cachedCategories && cachedCategories.length > 0) {
+      setFilterOptions(cachedCategories);
       return;
     }
 
     const fetchFilterCategories = async () => {
       try {
         const categories = await getCategoriesFn();
-        setFilterOptions(
-          categories.map((category) => ({
-            value: category.name,
-            label: category.display_name,
-          })),
-        );
+        const options = categories.map((category) => ({
+          value: category.name,
+          label: category.display_name,
+        }));
+        setFilterOptions(options);
+        clientStorageSet(CLIENT_STORAGE_KEYS.categories, options, CACHE_TTL.clientCategoriesMs);
       } catch (error) {
         console.error("Failed to fetch categories for filters:", error);
       }
     };
 
-    fetchFilterCategories();
+    void fetchFilterCategories();
   }, [initialCategories]);
 
   // Fetch projects with sorting while ignoring stale responses.
@@ -147,7 +174,7 @@ export function useProjectFilters({
       }
     };
 
-    fetchProjects();
+    void fetchProjects();
 
     return () => {
       isActive = false;

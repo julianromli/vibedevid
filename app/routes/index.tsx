@@ -1,65 +1,13 @@
-import { asc } from "drizzle-orm";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import HomePageClient from "@/app/home-page-client";
 import { fetchProjectsWithSorting } from "@/lib/actions";
 import { getCategories } from "@/lib/categories";
-import { getDb } from "@/lib/db";
-import { vibeVideos } from "@/lib/db/schema";
+import { getVibeVideos } from "@/lib/data/vibe-videos";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
-import { getVideoIconKey } from "@/lib/video-icon-key";
-import type { Project, ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
-
-async function getVibeVideos(): Promise<VibeVideo[]> {
-  const fallbackVideos: VibeVideo[] = [
-    {
-      title: "Next.js Tutorial: Full Stack App Development",
-      description:
-        "Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      videoId: "dQw4w9WgXcQ",
-      publishedAt: "2024-12-20",
-      viewCount: "12.5K",
-      iconKey: "code",
-    },
-    {
-      title: "Live Coding: Building Modern Dashboard",
-      description:
-        "Live coding session to build a modern admin dashboard with React and Tailwind CSS.",
-      thumbnail: "https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg",
-      videoId: "9bZkp7q19f0",
-      publishedAt: "2024-12-15",
-      viewCount: "8.3K",
-      iconKey: "play",
-    },
-  ];
-
-  try {
-    const db = getDb();
-    const data = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position));
-
-    if (!data || data.length === 0) {
-      return fallbackVideos;
-    }
-
-    return data.map((video) => ({
-      id: video.id,
-      title: video.title,
-      description: video.description,
-      thumbnail: video.thumbnail,
-      videoId: video.videoId,
-      publishedAt: video.publishedAt,
-      viewCount: video.viewCount ?? "0",
-      position: video.position,
-      iconKey: getVideoIconKey(video.title, video.description),
-    }));
-  } catch (err) {
-    console.error("[getVibeVideos] failed:", err instanceof Error ? err.message : String(err));
-    return fallbackVideos;
-  }
-}
+import type { Project, ProjectFilterOption, User } from "@/types/homepage";
 
 /**
  * Server-only data fetching for the home route. Wrapped in `createServerFn` so
@@ -108,6 +56,10 @@ export const Route = createFileRoute("/")({
     sort: typeof search.sort === "string" ? search.sort : undefined,
   }),
   loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
+  // Keep homepage data warm on the client so filter/sort navigations and
+  // back-button returns don't re-wake Neon every time.
+  staleTime: 60_000,
+  gcTime: 5 * 60_000,
   loader: async ({ deps, context }) => {
     const data = await loadHomeData({ data: { filter: deps.filter, sort: deps.sort } });
     // Reuse the user already resolved in the root `beforeLoad` instead of

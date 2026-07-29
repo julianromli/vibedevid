@@ -1,6 +1,7 @@
 import { type CookieSerializeOptions, serialize } from "cookie-es";
 import { type Locale, routing } from "@/i18n/routing";
 import { getSafeRedirectPath } from "@/lib/auth/credentials";
+import { hasBetterAuthSessionCookieFromRequest } from "@/lib/auth/session-cookie";
 import { getAuth } from "@/lib/auth/server";
 import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from "@/lib/constants/auth";
 
@@ -143,6 +144,12 @@ export async function applyAuthMiddleware(
   localeCookies: CookieRecord[],
 ): Promise<Response | { cookies: CookieRecord[] }> {
   const pendingCookies: CookieRecord[] = [...localeCookies];
+
+  // Most pageviews are anonymous. Avoid waking Neon for getSession() when
+  // there is clearly no Better Auth cookie on the request.
+  if (!hasBetterAuthSessionCookieFromRequest(request)) {
+    return { cookies: pendingCookies };
+  }
 
   try {
     const auth = getAuth();

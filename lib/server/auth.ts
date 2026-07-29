@@ -1,6 +1,7 @@
 import { getRequest, getRequestHeaders } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { createUserProfile } from "@/lib/auth/profile";
+import { hasBetterAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { getAuth } from "@/lib/auth/server";
 import { isAdminOrModerator } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
@@ -31,6 +32,11 @@ type ServerSession = Awaited<ReturnType<ReturnType<typeof getAuth>["api"]["getSe
 const sessionCache = new WeakMap<Request, Promise<ServerSession>>();
 
 async function resolveSession(headers: Headers): Promise<ServerSession> {
+  // Anonymous traffic has no session cookie — skip Neon entirely.
+  if (!hasBetterAuthSessionCookie(headers.get("cookie"))) {
+    return null;
+  }
+
   const auth = getAuth();
   return auth.api.getSession({ headers });
 }

@@ -41,6 +41,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
 - **Database**: Neon Postgres (Drizzle ORM) — migrated from Supabase. All server data access uses Drizzle via `getDb()` with Better Auth session checks (`requireUser`, `requireAdminOrModeratorUser`). One-time Supabase → Neon scripts live in `scripts/migrate-to-neon.ts`.
+- **Caching (Neon cost control)**: layered public-data cache so Neon can scale to zero — **Upstash Redis** (optional shared cache) → Worker memory → **static JSON** fallbacks (`lib/data/static/*`) → Neon. Browser **localStorage** caches categories/project lists and dedupes blog view tracking. Anonymous requests skip Better Auth `getSession` (no session cookie → no Neon auth query).
 - **Authentication**: Better Auth (`/api/auth/*`) with email/password + Google/GitHub OAuth
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
@@ -204,6 +205,10 @@ bunx playwright test -g "should track views when visiting project page"
 | `OPENROUTER_API_KEY`                        | AI blog features                             | Yes      |
 | `RESEND_API_KEY`                            | Resend API key for auth verification/reset   | Yes      |
 | `EMAIL_FROM`                                | Verified sender address for Resend           | Yes      |
+| `UPSTASH_REDIS_REST_URL`                    | Upstash Redis REST URL (public data cache)   | No       |
+| `UPSTASH_REDIS_REST_TOKEN`                  | Upstash Redis REST token                     | No       |
+
+> Tip: set both Upstash vars in production to cut Neon CU-hrs. Without them the app still works via Worker memory + static JSON + Neon.
 
 ## Deployment (Cloudflare Workers)
 
@@ -238,7 +243,8 @@ Notes:
 - Worker secrets (runtime): `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
   `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`,
   `GITHUB_CLIENT_SECRET`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`,
-  `OPENROUTER_API_KEY`, `RESEND_API_KEY`, and `EMAIL_FROM`.
+  `OPENROUTER_API_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, and optionally
+  `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
 - Add OAuth redirect URLs in Google/GitHub developer consoles:
   - `https://vibedevid.com/api/auth/callback/google`
@@ -406,6 +412,7 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
 - **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*` and `/fonts/*` (immutable). Only non-overlapping directory rules are used: Cloudflare `_headers` wildcards match across `/` and concatenate every matching rule's value, so broad extension rules like `/*.avif` are avoided (they would corrupt the `/optimized/*` header).
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
+- **Layered data cache (Neon CU control)** - Hot public reads (categories, vibe videos, project/blog/event lists, sitemap) go through `lib/cache/cached.ts`: Worker memory → optional Upstash Redis → Neon → static JSON in `lib/data/static/`. Anonymous requests skip Better Auth session lookup when no session cookie is present. Client `localStorage` (via `lib/cache/client-storage.ts`) caches filter options / project lists and dedupes blog view inserts. Mutations invalidate Redis via `lib/revalidation.ts` / `lib/cache/invalidate.ts`.
 - **Client-side upload compression** - User-uploaded project images go through `lib/image-compression.ts` (`onBeforeUploadBegin` on the UploadThing buttons), which downscales to 1600px and re-encodes to WebP in the browser before upload. UploadThing (`ufs.sh`) has no on-the-fly resizing and `sharp` cannot run on Cloudflare Workers, so compressing client-side is the only no-cost option — it typically turns a 380KB+ upload into ~80-120KB. Falls back to the original file if compression fails or does not reduce size.
 - **Backfill for existing images** - `scripts/backfill-image-compression.ts` (run with `bun run backfill:images`, or `--apply` to write) recompresses already-uploaded project/video images: download → WebP via sharp → re-upload to UploadThing → update the DB row → delete the old file. Runs on Node/Bun (needs `DATABASE_URL` + `UPLOADTHING_TOKEN`), defaults to a dry run. Use this once to fix images uploaded before client-side compression was added.
 

@@ -1,4 +1,6 @@
 import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { cachedGet } from "@/lib/cache/cached";
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache/keys";
 import { getDb } from "@/lib/db";
 import { toPostDto } from "@/lib/db/mappers";
 import { blogPostTags, postTags, posts, users } from "@/lib/db/schema";
@@ -25,7 +27,7 @@ export interface BlogPostListItem {
   tags?: BlogPostTag[];
 }
 
-export async function fetchPublishedPosts(): Promise<BlogPostListItem[]> {
+async function loadPublishedPostsFromDb(): Promise<BlogPostListItem[]> {
   const db = getDb();
 
   const rows = await db
@@ -79,5 +81,14 @@ export async function fetchPublishedPosts(): Promise<BlogPostListItem[]> {
         : null,
       tags: tagsByPostId.get(row.post.id) ?? [],
     };
+  });
+}
+
+export async function fetchPublishedPosts(): Promise<BlogPostListItem[]> {
+  return cachedGet({
+    key: CACHE_KEYS.blogList,
+    ttlSeconds: CACHE_TTL.blogList,
+    loader: loadPublishedPostsFromDb,
+    fallback: () => [],
   });
 }

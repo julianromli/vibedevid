@@ -1,4 +1,7 @@
 import { revalidatePath } from "@/lib/revalidation";
+import { cachedGet } from "@/lib/cache/cached";
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache/keys";
+import { redisSetNx } from "@/lib/cache/redis";
 import { getCategories, getCategoryDisplayName } from "./categories";
 import { fetchFavicon } from "./favicon-utils";
 import { normalizeProjectWebsiteUrl } from "./project-url";
@@ -184,20 +187,22 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
     return;
   }
 
+  if (sessionId) {
+    const claimed = await redisSetNx(
+      CACHE_KEYS.projectView(projectId, sessionId),
+      CACHE_TTL.viewDedup,
+    );
+    // Redis available and key already set → skip Neon write entirely.
+    if (claimed === false) {
+      return;
+    }
+  }
+
   const session = await getServerSession();
   const db = getDb();
   const viewDate = new Date().toISOString().split("T")[0];
 
   try {
-    console.log(
-      "[Server] Incrementing view for project slug:",
-      projectSlug,
-      "ID:",
-      projectId,
-      "Session:",
-      sessionId,
-    );
-
     await db.insert(views).values({
       projectId,
       userId: session?.user?.id || null,
@@ -205,8 +210,6 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
       ipAddress: null,
       viewDate,
     });
-
-    console.log("[Server] View tracked successfully");
   } catch (error) {
     const pgError = error as { code?: string; message?: string };
     if (
@@ -214,10 +217,9 @@ export async function incrementProjectViews(projectSlug: string, sessionId?: str
       pgError.message?.includes("duplicate") ||
       pgError.message?.includes("unique")
     ) {
-      console.log("[Server] View already tracked for this session");
-    } else {
-      console.error("[Server] Increment views error:", error);
+      return;
     }
+    console.error("[Server] Increment views error:", error);
   }
 }
 
@@ -227,22 +229,30 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
     return;
   }
 
+  const trimmedPostId = postId.trim();
+
+  if (sessionId) {
+    const claimed = await redisSetNx(
+      CACHE_KEYS.blogView(trimmedPostId, sessionId),
+      CACHE_TTL.viewDedup,
+    );
+    if (claimed === false) {
+      return;
+    }
+  }
+
   const session = await getServerSession();
   const db = getDb();
   const viewDate = new Date().toISOString().split("T")[0];
 
   try {
-    console.log("[Server] Incrementing view for blog post:", postId, "Session:", sessionId);
-
     await db.insert(views).values({
-      postId: postId.trim(),
+      postId: trimmedPostId,
       userId: session?.user?.id || null,
       sessionId: sessionId || null,
       ipAddress: null,
       viewDate,
     });
-
-    console.log("[Server] Blog view tracked successfully");
   } catch (error) {
     const pgError = error as { code?: string; message?: string };
     if (
@@ -250,10 +260,9 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
       pgError.message?.includes("duplicate") ||
       pgError.message?.includes("unique")
     ) {
-      console.log("[Server] Blog view already tracked for this session");
-    } else {
-      console.error("[Server] Increment blog views error:", error);
+      return;
     }
+    console.error("[Server] Increment blog views error:", error);
   }
 }
 
@@ -343,7 +352,12 @@ export async function getLikeStatus(projectId: string) {
   }
 }
 
-export async function getBatchLikeStatus(projectIds: string[]) {
+export async function getBatchLikeStatus(
+  projectIds: string[],
+  options: { includeUserLiked?: boolean } = {},
+) {
+  const includeUserLiked = options.includeUserLiked ?? true;
+
   try {
     if (!projectIds || projectIds.length === 0) {
       return {
@@ -364,47 +378,53 @@ export async function getBatchLikeStatus(projectIds: string[]) {
       };
     }
 
-    const session = await getServerSession();
-    const userId = session?.user?.id;
-
     const db = getDb();
-
-    let allLikes: { projectId: number | null; userId: string | null }[] = [];
-    try {
-      allLikes = await db
-        .select({ projectId: likes.projectId, userId: likes.userId })
-        .from(likes)
-        .where(inArray(likes.projectId, cleanProjectIds));
-    } catch (likesError) {
-      console.error("[v0] getBatchLikeStatus: Likes fetch error:", toLoggableError(likesError));
-      const emptyLikesData: Record<string, { totalLikes: number; isLiked: boolean }> = {};
-      cleanProjectIds.forEach((projectId) => {
-        emptyLikesData[String(projectId)] = { totalLikes: 0, isLiked: false };
-      });
-      return { likesData: emptyLikesData, error: null };
-    }
-
-    const likesByProject = new Map<string, { count: number; userLiked: boolean }>();
-
+    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {};
     cleanProjectIds.forEach((projectId) => {
-      likesByProject.set(String(projectId), { count: 0, userLiked: false });
+      likesData[String(projectId)] = { totalLikes: 0, isLiked: false };
     });
 
-    for (const like of allLikes) {
-      if (!like.projectId) continue;
-      const likeProjectId = String(like.projectId);
-      const entry = likesByProject.get(likeProjectId);
-      if (entry) {
-        entry.count++;
-        if (userId && like.userId === userId) {
-          entry.userLiked = true;
+    try {
+      // Aggregate in SQL — avoid shipping every like row over the wire.
+      const countRows = await db
+        .select({
+          projectId: likes.projectId,
+          value: count(),
+        })
+        .from(likes)
+        .where(inArray(likes.projectId, cleanProjectIds))
+        .groupBy(likes.projectId);
+
+      for (const row of countRows) {
+        if (!row.projectId) continue;
+        likesData[String(row.projectId)] = {
+          totalLikes: row.value,
+          isLiked: false,
+        };
+      }
+
+      if (includeUserLiked) {
+        const session = await getServerSession();
+        const userId = session?.user?.id;
+        if (userId) {
+          const likedRows = await db
+            .select({ projectId: likes.projectId })
+            .from(likes)
+            .where(and(eq(likes.userId, userId), inArray(likes.projectId, cleanProjectIds)));
+
+          for (const row of likedRows) {
+            if (!row.projectId) continue;
+            const key = String(row.projectId);
+            likesData[key] = {
+              totalLikes: likesData[key]?.totalLikes ?? 0,
+              isLiked: true,
+            };
+          }
         }
       }
-    }
-
-    const likesData: Record<string, { totalLikes: number; isLiked: boolean }> = {};
-    for (const [projectId, data] of likesByProject) {
-      likesData[projectId] = { totalLikes: data.count, isLiked: data.userLiked };
+    } catch (likesError) {
+      console.error("[v0] getBatchLikeStatus: Likes fetch error:", toLoggableError(likesError));
+      return { likesData, error: null };
     }
 
     return { likesData, error: null };
@@ -543,127 +563,139 @@ export async function editProject(projectSlug: string, formData: FormData) {
   }
 }
 
+async function loadProjectsWithSorting(
+  sortBy: "trending" | "top" | "newest",
+  category: string | undefined,
+  limit: number,
+) {
+  const categories = await getCategories();
+
+  const categoryMap = new Map<string, string>();
+  for (const cat of categories) {
+    categoryMap.set(cat.name, cat.display_name);
+  }
+
+  const db = getDb();
+  const CANDIDATE_MULTIPLIER = 5;
+  const MAX_CANDIDATES = 200;
+  const fetchLimit =
+    sortBy === "newest"
+      ? limit
+      : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
+
+  let categoryCondition = undefined;
+  if (category && category !== "all") {
+    const matchedCategory = categories.find(
+      (cat) => cat.name === category || cat.display_name === category,
+    );
+    const candidateValues = Array.from(
+      new Set(
+        [category, matchedCategory?.name, matchedCategory?.display_name].filter(
+          (value): value is string => Boolean(value),
+        ),
+      ),
+    );
+
+    categoryCondition =
+      candidateValues.length > 1
+        ? inArray(projects.category, candidateValues)
+        : eq(projects.category, category);
+  }
+
+  const projectRows = await db
+    .select({
+      project: projects,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      authorAvatarUrl: users.avatarUrl,
+      authorRole: users.role,
+    })
+    .from(projects)
+    .innerJoin(users, eq(projects.authorId, users.id))
+    .where(categoryCondition)
+    .orderBy(desc(projects.createdAt))
+    .limit(fetchLimit);
+
+  if (!projectRows.length) {
+    return { projects: [], error: null as string | null };
+  }
+
+  const projectIds = projectRows.map((p) => String(p.project.id));
+  // List payloads only need counts — skip per-user liked checks (and session).
+  const likesResult = await getBatchLikeStatus(projectIds, { includeUserLiked: false });
+  const likesData = likesResult.likesData || {};
+
+  const formattedProjects = projectRows.map((row) => {
+    const mapped = toProjectDto(row.project);
+    const projectLikesData = likesData[String(mapped.id)] || { totalLikes: 0, isLiked: false };
+    const categoryDisplayName = categoryMap.get(mapped.category) || mapped.category;
+
+    return {
+      id: mapped.id,
+      slug: mapped.slug,
+      title: mapped.title,
+      description: mapped.description ?? undefined,
+      image: getPrimaryProjectImage(mapped),
+      author: {
+        name: row.authorDisplayName || "Unknown",
+        username: row.authorUsername || "unknown",
+        role: row.authorRole ?? null,
+        avatar: row.authorAvatarUrl || "/vibedev-guest-avatar.png",
+      },
+      url: mapped.websiteUrl || undefined,
+      category: categoryDisplayName,
+      likes: projectLikesData.totalLikes,
+      views: 0,
+      createdAt: mapped.createdAt ?? "",
+    };
+  });
+
+  const sortedProjects = [...formattedProjects];
+
+  if (sortBy === "newest") {
+    sortedProjects.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  } else if (sortBy === "top") {
+    sortedProjects.sort((a, b) => {
+      if (b.likes !== a.likes) {
+        return b.likes - a.likes;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  } else {
+    const trendingScore = (likeCount: number, createdAt: string) => {
+      const ageInDays = Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 86400000);
+      return likeCount / ageInDays;
+    };
+
+    sortedProjects.sort((a, b) => {
+      const scoreDiff = trendingScore(b.likes, b.createdAt) - trendingScore(a.likes, a.createdAt);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      if (b.likes !== a.likes) {
+        return b.likes - a.likes;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  return { projects: sortedProjects.slice(0, limit), error: null as string | null };
+}
+
 export async function fetchProjectsWithSorting(
   sortBy: "trending" | "top" | "newest" = "newest",
   category?: string,
   limit: number = 20,
 ) {
   try {
-    const categories = await getCategories();
-
-    const categoryMap = new Map<string, string>();
-    for (const cat of categories) {
-      categoryMap.set(cat.name, cat.display_name);
-    }
-
-    const db = getDb();
-    const CANDIDATE_MULTIPLIER = 5;
-    const MAX_CANDIDATES = 200;
-    const fetchLimit =
-      sortBy === "newest"
-        ? limit
-        : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
-
-    let categoryCondition = undefined;
-    if (category && category !== "all") {
-      const matchedCategory = categories.find(
-        (cat) => cat.name === category || cat.display_name === category,
-      );
-      const candidateValues = Array.from(
-        new Set(
-          [category, matchedCategory?.name, matchedCategory?.display_name].filter(
-            (value): value is string => Boolean(value),
-          ),
-        ),
-      );
-
-      categoryCondition =
-        candidateValues.length > 1
-          ? inArray(projects.category, candidateValues)
-          : eq(projects.category, category);
-    }
-
-    const projectRows = await db
-      .select({
-        project: projects,
-        authorUsername: users.username,
-        authorDisplayName: users.displayName,
-        authorAvatarUrl: users.avatarUrl,
-        authorRole: users.role,
-      })
-      .from(projects)
-      .innerJoin(users, eq(projects.authorId, users.id))
-      .where(categoryCondition)
-      .orderBy(desc(projects.createdAt))
-      .limit(fetchLimit);
-
-    if (!projectRows.length) {
-      return { projects: [], error: null };
-    }
-
-    const projectIds = projectRows.map((p) => String(p.project.id));
-    const likesResult = await getBatchLikeStatus(projectIds);
-    const likesData = likesResult.likesData || {};
-
-    const formattedProjects = projectRows.map((row) => {
-      const mapped = toProjectDto(row.project);
-      const projectLikesData = likesData[String(mapped.id)] || { totalLikes: 0, isLiked: false };
-      const categoryDisplayName = categoryMap.get(mapped.category) || mapped.category;
-
-      return {
-        id: mapped.id,
-        slug: mapped.slug,
-        title: mapped.title,
-        description: mapped.description ?? undefined,
-        image: getPrimaryProjectImage(mapped),
-        author: {
-          name: row.authorDisplayName || "Unknown",
-          username: row.authorUsername || "unknown",
-          role: row.authorRole ?? null,
-          avatar: row.authorAvatarUrl || "/vibedev-guest-avatar.png",
-        },
-        url: mapped.websiteUrl || undefined,
-        category: categoryDisplayName,
-        likes: projectLikesData.totalLikes,
-        views: 0,
-        createdAt: mapped.createdAt ?? "",
-      };
+    return await cachedGet({
+      key: CACHE_KEYS.projectList(sortBy, category, limit),
+      ttlSeconds: CACHE_TTL.projectList,
+      loader: () => loadProjectsWithSorting(sortBy, category, limit),
+      fallback: () => ({ projects: [], error: null }),
     });
-
-    const sortedProjects = [...formattedProjects];
-
-    if (sortBy === "newest") {
-      sortedProjects.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-    } else if (sortBy === "top") {
-      sortedProjects.sort((a, b) => {
-        if (b.likes !== a.likes) {
-          return b.likes - a.likes;
-        }
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-    } else {
-      const trendingScore = (likes: number, createdAt: string) => {
-        const ageInDays = Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 86400000);
-        return likes / ageInDays;
-      };
-
-      sortedProjects.sort((a, b) => {
-        const scoreDiff = trendingScore(b.likes, b.createdAt) - trendingScore(a.likes, a.createdAt);
-        if (scoreDiff !== 0) {
-          return scoreDiff;
-        }
-        if (b.likes !== a.likes) {
-          return b.likes - a.likes;
-        }
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-    }
-
-    const limitedProjects = sortedProjects.slice(0, limit);
-
-    return { projects: limitedProjects, error: null };
   } catch (error) {
     console.error("[fetchProjectsWithSorting] Unexpected error:", toLoggableError(error));
     return { projects: [], error: "Failed to fetch projects" };

@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { eq, isNotNull } from "drizzle-orm";
+import { cachedGet } from "@/lib/cache/cached";
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache/keys";
 import { getDb } from "@/lib/db";
 import { events, posts, projects, users } from "@/lib/db/schema";
 import { getSiteUrl } from "@/lib/seo/site-url";
@@ -42,63 +44,72 @@ function toIso(value: unknown, fallback: string): string {
   return fallback;
 }
 
+async function loadDynamicEntries(base: string, fallbackIso: string): Promise<SitemapEntry[]> {
+  const db = getDb();
+
+  const [postRows, projectRows, eventRows, userRows] = await Promise.all([
+    db
+      .select({ slug: posts.slug, updatedAt: posts.updatedAt, publishedAt: posts.publishedAt })
+      .from(posts)
+      .where(eq(posts.status, "published")),
+    db.select({ slug: projects.slug, updatedAt: projects.updatedAt }).from(projects),
+    db
+      .select({ slug: events.slug, updatedAt: events.updatedAt, createdAt: events.createdAt })
+      .from(events)
+      .where(eq(events.approved, true)),
+    db
+      .select({ username: users.username, updatedAt: users.updatedAt })
+      .from(users)
+      .where(isNotNull(users.username)),
+  ]);
+
+  const postEntries = postRows
+    .filter((row) => row.slug)
+    .map((row) => ({
+      loc: `${base}/blog/${row.slug}`,
+      lastmod: toIso(row.updatedAt ?? row.publishedAt, fallbackIso),
+      changefreq: "weekly",
+      priority: "0.7",
+    }));
+
+  const projectEntries = projectRows
+    .filter((row) => row.slug)
+    .map((row) => ({
+      loc: `${base}/project/${row.slug}`,
+      lastmod: toIso(row.updatedAt, fallbackIso),
+      changefreq: "weekly",
+      priority: "0.6",
+    }));
+
+  const eventEntries = eventRows
+    .filter((row) => row.slug)
+    .map((row) => ({
+      loc: `${base}/event/${row.slug}`,
+      lastmod: toIso(row.updatedAt ?? row.createdAt, fallbackIso),
+      changefreq: "weekly",
+      priority: "0.6",
+    }));
+
+  const userEntries = userRows
+    .filter((row) => row.username)
+    .map((row) => ({
+      loc: `${base}/${row.username}`,
+      lastmod: toIso(row.updatedAt, fallbackIso),
+      changefreq: "weekly",
+      priority: "0.4",
+    }));
+
+  return [...postEntries, ...projectEntries, ...eventEntries, ...userEntries];
+}
+
 async function getDynamicEntries(base: string, fallbackIso: string): Promise<SitemapEntry[]> {
   try {
-    const db = getDb();
-
-    const [postRows, projectRows, eventRows, userRows] = await Promise.all([
-      db
-        .select({ slug: posts.slug, updatedAt: posts.updatedAt, publishedAt: posts.publishedAt })
-        .from(posts)
-        .where(eq(posts.status, "published")),
-      db.select({ slug: projects.slug, updatedAt: projects.updatedAt }).from(projects),
-      db
-        .select({ slug: events.slug, updatedAt: events.updatedAt, createdAt: events.createdAt })
-        .from(events)
-        .where(eq(events.approved, true)),
-      db
-        .select({ username: users.username, updatedAt: users.updatedAt })
-        .from(users)
-        .where(isNotNull(users.username)),
-    ]);
-
-    const postEntries = postRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/blog/${row.slug}`,
-        lastmod: toIso(row.updatedAt ?? row.publishedAt, fallbackIso),
-        changefreq: "weekly",
-        priority: "0.7",
-      }));
-
-    const projectEntries = projectRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/project/${row.slug}`,
-        lastmod: toIso(row.updatedAt, fallbackIso),
-        changefreq: "weekly",
-        priority: "0.6",
-      }));
-
-    const eventEntries = eventRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/event/${row.slug}`,
-        lastmod: toIso(row.updatedAt ?? row.createdAt, fallbackIso),
-        changefreq: "weekly",
-        priority: "0.6",
-      }));
-
-    const userEntries = userRows
-      .filter((row) => row.username)
-      .map((row) => ({
-        loc: `${base}/${row.username}`,
-        lastmod: toIso(row.updatedAt, fallbackIso),
-        changefreq: "weekly",
-        priority: "0.4",
-      }));
-
-    return [...postEntries, ...projectEntries, ...eventEntries, ...userEntries];
+    return await cachedGet({
+      key: CACHE_KEYS.sitemap,
+      ttlSeconds: CACHE_TTL.sitemap,
+      loader: () => loadDynamicEntries(base, fallbackIso),
+      fallback: () => [],
+    });
   } catch {
     return [];
   }

@@ -21,6 +21,10 @@ interface ServerRuntimeSecrets {
   openrouterApiKey: string;
   uploadthingToken: string;
   siteUrl: string;
+  /** Optional Upstash Redis REST URL — public content cache / view dedupe */
+  upstashRedisRestUrl: string;
+  /** Optional Upstash Redis REST token */
+  upstashRedisRestToken: string;
 }
 
 type EnvRecord = Record<string, string | undefined>;
@@ -50,5 +54,7 @@ export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
     openrouterApiKey: readEnv("OPENROUTER_API_KEY"),
     uploadthingToken: readEnv("UPLOADTHING_TOKEN"),
     siteUrl: readEnv("NEXT_PUBLIC_SITE_URL") || readEnv("VITE_SITE_URL"),
+    upstashRedisRestUrl: readEnv("UPSTASH_REDIS_REST_URL"),
+    upstashRedisRestToken: readEnv("UPSTASH_REDIS_REST_TOKEN"),
   };
 }

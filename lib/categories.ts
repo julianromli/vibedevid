@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { asc, eq } from "drizzle-orm";
+import { cachedGet } from "@/lib/cache/cached";
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache/keys";
+import staticCategories from "@/lib/data/static/categories.json";
 import { getDb } from "@/lib/db";
 import { toCategoryDto } from "@/lib/db/mappers";
 import { categories } from "@/lib/db/schema";
@@ -15,42 +18,56 @@ export interface Category {
   is_active: boolean;
 }
 
-let categoriesCache: Category[] | null = null;
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000;
+function getStaticCategories(): Category[] {
+  return staticCategories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    display_name: category.display_name,
+    description: category.description,
+    sort_order: category.sort_order,
+    is_active: category.is_active,
+  }));
+}
 
-export async function getCategories(): Promise<Category[]> {
-  const now = Date.now();
-  if (categoriesCache && now - cacheTimestamp < CACHE_DURATION) {
-    return categoriesCache;
+async function loadCategoriesFromDb(): Promise<Category[]> {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.isActive, true))
+    .orderBy(asc(categories.sortOrder));
+
+  if (!rows.length) {
+    return getStaticCategories();
   }
 
-  try {
-    const db = getDb();
-    const rows = await db
-      .select()
-      .from(categories)
-      .where(eq(categories.isActive, true))
-      .orderBy(asc(categories.sortOrder));
+  return rows.map((row) => {
+    const category = toCategoryDto(row);
+    return {
+      id: category.id,
+      name: category.name,
+      display_name: category.displayName,
+      description: category.description ?? undefined,
+      icon: category.icon ?? undefined,
+      color: category.color ?? undefined,
+      sort_order: category.sortOrder ?? 0,
+      is_active: category.isActive ?? true,
+    };
+  });
+}
 
-    categoriesCache = rows.map((row) => {
-      const category = toCategoryDto(row);
-      return {
-        id: category.id,
-        name: category.name,
-        display_name: category.displayName,
-        description: category.description ?? undefined,
-        icon: category.icon ?? undefined,
-        color: category.color ?? undefined,
-        sort_order: category.sortOrder ?? 0,
-        is_active: category.isActive ?? true,
-      };
+export async function getCategories(): Promise<Category[]> {
+  try {
+    return await cachedGet({
+      key: CACHE_KEYS.categories,
+      ttlSeconds: CACHE_TTL.categories,
+      memoryTtlMs: CACHE_TTL.memoryCategoriesMs,
+      loader: loadCategoriesFromDb,
+      fallback: getStaticCategories,
     });
-    cacheTimestamp = now;
-    return categoriesCache;
   } catch (error) {
     console.error("Failed to fetch categories:", error);
-    return [];
+    return getStaticCategories();
   }
 }
 

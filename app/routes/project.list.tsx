@@ -77,6 +77,8 @@ export const Route = createFileRoute("/project/list")({
     sort: typeof search.sort === "string" ? search.sort : undefined,
   }),
   loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
+  staleTime: 60_000,
+  gcTime: 5 * 60_000,
   loader: async ({ deps }) => {
     return loadProjectListData({ data: { filter: deps.filter, sort: deps.sort } });
   },

@@ -38,6 +38,10 @@ const secrets: Record<string, string> = {
   OPENROUTER_API_KEY: env.OPENROUTER_API_KEY ?? "",
   RESEND_API_KEY: env.RESEND_API_KEY ?? "",
   EMAIL_FROM: env.EMAIL_FROM ?? "",
+  ...(env.UPSTASH_REDIS_REST_URL ? { UPSTASH_REDIS_REST_URL: env.UPSTASH_REDIS_REST_URL } : {}),
+  ...(env.UPSTASH_REDIS_REST_TOKEN
+    ? { UPSTASH_REDIS_REST_TOKEN: env.UPSTASH_REDIS_REST_TOKEN }
+    : {}),
 };
 
 const requiredKeys = [

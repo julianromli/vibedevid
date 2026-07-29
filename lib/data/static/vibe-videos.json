@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Next.js Tutorial: Full Stack App Development",
+    "description": "Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+    "videoId": "dQw4w9WgXcQ",
+    "publishedAt": "2024-12-20",
+    "viewCount": "12.5K",
+    "iconKey": "code"
+  },
+  {
+    "title": "Live Coding: Building Modern Dashboard",
+    "description": "Live coding session to build a modern admin dashboard with React and Tailwind CSS.",
+    "thumbnail": "https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg",
+    "videoId": "9bZkp7q19f0",
+    "publishedAt": "2024-12-15",
+    "viewCount": "8.3K",
+    "iconKey": "play"
+  }
+]
