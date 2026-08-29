@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { getProjectBySlug } from "@/lib/actions";
+import { getProjectBySlug } from "@/lib/server/project-public";
 import { getComments } from "@/lib/actions/comments";
 import { getCategories } from "@/lib/categories";
 import { absoluteUrl } from "@/lib/seo/site-url";

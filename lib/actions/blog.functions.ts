@@ -5,6 +5,7 @@ import {
   deleteBlogPost,
   getAuthorPosts,
   getTags,
+  incrementBlogPostViews as incrementBlogPostViewsAction,
   updateBlogPost,
 } from "@/lib/actions/blog";
 
@@ -59,4 +60,10 @@ export const getTagsFn = createServerFn({ method: "GET" })
   .validator(z.object({ query: z.string().optional().default("") }))
   .handler(async ({ data: { query } }) => {
     return getTags(query);
+  });
+
+export const incrementBlogPostViewsFn = createServerFn({ method: "POST" })
+  .validator(z.object({ postId: z.string().min(1), sessionId: z.string().optional() }))
+  .handler(async ({ data }) => {
+    return incrementBlogPostViewsAction(data.postId, data.sessionId);
   });

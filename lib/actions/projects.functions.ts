@@ -1,15 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
+  cleanupProjectProvisionalUpload as cleanupProjectProvisionalUploadAction,
   deleteProject as deleteProjectAction,
   editProject as editProjectAction,
-  fetchProjectsWithSorting as fetchProjectsWithSortingAction,
-  incrementBlogPostViews as incrementBlogPostViewsAction,
-} from "@/lib/actions";
-import {
-  cleanupProjectProvisionalUpload as cleanupProjectProvisionalUploadAction,
   submitProject as submitProjectAction,
 } from "@/lib/actions/projects";
+import { fetchProjectsWithSorting as fetchProjectsWithSortingAction } from "@/lib/server/project-public";
 
 /**
  * Submit a new project. Expects a FormData payload containing the project
@@ -54,12 +51,6 @@ export const cleanupProjectProvisionalUploadFn = createServerFn({ method: "POST"
   .validator(z.object({ imageKey: z.string().min(1) }))
   .handler(async ({ data }) => {
     return cleanupProjectProvisionalUploadAction(data.imageKey);
-  });
-
-export const incrementBlogPostViewsFn = createServerFn({ method: "POST" })
-  .validator(z.object({ postId: z.string().min(1), sessionId: z.string().optional() }))
-  .handler(async ({ data }) => {
-    return incrementBlogPostViewsAction(data.postId, data.sessionId);
   });
 
 /**

@@ -34,7 +34,7 @@ This document focuses on the entities and access rules involved in the admin eve
 
 ### Public event list
 
-- Server action: `getEvents()` in `lib/actions/events.ts`
+- Server read: `fetchApprovedEvents()` in `lib/server/events-public.ts`
 - Query condition: `approved = true`
 - Route usage: `/event/list`
 

@@ -6,6 +6,64 @@ import { getAllUsers } from "@/lib/actions/admin/users";
 import { getPendingEvents } from "@/lib/actions/events";
 import type { DashboardTabValue } from "@/lib/admin/dashboard-tabs";
 
+type ProjectsResult = Awaited<ReturnType<typeof getAllProjects>>;
+type CategoriesResult = Awaited<ReturnType<typeof getProjectCategories>>;
+type PostsResult = Awaited<ReturnType<typeof getAllPosts>>;
+type TagsResult = Awaited<ReturnType<typeof getAllTags>>;
+type UsersResult = Awaited<ReturnType<typeof getAllUsers>>;
+type ReportsResult = Awaited<ReturnType<typeof getReportedComments>>;
+type PendingEventsResult = Awaited<ReturnType<typeof getPendingEvents>>;
+type PrivilegedResult = Awaited<ReturnType<typeof getPrivilegedUsers>>;
+
+/**
+ * One payload member per board tab. The `kind` discriminator lets the route's
+ * panel exhaustively narrow without spreading `any`.
+ *
+ * `client-fetched` covers overview/analytics — those boards load their own
+ * data client-side and receive no server payload.
+ */
+export type DashboardBoardData =
+  | { kind: "client-fetched" }
+  | {
+      kind: "projects";
+      projects: ProjectsResult["projects"];
+      totalCount: ProjectsResult["totalCount"];
+      error?: ProjectsResult["error"];
+      categories: CategoriesResult["categories"];
+      page: number;
+    }
+  | {
+      kind: "blog";
+      posts: PostsResult["posts"];
+      totalCount: PostsResult["totalCount"];
+      error?: PostsResult["error"];
+      tags: TagsResult["tags"];
+      page: number;
+    }
+  | {
+      kind: "users";
+      users: UsersResult["users"];
+      totalCount: UsersResult["totalCount"];
+      error?: UsersResult["error"];
+      page: number;
+    }
+  | {
+      kind: "comments";
+      reports: ReportsResult["reports"];
+      totalCount: ReportsResult["totalCount"];
+      error?: ReportsResult["error"];
+      page: number;
+    }
+  | {
+      kind: "events-approval";
+      events: PendingEventsResult["events"];
+      error?: PendingEventsResult["error"];
+    }
+  | {
+      kind: "admin-management";
+      result: PrivilegedResult;
+    };
+
 export interface DashboardSearchParams {
   search?: string;
   role?: string;
@@ -22,14 +80,12 @@ function parsePage(page?: string): number {
 /**
  * Fetch the data needed to render a single admin dashboard board, based on
  * the active tab and the current search params. Runs server-side from the
- * route loader. Returns `null` for tabs whose boards fetch their own data
- * client-side (overview, analytics).
+ * route loader.
  */
-// biome-ignore lint/suspicious/noExplicitAny: board payloads are heterogeneous per tab
 export async function loadDashboardBoardData(
   tab: DashboardTabValue,
   search: DashboardSearchParams,
-): Promise<any> {
+): Promise<DashboardBoardData> {
   const page = parsePage(search.page);
 
   switch (tab) {
@@ -46,7 +102,7 @@ export async function loadDashboardBoardData(
         ),
         getProjectCategories(),
       ]);
-      return { projects, totalCount, error, categories, page };
+      return { kind: "projects", projects, totalCount, error, categories, page };
     }
     case "blog": {
       const [{ posts, totalCount, error }, { tags }] = await Promise.all([
@@ -60,7 +116,7 @@ export async function loadDashboardBoardData(
         ),
         getAllTags(),
       ]);
-      return { posts, totalCount, error, tags, page };
+      return { kind: "blog", posts, totalCount, error, tags, page };
     }
     case "users": {
       const { users, totalCount, error } = await getAllUsers(
@@ -72,7 +128,7 @@ export async function loadDashboardBoardData(
         page,
         20,
       );
-      return { users, totalCount, error, page };
+      return { kind: "users", users, totalCount, error, page };
     }
     case "comments": {
       const { reports, totalCount, error } = await getReportedComments(
@@ -80,17 +136,17 @@ export async function loadDashboardBoardData(
         page,
         20,
       );
-      return { reports, totalCount, error, page };
+      return { kind: "comments", reports, totalCount, error, page };
     }
     case "events-approval": {
       const { events, error } = await getPendingEvents();
-      return { events, error };
+      return { kind: "events-approval", events, error };
     }
     case "admin-management": {
       const result = await getPrivilegedUsers();
-      return { result };
+      return { kind: "admin-management", result };
     }
     default:
-      return null;
+      return { kind: "client-fetched" };
   }
 }

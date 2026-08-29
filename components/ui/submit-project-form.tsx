@@ -19,6 +19,16 @@ import {
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import type { Option } from "@/components/ui/multiselect";
+import {
+  buildProjectFieldErrors,
+  buildProjectSubmissionSchema,
+  formatProjectFieldErrors,
+  PROJECT_FIELD_SCHEMAS,
+  PROJECT_FORM_FIELDS,
+  PROJECT_LIMITS,
+  readProjectFormData,
+} from "@/lib/project-submission";
+import { z } from "zod";
 
 // --- Types ---
 
@@ -73,8 +83,6 @@ interface DraftNoticeState {
 
 // --- Constants ---
 
-const MIN_TITLE_LENGTH = 3;
-const MIN_DESCRIPTION_LENGTH = 30;
 const DRAFT_STORAGE_VERSION = 1;
 const DRAFT_STORAGE_KEY_PREFIX = "submit-project-draft";
 const AUTH_REQUIRED_ERROR_MESSAGE = "You must be logged in to submit projects";
@@ -125,16 +133,7 @@ function mergeImportedTags(selectedTags: Option[], importedTags: string[] | unde
     existing.add(value);
   }
 
-  return next.slice(0, 10);
-}
-
-function isValidWebsiteUrl(value: string): boolean {
-  try {
-    const url = new URL(value.startsWith("http") ? value : `https://${value}`);
-    return Boolean(url.hostname) && url.hostname.includes(".");
-  } catch {
-    return false;
-  }
+  return next.slice(0, PROJECT_LIMITS.MAX_TAG_COUNT);
 }
 
 function getDraftStorageKey(redirectTo: string): string {
@@ -243,9 +242,9 @@ function getUploadImageKey(uploadResult: UploadResult | undefined): string | nul
 function buildSubmitFormData(state: SubmitFormState): FormData {
   const formData = new FormData();
 
-  if (state.title) formData.set("title", state.title);
-  if (state.tagline) formData.set("tagline", state.tagline);
-  if (state.description) formData.set("description", state.description);
+  if (state.title) formData.set(PROJECT_FORM_FIELDS.title, state.title);
+  if (state.tagline) formData.set(PROJECT_FORM_FIELDS.tagline, state.tagline);
+  if (state.description) formData.set(PROJECT_FORM_FIELDS.description, state.description);
 
   const allImageUrls = [...state.uploadedImageUrls];
   if (state.importedImageUrl && !allImageUrls.includes(state.importedImageUrl)) {
@@ -253,21 +252,24 @@ function buildSubmitFormData(state: SubmitFormState): FormData {
   }
 
   if (allImageUrls.length > 0) {
-    formData.set("image_urls", JSON.stringify(allImageUrls));
+    formData.set(PROJECT_FORM_FIELDS.imageUrls, JSON.stringify(allImageUrls));
   }
 
   if (state.uploadedImageKeys.length > 0) {
-    formData.set("image_keys", JSON.stringify(state.uploadedImageKeys));
+    formData.set(PROJECT_FORM_FIELDS.imageKeys, JSON.stringify(state.uploadedImageKeys));
   }
 
-  formData.set("tags", JSON.stringify(state.selectedTags.map((tag) => tag.value)));
+  formData.set(
+    PROJECT_FORM_FIELDS.tags,
+    JSON.stringify(state.selectedTags.map((tag) => tag.value)),
+  );
 
   if (state.websiteUrl) {
-    formData.set("website_url", state.websiteUrl);
+    formData.set(PROJECT_FORM_FIELDS.websiteUrl, state.websiteUrl);
   }
 
   if (state.category) {
-    formData.set("category", state.category);
+    formData.set(PROJECT_FORM_FIELDS.category, state.category);
   }
 
   return formData;
@@ -364,25 +366,44 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   const validateCurrentStep = (): boolean => {
     setError(null);
 
-    if (currentStep === 1) {
-      const issues: string[] = [];
-      if (!title.trim()) issues.push("Project title is required");
-      else if (title.trim().length < MIN_TITLE_LENGTH)
-        issues.push(`Title must be at least ${MIN_TITLE_LENGTH} characters`);
-      if (!description.trim()) issues.push("Project description is required");
-      else if (description.trim().length < MIN_DESCRIPTION_LENGTH)
-        issues.push(`Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`);
-      if (!category) issues.push("Please select a category");
+    const rawInput = readProjectFormData(buildSubmitFormData(getCurrentDraftState()));
 
-      if (issues.length > 0) {
-        setError(issues.join(". "));
+    if (currentStep === 1) {
+      const stepInput = {
+        title: rawInput.title,
+        tagline: rawInput.tagline,
+        description: rawInput.description,
+        category: rawInput.category,
+      };
+      const partial = z.object({
+        title: PROJECT_FIELD_SCHEMAS.title,
+        tagline: PROJECT_FIELD_SCHEMAS.tagline,
+        description: PROJECT_FIELD_SCHEMAS.description,
+        category: PROJECT_FIELD_SCHEMAS.category,
+      });
+
+      const result = partial.safeParse(stepInput);
+      if (!result.success) {
+        setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
         return false;
       }
     }
 
     if (currentStep === 2) {
-      if (websiteUrl.trim() && !isValidWebsiteUrl(websiteUrl)) {
-        setError("Please enter a valid website URL or leave it empty");
+      const stepInput = {
+        websiteUrl: rawInput.websiteUrl,
+        imageUrls: rawInput.imageUrls,
+        tags: rawInput.tags,
+      };
+      const partial = z.object({
+        websiteUrl: PROJECT_FIELD_SCHEMAS.websiteUrl,
+        imageUrls: PROJECT_FIELD_SCHEMAS.imageUrls,
+        tags: PROJECT_FIELD_SCHEMAS.tags,
+      });
+
+      const result = partial.safeParse(stepInput);
+      if (!result.success) {
+        setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
         return false;
       }
     }
@@ -397,14 +418,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     }
 
     if (result.fieldErrors) {
-      const messages = Object.entries(result.fieldErrors)
-        .filter(([, errors]) => errors && errors.length > 0)
-        .map(([field, errors]) => {
-          const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
-          return `${fieldName}: ${errors.join(", ")}`;
-        });
+      const messages = formatProjectFieldErrors(result.fieldErrors);
       if (messages.length > 0) {
-        setError(messages.join(". "));
+        setError(messages);
         return;
       }
     }

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import HomePageClient from "@/app/home-page-client";
-import { fetchProjectsWithSorting } from "@/lib/actions";
+import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 import { getCategories } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";

@@ -26,8 +26,16 @@ import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
+import {
+  buildProjectFieldErrors,
+  buildProjectSubmissionSchema,
+  formatProjectFieldErrors,
+  PROJECT_FORM_FIELDS,
+  PROJECT_LIMITS,
+  readProjectFormData,
+} from "@/lib/project-submission";
 
-const MAX_DESCRIPTION_LENGTH = 1600;
+const { MAX_DESCRIPTION_LENGTH } = PROJECT_LIMITS;
 
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
@@ -131,30 +139,39 @@ export function ProjectEditClient({
   const handleSaveEdit = async () => {
     if (!projectSlug) return;
 
+    const formData = new FormData();
+    formData.append(PROJECT_FORM_FIELDS.title, editFormData.title);
+    formData.append(PROJECT_FORM_FIELDS.description, editFormData.description);
+    formData.append(PROJECT_FORM_FIELDS.tagline, editFormData.tagline);
+    formData.append(PROJECT_FORM_FIELDS.category, editFormData.category);
+    formData.append(PROJECT_FORM_FIELDS.websiteUrl, editWebsiteUrl);
+    formData.append(PROJECT_FORM_FIELDS.imageUrls, JSON.stringify(editImageUrls));
+    formData.append(PROJECT_FORM_FIELDS.imageKeys, JSON.stringify(editImageKeys));
+
+    const tagsValues = selectedEditTags.map((tag) => tag.value);
+    formData.append(PROJECT_FORM_FIELDS.tags, JSON.stringify(tagsValues));
+    formData.append("projectSlug", projectSlug);
+
+    const validation = buildProjectSubmissionSchema().safeParse(readProjectFormData(formData));
+    if (!validation.success) {
+      toast.error(formatProjectFieldErrors(buildProjectFieldErrors(validation.error)));
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const formData = new FormData();
-      formData.append("title", editFormData.title);
-      formData.append("description", editFormData.description);
-      formData.append("tagline", editFormData.tagline);
-      formData.append("category", editFormData.category);
-      formData.append("website_url", editWebsiteUrl);
-      formData.append("favicon_url", editFaviconUrl);
-      formData.append("image_urls", JSON.stringify(editImageUrls));
-      formData.append("image_keys", JSON.stringify(editImageKeys));
-
-      const tagsValues = selectedEditTags.map((tag) => tag.value);
-      formData.append("tags", JSON.stringify(tagsValues));
-      formData.append("projectSlug", projectSlug);
-
       const result = await editProjectFn({ data: formData });
 
       if (result.success) {
         toast.success("Project updated successfully");
         void router.invalidate();
       } else {
-        toast.error(result.error || "Failed to update project");
+        if (result.fieldErrors) {
+          toast.error(formatProjectFieldErrors(result.fieldErrors));
+        } else {
+          toast.error(result.error || "Failed to update project");
+        }
       }
     } catch (_error) {
       toast.error("Failed to update project");

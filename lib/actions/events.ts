@@ -4,14 +4,18 @@ import { getDb } from "@/lib/db";
 import { events } from "@/lib/db/schema";
 import { toEventDto } from "@/lib/db/mappers";
 import { requireAdminOrModeratorUser, requireUser } from "@/lib/server/auth";
-import { eq, and, ne, asc, desc } from "drizzle-orm";
+import { slugifyTitle } from "@/lib/slug";
+import { eq, desc } from "drizzle-orm";
 import type { EventFormData } from "@/types/events";
 
-interface GetEventsFilters {
-  category?: string;
-  locationType?: string;
-  sort?: "nearest" | "latest";
-}
+const isSlugConflict = (error: unknown): boolean => {
+  const pgError = error as { code?: string; message?: string };
+  return (
+    pgError?.code === "23505" &&
+    typeof pgError.message === "string" &&
+    pgError.message.includes("slug")
+  );
+};
 
 async function checkAdminAccess() {
   try {
@@ -19,78 +23,6 @@ async function checkAdminAccess() {
     return { error: null };
   } catch {
     return { error: "Unauthorized" as const };
-  }
-}
-
-export async function getEvents(filters: GetEventsFilters = {}) {
-  const db = getDb();
-
-  const conditions = [eq(events.approved, true)];
-
-  if (filters.category && filters.category !== "all") {
-    conditions.push(eq(events.category, filters.category));
-  }
-
-  if (filters.locationType && filters.locationType !== "all") {
-    conditions.push(eq(events.locationType, filters.locationType));
-  }
-
-  try {
-    const rows = await db
-      .select()
-      .from(events)
-      .where(and(...conditions))
-      .orderBy(filters.sort === "latest" ? desc(events.createdAt) : asc(events.date));
-
-    return { events: rows.map(toEventDto) };
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    return { events: [], error: "Failed to fetch events" };
-  }
-}
-
-export async function getEventBySlug(slug: string) {
-  if (!slug || typeof slug !== "string") {
-    return { event: null, error: "Invalid slug parameter" };
-  }
-
-  const sanitizedSlug = slug.trim().toLowerCase();
-  if (sanitizedSlug.length === 0 || sanitizedSlug.length > 200) {
-    return { event: null, error: "Invalid slug format" };
-  }
-
-  const db = getDb();
-
-  try {
-    const [row] = await db.select().from(events).where(eq(events.slug, sanitizedSlug)).limit(1);
-
-    if (!row) {
-      return { event: null, error: "Failed to fetch event" };
-    }
-
-    return { event: toEventDto(row) };
-  } catch (error) {
-    console.error("Error fetching event by slug:", error);
-    return { event: null, error: "Failed to fetch event" };
-  }
-}
-
-export async function getRelatedEvents(category: string, excludeId: string, limit: number = 3) {
-  const db = getDb();
-
-  try {
-    const rows = await db
-      .select()
-      .from(events)
-      .where(
-        and(eq(events.category, category), ne(events.id, excludeId), eq(events.approved, true)),
-      )
-      .limit(limit);
-
-    return { events: rows.map(toEventDto) };
-  } catch (error) {
-    console.error("Error fetching related events:", error);
-    return { events: [], error: "Failed to fetch related events" };
   }
 }
 
@@ -105,22 +37,54 @@ export async function submitEvent(formData: EventFormData) {
     const user = await requireUser();
     const db = getDb();
 
-    await db.insert(events).values({
-      slug: formData.slug,
-      name: formData.name,
-      date: formData.date,
-      time: formData.time,
-      locationType: formData.locationType,
-      locationDetail: formData.locationDetail,
-      description: formData.description,
-      organizer: formData.organizer,
-      registrationUrl: formData.registrationUrl,
-      coverImage: formData.coverImage,
-      category: formData.category,
-      status: "upcoming",
-      approved: false,
-      submittedBy: user.id,
-    });
+    const baseSlug = slugifyTitle(formData.name);
+
+    const ensureUniqueEventSlug = async (base: string): Promise<string> => {
+      let candidate = base;
+      let attempt = 1;
+      while (true) {
+        const [existing] = await db
+          .select({ slug: events.slug })
+          .from(events)
+          .where(eq(events.slug, candidate))
+          .limit(1);
+        if (!existing) {
+          return candidate;
+        }
+        attempt += 1;
+        candidate = `${base}-${attempt}`;
+      }
+    };
+
+    const slug = await ensureUniqueEventSlug(baseSlug);
+
+    const insertEvent = (resolutionSlug: string) =>
+      db.insert(events).values({
+        slug: resolutionSlug,
+        name: formData.name,
+        date: formData.date,
+        time: formData.time,
+        locationType: formData.locationType,
+        locationDetail: formData.locationDetail,
+        description: formData.description,
+        organizer: formData.organizer,
+        registrationUrl: formData.registrationUrl,
+        coverImage: formData.coverImage,
+        category: formData.category,
+        status: "upcoming",
+        approved: false,
+        submittedBy: user.id,
+      });
+
+    try {
+      await insertEvent(slug);
+    } catch (error) {
+      if (!isSlugConflict(error)) {
+        throw error;
+      }
+      const retrySlug = await ensureUniqueEventSlug(baseSlug);
+      await insertEvent(retrySlug);
+    }
 
     revalidatePath("/event/list");
     revalidateTag("event-list-events", "max");
@@ -133,7 +97,6 @@ export async function submitEvent(formData: EventFormData) {
     return { success: false, error: "An unexpected error occurred" };
   }
 }
-
 function isValidUUID(str: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);

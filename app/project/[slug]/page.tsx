@@ -109,7 +109,7 @@ function renderDescription(text: string): ReactNode {
 
 // Presentational component — data is fetched in the route loader (app/routes/project.$slug.tsx)
 import type { getCurrentUser } from "@/lib/server/auth";
-import type { getProjectBySlug } from "@/lib/actions";
+import type { getProjectBySlug } from "@/lib/server/project-public";
 import type { getCategories } from "@/lib/categories";
 import type { getComments } from "@/lib/actions/comments";
 

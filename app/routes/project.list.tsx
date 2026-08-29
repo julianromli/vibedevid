@@ -5,7 +5,7 @@ import { ProjectListClient } from "@/app/project/list/project-list-client";
 import { Footer } from "@/components/ui/footer";
 import { ScrollReveal } from "@/components/ui/motion-wrapper";
 import { Navbar } from "@/components/ui/navbar";
-import { fetchProjectsWithSorting } from "@/lib/actions";
+import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 import { getCategories } from "@/lib/categories";
 import { getServerT, getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { absoluteUrl } from "@/lib/seo/site-url";

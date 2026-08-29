@@ -6,31 +6,22 @@ export interface UseEventFormReturn {
   formData: Partial<EventFormData>;
   errors: Record<string, string>;
   isValid: boolean;
-  isLoading: boolean;
   setField: (field: keyof EventFormData, value: any) => void;
   validateForm: () => boolean;
   resetForm: () => void;
-  handleSubmit: () => Promise<SubmitResult>;
-}
-
-export interface SubmitResult {
-  success: boolean;
-  error?: string;
 }
 
 interface UseEventFormProps {
   userId: string;
-  onSuccess?: () => void;
 }
 
-export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEventFormReturn {
+export function useEventForm({ userId }: UseEventFormProps): UseEventFormReturn {
   const [formData, setFormData] = useState<Partial<EventFormData>>({
     status: "upcoming",
     approved: false,
     submittedBy: userId,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   const setField = (field: keyof EventFormData, value: any) => {
     setFormData((prev) => {
@@ -76,43 +67,6 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
       submittedBy: userId,
     });
     setErrors({});
-    setIsLoading(false);
-  };
-
-  const handleSubmit = async (): Promise<SubmitResult> => {
-    // Validate form
-    if (!validateForm()) {
-      return {
-        success: false,
-        error: "Please fix all validation errors",
-      };
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Phase 1: Mock submission (console.log)
-      console.log("[useEventForm] Submitting event:", formData);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Phase 1: Always succeed
-      setIsLoading(false);
-      onSuccess?.();
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      setIsLoading(false);
-      console.error("[useEventForm] Submission error:", error);
-
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to submit event",
-      };
-    }
   };
 
   const validation = validateEventForm(formData);
@@ -121,10 +75,8 @@ export function useEventForm({ userId, onSuccess }: UseEventFormProps): UseEvent
     formData,
     errors,
     isValid: validation.isValid,
-    isLoading,
     setField,
     validateForm,
     resetForm,
-    handleSubmit,
   };
 }

@@ -14,7 +14,10 @@ import {
   DashboardContent,
   DashboardContentFallback,
 } from "@/app/(admin)/dashboard/components/dashboard-tabs";
-import { loadDashboardBoardData } from "@/app/(admin)/dashboard/dashboard-data";
+import {
+  loadDashboardBoardData,
+  type DashboardBoardData,
+} from "@/app/(admin)/dashboard/dashboard-data";
 import { Header } from "@/components/admin-panel/header";
 import { type DashboardTabValue, resolveDashboardTab } from "@/lib/admin/dashboard-tabs";
 
@@ -29,25 +32,66 @@ const TAB_TITLES: Record<DashboardTabValue, string> = {
   comments: "Comments",
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: board payloads are heterogeneous per tab
-function DashboardTabPanel({ tab, boardData }: { tab: DashboardTabValue; boardData: any }) {
+function DashboardTabPanel({
+  tab,
+  boardData,
+}: {
+  tab: DashboardTabValue;
+  boardData: DashboardBoardData;
+}) {
   switch (tab) {
     case "overview":
       return <Overview />;
     case "analytics":
       return <Analytics />;
     case "events-approval":
-      return <EventsApproval {...boardData} />;
+      if (boardData.kind !== "events-approval") return <Overview />;
+      return <EventsApproval events={boardData.events} error={boardData.error} />;
     case "projects":
-      return <ProjectsPage {...boardData} />;
+      if (boardData.kind !== "projects") return <Overview />;
+      return (
+        <ProjectsPage
+          projects={boardData.projects}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          categories={boardData.categories}
+          page={boardData.page}
+        />
+      );
     case "blog":
-      return <BlogPage {...boardData} />;
+      if (boardData.kind !== "blog") return <Overview />;
+      return (
+        <BlogPage
+          posts={boardData.posts}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          tags={boardData.tags}
+          page={boardData.page}
+        />
+      );
     case "users":
-      return <UsersPage {...boardData} />;
+      if (boardData.kind !== "users") return <Overview />;
+      return (
+        <UsersPage
+          users={boardData.users}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          page={boardData.page}
+        />
+      );
     case "admin-management":
-      return <AdminManagementPage {...boardData} />;
+      if (boardData.kind !== "admin-management") return <Overview />;
+      return <AdminManagementPage result={boardData.result} />;
     case "comments":
-      return <CommentsPage {...boardData} />;
+      if (boardData.kind !== "comments") return <Overview />;
+      return (
+        <CommentsPage
+          reports={boardData.reports}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          page={boardData.page}
+        />
+      );
     default:
       return <Overview />;
   }

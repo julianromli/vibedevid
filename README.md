@@ -316,10 +316,15 @@ Notes:
 ├── hooks/                  # Custom React hooks
 ├── lib/
 │   ├── actions/            # Server data/mutations + *.functions.ts (createServerFn)
+│   │                       #   rule: foo.functions.ts wraps ONLY foo.ts or its
+│   │                       #   read partner in lib/server/
 │   ├── db/                 # Drizzle schema + `getDb()` (Neon serverless)
 │   ├── auth/               # Better Auth server/client config
-│   ├── server/             # Server-only utilities (auth, runtime secrets)
+│   ├── server/             # Server-only utilities (auth, runtime secrets);
+│   │                       #   public read modules: project-public.ts,
+│   │                       #   blog-public.ts (list + detail reads)
 │   ├── routes/             # Route helpers (server locale/translations)
+│   │                       #   locale: lib/locale.ts owns registry + cookie
 │   ├── uploadthing.ts      # UploadThing server router
 │   ├── uploadthing-client.ts   # Client upload helpers
 │   ├── uploadthing-router.ts   # Client-safe router types
@@ -337,10 +342,27 @@ Notes:
 
 ## Key Features Deep Dive
 
+### Project Submission Validation
+
+Aturan validasi field Project (batas panjang, jumlah tag/gambar, format URL, kategori aktif)
+hidup di satu modul: `lib/project-submission.ts`. Modul ini murni zod + helper tanpa
+dependensi server, jadi form submit (`submit-project-form`) dan form edit
+(`ProjectEditClient`) bisa menjalankan schema yang sama persis dengan yang
+di-enforce server (`lib/actions/projects.ts`) — pesan error klien dan server tidak
+bisa drift karena keduanya membaca satu sumber.
+
+- `PROJECT_LIMITS` — satu-satunya tempat konstanta min/max field hidup.
+- `PROJECT_FORM_FIELDS` — nama field FormData yang melintasi seam (snake_case wire keys).
+- `buildProjectSubmissionSchema(activeCategoryNames?)` — schema lengkap; kategori
+  hanya di-check bila daftar kategori aktif diberikan (submit path), edit path
+  memanggilnya tanpa argumen.
+- `readProjectFormData` / `buildProjectFieldErrors` / `formatProjectFieldErrors` —
+  baca FormData, flatten zod issues ke wire contract, dan format ke string error.
+
 ### Project Filtering & Sorting
 
 Project list (`/project/list`) dan homepage memakai `fetchProjectsWithSorting`
-(`lib/actions.ts`) lewat server function `fetchProjectsWithSortingFn`.
+(`lib/server/project-public.ts`) lewat server function `fetchProjectsWithSortingFn`.
 
 Filter kategori bersifat resilient terhadap dua representasi nilai yang
 tersimpan di kolom `projects.category`:
@@ -364,6 +386,22 @@ truncate ke `limit` di JS agar project lama dengan banyak likes tidak terpotong.
 Pilihan filter & sort di UI **tidak** mengubah URL. Nilai awal tetap di-seed
 dari search params saat load pertama (deep link tetap jalan), tapi mengganti
 dropdown setelahnya hanya mengubah state lokal tanpa menyentuh query string.
+
+### Event Submission
+
+Event submission via `SubmitEventModal` → `submitEventFn`
+(`lib/actions/events.ts`). Server read path canonical:
+`lib/server/events-public.ts` (detail + list). Slugs di-generate dari nama dan
+di-uniquify (`ensureUniqueEventSlug` + retry saat `23505`) — dua event bernama
+sama tidak lagi bentrok. Update singkat: event detail page mengetik dari
+`events-public`, bukan dari action module yang sudah tidak punya read functions.
+
+### Admin Board Loader
+
+`loadDashboardBoardData` (`app/(admin)/dashboard/dashboard-data.ts`) returns a
+discriminated union `DashboardBoardData` (`kind: "projects" | "blog" | ...`), so
+`DashboardTabPanel` narrows exhaustively — no `any` payload crosses the seam.
+Tambahan board = satu member union + satu case dengan narrowing.
 
 ### Comments System
 

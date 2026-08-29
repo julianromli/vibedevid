@@ -9,13 +9,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PROJECT_LIMITS } from "@/lib/project-submission";
 
-const MAX_TITLE_LENGTH = 120;
-const MIN_TITLE_LENGTH = 3;
-const MAX_TAGLINE_LENGTH = 160;
-const MIN_TAGLINE_LENGTH = 10;
-const MAX_DESCRIPTION_LENGTH = 1600;
-const MIN_DESCRIPTION_LENGTH = 30;
+const {
+  MAX_TITLE_LENGTH,
+  MIN_TITLE_LENGTH,
+  MAX_TAGLINE_LENGTH,
+  MIN_TAGLINE_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  MIN_DESCRIPTION_LENGTH,
+} = PROJECT_LIMITS;
 
 export interface BasicsStepProps {
   title: string;
