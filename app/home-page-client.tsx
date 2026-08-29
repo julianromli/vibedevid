@@ -7,7 +7,14 @@ import { ProjectShowcase } from "@/components/sections/project-showcase";
 import { ProjectShowcaseProvider } from "@/components/sections/project-showcase/project-showcase-context";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Navbar } from "@/components/ui/navbar";
-import type { Project, ProjectFilterOption, SortBy, User, VibeVideo } from "@/types/homepage";
+import type {
+  Project,
+  ProjectFilterOption,
+  SortBy,
+  Testimonial,
+  User,
+  VibeVideo,
+} from "@/types/homepage";
 
 // Below-the-fold sections are code-split so their JS does not block initial
 // hydration/interactivity. This is the main lever for reducing Total Blocking
@@ -54,6 +61,7 @@ interface HomePageClientProps {
   initialFilter: string;
   initialSort: SortBy;
   initialVibeVideos: VibeVideo[];
+  initialTestimonials: Testimonial[];
 }
 
 function scrollToShowcase() {
@@ -68,6 +76,7 @@ export default function HomePageClient({
   initialFilter,
   initialSort,
   initialVibeVideos,
+  initialTestimonials,
 }: HomePageClientProps) {
   return (
     <main id="main-content" className="bg-background min-h-screen">
@@ -111,7 +120,7 @@ export default function HomePageClient({
       </Suspense>
 
       <Suspense fallback={SectionFallback}>
-        <ReviewsSection />
+        <ReviewsSection approvedTestimonials={initialTestimonials} />
       </Suspense>
 
       <Suspense fallback={SectionFallback}>

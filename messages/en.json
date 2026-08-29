@@ -173,6 +173,25 @@
       }
     }
   },
+  "testimonialSubmit": {
+    "title": "Send a testimonial",
+    "description": "Tell us about your experience at VibeDev ID. We review each testimonial before it appears on the home page.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "role": "Role",
+    "rolePlaceholder": "Example: Frontend Developer, Tokopedia",
+    "body": "Testimonial",
+    "bodyPlaceholder": "Tell us about your experience in the community",
+    "avatar": "Photo",
+    "avatarHint": "JPG, PNG, or WebP. Maximum 2 MB.",
+    "choosePhoto": "Choose photo",
+    "changePhoto": "Change photo",
+    "submit": "Send testimonial",
+    "submitting": "Sending…",
+    "thanksTitle": "Thank you",
+    "thanksBody": "Your testimonial is waiting for approval.",
+    "errorGeneric": "The send failed. Try again."
+  },
   "cta": {
     "titleLine1": "Ready to Be Part of",
     "titleLine2": "Vibe Coding Indonesia Community?",

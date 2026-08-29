@@ -50,6 +50,7 @@ const PUBLIC_DATA_TABLES = [
   "events",
   "vibe_videos",
   "faqs",
+  "testimonials",
 ] as const;
 
 function requireEnv(name: string, value: string | undefined): string {

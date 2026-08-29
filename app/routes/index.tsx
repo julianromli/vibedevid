@@ -10,6 +10,7 @@ import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 import { getCachedJson, setCachedJson, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
+import { getApprovedTestimonials } from "@/lib/server/testimonials-public";
 import { getVideoIconKey } from "@/lib/video-icon-key";
 import type { ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
 
@@ -82,7 +83,11 @@ const loadHomeData = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data: search }) => {
-    const [categories, initialVibeVideos] = await Promise.all([getCategories(), getVibeVideos()]);
+    const [categories, initialVibeVideos, initialTestimonials] = await Promise.all([
+      getCategories(),
+      getVibeVideos(),
+      getApprovedTestimonials(),
+    ]);
 
     const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
       value: category.name,
@@ -107,6 +112,7 @@ const loadHomeData = createServerFn({ method: "GET" })
       initialFilter,
       initialSort,
       initialVibeVideos,
+      initialTestimonials,
     };
   });
 
@@ -173,6 +179,7 @@ function HomeRoute() {
       initialFilter={data.initialFilter}
       initialSort={data.initialSort}
       initialVibeVideos={data.initialVibeVideos}
+      initialTestimonials={data.initialTestimonials}
     />
   );
 }

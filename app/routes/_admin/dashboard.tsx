@@ -7,6 +7,7 @@ import Analytics from "@/app/(admin)/dashboard/boards/analytics";
 import BlogPage from "@/app/(admin)/dashboard/boards/blog/page";
 import CommentsPage from "@/app/(admin)/dashboard/boards/comments/page";
 import EventsApproval from "@/app/(admin)/dashboard/boards/events-approval/page";
+import TestimonialsPage from "@/app/(admin)/dashboard/boards/testimonials/page";
 import Overview from "@/app/(admin)/dashboard/boards/overview";
 import ProjectsPage from "@/app/(admin)/dashboard/boards/projects/page";
 import UsersPage from "@/app/(admin)/dashboard/boards/users/page";
@@ -25,6 +26,7 @@ const TAB_TITLES: Record<DashboardTabValue, string> = {
   overview: "Overview",
   analytics: "Analytics",
   "events-approval": "Events",
+  testimonials: "Testimonials",
   projects: "Projects",
   blog: "Blog",
   users: "Users",
@@ -42,6 +44,14 @@ function DashboardTabPanel({
   switch (boardData.kind) {
     case "events-approval":
       return <EventsApproval events={boardData.events} error={boardData.error} />;
+    case "testimonials":
+      return (
+        <TestimonialsPage
+          testimonials={boardData.testimonials}
+          status={boardData.status}
+          error={boardData.error}
+        />
+      );
     case "projects":
       return (
         <ProjectsPage

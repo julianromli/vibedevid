@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
+import { Route as TestimonialRouteImport } from "./routes/testimonial";
 import { Route as TermsOfServiceRouteImport } from "./routes/terms-of-service";
 import { Route as TermsRouteImport } from "./routes/terms";
 import { Route as SitemapDotxmlRouteImport } from "./routes/sitemap[.]xml";
@@ -49,6 +50,11 @@ import { Route as ApiAiEnhanceDescriptionRouteImport } from "./routes/api/ai.enh
 import { Route as ApiAiCompletionRouteImport } from "./routes/api/ai.completion";
 import { Route as ApiAuthOauthProviderRouteImport } from "./routes/api/auth.oauth.$provider";
 
+const TestimonialRoute = TestimonialRouteImport.update({
+  id: "/testimonial",
+  path: "/testimonial",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: "/terms-of-service",
   path: "/terms-of-service",
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   "/sitemap.xml": typeof SitemapDotxmlRoute;
   "/terms": typeof TermsRoute;
   "/terms-of-service": typeof TermsOfServiceRoute;
+  "/testimonial": typeof TestimonialRoute;
   "/dashboard": typeof AdminDashboardRoute;
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
@@ -294,6 +301,7 @@ export interface FileRoutesByTo {
   "/sitemap.xml": typeof SitemapDotxmlRoute;
   "/terms": typeof TermsRoute;
   "/terms-of-service": typeof TermsOfServiceRoute;
+  "/testimonial": typeof TestimonialRoute;
   "/dashboard": typeof AdminDashboardRoute;
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   "/sitemap.xml": typeof SitemapDotxmlRoute;
   "/terms": typeof TermsRoute;
   "/terms-of-service": typeof TermsOfServiceRoute;
+  "/testimonial": typeof TestimonialRoute;
   "/_admin/dashboard": typeof AdminDashboardRoute;
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | "/sitemap.xml"
     | "/terms"
     | "/terms-of-service"
+    | "/testimonial"
     | "/dashboard"
     | "/api/auth-check"
     | "/api/github-import"
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | "/sitemap.xml"
     | "/terms"
     | "/terms-of-service"
+    | "/testimonial"
     | "/dashboard"
     | "/api/auth-check"
     | "/api/github-import"
@@ -458,6 +469,7 @@ export interface FileRouteTypes {
     | "/sitemap.xml"
     | "/terms"
     | "/terms-of-service"
+    | "/testimonial"
     | "/_admin/dashboard"
     | "/api/auth-check"
     | "/api/github-import"
@@ -500,6 +512,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute;
   TermsRoute: typeof TermsRoute;
   TermsOfServiceRoute: typeof TermsOfServiceRoute;
+  TestimonialRoute: typeof TestimonialRoute;
   ApiAuthCheckRoute: typeof ApiAuthCheckRoute;
   ApiGithubImportRoute: typeof ApiGithubImportRoute;
   ApiOgRoute: typeof ApiOgRoute;
@@ -525,6 +538,13 @@ export interface RootRouteChildren {
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/testimonial": {
+      id: "/testimonial";
+      path: "/testimonial";
+      fullPath: "/testimonial";
+      preLoaderRoute: typeof TestimonialRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/terms-of-service": {
       id: "/terms-of-service";
       path: "/terms-of-service";
@@ -869,6 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
+  TestimonialRoute: TestimonialRoute,
   ApiAuthCheckRoute: ApiAuthCheckRoute,
   ApiGithubImportRoute: ApiGithubImportRoute,
   ApiOgRoute: ApiOgRoute,

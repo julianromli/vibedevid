@@ -10,6 +10,7 @@ const DISALLOWED_PATHS = [
   "/dashboard",
   "/blog/editor",
   "/project/submit",
+  "/testimonial",
   "/user/auth",
   "/api/",
   "/auth/",

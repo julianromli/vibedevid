@@ -2,6 +2,7 @@ export const DASHBOARD_TAB_VALUES = [
   "overview",
   "analytics",
   "events-approval",
+  "testimonials",
   "projects",
   "blog",
   "users",

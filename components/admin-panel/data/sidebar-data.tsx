@@ -4,6 +4,7 @@ import {
   IconLayoutDashboard,
   IconMessageCircle,
   IconNews,
+  IconQuote,
   IconShield,
   IconUsers,
 } from "@tabler/icons-react";
@@ -48,6 +49,11 @@ export const sidebarData: { navGroups: NavGroup[] } = {
           title: "Events",
           url: "/dashboard?tab=events-approval",
           icon: IconCalendarEvent,
+        },
+        {
+          title: "Testimonials",
+          url: "/dashboard?tab=testimonials",
+          icon: IconQuote,
         },
       ],
     },

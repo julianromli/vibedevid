@@ -62,4 +62,5 @@ export async function invalidateCached(key: string): Promise<void> {
 export const SHORT_TTL_CACHE_KEYS = {
   categories: "categories:active",
   vibeVideos: "vibe-videos:home",
+  testimonials: "testimonials:home",
 } as const;

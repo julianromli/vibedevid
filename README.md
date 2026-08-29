@@ -18,6 +18,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 🤖 **AI Leaderboard** - Ranking dan showcase AI tools favorit komunitas
 - 🗓️ **Community Calendar** - Event dan activity tracker
 - 🎉 **Events System** - Submit dan browse community events dengan approval workflow
+- 💬 **Testimonials** - Unlisted `/testimonial` form, admin approve/reject/unpublish, lalu tampil di section review landing page
 - 📈 **User Dashboard** - Personal dashboard untuk manage projects dan activity
 - 🛠️ **Admin Dashboard** - Full admin panel dengan moderation tools
 - ⌨️ **Command Palette** - Quick navigation dan search (cmdk)
@@ -429,6 +430,25 @@ Event submission via `submitEventFn` (`lib/actions/events.functions.ts`) →
 (fallback: diturunkan dari nama) lalu di-uniquify dengan retry saat `23505`
 (maksimal 100 percobaan) — dua event dengan slug sama tidak lagi bentrok.
 
+### Testimonials
+
+The public form lives at `/testimonial`. It is not in the navbar, footer, or
+sitemap. `robots.txt` disallows the path and the route emits `noindex`. Anyone
+with the URL can submit (no login). Fields: full name, role, testimonial text,
+required photo. The server accepts `FormData`, checks JPEG/PNG/WebP magic
+bytes (not the client MIME string), uploads the photo with UploadThing
+`UTApi`, and inserts a `pending` row. If the insert fails, the uploaded file
+is deleted.
+
+Admin dashboard tab `testimonials` (`/dashboard?tab=testimonials`) lets role-0
+admins approve, reject, or unpublish. Reject and unpublish set `status=rejected`
+and keep the row. Approve sets `status=approved` and refreshes `approved_at`.
+
+The landing reviews section shows approved rows (newest first, all of them,
+split across the three columns). If approved count is 0, it falls back to the
+i18n seed in `messages/*/reviews.testimonials`. Schema: `testimonials` table +
+`scripts/migrations/neon/04_testimonials.sql`. Apply with `bun run migrate:schema`.
+
 ### Admin Board Loader
 
 `loadDashboardBoardData` (`app/(admin)/dashboard/dashboard-data.ts`) returns a
@@ -477,7 +497,7 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
 - **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*` and `/fonts/*` (immutable). Only non-overlapping directory rules are used: Cloudflare `_headers` wildcards match across `/` and concatenate every matching rule's value, so broad extension rules like `/*.avif` are avoided (they would corrupt the `/optimized/*` header).
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
-- **Short-TTL homepage cache** - Active categories and home vibe videos are cached for 5 minutes (`lib/server/short-ttl-cache.ts`) so list pages do not scan those tables on every request.
+- **Short-TTL homepage cache** - Active categories, home vibe videos, and approved testimonials are cached for 5 minutes (`lib/server/short-ttl-cache.ts`) so list pages do not scan those tables on every request.
 - **SQL aggregates** - `getBatchLikeStatus` and category project counts use `GROUP BY` / `count()` in Postgres instead of loading full like or project rows into the Worker.
 - **Client-side upload compression** - User-uploaded project images go through `lib/image-compression.ts` (`onBeforeUploadBegin` on the UploadThing buttons), which downscales to 1600px and re-encodes to WebP in the browser before upload. UploadThing (`ufs.sh`) has no on-the-fly resizing and `sharp` cannot run on Cloudflare Workers, so compressing client-side is the only no-cost option — it typically turns a 380KB+ upload into ~80-120KB. Falls back to the original file if compression fails or does not reduce size.
 - **Backfill for existing images** - `scripts/backfill-image-compression.ts` (run with `bun run backfill:images`, or `--apply` to write) recompresses already-uploaded project/video images: download → WebP via sharp → re-upload to UploadThing → update the DB row → delete the old file. Runs on Node/Bun (needs `DATABASE_URL` + `UPLOADTHING_TOKEN`), defaults to a dry run. Use this once to fix images uploaded before client-side compression was added.
@@ -491,7 +511,7 @@ Search-engine optimization is handled at the route level:
 - **Dynamic sitemap** - `app/routes/sitemap[.]xml.ts` queries Neon (Drizzle) for published posts, projects, approved events, and public profiles, plus static routes. Auth-gated pages are excluded; `lastmod` uses real content timestamps with a fallback.
 - **robots.txt** - `app/routes/robots[.]txt.ts` serves a single `User-agent: *` group, disallows private/API paths, and references the sitemap. Note: if Cloudflare's managed robots.txt is enabled it will shadow this route — keep only one source of truth.
 - **Canonical URLs** - Self-referencing canonicals on content and list pages; the homepage and `/project/list` consolidate `?filter`/`?sort` variants onto their clean URLs.
-- **noindex** - Admin, dashboard, blog editor, project submit, and auth routes emit `robots: noindex, nofollow` via the shared `NOINDEX_META` helper in `lib/seo/site-url.ts`.
+- **noindex** - Admin, dashboard, blog editor, project submit, `/testimonial`, and auth routes emit `robots: noindex, nofollow` via the shared `NOINDEX_META` helper in `lib/seo/site-url.ts`.
 - **Dynamic OG image** - `app/routes/api/og.ts` renders a branded 1200×630 SVG from a `title` query param (dependency-free, Cloudflare Workers-safe).
 - **LCP-friendly images** - Below-the-fold images use `loading="lazy"`; preload is reserved for the hero/logo (above the fold).
 

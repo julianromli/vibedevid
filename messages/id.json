@@ -173,6 +173,25 @@
       }
     }
   },
+  "testimonialSubmit": {
+    "title": "Kirim testimoni",
+    "description": "Ceritakan pengalaman kamu di VibeDev ID. Kami akan meninjau testimoni sebelum tampil di halaman utama.",
+    "fullName": "Nama lengkap",
+    "fullNamePlaceholder": "Nama lengkap kamu",
+    "role": "Role",
+    "rolePlaceholder": "Contoh: Frontend Developer, Tokopedia",
+    "body": "Isi testimoni",
+    "bodyPlaceholder": "Ceritakan pengalaman kamu di komunitas",
+    "avatar": "Foto",
+    "avatarHint": "JPG, PNG, atau WebP. Maksimal 2 MB.",
+    "choosePhoto": "Pilih foto",
+    "changePhoto": "Ganti foto",
+    "submit": "Kirim testimoni",
+    "submitting": "Mengirim…",
+    "thanksTitle": "Terima kasih",
+    "thanksBody": "Testimoni kamu menunggu persetujuan.",
+    "errorGeneric": "Kiriman gagal. Coba lagi."
+  },
   "cta": {
     "titleLine1": "Siap Jadi Bagian",
     "titleLine2": "Komunitas Vibe Coding Indonesia?",

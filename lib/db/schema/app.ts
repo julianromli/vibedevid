@@ -240,6 +240,27 @@ export const vibeVideos = pgTable("vibe_videos", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const testimonials = pgTable(
+  "testimonials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fullName: text("full_name").notNull(),
+    role: text("role").notNull(),
+    body: text("body").notNull(),
+    avatarUrl: text("avatar_url").notNull(),
+    avatarKey: text("avatar_key").notNull(),
+    status: text("status").notNull().default("pending"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    ipHash: text("ip_hash"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_testimonials_status_approved_at").on(table.status, table.approvedAt),
+    check("testimonials_status_check", sql`${table.status} IN ('pending', 'approved', 'rejected')`),
+  ],
+);
+
 export const faqs = pgTable("faqs", {
   id: uuid("id").primaryKey().defaultRandom(),
   question: text("question").notNull(),

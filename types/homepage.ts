@@ -47,6 +47,7 @@ export interface VibeVideo {
 }
 
 export interface Testimonial {
+  id?: string;
   text: string;
   image: string;
   name: string;

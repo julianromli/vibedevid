@@ -4,7 +4,9 @@ import { getAllPosts, getAllTags } from "@/lib/actions/admin/posts";
 import { getAllProjects, getProjectCategories } from "@/lib/actions/admin/projects";
 import { getAllUsers } from "@/lib/actions/admin/users";
 import { getPendingEvents } from "@/lib/actions/events";
+import { type AdminTestimonialsFilter, listAdminTestimonials } from "@/lib/actions/testimonials";
 import type { DashboardTabValue } from "@/lib/admin/dashboard-tabs";
+import { isTestimonialStatus } from "@/lib/testimonial-form-utils";
 
 type ProjectsResult = Awaited<ReturnType<typeof getAllProjects>>;
 type CategoriesResult = Awaited<ReturnType<typeof getProjectCategories>>;
@@ -13,6 +15,7 @@ type TagsResult = Awaited<ReturnType<typeof getAllTags>>;
 type UsersResult = Awaited<ReturnType<typeof getAllUsers>>;
 type ReportsResult = Awaited<ReturnType<typeof getReportedComments>>;
 type PendingEventsResult = Awaited<ReturnType<typeof getPendingEvents>>;
+type TestimonialsResult = Awaited<ReturnType<typeof listAdminTestimonials>>;
 type PrivilegedResult = Awaited<ReturnType<typeof getPrivilegedUsers>>;
 
 /**
@@ -58,6 +61,12 @@ export type DashboardBoardData =
       kind: "events-approval";
       events: PendingEventsResult["events"];
       error?: PendingEventsResult["error"];
+    }
+  | {
+      kind: "testimonials";
+      testimonials: TestimonialsResult["testimonials"];
+      error?: TestimonialsResult["error"];
+      status: AdminTestimonialsFilter;
     }
   | {
       kind: "admin-management";
@@ -141,6 +150,12 @@ export async function loadDashboardBoardData(
     case "events-approval": {
       const { events, error } = await getPendingEvents();
       return { kind: "events-approval", events, error };
+    }
+    case "testimonials": {
+      const status: AdminTestimonialsFilter =
+        search.status === "all" || isTestimonialStatus(search.status) ? search.status : "pending";
+      const { testimonials, error } = await listAdminTestimonials(status);
+      return { kind: "testimonials", testimonials, error, status };
     }
     case "admin-management": {
       const result = await getPrivilegedUsers();

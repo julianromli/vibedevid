@@ -1,6 +1,9 @@
 import { createUploadthing, type FileRouter, UTApi } from "uploadthing/server";
+import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
 import { requireUser } from "@/lib/server/auth";
 import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
+
+const ANONYMOUS_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 
 export type { OurFileRouter } from "./uploadthing-router";
 
@@ -31,6 +34,39 @@ function getUfsUrl(file: unknown): string | undefined {
   if (!file || typeof file !== "object") return undefined;
   const ufsUrl = (file as Record<string, unknown>).ufsUrl;
   return typeof ufsUrl === "string" ? ufsUrl : undefined;
+}
+
+export async function uploadAnonymousImage(file: File): Promise<{ url: string; key: string }> {
+  if (file.size > ANONYMOUS_IMAGE_MAX_BYTES) {
+    throw new Error("Foto maksimal 2 MB");
+  }
+
+  const bytes = await readFileBytes(file);
+  const mime = sniffImageMime(bytes);
+  if (!mime) {
+    throw new Error("Foto harus JPG, PNG, atau WebP");
+  }
+
+  const body = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(body).set(bytes);
+  const safeFile = new File([body], `avatar${SNIFFED_IMAGE_EXTENSION[mime]}`, {
+    type: mime,
+    lastModified: Date.now(),
+  });
+
+  const uploaded = await getUtApi().uploadFiles(safeFile);
+  const payload = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+
+  if (!payload || payload.error || !payload.data) {
+    throw new Error(payload?.error?.message ?? "Upload failed");
+  }
+
+  const url = payload.data.ufsUrl ?? payload.data.url;
+  if (!url || !payload.data.key) {
+    throw new Error("Upload failed");
+  }
+
+  return { url, key: payload.data.key };
 }
 
 export async function deleteUploadthingFiles(
