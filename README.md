@@ -322,7 +322,8 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 │   ├── routes/             # TanStack Router file-based routes (source of truth)
 │   │   ├── __root.tsx      # Root layout, head/meta, providers
 │   │   ├── index.tsx       # Homepage
-│   │   ├── $username.tsx   # Dynamic user profile pages
+│   │   ├── $username.tsx   # Dynamic user profile pages (skips reserved slugs)
+│   │   ├── testimonial.tsx # Unlisted public testimonial form
 │   │   ├── project.list.tsx / project.$slug.tsx / project.submit.tsx
 │   │   ├── blog.tsx (layout) / blog.index.tsx / blog.$slug.tsx / blog.editor*.tsx
 │   │   ├── event.list.tsx / event.$slug.tsx
@@ -432,13 +433,19 @@ Event submission via `submitEventFn` (`lib/actions/events.functions.ts`) →
 
 ### Testimonials
 
-The public form lives at `/testimonial`. It is not in the navbar, footer, or
-sitemap. `robots.txt` disallows the path and the route emits `noindex`. Anyone
-with the URL can submit (no login). Fields: full name, role, testimonial text,
-required photo. The server accepts `FormData`, checks JPEG/PNG/WebP magic
-bytes (not the client MIME string), uploads the photo with UploadThing
-`UTApi`, and inserts a `pending` row. If the insert fails, the uploaded file
-is deleted.
+The public form lives at `/testimonial`. It is a form route, not a profile URL.
+`/$username` skips reserved first-segment slugs (`testimonial`, `calendar`,
+`admin`, and the other static app paths in `lib/reserved-profile-slugs.ts`).
+Sign-up suffixes a reserved base name (`testimonial_1`); profile edit rejects
+a reserved username. Git push does not publish the Worker — after merge, run
+`bun run build` then `bunx wrangler deploy`.
+
+The form is not in the navbar, footer, or sitemap. `robots.txt` disallows the
+path and the route emits `noindex`. Anyone with the URL can submit (no login).
+Fields: full name, role, testimonial text, required photo. The server accepts
+`FormData`, checks JPEG/PNG/WebP magic bytes (not the client MIME string),
+uploads the photo with UploadThing `UTApi`, and inserts a `pending` row. If
+the insert fails, the uploaded file is deleted.
 
 Admin dashboard tab `testimonials` (`/dashboard?tab=testimonials`) lets role-0
 admins approve, reject, or unpublish. Reject and unpublish set `status=rejected`

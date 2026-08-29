@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import ProfilePage from "@/app/[username]/page";
 import { loadProfilePageData } from "@/app/[username]/profile-data";
+import { isReservedProfileSlug, parseProfileUsernameParam } from "@/lib/reserved-profile-slugs";
 import { absoluteUrl } from "@/lib/seo/site-url";
 
 /**
@@ -17,7 +18,13 @@ const loadProfile = createServerFn({ method: "GET" })
   });
 
 export const Route = createFileRoute("/$username")({
+  params: {
+    parse: ({ username }) => parseProfileUsernameParam(username),
+  },
   loader: async ({ params }) => {
+    if (isReservedProfileSlug(params.username)) {
+      throw notFound();
+    }
     const data = await loadProfile({ data: { username: params.username } });
     if (!data.user) {
       throw notFound();

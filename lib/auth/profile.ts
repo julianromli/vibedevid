@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { isReservedProfileSlug } from "@/lib/reserved-profile-slugs";
 
 interface CreateProfileInput {
   id: string;
@@ -46,6 +47,7 @@ export async function createUserProfile(input: CreateProfileInput): Promise<void
 
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const username = attempt === 0 ? baseUsername : `${baseUsername}_${attempt}`;
+    if (isReservedProfileSlug(username)) continue;
 
     try {
       await db

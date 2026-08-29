@@ -3,6 +3,7 @@ import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from "@/lib/pro
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
+import { isReservedProfileSlug } from "@/lib/reserved-profile-slugs";
 import { getServerSession, requireUser } from "@/lib/server/auth";
 import { eq, and, ne } from "drizzle-orm";
 import type { User } from "@/types/homepage";
@@ -87,6 +88,9 @@ export async function updateUserProfile(
     }
 
     const usernameChanged = profileData.username !== currentUsername;
+    if (usernameChanged && isReservedProfileSlug(profileData.username)) {
+      return { success: false, error: "This username is reserved" };
+    }
     if (usernameChanged) {
       const [existingUser] = await db
         .select({ id: users.id })
