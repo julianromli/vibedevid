@@ -30,7 +30,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - ❤️ **Like System** - Like project yang lo suka
 - 🔍 **Discovery** - Filter dan cari project berdasarkan kategori
 - 🖼️ **Progressive Image Loading** - Blur placeholders dengan lazy loading
-- 🌍 **Internationalization** - Full support English dan Indonesia (react-i18next). Locale comes from the `NEXT_LOCALE` cookie, not `navigator.language`, so SSR HTML and the first client render stay in sync in in-app browsers (Threads, Instagram, and similar WebViews).
+- 🌍 **Internationalization** - Full support English dan Indonesia (react-i18next). Locale comes from the `NEXT_LOCALE` cookie, not `navigator.language`. The resolved locale is also written into SSR HTML (`window.__VIBEDEV_LOCALE__`) so the client bundle matches the first paint without waiting for a client `beforeLoad`.
 - 📱 **In-app browsers** - Public pages load without the blank TanStack "Something went wrong!" screen. Route errors show a recovery page (reload / back to home). The leftover Next.js service worker is unregistered on purpose; `/sw.js` is an uninstall shim so already-installed clients drop it.
 - 🛡️ **Spam Protection** - Email domain whitelist dan bot protection
 - 📊 **Analytics Dashboard** - Charts dan data visualization (recharts)

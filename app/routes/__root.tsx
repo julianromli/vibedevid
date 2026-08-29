@@ -5,9 +5,9 @@ import { ClientThemeProvider } from "@/components/client-theme-provider";
 import { DefaultRouteError } from "@/components/errors/default-route-error";
 import NotFoundError from "@/components/errors/not-found-error";
 import { Toaster } from "@/components/ui/sonner";
-import i18n, { i18nInit } from "@/i18n";
+import i18n, { i18nInit, syncI18nLocale } from "@/i18n";
 import { getCurrentUserFn } from "@/lib/actions/user.functions";
-import { DEFAULT_LOCALE } from "@/lib/locale";
+import { DEFAULT_LOCALE, ssrLocaleScript } from "@/lib/locale";
 import { getLocaleFn } from "@/lib/locale.functions";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import appCss from "../globals.css?url";
@@ -78,12 +78,14 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { locale } = Route.useRouteContext();
+  syncI18nLocale(locale);
   const { t } = useTranslation("common");
   const siteUrl = getSiteUrl();
 
   return (
     <html lang={locale} suppressHydrationWarning className="font-sans antialiased">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: ssrLocaleScript(locale) }} />
         <HeadContent />
         {import.meta.env.DEV && (
           <script src="//unpkg.com/react-grab/dist/index.global.js" crossOrigin="anonymous" />

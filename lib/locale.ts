@@ -17,6 +17,9 @@ export const LOCALE_COOKIE_NAME = "NEXT_LOCALE";
 
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
+/** Written into SSR HTML so the client bundle can match the rendered locale. */
+export const SSR_LOCALE_GLOBAL = "__VIBEDEV_LOCALE__";
+
 export function isLocale(value: string | null | undefined): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
 }
@@ -73,6 +76,30 @@ export function readLocaleCookie(cookieHeader?: string | null): Locale {
   const source = cookieHeader ?? readDocumentCookie();
   const value = parseCookieValue(source, LOCALE_COOKIE_NAME);
   return isLocale(value) ? value : DEFAULT_LOCALE;
+}
+
+export function readSsrLocaleMarker(): Locale | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+  try {
+    return isLocale(window.__VIBEDEV_LOCALE__) ? window.__VIBEDEV_LOCALE__ : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Locale for the first client i18n init. Prefers the SSR HTML marker so
+ * hydration does not depend on root `beforeLoad` (TanStack skips that on
+ * dehydrated matches). Falls back to the cookie, then the default locale.
+ */
+export function getBrowserInitialLocale(): Locale {
+  return readSsrLocaleMarker() ?? readLocaleCookie();
+}
+
+export function ssrLocaleScript(locale: Locale): string {
+  return `window.${SSR_LOCALE_GLOBAL}=${JSON.stringify(locale)};`;
 }
 
 /**

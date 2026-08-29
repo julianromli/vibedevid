@@ -1,12 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   DEFAULT_LOCALE,
+  getBrowserInitialLocale,
   getServerLocale,
   isLocale,
   LOCALE_COOKIE_MAX_AGE,
   LOCALE_COOKIE_NAME,
   LOCALES,
   readLocaleCookie,
+  readSsrLocaleMarker,
+  SSR_LOCALE_GLOBAL,
+  ssrLocaleScript,
 } from "@/lib/locale";
 
 /**
@@ -115,5 +119,52 @@ describe("readLocaleCookie — cookie only, never navigator", () => {
       },
     });
     expect(readLocaleCookie()).toBe("en");
+  });
+});
+
+describe("SSR locale marker — hydration without client beforeLoad", () => {
+  const originalCookie = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+
+  afterEach(() => {
+    window.__VIBEDEV_LOCALE__ = undefined;
+    if (originalCookie) {
+      Object.defineProperty(document, "cookie", originalCookie);
+    }
+  });
+
+  it("writes a classic script that sets the window marker", () => {
+    expect(ssrLocaleScript("en")).toBe(`window.${SSR_LOCALE_GLOBAL}="en";`);
+    expect(ssrLocaleScript("id")).toBe(`window.${SSR_LOCALE_GLOBAL}="id";`);
+  });
+
+  it("reads a valid marker from window", () => {
+    window.__VIBEDEV_LOCALE__ = "en";
+    expect(readSsrLocaleMarker()).toBe("en");
+  });
+
+  it("ignores an invalid marker", () => {
+    window.__VIBEDEV_LOCALE__ = "fr";
+    expect(readSsrLocaleMarker()).toBeUndefined();
+  });
+
+  it("prefers the SSR marker over the cookie", () => {
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() {
+        return "NEXT_LOCALE=id";
+      },
+    });
+    window.__VIBEDEV_LOCALE__ = "en";
+    expect(getBrowserInitialLocale()).toBe("en");
+  });
+
+  it("falls back to the cookie when no marker is set", () => {
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() {
+        return "NEXT_LOCALE=en";
+      },
+    });
+    expect(getBrowserInitialLocale()).toBe("en");
   });
 });
