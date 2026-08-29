@@ -309,7 +309,12 @@ export function LinksMediaStep({
                   <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
                     onBeforeUploadBegin={(files) => {
-                      const remaining = PROJECT_LIMITS.MAX_IMAGE_COUNT - uploadedImageUrls.length;
+                      const importedImageCount =
+                        importedImageUrl && !uploadedImageUrls.includes(importedImageUrl) ? 1 : 0;
+                      const remaining =
+                        PROJECT_LIMITS.MAX_IMAGE_COUNT -
+                        uploadedImageUrls.length -
+                        importedImageCount;
                       if (remaining <= 0) {
                         throw new Error(`Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images reached`);
                       }

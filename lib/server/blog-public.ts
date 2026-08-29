@@ -108,7 +108,9 @@ export async function fetchPostDetailBySlug(slug: string): Promise<BlogPostDetai
     content:
       typeof mappedPost.content === "object" && mappedPost.content !== null
         ? mappedPost.content
-        : "",
+        : typeof mappedPost.content === "string"
+          ? mappedPost.content
+          : "",
     excerpt: mappedPost.excerpt,
     cover_image: mappedPost.coverImage,
     author_id: mappedPost.authorId,

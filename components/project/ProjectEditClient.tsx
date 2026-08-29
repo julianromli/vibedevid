@@ -401,26 +401,19 @@ export function ProjectEditClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-favicon">Favicon URL</Label>
+                <Label>Favicon</Label>
                 <div className="flex items-center gap-2">
-                  {(editFaviconUrl || (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
-                    <Image
-                      src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
-                      alt="Website favicon"
-                      className="h-4 w-4 flex-shrink-0"
-                      onError={() => setEditFaviconUrl("")}
-                      width={16}
-                      height={16}
-                    />
-                  )}
-                  <Input
-                    id="edit-favicon"
-                    type="url"
-                    value={editFaviconUrl}
-                    onChange={(e) => setEditFaviconUrl(e.target.value)}
-                    placeholder="https://example.com/favicon.ico"
-                    disabled={isSaving}
+                  <Image
+                    src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
+                    alt="Website favicon"
+                    className="h-4 w-4 flex-shrink-0"
+                    onError={() => setEditFaviconUrl("")}
+                    width={16}
+                    height={16}
                   />
+                  <p className="form-helper-text text-xs text-muted-foreground">
+                    Updated automatically from your website URL.
+                  </p>
                 </div>
               </div>
 

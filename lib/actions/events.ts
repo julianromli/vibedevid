@@ -30,7 +30,7 @@ export async function submitEvent(formData: EventFormData) {
 
     const baseSlug = formData.slug?.trim() || slugifyTitle(formData.name);
 
-    await insertWithUniqueSlug(baseSlug, (slug) =>
+    const { slug } = await insertWithUniqueSlug(baseSlug, (slug) =>
       db.insert(events).values({
         slug,
         name: formData.name,
@@ -51,7 +51,7 @@ export async function submitEvent(formData: EventFormData) {
 
     revalidatePath("/event/list");
     revalidateTag("event-list-events", "max");
-    return { success: true };
+    return { success: true, slug };
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return { success: false, error: "You must be logged in to submit an event" };

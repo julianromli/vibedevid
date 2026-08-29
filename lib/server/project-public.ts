@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { toProjectDto } from "@/lib/db/mappers";
@@ -93,7 +93,7 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
     db.select({ value: count() }).from(likes).where(eq(likes.projectId, projectPk)),
     db.select({ value: count() }).from(views).where(eq(views.projectId, projectPk)),
     db
-      .select({ value: count() })
+      .select({ value: countDistinct(views.sessionId) })
       .from(views)
       .where(and(eq(views.projectId, projectPk), isNotNull(views.sessionId))),
     db
@@ -111,7 +111,11 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
     description: mapped.description ?? "",
     fullDescription: mapped.description ?? "",
     image: mapped.imageUrl,
-    imageUrls: mapped.imageUrls || (mapped.imageUrl ? [mapped.imageUrl] : []),
+    imageUrls: mapped.imageUrls?.length
+      ? mapped.imageUrls
+      : mapped.imageUrl
+        ? [mapped.imageUrl]
+        : [],
     imageKeys: mapped.imageKeys || [],
     author: {
       name: row.authorDisplayName,
@@ -212,7 +216,7 @@ export async function fetchProjectsWithSorting(
       ? limit
       : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
 
-  let categoryCondition;
+  let categoryCondition: SQL | undefined;
   if (category && category !== "all") {
     const matchedCategory = categories.find(
       (cat) => cat.name === category || cat.display_name === category,

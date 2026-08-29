@@ -364,7 +364,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
         websiteUrl: input.websiteUrl,
         imageUrls: input.imageUrls,
         imageKeys: input.imageKeys,
-        tagline: input.tagline,
+        tagline: input.tagline || null,
         ...(faviconUrl && { faviconUrl }),
         tags: input.tags,
         updatedAt: new Date(),

@@ -442,6 +442,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     const formData = buildSubmitFormData(getCurrentDraftState());
     formData.set("userId", userId);
 
+    setIsLoading(true);
+    setError(null);
+
     try {
       const result = await submitProjectFn({ data: formData });
       if (result.success) {

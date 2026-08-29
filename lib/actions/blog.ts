@@ -1,5 +1,5 @@
 import { revalidatePath, revalidateTag } from "@/lib/revalidation";
-import { slugifyTitle } from "@/lib/slug";
+import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 import { getDb } from "@/lib/db";
 import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
@@ -399,8 +399,6 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
   const viewDate = new Date().toISOString().split("T")[0];
 
   try {
-    console.log("[Server] Incrementing view for blog post:", postId, "Session:", sessionId);
-
     await db.insert(views).values({
       postId: postId.trim(),
       userId: session?.user?.id || null,
@@ -408,15 +406,8 @@ export async function incrementBlogPostViews(postId: string, sessionId?: string)
       ipAddress: null,
       viewDate,
     });
-
-    console.log("[Server] Blog view tracked successfully");
   } catch (error) {
-    const pgError = error as { code?: string; message?: string };
-    if (
-      pgError.code === "23505" ||
-      pgError.message?.includes("duplicate") ||
-      pgError.message?.includes("unique")
-    ) {
+    if (isPgUniqueViolation(error)) {
       console.log("[Server] Blog view already tracked for this session");
     } else {
       console.error("[Server] Increment blog views error:", error);

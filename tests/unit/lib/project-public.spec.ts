@@ -49,6 +49,8 @@ const h = vi.hoisted(() => {
     batchFail: false,
   };
 
+  const getDbCalls = { count: 0 };
+
   function resolveRows(selection: Record<string, unknown> | undefined): unknown[] {
     const keys = Object.keys(selection ?? {});
     if (state.failKeys.some((key) => keys.includes(key))) {
@@ -66,11 +68,14 @@ const h = vi.hoisted(() => {
     return state.selectRows;
   }
 
-  return { state, resolveRows, createMockDb: () => makeFakeDb(resolveRows) };
+  return { state, resolveRows, getDbCalls, createMockDb: () => makeFakeDb(resolveRows) };
 });
 
 vi.mock("@/lib/db", () => ({
-  getDb: () => h.createMockDb(),
+  getDb: () => {
+    h.getDbCalls.count++;
+    return h.createMockDb();
+  },
 }));
 
 vi.mock("@/lib/categories", () => ({
@@ -98,6 +103,7 @@ beforeEach(() => {
   h.state.batchLikes = [];
   h.state.failKeys = [];
   h.state.batchFail = false;
+  h.getDbCalls.count = 0;
 });
 
 describe("getProjectBySlug — detail read", () => {
@@ -145,6 +151,7 @@ describe("getProjectBySlug — detail read", () => {
 
   it("returns null for an empty slug without touching the database", async () => {
     await expect(getProjectBySlug("   ")).resolves.toBeNull();
+    expect(h.getDbCalls.count).toBe(0);
   });
 
   it("returns null when no project matches the slug", async () => {

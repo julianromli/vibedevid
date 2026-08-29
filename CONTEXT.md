@@ -74,7 +74,7 @@ _Avoid_: Project query
 
 **Project submission**:
 The member flow that validates and inserts a new Project (incl. unique slug generation and image references). Validated by the shared Project submission rules.
-_Avoid_: Project create, upload
+_Avoid_: Project creation, upload
 
 **Project edit**:
 The owner/authorized-member flow that mutates an existing Project's fields, validated by the same Project submission rules.
