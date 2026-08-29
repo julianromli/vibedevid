@@ -196,10 +196,7 @@ describe("fetchProjectsWithSorting — list read", () => {
         authorRole: null,
       },
     ];
-    h.state.batchLikes = [
-      { projectId: 8, userId: UUID },
-      { projectId: 8, userId: "other" },
-    ];
+    h.state.batchLikes = [{ projectId: 8, totalLikes: 2, isLiked: false }];
 
     const projects = await fetchProjectsWithSorting("newest", "education", 20);
 
@@ -238,7 +235,7 @@ describe("fetchProjectsWithSorting — list read", () => {
         authorRole: 2,
       },
     ];
-    h.state.batchLikes = [{ projectId: 7, userId: UUID }]; // only pijar-mahir has a like
+    h.state.batchLikes = [{ projectId: 7, totalLikes: 1, isLiked: false }];
 
     const projects = await fetchProjectsWithSorting("top", undefined, 20);
 

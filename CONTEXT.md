@@ -1,6 +1,6 @@
 # VibeDev ID
 
-Indonesian developer-community platform: project showcases, blog, community events, and an admin dashboard. Server: TanStack Start on Cloudflare Workers; data: Neon Postgres via Drizzle.
+Indonesian developer-community platform: project showcases, blog, community events, and an admin dashboard. Server: TanStack Start on Cloudflare Workers. Data: Neon Postgres in `aws-ap-southeast-1` via Drizzle. App traffic uses the pooled `DATABASE_URL`. Schema migrations use `DATABASE_URL_UNPOOLED`. Branch compute policy is in `neon.ts`. Staging schema `supabase_auth_staging` is only for a one-time Supabase import and must be dropped after that import.
 
 ## Language
 

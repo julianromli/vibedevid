@@ -9,6 +9,7 @@ import { vibeVideos } from "@/lib/db/schema";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { fetchProjectsWithSorting } from "@/lib/server/project-public";
+import { getCachedJson, setCachedJson, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
 import { getVideoIconKey } from "@/lib/video-icon-key";
 import type { ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
 
@@ -37,6 +38,11 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
   ];
 
   try {
+    const cached = await getCachedJson<VibeVideo[]>(SHORT_TTL_CACHE_KEYS.vibeVideos);
+    if (cached && cached.length > 0) {
+      return cached;
+    }
+
     const db = getDb();
     const data = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position));
 
@@ -44,7 +50,7 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
       return fallbackVideos;
     }
 
-    return data.map((video) => ({
+    const videos = data.map((video) => ({
       id: video.id,
       title: video.title,
       description: video.description,
@@ -55,6 +61,8 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
       position: video.position,
       iconKey: getVideoIconKey(video.title, video.description),
     }));
+    await setCachedJson(SHORT_TTL_CACHE_KEYS.vibeVideos, videos);
+    return videos;
   } catch (err) {
     console.error("[getVibeVideos] failed:", err instanceof Error ? err.message : String(err));
     return fallbackVideos;

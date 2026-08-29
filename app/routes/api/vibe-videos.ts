@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { asc, eq, max } from "drizzle-orm";
+import { asc, max } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";
 import { requireAdminOrModeratorUser } from "@/lib/server/auth";
+import { invalidateCached, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
 
 function transformVideo(video: typeof vibeVideos.$inferSelect) {
   return {
@@ -78,6 +79,8 @@ export const Route = createFileRoute("/api/vibe-videos")({
               position: nextPosition,
             })
             .returning();
+
+          await invalidateCached(SHORT_TTL_CACHE_KEYS.vibeVideos);
 
           return Response.json(
             {

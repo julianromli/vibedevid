@@ -40,7 +40,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Framework**: TanStack Start (Vite + Nitro) with `@tanstack/react-router` file-based routing
 - **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
-- **Database**: Neon Postgres (Drizzle ORM) — migrated from Supabase. All server data access uses Drizzle via `getDb()` with Better Auth session checks (`requireUser`, `requireAdminOrModeratorUser`). One-time Supabase → Neon scripts live in `scripts/migrate-to-neon.ts`.
+- **Database**: Neon Postgres in `aws-ap-southeast-1` (Drizzle ORM) — migrated from Supabase. All server data access uses Drizzle via `getDb()` with Better Auth session checks (`requireUser`, `requireAdminOrModeratorUser`). Use `DATABASE_URL` (pooled) for the app and `DATABASE_URL_UNPOOLED` (direct) for `drizzle-kit` and `bun run migrate:schema`. Branch policy lives in `neon.ts`. One-time Supabase → Neon scripts live in `scripts/migrate-to-neon.ts`.
 - **Authentication**: Better Auth (`/api/auth/*`) with email/password + Google/GitHub OAuth
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
@@ -96,7 +96,8 @@ cp .env.example .env.local
 4. Update `.env.local`:
 
 ```env
-DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://user:pass@ep-xxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 BETTER_AUTH_SECRET=your-secret-min-32-chars
 BETTER_AUTH_URL=http://localhost:3000
 VITE_BETTER_AUTH_URL=http://localhost:3000
@@ -115,9 +116,9 @@ EMAIL_FROM=noreply@yourdomain.com
 5. Set up the database:
 
 ```bash
-bun run migrate:schema   # first-time Neon schema
+bun run migrate:schema   # first-time Neon schema (uses DATABASE_URL_UNPOOLED when set)
 # Migrating from Supabase (set SUPABASE_DB_URL, SUPABASE_URL, SUPABASE_ANON_KEY in .env.local):
-bun run migrate:staging -- --force  # auth.users → staging (destructive staging reset)
+bun run migrate:staging -- --force  # auth.users → temporary staging (drop after import)
 bun run migrate:users    # staging → Better Auth
 bun run migrate:data -- --force     # public tables (destructive target reset)
 bun run migrate:verify -- --fail-on-mismatch

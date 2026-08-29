@@ -34,6 +34,7 @@
     "@ai-sdk/react": "^3.0.5",
     "@better-upload/client": "^3.0.6",
     "@lobehub/icons": "^2.43.1",
+    "@neon/config": "^1.1.0",
     "@neondatabase/serverless": "^1.1.0",
     "@openrouter/ai-sdk-provider": "^1.5.4",
     "@radix-ui/react-alert-dialog": "latest",

@@ -1,4 +1,14 @@
-import { and, count, countDistinct, desc, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { toProjectDto } from "@/lib/db/mappers";
@@ -171,26 +181,27 @@ async function getBatchLikeStatus(
 
   const db = getDb();
 
-  let allLikes: { projectId: number | null; userId: string | null }[];
   try {
-    allLikes = await db
-      .select({ projectId: likes.projectId, userId: likes.userId })
+    const likeRows = await db
+      .select({
+        projectId: likes.projectId,
+        totalLikes: count(),
+        isLiked: userId ? sql<boolean>`bool_or(${likes.userId} = ${userId})` : sql<boolean>`false`,
+      })
       .from(likes)
-      .where(inArray(likes.projectId, projectIds));
+      .where(inArray(likes.projectId, projectIds))
+      .groupBy(likes.projectId);
+
+    for (const row of likeRows) {
+      if (row.projectId == null) continue;
+      likesByProject.set(String(row.projectId), {
+        totalLikes: Number(row.totalLikes) || 0,
+        isLiked: Boolean(row.isLiked),
+      });
+    }
   } catch (likesError) {
     console.error("getBatchLikeStatus: Likes fetch error:", likesError);
     return Object.fromEntries(likesByProject);
-  }
-
-  for (const like of allLikes) {
-    if (like.projectId == null) continue;
-    const entry = likesByProject.get(String(like.projectId));
-    if (entry) {
-      entry.totalLikes++;
-      if (userId && like.userId === userId) {
-        entry.isLiked = true;
-      }
-    }
   }
 
   return Object.fromEntries(likesByProject);

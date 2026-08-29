@@ -23,6 +23,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Neon workspace link (org/project/branch ids)
+.neon
+
 # vercel
 .vercel
 

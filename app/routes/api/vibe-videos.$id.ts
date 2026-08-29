@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";
 import { requireAdminOrModeratorUser } from "@/lib/server/auth";
+import { invalidateCached, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
 
 function transformVideo(video: typeof vibeVideos.$inferSelect) {
   return {
@@ -101,6 +102,8 @@ export const Route = createFileRoute("/api/vibe-videos/$id")({
             return Response.json({ error: "Video tidak ditemukan" }, { status: 404 });
           }
 
+          await invalidateCached(SHORT_TTL_CACHE_KEYS.vibeVideos);
+
           return Response.json({
             message: "Video berhasil diupdate!",
             video: transformVideo(updatedVideo),
@@ -143,6 +146,7 @@ export const Route = createFileRoute("/api/vibe-videos/$id")({
             .limit(1);
 
           await db.delete(vibeVideos).where(eq(vibeVideos.id, id));
+          await invalidateCached(SHORT_TTL_CACHE_KEYS.vibeVideos);
 
           return Response.json({
             message: `Video "${videoToDelete?.title || "Unknown"}" berhasil dihapus!`,

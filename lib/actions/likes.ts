@@ -4,6 +4,7 @@ import { and, count, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { likes, projects } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/server/auth";
+import { isPgUniqueViolation } from "@/lib/slug";
 
 async function resolveProjectId(identifier: string): Promise<number | null> {
   const db = getDb();
@@ -87,10 +88,16 @@ export const toggleLikeFn = createServerFn({ method: "POST" })
       if (existingLike) {
         await db.delete(likes).where(eq(likes.id, existingLike.id));
       } else {
-        await db.insert(likes).values({
-          projectId,
-          userId: session.user.id,
-        });
+        try {
+          await db.insert(likes).values({
+            projectId,
+            userId: session.user.id,
+          });
+        } catch (error) {
+          if (!isPgUniqueViolation(error)) {
+            throw error;
+          }
+        }
       }
 
       const [countResult] = await db

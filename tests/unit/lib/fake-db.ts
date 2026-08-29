@@ -20,6 +20,7 @@ export function makeQueryChain(
   q.innerJoin = () => q;
   q.leftJoin = () => q;
   q.orderBy = () => q;
+  q.groupBy = () => q;
   q.limit = () => q;
   q.values = () => q;
   q.set = () => q;

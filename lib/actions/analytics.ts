@@ -11,7 +11,7 @@ import {
 } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
 import { requireAdmin } from "@/lib/auth/permissions";
-import { eq, and, gte, lte, count, desc, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, count, desc, inArray, sql } from "drizzle-orm";
 
 export interface PlatformStats {
   total_users: number;
@@ -368,18 +368,22 @@ export async function getProjectsByCategory(limit: number = 8): Promise<{
     await checkAdminAccess();
 
     const db = getDb();
-    const data = await db.select({ category: projects.category }).from(projects);
+    const rows = await db
+      .select({
+        category: sql<string>`coalesce(nullif(trim(${projects.category}), ''), 'Uncategorized')`.as(
+          "category",
+        ),
+        count: count(),
+      })
+      .from(projects)
+      .groupBy(sql`coalesce(nullif(trim(${projects.category}), ''), 'Uncategorized')`)
+      .orderBy(desc(count()))
+      .limit(limit);
 
-    const counts = new Map<string, number>();
-    data.forEach((row) => {
-      const category = row.category?.trim() || "Uncategorized";
-      counts.set(category, (counts.get(category) || 0) + 1);
-    });
-
-    const categories = Array.from(counts.entries())
-      .map(([category, countValue]) => ({ category, count: countValue }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
+    const categories = rows.map((row) => ({
+      category: row.category,
+      count: Number(row.count) || 0,
+    }));
 
     return { success: true, categories };
   } catch (error) {

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Neon project with `DATABASE_URL` (pooled connection string)
+- Neon project with `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (direct, for `migrate:schema`)
 - Supabase direct DB URL for one-time data copy: `SUPABASE_DB_URL`
 - Better Auth secrets: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
 - OAuth: `GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`
@@ -26,8 +26,14 @@ SUPABASE_DB_URL="postgresql://postgres.[ref]:[password]@...pooler.supabase.com:6
   bun run migrate:staging -- --force
 ```
 
-Copies `auth.users` and `auth.identities` into `supabase_auth_staging`. This phase
-truncates staging tables, so pass `--force` or set `MIGRATE_CONFIRM=destroy`.
+Copies `auth.users` and `auth.identities` into `supabase_auth_staging`. This schema
+is temporary and holds password hashes. Drop it after `migrate:users` succeeds:
+
+```sql
+DROP SCHEMA IF EXISTS supabase_auth_staging CASCADE;
+```
+
+This phase truncates staging tables, so pass `--force` or set `MIGRATE_CONFIRM=destroy`.
 
 ### 3. Migrate users to Better Auth
 
@@ -81,7 +87,7 @@ Neon counts. Use `--force` to rerun a checkpointed phase intentionally.
 
 ### 6. Update deployment env
 
-Remove all `SUPABASE_*` vars. Set `DATABASE_URL`, `BETTER_AUTH_*`, OAuth keys on Cloudflare Workers.
+Remove all `SUPABASE_*` vars. Set `DATABASE_URL` (pooled), `BETTER_AUTH_*`, and OAuth keys on Cloudflare Workers. Keep `DATABASE_URL_UNPOOLED` in local env for migrations. After import, drop `supabase_auth_staging`.
 
 ### 7. Pause Supabase project
 

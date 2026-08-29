@@ -301,8 +301,12 @@ async function clearPublicDataTables(target: postgres.Sql, options: CliOptions, 
   }
 }
 
+function getSchemaConnectionUrl(): string {
+  return process.env.DATABASE_URL_UNPOOLED || requireEnv("DATABASE_URL", NEON_URL);
+}
+
 async function applySchema(options: CliOptions) {
-  const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
+  const neonUrl = getSchemaConnectionUrl();
   const db = postgres(neonUrl, { max: 1 });
   const migrationDir = join(import.meta.dirname, "migrations/neon");
   const migrationFiles = readdirSync(migrationDir)
@@ -331,10 +335,40 @@ async function createPostgresSource() {
   return postgres(supabaseUrl, { max: 1, connect_timeout: 20, ssl: "require" });
 }
 
+async function ensureAuthStagingSchema(target: postgres.Sql) {
+  await target.unsafe(`
+    CREATE SCHEMA IF NOT EXISTS supabase_auth_staging;
+
+    CREATE TABLE IF NOT EXISTS supabase_auth_staging.users (
+      id UUID PRIMARY KEY,
+      email TEXT,
+      encrypted_password TEXT,
+      email_confirmed_at TIMESTAMPTZ,
+      raw_user_meta_data JSONB,
+      created_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ,
+      is_anonymous BOOLEAN DEFAULT FALSE
+    );
+
+    CREATE TABLE IF NOT EXISTS supabase_auth_staging.identities (
+      id UUID PRIMARY KEY,
+      user_id UUID NOT NULL,
+      provider TEXT NOT NULL,
+      identity_data JSONB,
+      created_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ
+    );
+  `);
+}
+
 async function copyAuthStaging(options: CliOptions) {
   const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
   const source = await createPostgresSource();
   const target = postgres(neonUrl, { max: 1 });
+
+  if (!options.dryRun) {
+    await ensureAuthStagingSchema(target);
+  }
 
   console.log("Copying auth.users to staging...");
   const authUsers = await source`

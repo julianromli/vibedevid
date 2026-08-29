@@ -3,6 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { toCategoryDto } from "@/lib/db/mappers";
 import { categories } from "@/lib/db/schema";
+import { getCachedJson, setCachedJson, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
 
 export interface Category {
   id: string;
@@ -15,14 +16,10 @@ export interface Category {
   is_active: boolean;
 }
 
-let categoriesCache: Category[] | null = null;
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000;
-
 export async function getCategories(): Promise<Category[]> {
-  const now = Date.now();
-  if (categoriesCache && now - cacheTimestamp < CACHE_DURATION) {
-    return categoriesCache;
+  const cached = await getCachedJson<Category[]>(SHORT_TTL_CACHE_KEYS.categories);
+  if (cached) {
+    return cached;
   }
 
   try {
@@ -33,7 +30,7 @@ export async function getCategories(): Promise<Category[]> {
       .where(eq(categories.isActive, true))
       .orderBy(asc(categories.sortOrder));
 
-    categoriesCache = rows.map((row) => {
+    const mapped = rows.map((row) => {
       const category = toCategoryDto(row);
       return {
         id: category.id,
@@ -46,8 +43,8 @@ export async function getCategories(): Promise<Category[]> {
         is_active: category.isActive ?? true,
       };
     });
-    cacheTimestamp = now;
-    return categoriesCache;
+    await setCachedJson(SHORT_TTL_CACHE_KEYS.categories, mapped);
+    return mapped;
   } catch (error) {
     console.error("Failed to fetch categories:", error);
     return [];

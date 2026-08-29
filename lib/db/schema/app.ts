@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -10,37 +11,34 @@ import {
   text,
   time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { authUser } from "./auth";
 
 // App profile table — 1:1 with Better Auth user (same UUID)
-export const users = pgTable(
-  "users",
-  {
-    id: text("id")
-      .primaryKey()
-      .references(() => authUser.id, { onDelete: "cascade" }),
-    username: text("username").notNull().unique(),
-    displayName: text("display_name").notNull(),
-    bio: text("bio"),
-    avatarUrl: text("avatar_url"),
-    location: text("location"),
-    website: text("website"),
-    githubUrl: text("github_url"),
-    twitterUrl: text("twitter_url"),
-    xUrl: text("x_url"),
-    instagramUrl: text("instagram_url"),
-    threadsUrl: text("threads_url"),
-    role: integer("role").notNull().default(2),
-    isSuspended: boolean("is_suspended").default(false),
-    suspensionReason: text("suspension_reason"),
-    suspendedAt: timestamp("suspended_at", { withTimezone: true }),
-    joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  },
-  (table) => [index("idx_users_username").on(table.username)],
-);
+export const users = pgTable("users", {
+  id: text("id")
+    .primaryKey()
+    .references(() => authUser.id, { onDelete: "cascade" }),
+  username: text("username").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
+  location: text("location"),
+  website: text("website"),
+  githubUrl: text("github_url"),
+  twitterUrl: text("twitter_url"),
+  xUrl: text("x_url"),
+  instagramUrl: text("instagram_url"),
+  threadsUrl: text("threads_url"),
+  role: integer("role").notNull().default(2),
+  isSuspended: boolean("is_suspended").default(false),
+  suspensionReason: text("suspension_reason"),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
 
 export const projects = pgTable(
   "projects",
@@ -73,24 +71,31 @@ export const projects = pgTable(
   ],
 );
 
-export const posts = pgTable("posts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: text("title").notNull(),
-  slug: text("slug").notNull(),
-  content: jsonb("content").notNull(),
-  excerpt: text("excerpt"),
-  coverImage: text("cover_image"),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("draft"),
-  publishedAt: timestamp("published_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  readTimeMinutes: integer("read_time_minutes"),
-  viewCount: integer("view_count").default(0),
-  featured: boolean("featured").default(false),
-});
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    slug: text("slug").notNull(),
+    content: jsonb("content").notNull(),
+    excerpt: text("excerpt"),
+    coverImage: text("cover_image"),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    readTimeMinutes: integer("read_time_minutes"),
+    viewCount: integer("view_count").default(0),
+    featured: boolean("featured").default(false),
+  },
+  (table) => [
+    uniqueIndex("posts_slug_key").on(table.slug),
+    index("idx_posts_status_published_at").on(table.status, table.publishedAt),
+  ],
+);
 
 export const postTags = pgTable("post_tags", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -113,6 +118,8 @@ export const comments = pgTable(
   (table) => [
     index("idx_comments_project_id").on(table.projectId),
     index("idx_comments_post_id").on(table.postId),
+    index("idx_comments_user_id").on(table.userId),
+    check("comments_parent_xor", sql`(project_id IS NULL) <> (post_id IS NULL)`),
   ],
 );
 
@@ -128,6 +135,14 @@ export const likes = pgTable(
   (table) => [
     index("idx_likes_project_id").on(table.projectId),
     index("idx_likes_post_id").on(table.postId),
+    index("idx_likes_user_id").on(table.userId),
+    uniqueIndex("likes_user_project_uidx")
+      .on(table.userId, table.projectId)
+      .where(sql`${table.projectId} IS NOT NULL`),
+    uniqueIndex("likes_user_post_uidx")
+      .on(table.userId, table.postId)
+      .where(sql`${table.postId} IS NOT NULL`),
+    check("likes_parent_xor", sql`(project_id IS NULL) <> (post_id IS NULL)`),
   ],
 );
 
@@ -146,6 +161,8 @@ export const views = pgTable(
   (table) => [
     index("idx_views_project_id").on(table.projectId),
     index("idx_views_post_id").on(table.postId),
+    index("idx_views_project_id_view_date").on(table.projectId, table.viewDate),
+    check("views_parent_xor", sql`(project_id IS NULL) <> (post_id IS NULL)`),
   ],
 );
 
@@ -184,27 +201,31 @@ export const blogReports = pgTable("blog_reports", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-export const events = pgTable("events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  date: date("date").notNull(),
-  time: time("time").notNull(),
-  endDate: date("end_date"),
-  endTime: time("end_time"),
-  locationType: text("location_type").notNull(),
-  locationDetail: text("location_detail").notNull(),
-  organizer: text("organizer").notNull(),
-  registrationUrl: text("registration_url").notNull(),
-  coverImage: text("cover_image").notNull(),
-  category: text("category").notNull(),
-  status: text("status").notNull().default("upcoming"),
-  approved: boolean("approved").notNull().default(false),
-  submittedBy: text("submitted_by").references(() => users.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const events = pgTable(
+  "events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    date: date("date").notNull(),
+    time: time("time").notNull(),
+    endDate: date("end_date"),
+    endTime: time("end_time"),
+    locationType: text("location_type").notNull(),
+    locationDetail: text("location_detail").notNull(),
+    organizer: text("organizer").notNull(),
+    registrationUrl: text("registration_url").notNull(),
+    coverImage: text("cover_image").notNull(),
+    category: text("category").notNull(),
+    status: text("status").notNull().default("upcoming"),
+    approved: boolean("approved").notNull().default(false),
+    submittedBy: text("submitted_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("idx_events_approved_date").on(table.approved, table.date)],
+);
 
 export const vibeVideos = pgTable("vibe_videos", {
   id: uuid("id").primaryKey().defaultRandom(),

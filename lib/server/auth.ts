@@ -1,10 +1,10 @@
 import { getRequest, getRequestHeaders } from "@tanstack/react-start/server";
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 import { createUserProfile } from "@/lib/auth/profile";
 import { getAuth } from "@/lib/auth/server";
 import { isAdminOrModerator } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { authSession, authVerification, users } from "@/lib/db/schema";
 
 export interface SessionUser {
   id: string;
@@ -29,6 +29,27 @@ type ServerSession = Awaited<ReturnType<ReturnType<typeof getAuth>["api"]["getSe
  * resolve a session for a different header set.
  */
 const sessionCache = new WeakMap<Request, Promise<ServerSession>>();
+const AUTH_CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
+let lastAuthCleanupAt = 0;
+
+async function cleanupExpiredAuthRows() {
+  const now = Date.now();
+  if (now - lastAuthCleanupAt < AUTH_CLEANUP_INTERVAL_MS) {
+    return;
+  }
+  lastAuthCleanupAt = now;
+
+  try {
+    const db = getDb();
+    const expiredBefore = new Date();
+    await Promise.all([
+      db.delete(authSession).where(lt(authSession.expiresAt, expiredBefore)),
+      db.delete(authVerification).where(lt(authVerification.expiresAt, expiredBefore)),
+    ]);
+  } catch (error) {
+    console.error("Expired auth cleanup failed:", error);
+  }
+}
 
 async function resolveSession(headers: Headers): Promise<ServerSession> {
   const auth = getAuth();
@@ -36,6 +57,8 @@ async function resolveSession(headers: Headers): Promise<ServerSession> {
 }
 
 export async function getServerSession(requestHeaders?: Headers) {
+  void cleanupExpiredAuthRows();
+
   if (requestHeaders) {
     return resolveSession(requestHeaders);
   }

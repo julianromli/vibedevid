@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS "account" (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS account_userId_idx ON "account"(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS account_user_provider_idx ON "account"(user_id, provider_id);
 
 CREATE TABLE IF NOT EXISTS "verification" (
@@ -76,7 +75,6 @@ CREATE TABLE IF NOT EXISTS users (
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
 CREATE TABLE IF NOT EXISTS projects (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -102,7 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_projects_category ON projects(category);
 CREATE TABLE IF NOT EXISTS posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
-  slug TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
   content JSONB NOT NULL,
   excerpt TEXT,
   cover_image TEXT,
@@ -115,6 +113,7 @@ CREATE TABLE IF NOT EXISTS posts (
   view_count INTEGER DEFAULT 0,
   featured BOOLEAN DEFAULT FALSE
 );
+CREATE INDEX IF NOT EXISTS idx_posts_status_published_at ON posts (status, published_at DESC);
 
 CREATE TABLE IF NOT EXISTS post_tags (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -130,20 +129,26 @@ CREATE TABLE IF NOT EXISTS comments (
   user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   author_name TEXT,
   content TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT comments_parent_xor CHECK ((project_id IS NULL) <> (post_id IS NULL))
 );
 CREATE INDEX IF NOT EXISTS idx_comments_project_id ON comments(project_id);
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
 
 CREATE TABLE IF NOT EXISTS likes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
   user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT likes_parent_xor CHECK ((project_id IS NULL) <> (post_id IS NULL))
 );
 CREATE INDEX IF NOT EXISTS idx_likes_project_id ON likes(project_id);
 CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS likes_user_project_uidx ON likes (user_id, project_id) WHERE project_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS likes_user_post_uidx ON likes (user_id, post_id) WHERE post_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS views (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -153,10 +158,12 @@ CREATE TABLE IF NOT EXISTS views (
   ip_address TEXT,
   session_id TEXT,
   view_date DATE DEFAULT CURRENT_DATE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT views_parent_xor CHECK ((project_id IS NULL) <> (post_id IS NULL))
 );
 CREATE INDEX IF NOT EXISTS idx_views_project_id ON views(project_id);
 CREATE INDEX IF NOT EXISTS idx_views_post_id ON views(post_id);
+CREATE INDEX IF NOT EXISTS idx_views_project_id_view_date ON views(project_id, view_date);
 
 CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -207,6 +214,7 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_events_approved_date ON events (approved, date);
 
 CREATE TABLE IF NOT EXISTS vibe_videos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -293,26 +301,3 @@ CREATE TRIGGER trg_create_profile_for_auth_user
 AFTER INSERT ON "user"
 FOR EACH ROW
 EXECUTE FUNCTION create_profile_for_auth_user();
-
--- Staging schema for Supabase auth migration (temporary)
-CREATE SCHEMA IF NOT EXISTS supabase_auth_staging;
-
-CREATE TABLE IF NOT EXISTS supabase_auth_staging.users (
-  id UUID PRIMARY KEY,
-  email TEXT,
-  encrypted_password TEXT,
-  email_confirmed_at TIMESTAMPTZ,
-  raw_user_meta_data JSONB,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ,
-  is_anonymous BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE IF NOT EXISTS supabase_auth_staging.identities (
-  id UUID PRIMARY KEY,
-  user_id UUID NOT NULL,
-  provider TEXT NOT NULL,
-  identity_data JSONB,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
-);
