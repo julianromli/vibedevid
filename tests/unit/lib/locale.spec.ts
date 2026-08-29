@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   DEFAULT_LOCALE,
   getServerLocale,
@@ -6,6 +6,7 @@ import {
   LOCALE_COOKIE_MAX_AGE,
   LOCALE_COOKIE_NAME,
   LOCALES,
+  readLocaleCookie,
 } from "@/lib/locale";
 
 /**
@@ -67,5 +68,52 @@ describe("getServerLocale — the one reader every route consumes", () => {
   it("falls back to the default locale when no cookie is set", async () => {
     h.storedCookie = undefined;
     await expect(getServerLocale()).resolves.toBe("id");
+  });
+});
+
+describe("readLocaleCookie — cookie only, never navigator", () => {
+  const originalCookie = Object.getOwnPropertyDescriptor(Document.prototype, "cookie");
+
+  afterEach(() => {
+    if (originalCookie) {
+      Object.defineProperty(document, "cookie", originalCookie);
+    }
+  });
+
+  it("returns en for an en cookie header", () => {
+    expect(readLocaleCookie("NEXT_LOCALE=en")).toBe("en");
+  });
+
+  it("returns id for an id cookie header", () => {
+    expect(readLocaleCookie("NEXT_LOCALE=id; other=1")).toBe("id");
+  });
+
+  it("falls back to id for garbage cookie values", () => {
+    expect(readLocaleCookie("NEXT_LOCALE=fr")).toBe("id");
+  });
+
+  it("falls back to id when the header is missing", () => {
+    expect(readLocaleCookie(null)).toBe("id");
+    expect(readLocaleCookie("")).toBe("id");
+  });
+
+  it("falls back to id when document.cookie throws", () => {
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() {
+        throw new Error("blocked");
+      },
+    });
+    expect(readLocaleCookie()).toBe("id");
+  });
+
+  it("reads document.cookie when no header is passed", () => {
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() {
+        return "NEXT_LOCALE=en";
+      },
+    });
+    expect(readLocaleCookie()).toBe("en");
   });
 });

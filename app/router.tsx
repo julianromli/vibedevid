@@ -1,10 +1,15 @@
 import { createRouter } from "@tanstack/react-router";
+import { DefaultRouteError } from "@/components/errors/default-route-error";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
+    defaultErrorComponent: DefaultRouteError,
+    defaultOnCatch: (error, _errorInfo) => {
+      console.error("Router error:", error);
+    },
   });
 
   return router;

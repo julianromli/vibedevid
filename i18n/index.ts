@@ -1,9 +1,8 @@
 import i18n from "i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import en from "../messages/en.json";
 import id from "../messages/id.json";
-import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, LOCALES } from "@/lib/locale";
+import { DEFAULT_LOCALE, LOCALES } from "@/lib/locale";
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -22,27 +21,25 @@ function buildLocaleResources(localeData: typeof en) {
   return namespaces;
 }
 
-if (!i18n.isInitialized) {
-  i18n
-    .use(LanguageDetector)
-    .use(initReactI18next)
-    .init({
-      resources: {
-        id: buildLocaleResources(id),
-        en: buildLocaleResources(en),
-      },
-      fallbackLng: routing.defaultLocale,
-      supportedLngs: [...LOCALES],
-      detection: {
-        order: ["cookie", "navigator"],
-        caches: ["cookie"],
-        lookupCookie: LOCALE_COOKIE_NAME,
-      },
-      interpolation: {
-        escapeValue: false,
-      },
-      returnObjects: true,
-    });
+function initI18n() {
+  return i18n.use(initReactI18next).init({
+    lng: DEFAULT_LOCALE,
+    resources: {
+      id: buildLocaleResources(id),
+      en: buildLocaleResources(en),
+    },
+    fallbackLng: routing.defaultLocale,
+    supportedLngs: [...LOCALES],
+    interpolation: {
+      escapeValue: false,
+    },
+    returnObjects: true,
+    react: {
+      useSuspense: false,
+    },
+  });
 }
+
+export const i18nInit: Promise<unknown> = i18n.isInitialized ? Promise.resolve() : initI18n();
 
 export default i18n;

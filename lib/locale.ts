@@ -21,6 +21,60 @@ export function isLocale(value: string | null | undefined): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
 }
 
+function readDocumentCookie(): string {
+  if (typeof document === "undefined") {
+    return "";
+  }
+  try {
+    return document.cookie;
+  } catch {
+    return "";
+  }
+}
+
+function parseCookieValue(cookieHeader: string, name: string): string | undefined {
+  if (!cookieHeader) {
+    return undefined;
+  }
+
+  const parts = cookieHeader.split(";");
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const separator = trimmed.indexOf("=");
+    if (separator === -1) {
+      continue;
+    }
+    const key = trimmed.slice(0, separator);
+    if (key !== name) {
+      continue;
+    }
+    const raw = trimmed.slice(separator + 1);
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Read the locale cookie without touching `navigator`. In-app browsers often
+ * delay or block cookies; a missing or unreadable cookie must fall back to
+ * the default locale so SSR HTML and the first client render stay in sync.
+ *
+ * Pass `cookieHeader` to parse a Cookie request header. Omit it to read
+ * `document.cookie` (empty string when `document` is missing or throws).
+ */
+export function readLocaleCookie(cookieHeader?: string | null): Locale {
+  const source = cookieHeader ?? readDocumentCookie();
+  const value = parseCookieValue(source, LOCALE_COOKIE_NAME);
+  return isLocale(value) ? value : DEFAULT_LOCALE;
+}
+
 /**
  * Read the server-side locale cookie, falling back to the default locale.
  *

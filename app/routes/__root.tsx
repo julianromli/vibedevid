@@ -2,10 +2,13 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { AgentationProvider } from "@/components/agentation-provider";
 import { ClientThemeProvider } from "@/components/client-theme-provider";
+import { DefaultRouteError } from "@/components/errors/default-route-error";
 import NotFoundError from "@/components/errors/not-found-error";
 import { Toaster } from "@/components/ui/sonner";
-import i18n from "@/i18n";
+import i18n, { i18nInit } from "@/i18n";
 import { getCurrentUserFn } from "@/lib/actions/user.functions";
+import { DEFAULT_LOCALE } from "@/lib/locale";
+import { getLocaleFn } from "@/lib/locale.functions";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import appCss from "../globals.css?url";
 
@@ -13,8 +16,22 @@ export const Route = createRootRoute({
   beforeLoad: async () => {
     // Single source of truth for the authenticated user across all routes.
     const currentUser = await getCurrentUserFn();
-    return { currentUser };
+    let locale = DEFAULT_LOCALE;
+    try {
+      locale = await getLocaleFn();
+    } catch (error) {
+      console.error("Failed to resolve locale:", error);
+    }
+    await i18nInit;
+    if (i18n.language !== locale) {
+      await i18n.changeLanguage(locale);
+    }
+    return { currentUser, locale };
   },
+  onError: (error) => {
+    console.error("Route error:", error);
+  },
+  errorComponent: DefaultRouteError,
   head: () => {
     const siteUrl = getSiteUrl();
     const ogImage = `${siteUrl}/og-image.png`;
@@ -60,11 +77,12 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
-  const { t, i18n: i18nInstance } = useTranslation("common");
+  const { locale } = Route.useRouteContext();
+  const { t } = useTranslation("common");
   const siteUrl = getSiteUrl();
 
   return (
-    <html lang={i18nInstance.language} suppressHydrationWarning className="font-sans antialiased">
+    <html lang={locale} suppressHydrationWarning className="font-sans antialiased">
       <head>
         <HeadContent />
         {import.meta.env.DEV && (
@@ -109,10 +127,22 @@ function RootLayout() {
         <script
           dangerouslySetInnerHTML={{
             __html: `
-            if ('serviceWorker' in navigator && typeof window !== 'undefined') {
+            if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
               window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.getRegistrations()
+                  .then(function(registrations) {
+                    return Promise.all(registrations.map(function(registration) {
+                      return registration.unregister();
+                    }));
+                  })
                   .catch(function() {});
+                if (window.caches) {
+                  caches.keys().then(function(keys) {
+                    return Promise.all(keys.map(function(key) {
+                      return caches.delete(key);
+                    }));
+                  }).catch(function() {});
+                }
               });
             }
           `,

@@ -30,7 +30,8 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - ❤️ **Like System** - Like project yang lo suka
 - 🔍 **Discovery** - Filter dan cari project berdasarkan kategori
 - 🖼️ **Progressive Image Loading** - Blur placeholders dengan lazy loading
-- 🌍 **Internationalization** - Full support English dan Indonesia (react-i18next)
+- 🌍 **Internationalization** - Full support English dan Indonesia (react-i18next). Locale comes from the `NEXT_LOCALE` cookie, not `navigator.language`, so SSR HTML and the first client render stay in sync in in-app browsers (Threads, Instagram, and similar WebViews).
+- 📱 **In-app browsers** - Public pages load without the blank TanStack "Something went wrong!" screen. Route errors show a recovery page (reload / back to home). The leftover Next.js service worker is unregistered on purpose; `/sw.js` is an uninstall shim so already-installed clients drop it.
 - 🛡️ **Spam Protection** - Email domain whitelist dan bot protection
 - 📊 **Analytics Dashboard** - Charts dan data visualization (recharts)
 - ❓ **FAQ System** - Frequently asked questions management
@@ -544,6 +545,7 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **`OptimizedImage` component** (`components/ui/optimized-image.tsx`) - Renders a `<picture>` with AVIF/WebP `srcset` pointing at the generated variants. The hero uses `priority` (eager load + `fetchpriority="high"`) and is preloaded in the home route `head()`.
 - **Right-sized remote avatars** - GitHub avatars request `?s=64`; testimonial avatars use the 128px optimized variants instead of full-size source PNGs.
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
+- **No service worker cache** - The app does not register a service worker. The previous worker precached `/` and used cache-first for `.js`, which served stale HTML/chunks in in-app browsers after deploys. Visiting any page unregisters existing workers and clears Cache Storage.
 - **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*` and `/fonts/*` (immutable). Only non-overlapping directory rules are used: Cloudflare `_headers` wildcards match across `/` and concatenate every matching rule's value, so broad extension rules like `/*.avif` are avoided (they would corrupt the `/optimized/*` header).
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
 - **Short-TTL homepage cache** - Active categories, home vibe videos, and approved testimonials are cached for 5 minutes (`lib/server/short-ttl-cache.ts`) so list pages do not scan those tables on every request.

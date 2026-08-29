@@ -8,7 +8,7 @@ import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
-import { fetchProjectsWithSorting } from "@/lib/server/project-public";
+import { loadHomeProjects } from "@/lib/server/home-projects";
 import { getCachedJson, setCachedJson, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
 import { getApprovedTestimonials } from "@/lib/server/testimonials-public";
 import { getVideoIconKey } from "@/lib/video-icon-key";
@@ -95,13 +95,13 @@ const loadHomeData = createServerFn({ method: "GET" })
     const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
     const requestedFilter = getSingleSearchParam(search.filter);
 
-    const projectsPromise = categoriesPromise.then((categories) => {
+    const projectsPromise = categoriesPromise.then(async (categories) => {
       const initialFilter = resolveInitialFilter(categories, requestedFilter);
-      return fetchProjectsWithSorting(
+      const initialProjects = await loadHomeProjects(
         initialSort,
         initialFilter === "all" ? undefined : initialFilter,
-        20,
-      ).then((initialProjects) => ({ initialFilter, initialProjects }));
+      );
+      return { initialFilter, initialProjects };
     });
 
     const [categories, initialVibeVideos, initialTestimonials, projectResult] = await Promise.all([
