@@ -125,6 +125,7 @@
     "jsdom": "^29.0.1",
     "postcss": "^8.5",
     "postgres": "^3.4.9",
+    "sharp": "^0.35.4",
     "typescript": "^5",
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
     "vite-plus": "latest",

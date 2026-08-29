@@ -155,10 +155,11 @@ vp install
 bun run dev
 
 # Build for production (vite build — Nitro server output in .output/)
-# Pre-generates responsive AVIF/WebP image variants via scripts/optimize-images.mjs first
+# Pre-generates responsive AVIF/WebP image variants via scripts/optimize-images.mjs first.
+# Needs the sharp build-time dep (devDependency). sharp does not run in the Worker.
 bun run build
 
-# Regenerate optimized image variants only (public/optimized/)
+# Regenerate optimized image variants only (public/optimized/). Needs sharp.
 bun run optimize:images
 
 # Recompress existing UploadThing project/video images (dry run by default;
@@ -514,7 +515,7 @@ Session-based analytics dengan:
 
 Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 
-- **Build-time responsive images** - `scripts/optimize-images.mjs` (sharp) pre-generates AVIF + WebP variants of large public images into `public/optimized/` at multiple widths. Runs automatically before `bun run build`. The hero (the LCP element) drops from a ~660KB 2880×1800 PNG to ~90KB at its 1200px breakpoint.
+- **Build-time responsive images** - `scripts/optimize-images.mjs` (sharp) pre-generates AVIF + WebP variants of large public images into `public/optimized/` at multiple widths. Runs automatically before `bun run build`. `sharp` is a required **build-time** `devDependency` so Cloudflare `bun install --frozen-lockfile` can resolve it. It is not imported from app or Worker code. The hero (the LCP element) drops from a ~660KB 2880×1800 PNG to ~90KB at its 1200px breakpoint.
 - **`OptimizedImage` component** (`components/ui/optimized-image.tsx`) - Renders a `<picture>` with AVIF/WebP `srcset` pointing at the generated variants. The hero uses `priority` (eager load + `fetchpriority="high"`) and is preloaded in the home route `head()`.
 - **Right-sized remote avatars** - GitHub avatars request `?s=64`; testimonial avatars use the 128px optimized variants instead of full-size source PNGs.
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
