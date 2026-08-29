@@ -154,6 +154,10 @@ export function useProjectFilters({
     };
   }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter]);
 
+  useEffect(() => {
+    setVisibleProjects(6);
+  }, [selectedFilter, selectedTrending]);
+
   const loadMore = () => {
     setVisibleProjects((prev) => prev + 6);
   };

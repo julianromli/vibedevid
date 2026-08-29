@@ -2,7 +2,7 @@
 
 import { Moon, SunDim } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { flushSync } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
@@ -13,17 +13,10 @@ type props = {
 
 export const ThemeToggle = ({ className }: props) => {
   const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return;
-
   const changeTheme = async () => {
-    if (!buttonRef.current || !mounted) return;
+    if (!buttonRef.current) return;
 
     const newTheme = resolvedTheme === "dark" ? "light" : "dark";
 
@@ -58,15 +51,6 @@ export const ThemeToggle = ({ className }: props) => {
       },
     );
   };
-
-  // Dont render until mounted to avoid hydration mismatch
-  if (!mounted) {
-    return (
-      <button className={cn("opacity-0", className)} disabled>
-        <Moon />
-      </button>
-    );
-  }
 
   return (
     <Button

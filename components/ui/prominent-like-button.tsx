@@ -37,6 +37,9 @@ export function ProminentLikeButton({
   const [isAnimating, setIsAnimating] = React.useState(false);
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
   const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const hasClickedRef = React.useRef(false);
+  const toggleInFlightRef = React.useRef(false);
+  const animationTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     if (!projectId) return;
@@ -45,7 +48,7 @@ export function ProminentLikeButton({
 
     void getProjectLikeStatusFn({ data: { projectIdentifier: projectId } })
       .then(({ totalLikes, isLiked: dbIsLiked, error }) => {
-        if (!error && isCurrentRequest) {
+        if (!error && isCurrentRequest && !hasClickedRef.current) {
           setLikes(totalLikes);
           setIsLiked(isLoggedIn ? dbIsLiked : false);
         }
@@ -59,11 +62,20 @@ export function ProminentLikeButton({
     };
   }, [projectId, isLoggedIn]);
 
+  React.useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+    };
+  }, []);
+
   const handleClick = async () => {
     if (!isLoggedIn) {
       setShowAuthDialog(true);
       return;
     }
+    if (toggleInFlightRef.current) return;
+    toggleInFlightRef.current = true;
+    hasClickedRef.current = true;
 
     const previousLikes = likes;
     const previousIsLiked = isLiked;
@@ -97,7 +109,9 @@ export function ProminentLikeButton({
       setLikes(previousLikes);
       onLikeChange?.(previousLikes, previousIsLiked);
     } finally {
-      setTimeout(() => setIsAnimating(false), 300);
+      toggleInFlightRef.current = false;
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = setTimeout(() => setIsAnimating(false), 300);
     }
   };
 

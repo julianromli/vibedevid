@@ -123,8 +123,10 @@ function UploadZone({
         </div>
 
         <input
+          id="blog-cover-image"
           type="file"
           accept="image/*"
+          aria-label="Upload cover image"
           className="absolute inset-0 cursor-pointer opacity-0"
           disabled={isUploading}
           onChange={(e) => {

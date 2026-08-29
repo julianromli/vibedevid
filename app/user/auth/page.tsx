@@ -72,16 +72,17 @@ function AuthPageContent() {
             <ThemeToggle />
           </div>
 
-          <a href="/" className="absolute top-6 right-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              className="h-8 w-8 rounded-full p-0 text-muted-foreground transition-colors duration-200 hover:cursor-pointer hover:text-foreground"
+          <Link to="/" aria-label="Go to home" className="absolute top-6 right-6">
+            <span
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "h-8 w-8 rounded-full p-0 text-muted-foreground transition-colors duration-200 hover:cursor-pointer hover:text-foreground",
+              )}
+              aria-hidden="true"
             >
               <X className="h-4 w-4" />
-            </Button>
-          </a>
+            </span>
+          </Link>
 
           {!isForgotPassword ? (
             <>

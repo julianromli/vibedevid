@@ -16,7 +16,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 📰 **Blog System** - Rich text editor dengan Novel/TipTap untuk artikel teknis
 - 📊 **Views Tracking** - Session-based analytics untuk project insights
 - 🤖 **AI Leaderboard** - Ranking dan showcase AI tools favorit komunitas
-- 🗓️ **Community Calendar** - Event dan activity tracker
+- 🗓️ **Community Calendar** - Event list at `/event/list`. `/calendar` redirects there.
 - 🎉 **Events System** - Submit dan browse community events dengan approval workflow
 - 💬 **Testimonials** - Unlisted `/testimonial` form, admin approve/reject/unpublish, lalu tampil di section review landing page
 - 📈 **User Dashboard** - Personal dashboard untuk manage projects dan activity
@@ -375,10 +375,15 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 ├── tests/                  # Vitest unit tests + Playwright E2E tests
 ├── messages/               # i18n messages (en.json, id.json)
 ├── docs/                   # Documentation (security, database, deployment)
+├── plans/                  # Self-contained React improvement plans (improve-react)
 ├── biome.json              # Biome configuration
 ├── vite.config.ts          # Vite + TanStack Start + Nitro configuration
 └── tsconfig.json           # TypeScript configuration
 ```
+
+## React improvement plans
+
+`plans/` holds one implementation plan per confirmed finding from the 2026-08-29 React audit (commit `c829824`). All 17 plans are **DONE**. See `plans/README.md` for status.
 
 ## Key Features Deep Dive
 

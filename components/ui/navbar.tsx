@@ -345,7 +345,7 @@ export function Navbar({
         )}
         initial={false}
         animate={{
-          marginTop: scrolled ? 16 : 0,
+          y: scrolled ? 16 : 0,
           borderRadius: scrolled ? 16 : 0,
         }}
         transition={springTransition}

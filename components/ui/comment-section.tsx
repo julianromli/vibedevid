@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { UserDisplayName } from "@/components/ui/user-display-name";
@@ -48,29 +49,32 @@ export function CommentSection({
     if (!canSubmit) return;
 
     setIsSubmitting(true);
+    try {
+      const result = await createCommentFn({
+        data: {
+          entityType,
+          entityId,
+          content: newComment.trim(),
+          guestName: !isLoggedIn ? guestName.trim() : undefined,
+        },
+      });
 
-    const result = await createCommentFn({
-      data: {
-        entityType,
-        entityId,
-        content: newComment.trim(),
-        guestName: !isLoggedIn ? guestName.trim() : undefined,
-      },
-    });
-
-    if (result.success) {
-      setNewComment("");
-      if (!isLoggedIn) setGuestName("");
-      toast.success("Comment posted successfully");
-
-      // Refresh comments
-      const { comments: updatedComments } = await getCommentsFn({ data: { entityType, entityId } });
-      setComments(updatedComments);
-    } else {
-      toast.error(result.error ?? "Failed to post comment");
+      if (result.success) {
+        setNewComment("");
+        if (!isLoggedIn) setGuestName("");
+        toast.success("Comment posted successfully");
+        const { comments: updatedComments } = await getCommentsFn({
+          data: { entityType, entityId },
+        });
+        setComments(updatedComments);
+      } else {
+        toast.error(result.error ?? "Failed to post comment");
+      }
+    } catch {
+      toast.error("Failed to post comment");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   const handleReport = async (commentId: string) => {
@@ -80,16 +84,18 @@ export function CommentSection({
     }
 
     setReportingId(commentId);
-
-    const result = await reportCommentFn({ data: { commentId, reason: "inappropriate" } });
-
-    if (result.success) {
-      toast.success("Comment reported for review");
-    } else {
-      toast.error(result.error ?? "Failed to report comment");
+    try {
+      const result = await reportCommentFn({ data: { commentId, reason: "inappropriate" } });
+      if (result.success) {
+        toast.success("Comment reported for review");
+      } else {
+        toast.error(result.error ?? "Failed to report comment");
+      }
+    } catch {
+      toast.error("Failed to report comment");
+    } finally {
+      setReportingId(null);
     }
-
-    setReportingId(null);
   };
 
   const formatTimestamp = (dateString: string): string => {
@@ -128,14 +134,20 @@ export function CommentSection({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Guest name input (only when not logged in and guest allowed) */}
             {!isLoggedIn && allowGuest && (
-              <input
-                type="text"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Your name"
-                className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-3 focus:ring-2 focus:outline-none"
-                maxLength={50}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="guest-comment-name">Your name</Label>
+                <input
+                  id="guest-comment-name"
+                  type="text"
+                  name="guestName"
+                  autoComplete="name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Alex"
+                  className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-3 focus:ring-2 focus:outline-none"
+                  maxLength={50}
+                />
+              </div>
             )}
 
             {/* Comment textarea */}

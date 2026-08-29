@@ -5,6 +5,28 @@
 const DEFAULT_FAVICON = "/default-favicon.svg";
 
 /**
+ * Reject private, loopback, and link-local hosts before any outbound fetch.
+ */
+export function isBlockedHostname(hostname: string): boolean {
+  const lower = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (lower === "localhost" || lower.endsWith(".localhost")) return true;
+  if (lower === "0.0.0.0" || lower === "::1" || lower === "0:0:0:0:0:0:0:1") return true;
+
+  const ipv4 = lower.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const first = Number(ipv4[1]);
+    const second = Number(ipv4[2]);
+    if (first === 10) return true;
+    if (first === 127) return true;
+    if (first === 169 && second === 254) return true;
+    if (first === 172 && second >= 16 && second <= 31) return true;
+    if (first === 192 && second === 168) return true;
+  }
+
+  return false;
+}
+
+/**
  * Validate if a string is a proper URL with valid hostname
  * Must have protocol, valid hostname with TLD (e.g., example.com)
  */
@@ -37,12 +59,13 @@ function isValidUrl(url: string): boolean {
 /**
  * Extract domain from URL with strict validation
  */
-function extractDomain(url: string): string | null {
+export function extractDomain(url: string): string | null {
   if (!isValidUrl(url)) return null;
 
   try {
     const trimmed = url.trim();
     const urlObj = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
+    if (isBlockedHostname(urlObj.hostname)) return null;
     return urlObj.origin;
   } catch {
     return null;
@@ -76,15 +99,15 @@ async function _fetchFaviconWithTimeout(websiteUrl: string): Promise<string> {
 
       const response = await fetch(faviconUrl, {
         method: "HEAD",
-        mode: "no-cors", // Avoid CORS issues
+        redirect: "manual",
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      // If request doesn't fail, assume favicon exists
-      // Note: with no-cors, we can't check response.ok, but lack of error means likely success
-      return faviconUrl;
+      if (response.ok) {
+        return faviconUrl;
+      }
     } catch (error) {
       // Log timeout errors for debugging but continue to next URL
       if (error instanceof Error && error.name === "AbortError") {

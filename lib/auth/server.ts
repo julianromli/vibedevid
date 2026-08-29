@@ -2,6 +2,7 @@ import { compare, hash } from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { escapeHtml } from "@/lib/auth/html";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
@@ -78,14 +79,16 @@ export function createAuth() {
       enabled: true,
       requireEmailVerification: true,
       sendResetPassword: async ({ user, url }) => {
+        const safeName = escapeHtml(user.name || "there");
+        const safeUrl = escapeHtml(url);
         await sendAuthEmail({
           to: user.email,
           subject: "Reset your VibeDev ID password",
           text: `Reset your VibeDev ID password: ${url}`,
           html: `
-            <p>Hi ${user.name || "there"},</p>
+            <p>Hi ${safeName},</p>
             <p>Click the link below to reset your VibeDev ID password.</p>
-            <p><a href="${url}">Reset password</a></p>
+            <p><a href="${safeUrl}">Reset password</a></p>
             <p>If you did not request this, you can ignore this email.</p>
           `,
         });
@@ -99,14 +102,16 @@ export function createAuth() {
       sendOnSignUp: true,
       autoSignInAfterVerification: false,
       sendVerificationEmail: async ({ user, url }) => {
+        const safeName = escapeHtml(user.name || "there");
+        const safeUrl = escapeHtml(url);
         await sendAuthEmail({
           to: user.email,
           subject: "Verify your VibeDev ID email",
           text: `Verify your VibeDev ID email: ${url}`,
           html: `
-            <p>Hi ${user.name || "there"},</p>
+            <p>Hi ${safeName},</p>
             <p>Click the link below to verify your VibeDev ID email address.</p>
-            <p><a href="${url}">Verify email</a></p>
+            <p><a href="${safeUrl}">Verify email</a></p>
             <p>If you did not create an account, you can ignore this email.</p>
           `,
         });

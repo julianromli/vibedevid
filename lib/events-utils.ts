@@ -122,6 +122,17 @@ export function sortByNearestDate(events: AIEvent[]): AIEvent[] {
 }
 
 /**
+ * Sort events by latest calendar date, then latest time
+ */
+export function sortByLatestDate(events: AIEvent[]): AIEvent[] {
+  return [...events].sort((a, b) => {
+    const dateCompare = b.date.localeCompare(a.date);
+    if (dateCompare !== 0) return dateCompare;
+    return b.time.localeCompare(a.time);
+  });
+}
+
+/**
  * Apply multiple filters to events
  */
 export interface EventFilters {
@@ -129,6 +140,7 @@ export interface EventFilters {
   locationType?: EventLocationType | "All";
   startDate?: string;
   endDate?: string;
+  sort?: "nearest" | "latest";
 }
 
 export function applyFilters(events: AIEvent[], filters: EventFilters): AIEvent[] {
@@ -144,6 +156,10 @@ export function applyFilters(events: AIEvent[], filters: EventFilters): AIEvent[
 
   if (filters.startDate || filters.endDate) {
     filtered = filterByDateRange(filtered, filters.startDate, filters.endDate);
+  }
+
+  if (filters.sort === "latest") {
+    return sortByLatestDate(filtered);
   }
 
   return sortByNearestDate(filtered);

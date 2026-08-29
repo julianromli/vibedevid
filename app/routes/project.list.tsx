@@ -8,7 +8,6 @@ import { Navbar } from "@/components/ui/navbar";
 import { getCategories } from "@/lib/categories";
 import { getServerT, getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { absoluteUrl } from "@/lib/seo/site-url";
-import { getCurrentUser } from "@/lib/server/auth";
 import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 
 /**
@@ -24,8 +23,7 @@ const loadProjectListData = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data: search }) => {
-    const t = await getServerT("projectList");
-    const [currentUser, categories] = await Promise.all([getCurrentUser(), getCategories()]);
+    const [t, categories] = await Promise.all([getServerT("projectList"), getCategories()]);
 
     const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
     const requestedFilter = getSingleSearchParam(search.filter);
@@ -49,16 +47,6 @@ const loadProjectListData = createServerFn({ method: "GET" })
       image: project.image ?? "/vibedev-guest-avatar.png",
     }));
 
-    const user = currentUser
-      ? {
-          name: currentUser.name,
-          email: currentUser.email,
-          avatar: currentUser.avatar,
-          username: currentUser.username,
-          role: currentUser.role,
-        }
-      : null;
-
     return {
       title: t("title"),
       description: t("description"),
@@ -66,8 +54,6 @@ const loadProjectListData = createServerFn({ method: "GET" })
       initialFilter,
       initialSort,
       filterOptions,
-      isLoggedIn: !!currentUser,
-      user,
     };
   });
 
@@ -77,8 +63,25 @@ export const Route = createFileRoute("/project/list")({
     sort: typeof search.sort === "string" ? search.sort : undefined,
   }),
   loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
-  loader: async ({ deps }) => {
-    return loadProjectListData({ data: { filter: deps.filter, sort: deps.sort } });
+  loader: async ({ deps, context }) => {
+    const data = await loadProjectListData({ data: { filter: deps.filter, sort: deps.sort } });
+    // Reuse the user already resolved in the root `beforeLoad` instead of
+    // re-querying it here (saves a `users` SELECT per project-list request).
+    const currentUser = context.currentUser;
+    const user = currentUser
+      ? {
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar: currentUser.avatar,
+          username: currentUser.username,
+          role: currentUser.role,
+        }
+      : null;
+    return {
+      ...data,
+      isLoggedIn: !!currentUser,
+      user,
+    };
   },
   // Self-referencing canonical to the clean list URL so `?filter`/`?sort`
   // variants consolidate onto a single indexable page.

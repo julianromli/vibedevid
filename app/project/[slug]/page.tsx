@@ -274,6 +274,7 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
             {/* Comments Section - Unified Component */}
             <ScrollReveal delay={0.12} duration={0.32}>
               <CommentSection
+                key={String(project.id)}
                 entityType="project"
                 entityId={String(project.id)}
                 initialComments={initialComments}

@@ -14,6 +14,14 @@ import { getApprovedTestimonials } from "@/lib/server/testimonials-public";
 import { getVideoIconKey } from "@/lib/video-icon-key";
 import type { ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
 
+function resolveInitialFilter(
+  categories: Awaited<ReturnType<typeof getCategories>>,
+  requestedFilter: string | undefined,
+): string {
+  const options = (categories ?? []).map((category) => category.name);
+  return requestedFilter && options.includes(requestedFilter) ? requestedFilter : "all";
+}
+
 async function getVibeVideos(): Promise<VibeVideo[]> {
   const fallbackVideos: VibeVideo[] = [
     {
@@ -83,10 +91,24 @@ const loadHomeData = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data: search }) => {
-    const [categories, initialVibeVideos, initialTestimonials] = await Promise.all([
-      getCategories(),
+    const categoriesPromise = getCategories();
+    const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
+    const requestedFilter = getSingleSearchParam(search.filter);
+
+    const projectsPromise = categoriesPromise.then((categories) => {
+      const initialFilter = resolveInitialFilter(categories, requestedFilter);
+      return fetchProjectsWithSorting(
+        initialSort,
+        initialFilter === "all" ? undefined : initialFilter,
+        20,
+      ).then((initialProjects) => ({ initialFilter, initialProjects }));
+    });
+
+    const [categories, initialVibeVideos, initialTestimonials, projectResult] = await Promise.all([
+      categoriesPromise,
       getVibeVideos(),
       getApprovedTestimonials(),
+      projectsPromise,
     ]);
 
     const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
@@ -94,22 +116,10 @@ const loadHomeData = createServerFn({ method: "GET" })
       label: category.display_name,
     }));
 
-    const requestedFilter = getSingleSearchParam(search.filter);
-    const initialFilter = categoryOptions.some((category) => category.value === requestedFilter)
-      ? (requestedFilter ?? "all")
-      : "all";
-    const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
-
-    const initialProjects = await fetchProjectsWithSorting(
-      initialSort,
-      initialFilter === "all" ? undefined : initialFilter,
-      20,
-    );
-
     return {
-      initialProjects,
+      initialProjects: projectResult.initialProjects,
       initialCategories: categoryOptions,
-      initialFilter,
+      initialFilter: projectResult.initialFilter,
       initialSort,
       initialVibeVideos,
       initialTestimonials,

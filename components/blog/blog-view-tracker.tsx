@@ -29,12 +29,12 @@ function getOrCreateSessionId(): string {
 }
 
 export function BlogViewTracker({ postId }: BlogViewTrackerProps) {
-  const hasTracked = useRef(false);
+  const trackedPostId = useRef<string | null>(null);
 
   useEffect(() => {
     // Prevent double tracking in development (StrictMode)
-    if (hasTracked.current) return;
-    hasTracked.current = true;
+    if (trackedPostId.current === postId) return;
+    trackedPostId.current = postId;
 
     const trackView = async () => {
       try {

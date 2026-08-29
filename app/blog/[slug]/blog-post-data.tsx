@@ -170,6 +170,7 @@ export default function BlogPostData({
         <hr className="my-12 border-border" />
 
         <CommentSection
+          key={post.id}
           entityType="post"
           entityId={post.id}
           initialComments={initialComments}

@@ -72,6 +72,7 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
   const filteredEvents = applyFilters(initialEvents, {
     category: selectedCategory,
     locationType: selectedLocation,
+    sort: selectedSort,
   });
 
   return (
@@ -138,6 +139,7 @@ export default function EventListClient({ initialEvents }: EventListClientProps)
                   onClick={() => {
                     setSelectedCategory("All");
                     setSelectedLocation("All");
+                    setSelectedSort("nearest");
                   }}
                   className="text-primary hover:underline"
                 >

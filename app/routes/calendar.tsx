@@ -1,21 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import CalendarPage from "@/app/calendar/page";
-import { absoluteUrl } from "@/lib/seo/site-url";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/calendar")({
-  head: () => ({
-    meta: [
-      { title: "Kalender Event | VibeDev ID" },
-      {
-        name: "description",
-        content: "Kalender event, meetup, dan workshop AI & coding dari komunitas VibeDev ID.",
-      },
-    ],
-    links: [{ rel: "canonical", href: absoluteUrl("/calendar") }],
-  }),
-  component: CalendarRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/event/list" });
+  },
 });
-
-function CalendarRoute() {
-  return <CalendarPage />;
-}
