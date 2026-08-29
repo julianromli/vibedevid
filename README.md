@@ -354,10 +354,12 @@ bisa drift karena keduanya membaca satu sumber.
 - `PROJECT_LIMITS` — satu-satunya tempat konstanta min/max field hidup.
 - `PROJECT_FORM_FIELDS` — nama field FormData yang melintasi seam (snake_case wire keys).
 - `buildProjectSubmissionSchema(activeCategoryNames?)` — schema lengkap; kategori
-  hanya di-check bila daftar kategori aktif diberikan (submit path), edit path
-  memanggilnya tanpa argumen.
+  di-check terhadap daftar kategori aktif pada submit maupun edit (bila query
+  kategori gagal, edit menurun ke tanpa-check kategori, sama seperti create).
 - `readProjectFormData` / `buildProjectFieldErrors` / `formatProjectFieldErrors` —
   baca FormData, flatten zod issues ke wire contract, dan format ke string error.
+  Klien memvalidasi per-step saat navigasi plus full-gate saat submit; server
+  selalu mengeksekusi schema penuh.
 
 ### Project Filtering & Sorting
 
@@ -389,18 +391,17 @@ dropdown setelahnya hanya mengubah state lokal tanpa menyentuh query string.
 
 ### Event Submission
 
-Event submission via `SubmitEventModal` → `submitEventFn`
-(`lib/actions/events.ts`). Server read path canonical:
-`lib/server/events-public.ts` (detail + list). Slugs di-generate dari nama dan
-di-uniquify (`ensureUniqueEventSlug` + retry saat `23505`) — dua event bernama
-sama tidak lagi bentrok. Update singkat: event detail page mengetik dari
-`events-public`, bukan dari action module yang sudah tidak punya read functions.
+Event submission via `submitEventFn` (`lib/actions/events.functions.ts`) →
+`submitEvent` (`lib/actions/events.ts`). Server read path canonical:
+`lib/server/events-public.ts` (detail + list). Slugs memakai slug dari form
+(fallback: diturunkan dari nama) lalu di-uniquify dengan retry saat `23505`
+(maksimal 100 percobaan) — dua event dengan slug sama tidak lagi bentrok.
 
 ### Admin Board Loader
 
 `loadDashboardBoardData` (`app/(admin)/dashboard/dashboard-data.ts`) returns a
 discriminated union `DashboardBoardData` (`kind: "projects" | "blog" | ...`), so
-`DashboardTabPanel` narrows exhaustively — no `any` payload crosses the seam.
+`DashboardTabPanel` narrows per tab — no `any` payload crosses the seam.
 Tambahan board = satu member union + satu case dengan narrowing.
 
 ### Comments System

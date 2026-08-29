@@ -431,6 +431,15 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   const handleSubmit = async () => {
     if (!validateCurrentStep()) return;
 
+    // Final gate: validate ALL fields, not just the active step, before talking to the server.
+    const fullValidation = buildProjectSubmissionSchema(
+      categories.map((category) => category.name),
+    ).safeParse(readProjectFormData(buildSubmitFormData(getCurrentDraftState())));
+    if (!fullValidation.success) {
+      setError(formatProjectFieldErrors(buildProjectFieldErrors(fullValidation.error)));
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 

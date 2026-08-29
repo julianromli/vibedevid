@@ -93,7 +93,7 @@ export async function fetchPostDetailBySlug(slug: string): Promise<BlogPostDetai
       ? {
           ...author,
           display_name: author.displayName,
-          avatar_url: author.avatarUrl,
+          avatar_url: author.avatarUrl || "/placeholder.svg",
         }
       : null,
     tags: tagRows.map((tag) => ({ post_tags: { name: tag.tagName } })),

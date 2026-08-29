@@ -43,20 +43,6 @@ export const PROJECT_LIMITS = {
 
 export type ProjectScreenshotFieldErrors = Partial<Record<ProjectFormFieldName, string[]>>;
 
-export interface ProjectValidationFailure {
-  success: false;
-  result: {
-    success: false;
-    error: string;
-    fieldErrors: ProjectScreenshotFieldErrors;
-  };
-}
-
-export interface ProjectValidationSuccess<T> {
-  success: true;
-  data: T;
-}
-
 const hasLettersOrNumbers = (value: string): boolean => /[a-z0-9]/i.test(value);
 
 const hasMeaningfulDescription = (value: string): boolean => {
@@ -264,17 +250,6 @@ const parseTags = (value: string, ctx: z.RefinementCtx): string[] | typeof z.NEV
 };
 
 const tagsSchema = z.string().transform(parseTags);
-
-export interface ProjectSubmissionFieldSchemas {
-  title: ReturnType<typeof z.string>;
-  tagline: ReturnType<typeof z.string>;
-  description: ReturnType<typeof z.string>;
-  category: ReturnType<typeof z.string>;
-  websiteUrl: ReturnType<typeof z.string>;
-  imageUrls: ReturnType<typeof z.string>;
-  imageKeys: ReturnType<typeof z.string>;
-  tags: ReturnType<typeof z.string>;
-}
 
 /** The raw input the schema expects: all FormData values are strings. */
 export interface ProjectFormRawInput {

@@ -331,7 +331,9 @@ export async function editProject(projectSlug: string, formData: FormData) {
     }
 
     const rawInput = readProjectFormData(formData);
-    const validation = buildProjectSubmissionSchema().safeParse(rawInput);
+    const activeCategories = await getActiveCategoryNames();
+    const activeCategoryNames = activeCategories.error ? [] : activeCategories.data;
+    const validation = buildProjectSubmissionSchema(activeCategoryNames).safeParse(rawInput);
 
     if (!validation.success) {
       return buildValidationErrorResult(validation.error);

@@ -37,12 +37,11 @@ export async function submitEvent(formData: EventFormData) {
     const user = await requireUser();
     const db = getDb();
 
-    const baseSlug = slugifyTitle(formData.name);
-
+    const baseSlug = formData.slug?.trim() || slugifyTitle(formData.name);
     const ensureUniqueEventSlug = async (base: string): Promise<string> => {
       let candidate = base;
       let attempt = 1;
-      while (true) {
+      while (attempt <= 100) {
         const [existing] = await db
           .select({ slug: events.slug })
           .from(events)
@@ -54,6 +53,7 @@ export async function submitEvent(formData: EventFormData) {
         attempt += 1;
         candidate = `${base}-${attempt}`;
       }
+      throw new Error("Slug uniqueness exhausted after 100 attempts");
     };
 
     const slug = await ensureUniqueEventSlug(baseSlug);

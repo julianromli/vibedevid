@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 import { fetchPostDetailBySlug, fetchPublishedPosts } from "@/lib/server/blog-public";
 
 /**
@@ -59,60 +60,31 @@ const h = vi.hoisted(() => {
     failKeys: [],
   };
 
-  function makeQuery(
-    selection: Record<string, unknown> | undefined,
-    s = state,
-  ): Record<string, unknown> {
-    const q: Record<string, unknown> & { then?: unknown } = {};
-    q.where = () => q;
-    q.from = () => q;
-    q.innerJoin = () => q;
-    q.leftJoin = () => q;
-    q.orderBy = () => q;
-    q.limit = () => q;
-    q.then = (resolve: (v: unknown) => void, reject: (e: unknown) => void) => {
-      try {
-        const keys = Object.keys(selection ?? {});
-        if (s.failKeys.some((key) => keys.includes(key))) {
-          throw new Error("mocked db failure");
-        }
-        if (keys.includes("count")) {
-          resolve([{ count: s.countQueue.shift() ?? 0 }]);
-          return;
-        }
-        if (keys.includes("value")) {
-          resolve([{ value: s.countQueue.shift() ?? 0 }]);
-          return;
-        }
-        if (keys.includes("tagName")) {
-          resolve(s.tagRows);
-          return;
-        }
-        if (keys.includes("authorDisplayName")) {
-          resolve(s.listRows);
-          return;
-        }
-        resolve(s.detailRows);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    return q;
+  function resolveRows(selection: Record<string, unknown> | undefined): unknown[] {
+    const keys = Object.keys(selection ?? {});
+    if (state.failKeys.some((key) => keys.includes(key))) {
+      throw new Error("mocked db failure");
+    }
+    if (keys.includes("count")) {
+      return [{ count: state.countQueue.shift() ?? 0 }];
+    }
+    if (keys.includes("value")) {
+      return [{ value: state.countQueue.shift() ?? 0 }];
+    }
+    if (keys.includes("tagName")) {
+      return state.tagRows;
+    }
+    if (keys.includes("authorDisplayName")) {
+      return state.listRows;
+    }
+    return state.detailRows;
   }
 
-  return {
-    state,
-    createMockDb: (s = state) => ({
-      select: (selection: Record<string, unknown>) => makeQuery(selection, s),
-      insert: () => makeQuery({ insert: true }, s),
-      update: () => makeQuery({ update: true }, s),
-      delete: () => makeQuery({ delete: true }, s),
-    }),
-  };
+  return { state, resolveRows };
 });
 
 vi.mock("@/lib/db", () => ({
-  getDb: () => h.createMockDb(),
+  getDb: () => makeFakeDb(h.resolveRows),
 }));
 
 beforeEach(() => {

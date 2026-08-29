@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 import { fetchProjectsWithSorting, getProjectBySlug } from "@/lib/server/project-public";
 
 /**
@@ -45,52 +46,21 @@ const h = vi.hoisted(() => {
     failKeys: [],
   };
 
-  function makeQuery(
-    selection: Record<string, unknown> | undefined,
-    s = state,
-  ): Record<string, unknown> {
-    const q: Record<string, unknown> & { then?: unknown } = {};
-    q.where = () => q;
-    q.from = () => q;
-    q.innerJoin = () => q;
-    q.leftJoin = () => q;
-    q.orderBy = () => q;
-    q.limit = () => q;
-    q.values = () => q;
-    q.set = () => q;
-    q.then = (resolve: (v: unknown) => void, reject: (e: unknown) => void) => {
-      try {
-        const keys = Object.keys(selection ?? {});
-        if (s.failKeys.some((key) => keys.includes(key))) {
-          throw new Error("mocked db failure");
-        }
-        if (keys.includes("value")) {
-          resolve([{ value: s.countQueue.shift() ?? 0 }]);
-          return;
-        }
-        if (keys.includes("projectId")) {
-          resolve(s.batchLikes);
-          return;
-        }
-        resolve(s.selectRows);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    return q;
+  function resolveRows(selection: Record<string, unknown> | undefined): unknown[] {
+    const keys = Object.keys(selection ?? {});
+    if (state.failKeys.some((key) => keys.includes(key))) {
+      throw new Error("mocked db failure");
+    }
+    if (keys.includes("value")) {
+      return [{ value: state.countQueue.shift() ?? 0 }];
+    }
+    if (keys.includes("projectId")) {
+      return state.batchLikes;
+    }
+    return state.selectRows;
   }
 
-  function createMockDb(s = state) {
-    return {
-      select: (selection: Record<string, unknown>) => makeQuery(selection, s),
-      // Mutations are out of scope for these tests but must exist on the surface.
-      insert: () => makeQuery({ insert: true }, s),
-      update: () => makeQuery({ update: true }, s),
-      delete: () => makeQuery({ delete: true }, s),
-    };
-  }
-
-  return { state, createMockDb };
+  return { state, resolveRows, createMockDb: () => makeFakeDb(resolveRows) };
 });
 
 vi.mock("@/lib/db", () => ({
