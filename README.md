@@ -338,6 +338,7 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 │                           #   modules imported by routes (blog, project,
 │                           #   event, [username], (admin), user/auth, ...)
 ├── components/
+│   ├── logo.tsx            # VibeDev V mark (currentColor SVG for small wells)
 │   ├── ui/                 # 50+ shadcn/ui components
 │   ├── sections/           # Page sections (hero, showcase, faq)
 │   ├── blog/               # Blog-specific components
@@ -350,6 +351,10 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 │   ├── actions/            # Server data/mutations + *.functions.ts (createServerFn)
 │   │                       #   rule: foo.functions.ts wraps ONLY foo.ts or its
 │   │                       #   read partner in lib/server/
+│   │                       #   Dashboard client boards import *.functions.ts only.
+│   │                       #   Direct imports of action modules pull
+│   │                       #   @tanstack/react-start/server into the browser
+│   │                       #   chunk and throw AsyncLocalStorage is not a constructor.
 │   ├── db/                 # Drizzle schema + `getDb()` (Neon serverless)
 │   ├── auth/               # Better Auth server/client config
 │   ├── server/             # Server-only utilities (auth, runtime secrets,
@@ -467,6 +472,12 @@ i18n seed in `messages/*/reviews.testimonials`. Schema: `testimonials` table +
 discriminated union `DashboardBoardData` (`kind: "projects" | "blog" | ...`), so
 `DashboardTabPanel` narrows per tab — no `any` payload crosses the seam.
 Tambahan board = satu member union + satu case dengan narrowing.
+
+Dashboard board UI modules call mutations through `*.functions.ts`
+(`createServerFn`). They must not import `lib/actions/admin/*.ts` or
+`lib/actions/events.ts` as values. Those modules import
+`@tanstack/react-start/server`, which constructs `AsyncLocalStorage` at
+load time and crashes the browser dashboard chunk.
 
 ### Comments System
 

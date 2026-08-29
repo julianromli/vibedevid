@@ -19,7 +19,6 @@ import {
 } from "@tabler/icons-react";
 import { AudioWaveform, GalleryVerticalEnd } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { cn } from "@/lib/utils";
 import type { SidebarData } from "../types";
 
 export const sidebarData: SidebarData = {
@@ -31,9 +30,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: "Shadcnblocks - Admin Kit",
-      logo: ({ className }: { className: string }) => (
-        <Logo className={cn("invert dark:invert-0", className)} />
-      ),
+      logo: Logo,
       plan: "Nextjs + shadcn/ui",
     },
     {

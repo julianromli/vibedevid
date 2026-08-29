@@ -1,5 +1,9 @@
-import { Image } from "@unpic/react";
+import { cn } from "@/lib/utils";
 
+/**
+ * VibeDev V mark for small surfaces (sidebar, favicon-sized wells).
+ * Drawn as one currentColor SVG so light/dark states are CSS, not invert filters.
+ */
 export function Logo({
   className = "",
   width = 18,
@@ -10,12 +14,24 @@ export function Logo({
   height?: number;
 }) {
   return (
-    <Image
-      src="/shadcnblocks-admin-logo.svg"
+    <svg
+      viewBox="0 0 546 497"
       width={width}
       height={height}
-      className={className}
-      alt="Shadcnblocks"
-    />
+      className={cn("shrink-0", className)}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M2.60177 1.63574L139.357 1.80657C153.679 4.74921 166.469 10.8494 176.278 21.865C237.258 129.602 293.983 240.044 353.448 348.751L351.938 365.569C328.788 404.182 309.992 446.051 286.825 484.553C282.521 491.706 279.75 500.782 269.671 495.349L1.81376 13.7094C0.000788948 10.651 -1.454 2.9693 2.60177 1.63574Z"
+        fill="currentColor"
+      />
+      <path
+        d="M408.944 1.81178C448.609 -3.56102 497.967 5.09607 538.668 1.36542C542.636 1.38746 545.446 3.79558 545.187 7.8789L381.607 309.047C375.484 314.376 371.313 311.747 367.163 305.818C347.281 266.026 323.437 228.114 303.335 188.476C296.755 175.499 291.669 168.941 297.995 153.854C315.766 111.477 349.7 67.426 369.213 24.9065C377.887 13.3619 394.617 3.75149 408.944 1.81178Z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }

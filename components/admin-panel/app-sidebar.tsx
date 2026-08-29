@@ -11,7 +11,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 import type { User } from "@/types/homepage";
 import { sidebarData } from "./data/sidebar-data";
 
@@ -29,9 +28,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const teams = [
     {
       name: "VibeDev ID Community",
-      logo: ({ className }: { className: string }) => (
-        <Logo className={cn("invert dark:invert-0", className)} />
-      ),
+      logo: Logo,
       plan: "Admin Dashboard",
     },
   ];
