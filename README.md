@@ -64,12 +64,15 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ## Getting Started
 
+This path is for a local clone. You apply the schema to **your** Neon project, then load demo rows. Do not point `.env.local` at production.
+
 ### Prerequisites
 
 - Node.js 18+ or **Bun** (recommended)
 - [Vite+](https://viteplus.dev/) (`vp` CLI) — this project uses the Vite+ unified toolchain
-- A [Neon](https://neon.tech) Postgres database
-- Better Auth OAuth apps (Google + GitHub) for social login
+- A free [Neon](https://neon.tech) Postgres project (not the production database)
+
+OAuth, UploadThing, Resend, and OpenRouter are optional. You can browse the app and log in with seed email accounts without those keys.
 
 ### Installation
 
@@ -88,68 +91,79 @@ vp install
 
 > Vite+ ships `vite`/`vitest` in `devDependencies` as npm aliases to `@voidzero-dev/vite-plus-core` / `@voidzero-dev/vite-plus-test`, and the `overrides` field in `package.json` pins both to those same alias specs. The `vitest` override **must match the `devDependencies.vitest` spec exactly** (i.e. the `npm:@voidzero-dev/vite-plus-test@latest` alias, not a plain version like `4.1.9`). Bun tolerates a mismatch, but npm/`npx` (used by `npx wrangler deploy` on Cloudflare) rejects it with `EOVERRIDE: Override for vitest conflicts with direct dependency`. If you upgrade `vite-plus` and `vp install` changes the alias, re-sync `overrides.vitest` to match `devDependencies.vitest`. Do **not** route this pin through a `catalog:` reference.
 
-3. Set up environment variables:
+3. Create a Neon project at [neon.tech](https://neon.tech) (free plan). Copy the **pooled** connection string (`-pooler` in the host) and the **direct** connection string.
+
+   Optional throwaway database: `npx neon-new` creates a Claimable Neon project without an account. Unclaimed projects expire after 72 hours.
+
+4. Copy env and set the required local values:
 
 ```bash
 cp .env.example .env.local
 ```
 
-4. Update `.env.local`:
-
 ```env
 DATABASE_URL=postgresql://user:pass@ep-xxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 DATABASE_URL_UNPOOLED=postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-BETTER_AUTH_SECRET=your-secret-min-32-chars
+BETTER_AUTH_SECRET=replace-with-openssl-rand-base64-32
 BETTER_AUTH_URL=http://localhost:3000
 VITE_BETTER_AUTH_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GITHUB_CLIENT_ID=...
-GITHUB_CLIENT_SECRET=...
-UPLOADTHING_TOKEN=your-uploadthing-token-here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 VITE_SITE_URL=http://localhost:3000
-OPENROUTER_API_KEY=sk-or-v1-...
-RESEND_API_KEY=re_...
-EMAIL_FROM=noreply@yourdomain.com
 ```
 
-5. Set up the database:
+Keep `VITE_SITE_URL` and `NEXT_PUBLIC_SITE_URL` on localhost. The seed script refuses `vibedevid.com`.
+
+5. Apply the schema and load demo data:
 
 ```bash
-bun run migrate:schema   # 01_schema + 03_harden_schema (uses DATABASE_URL_UNPOOLED when set)
-# Migrating from Supabase (set SUPABASE_DB_URL, SUPABASE_URL, SUPABASE_ANON_KEY in .env.local):
-bun run migrate:staging -- --force  # auth.users → temporary staging (drop after import)
-bun run migrate:users    # staging → Better Auth
-bun run migrate:data -- --force     # public tables (destructive target reset)
-bun run migrate:verify -- --fail-on-mismatch
-bun run migrate:status  # checkpoints + Neon counts
-# Or: bun run migrate:run  # schema → staging → users → data → verify, skipping checkpoints
+bun run db:setup
 ```
 
-See [Neon Postgres](#neon-postgres) and [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md).
+This runs `migrate:schema` then `db:seed`. You can run the steps apart:
 
-6. Run the development server:
+```bash
+bun run migrate:schema
+bun run db:seed
+# bun run db:seed -- --reset   # delete seed-owned rows, then insert again
+```
+
+`db:seed` is idempotent. It upserts seed rows only and does not wipe rows you create after that.
+
+One-time Supabase → Neon import is not part of this path. See [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md).
+
+6. Start the app:
 
 ```bash
 bun run dev
-
-# or
-
-npm run dev
-
-# or
-
-pnpm dev
 ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). Log in with a seed account below. New sign-up still needs email verification. Without Resend, the verification link prints in the server log.
+
+### Local seed accounts
+
+Shared password: `VibeDevLocal1!`
+
+| Role      | Email                      | Profile            |
+| --------- | -------------------------- | ------------------ |
+| Admin     | `seed.admin@gmail.com`     | `/seedadmin`       |
+| Moderator | `seed.moderator@gmail.com` | `/seedmoderator`   |
+| Member    | `seed.sarah@gmail.com`     | `/sarahchen`       |
+| Member    | `seed.marcus@gmail.com`    | `/marcusrodriguez` |
+
+Admin dashboard: [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
+
+The seed includes categories, projects, published and draft posts, comments, likes, events (including one pending), FAQs, vibe videos, testimonials, and one comment report. Images use files in `public/optimized/`, so UploadThing is not required to browse.
 
 ## Commands
 
 ```bash
 # Install dependencies
 vp install
+
+# Apply schema + demo rows to your local Neon project
+bun run db:setup
+bun run db:seed
+bun run db:seed -- --reset
 
 # Development server (vite dev, port 3000)
 bun run dev
@@ -193,21 +207,21 @@ bunx playwright test -g "should track views when visiting project page"
 
 ## Environment Variables
 
-| Variable                                    | Description                                          | Required         |
-| ------------------------------------------- | ---------------------------------------------------- | ---------------- |
-| `DATABASE_URL`                              | Neon pooled URL (hostname includes `-pooler`)        | Yes              |
-| `DATABASE_URL_UNPOOLED`                     | Neon direct URL for drizzle-kit and `migrate:schema` | For schema tools |
-| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars)         | Yes              |
-| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks                    | Yes              |
-| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                         | Yes              |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                         | Yes              |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                         | Yes              |
-| `UPLOADTHING_TOKEN`                         | UploadThing API token (keep secret!)                 | Yes              |
-| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)                    | Yes              |
-| `VITE_SITE_URL`                             | Same URL, exposed to browser                         | Yes              |
-| `OPENROUTER_API_KEY`                        | AI blog features                                     | Yes              |
-| `RESEND_API_KEY`                            | Resend API key for auth verification/reset           | Yes              |
-| `EMAIL_FROM`                                | Verified sender address for Resend                   | Yes              |
+| Variable                                    | Description                                                      | Required for local |
+| ------------------------------------------- | ---------------------------------------------------------------- | ------------------ |
+| `DATABASE_URL`                              | Neon pooled URL (hostname includes `-pooler`)                    | Yes                |
+| `DATABASE_URL_UNPOOLED`                     | Neon direct URL for drizzle-kit, `migrate:schema`, and `db:seed` | For schema/seed    |
+| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars)                     | Yes                |
+| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks                                | Yes                |
+| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                                     | Yes                |
+| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)                                | Yes                |
+| `VITE_SITE_URL`                             | Same URL, exposed to browser                                     | Yes                |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                                     | Optional           |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                                     | Optional           |
+| `UPLOADTHING_TOKEN`                         | UploadThing API token (uploads only)                             | Optional           |
+| `OPENROUTER_API_KEY`                        | AI blog features                                                 | Optional           |
+| `RESEND_API_KEY`                            | Resend API key for auth verification/reset                       | Optional           |
+| `EMAIL_FROM`                                | Verified sender address for Resend                               | Optional           |
 
 ## Deployment (Cloudflare Workers)
 
@@ -258,8 +272,11 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
 (`requireUser`, `requireAdminOrModeratorUser`).
 
 - **App / Workers** use the pooled `DATABASE_URL`. The host includes `-pooler`.
-- **Schema tools** use `DATABASE_URL_UNPOOLED` (direct). `drizzle.config.ts` and
-  `bun run migrate:schema` prefer this URL when it is set.
+- **Schema tools** use `DATABASE_URL_UNPOOLED` (direct). `drizzle.config.ts`,
+  `bun run migrate:schema`, and `bun run db:seed` prefer this URL when it is set.
+- **Local demo data** — `bun run db:seed` upserts seed-owned rows (users, projects,
+  posts, events, and related tables). It refuses `vibedevid.com` site URLs. Use
+  `--reset` to delete seed-owned rows and insert them again.
 - **Branch policy** is in `neon.ts`: new non-default branches get a 7-day TTL,
   0.25–1 CU, and a 5-minute suspend.
 - **Harden migration** `scripts/migrations/neon/03_harden_schema.sql` runs after

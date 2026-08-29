@@ -118,14 +118,22 @@ export function createAuth() {
       },
     },
     socialProviders: {
-      google: {
-        clientId: config.google.clientId,
-        clientSecret: config.google.clientSecret,
-      },
-      github: {
-        clientId: config.github.clientId,
-        clientSecret: config.github.clientSecret,
-      },
+      ...(config.google.clientId && config.google.clientSecret
+        ? {
+            google: {
+              clientId: config.google.clientId,
+              clientSecret: config.google.clientSecret,
+            },
+          }
+        : {}),
+      ...(config.github.clientId && config.github.clientSecret
+        ? {
+            github: {
+              clientId: config.github.clientId,
+              clientSecret: config.github.clientSecret,
+            },
+          }
+        : {}),
     },
     plugins: [tanstackStartCookies()],
   });

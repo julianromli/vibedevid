@@ -28,6 +28,8 @@
     "migrate:status": "bun run scripts/migrate-to-neon.ts status",
     "migrate:run": "bun run scripts/migrate-to-neon.ts run --skip-completed",
     "migrate:all": "bun run scripts/migrate-to-neon.ts all --skip-completed",
+    "db:seed": "bun run scripts/seed-local.ts",
+    "db:setup": "bun run migrate:schema && bun run db:seed",
     "prepare": "vp config"
   },
   "dependencies": {
