@@ -13,6 +13,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 📝 **Project Showcase** - Share dan showcase project keren lo
 - 💬 **Community Interaction** - Comments, likes, dan diskusi project
 - 🤝 **Networking & Collaboration** - Connect sama developer yang sepikiran
+- 💬 **Join Community** - Tombol Join Community di homepage (hero dan CTA) membuka `https://wa.vibedevid.com`
 - 📰 **Blog System** - Rich text editor dengan Novel/TipTap untuk artikel teknis
 - 📊 **Views Tracking** - Session-based analytics untuk project insights
 - 🤖 **AI Leaderboard** - Ranking dan showcase AI tools favorit komunitas

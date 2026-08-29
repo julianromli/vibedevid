@@ -140,4 +140,18 @@ describe("HeroSection", () => {
       "https://wa.vibedevid.com",
     );
   });
+
+  it("links Join Community to the given join href", () => {
+    render(
+      React.createElement(HeroSection, {
+        joinHref: "https://wa.vibedevid.com",
+        handleViewShowcase: vi.fn(),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: /join community/i })).toHaveAttribute(
+      "href",
+      "https://wa.vibedevid.com",
+    );
+  });
 });

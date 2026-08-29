@@ -51,7 +51,7 @@ const SectionFallback = (
   <div className="mx-auto my-12 h-48 w-full max-w-7xl animate-pulse rounded-lg bg-muted/20" />
 );
 
-const JOIN_HREF = "https://dub.sh/vibedevid-form";
+const JOIN_HREF = "https://wa.vibedevid.com";
 
 interface HomePageClientProps {
   initialIsLoggedIn: boolean;
