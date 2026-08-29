@@ -212,10 +212,19 @@ regressions.
 - [x] `grep z.NEVER lib/project-submission.ts` — single occurrence, the
       invalid-website-URL branch; all other failures are terminal via `.min(1)`
       on a closed typed schema (no lhs-op poisoning possible).
-- [ ] Manual smoke: `/blog/:slug` (viewCount + tags + author), `/project/:slug`,
-      `/project/list` (filters + sorts), admin dashboard all boards, event submit
-      (slug-retry path via seeded duplicate), project submit wizard all steps.
-      _(needs a running dev server; not run in this environment)_
+- [x] Manual smoke (dev server on :3000, agent-browser + curl) — **2026-08-29**:
+  - `/project/list` → 200; Top sort reorders (`Steal the Style` 6, `Helipod` 5…);
+    Trending + category "AI" filter → 6 labeled cards; dropdown changed via RPC.
+  - `/blog/:slug` ("opencode-cli…") → 200; renders **257 views** (counts query),
+    3 tags, author + role, content via `renderPostContent`; 0 console/page errors.
+  - `/project/estimato` → 200; stats render (Total Views/Unique/Today/Likes all 0).
+  - `/event/:slug` → 200; workshop badge, About, related events render.
+  - 404 contract: missing `/project|/blog|/event/:slug` → 404 (not error envelopes).
+  - `/project/submit`, `/dashboard` → 307 to `/user/auth` (auth gate intact).
+- [ ] Auth-requiring smoke: project submit + edit, admin dashboard boards, event
+  submit (incl. seeded slug-collision retry). Blocked: no seeded/demo auth
+  credentials in repo or `.env.local`; requires creating a real account on the
+  dev DB. _Left for the user (sign-up exists via Better Auth email flow)._
 
 ## Implemented deltas vs plan
 
