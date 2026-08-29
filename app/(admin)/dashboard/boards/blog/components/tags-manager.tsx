@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { createTag, deleteTag, type Tag } from "@/lib/actions/admin/posts";
+import { createTagFn, deleteTagFn } from "@/lib/actions/admin/posts.functions";
+import type { Tag } from "@/lib/actions/admin/posts";
 
 interface TagsManagerProps {
   tags: Tag[];
@@ -30,7 +31,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
 
     setIsLoading(true);
     try {
-      const result = await createTag(newTagName.trim());
+      const result = await createTagFn({ data: { name: newTagName.trim() } });
       if (result.success && result.tag) {
         setTags([...tags, result.tag]);
         setNewTagName("");
@@ -50,7 +51,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
 
     setIsLoading(true);
     try {
-      const result = await deleteTag(tagId);
+      const result = await deleteTagFn({ data: { tagId } });
       if (result.success) {
         setTags(tags.filter((tag) => tag.id !== tagId));
         toast.success("Tag deleted successfully");

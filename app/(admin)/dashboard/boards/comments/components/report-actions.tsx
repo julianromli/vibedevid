@@ -12,7 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type ReportedComment, takeActionOnReport } from "@/lib/actions/admin/comments";
+import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
+import type { ReportedComment } from "@/lib/actions/admin/comments";
 
 interface ReportActionsProps {
   report: ReportedComment;
@@ -26,7 +27,7 @@ export function ReportActions({ report, onView }: ReportActionsProps) {
   const handleAction = async (action: "delete" | "dismiss") => {
     setIsLoading(true);
     try {
-      const result = await takeActionOnReport(report.id, action);
+      const result = await takeActionOnReportFn({ data: { reportId: report.id, action } });
       if (result.success) {
         toast.success(
           action === "delete" ? "Comment deleted and report resolved" : "Report dismissed",

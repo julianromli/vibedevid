@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { type AdminPost, adminUpdatePost } from "@/lib/actions/admin/posts";
+import { adminUpdatePostFn } from "@/lib/actions/admin/posts.functions";
+import type { AdminPost } from "@/lib/actions/admin/posts";
 
 interface PostEditDialogProps {
   post: AdminPost;
@@ -52,7 +53,7 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
     setIsLoading(true);
 
     try {
-      const result = await adminUpdatePost(post.id, formData);
+      const result = await adminUpdatePostFn({ data: { postId: post.id, updates: formData } });
 
       if (result.success) {
         toast.success("Post updated successfully");

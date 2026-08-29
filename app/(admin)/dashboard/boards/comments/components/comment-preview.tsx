@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { type ReportedComment, takeActionOnReport } from "@/lib/actions/admin/comments";
+import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
+import type { ReportedComment } from "@/lib/actions/admin/comments";
 
 interface CommentPreviewProps {
   report: ReportedComment;
@@ -25,7 +26,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
   const router = useRouter();
   const handleAction = async (action: "delete" | "dismiss") => {
     try {
-      const result = await takeActionOnReport(report.id, action);
+      const result = await takeActionOnReportFn({ data: { reportId: report.id, action } });
       if (result.success) {
         toast.success(
           action === "delete" ? "Comment deleted and report resolved" : "Report dismissed",

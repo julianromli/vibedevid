@@ -31,7 +31,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type AdminPost, adminDeletePost, togglePostFeatured } from "@/lib/actions/admin/posts";
+import { adminDeletePostFn, togglePostFeaturedFn } from "@/lib/actions/admin/posts.functions";
+import type { AdminPost } from "@/lib/actions/admin/posts";
 
 interface PostActionsProps {
   post: AdminPost;
@@ -46,7 +47,9 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
   const handleToggleFeatured = async () => {
     setIsLoading(true);
     try {
-      const result = await togglePostFeatured(post.id, !post.featured);
+      const result = await togglePostFeaturedFn({
+        data: { postId: post.id, featured: !post.featured },
+      });
       if (result.success) {
         toast.success(post.featured ? "Post unfeatured" : "Post featured");
         router.invalidate();
@@ -63,7 +66,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      const result = await adminDeletePost(post.id);
+      const result = await adminDeletePostFn({ data: { postId: post.id } });
       if (result.success) {
         toast.success("Post deleted successfully");
         router.invalidate();

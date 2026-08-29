@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { type AdminProject, adminUpdateProject } from "@/lib/actions/admin/projects";
+import { adminUpdateProjectFn } from "@/lib/actions/admin/projects.functions";
+import type { AdminProject } from "@/lib/actions/admin/projects";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 
 interface ProjectEditDialogProps {
@@ -42,7 +43,9 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
     setIsLoading(true);
 
     try {
-      const result = await adminUpdateProject(project.id, formData);
+      const result = await adminUpdateProjectFn({
+        data: { projectId: project.id, updates: formData },
+      });
 
       if (result.success) {
         toast.success("Project updated successfully");

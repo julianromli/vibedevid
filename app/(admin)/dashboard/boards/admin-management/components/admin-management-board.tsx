@@ -29,12 +29,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  grantAdminAccess,
-  grantModeratorAccess,
-  type PrivilegedUser,
-  revokePrivilegedAccess,
-  searchUsersForAdminGrant,
-} from "@/lib/actions/admin/admins";
+  grantAdminAccessFn,
+  grantModeratorAccessFn,
+  revokePrivilegedAccessFn,
+  searchUsersForAdminGrantFn,
+} from "@/lib/actions/admin/admins.functions";
+import type { PrivilegedUser } from "@/lib/actions/admin/admins";
 import { ROLES } from "@/lib/actions/admin/schemas";
 
 interface SearchUser {
@@ -80,7 +80,7 @@ export function AdminManagementBoard({
 
     setSearching(true);
     try {
-      const result = await searchUsersForAdminGrant(searchQuery);
+      const result = await searchUsersForAdminGrantFn({ data: { query: searchQuery } });
       if (result.success && result.users) {
         setSearchResults(result.users);
         if (result.users.length === 0) {
@@ -123,7 +123,7 @@ export function AdminManagementBoard({
     if (!confirmAction) return;
     runRoleAction(
       confirmAction.userId,
-      () => revokePrivilegedAccess(confirmAction.userId),
+      () => revokePrivilegedAccessFn({ data: { userId: confirmAction.userId } }),
       "Access updated",
     );
   };
@@ -235,7 +235,7 @@ export function AdminManagementBoard({
                           onClick={() =>
                             runRoleAction(
                               user.id,
-                              () => grantAdminAccess(user.id),
+                              () => grantAdminAccessFn({ data: { userId: user.id } }),
                               `${user.display_name} is now an admin`,
                             )
                           }
@@ -251,7 +251,7 @@ export function AdminManagementBoard({
                             onClick={() =>
                               runRoleAction(
                                 user.id,
-                                () => grantModeratorAccess(user.id),
+                                () => grantModeratorAccessFn({ data: { userId: user.id } }),
                                 `${user.display_name} is now a moderator`,
                               )
                             }
@@ -340,7 +340,7 @@ export function AdminManagementBoard({
                                 onClick={() =>
                                   runRoleAction(
                                     user.id,
-                                    () => grantAdminAccess(user.id),
+                                    () => grantAdminAccessFn({ data: { userId: user.id } }),
                                     `${user.display_name} promoted to admin`,
                                   )
                                 }

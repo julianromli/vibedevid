@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { type AdminUser, updateUserRole } from "@/lib/actions/admin/users";
+import { updateUserRoleFn } from "@/lib/actions/admin/users.functions";
+import type { AdminUser } from "@/lib/actions/admin/users";
 
 interface UserRoleDialogProps {
   user: AdminUser;
@@ -31,7 +32,9 @@ export function UserRoleDialog({ user, open, onOpenChange }: UserRoleDialogProps
     setIsLoading(true);
 
     try {
-      const result = await updateUserRole(user.id, parseInt(selectedRole));
+      const result = await updateUserRoleFn({
+        data: { userId: user.id, role: parseInt(selectedRole) },
+      });
 
       if (result.success) {
         toast.success("User role updated successfully");

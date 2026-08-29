@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { approveEvent, rejectEvent } from "@/lib/actions/events";
+import { approveEventFn, rejectEventFn } from "@/lib/actions/events.functions";
 import type { AIEvent } from "@/types/events";
 
 interface PendingEventsTableProps {
@@ -29,7 +29,7 @@ export function PendingEventsTable({ events }: PendingEventsTableProps) {
 
   async function handleApprove(eventId: string) {
     setProcessingIds((prev) => new Set(prev).add(eventId));
-    const result = await approveEvent(eventId);
+    const result = await approveEventFn({ data: { eventId } });
 
     if (result.success) {
       toast.success("Event approved successfully");
@@ -54,7 +54,7 @@ export function PendingEventsTable({ events }: PendingEventsTableProps) {
     if (!confirm("Are you sure? This will permanently delete the event.")) return;
 
     setProcessingIds((prev) => new Set(prev).add(eventId));
-    const result = await rejectEvent(eventId);
+    const result = await rejectEventFn({ data: { eventId } });
 
     if (result.success) {
       toast.success("Event rejected and deleted");

@@ -30,10 +30,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  type AdminProject,
-  adminDeleteProject,
-  toggleProjectFeatured,
-} from "@/lib/actions/admin/projects";
+  adminDeleteProjectFn,
+  toggleProjectFeaturedFn,
+} from "@/lib/actions/admin/projects.functions";
+import type { AdminProject } from "@/lib/actions/admin/projects";
 
 interface ProjectActionsProps {
   project: AdminProject;
@@ -48,7 +48,9 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
   const handleToggleFeatured = async () => {
     setIsLoading(true);
     try {
-      const result = await toggleProjectFeatured(project.id, !project.featured);
+      const result = await toggleProjectFeaturedFn({
+        data: { projectId: project.id, featured: !project.featured },
+      });
       if (result.success) {
         toast.success(project.featured ? "Project unfeatured" : "Project featured");
         router.invalidate();
@@ -65,7 +67,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      const result = await adminDeleteProject(project.id);
+      const result = await adminDeleteProjectFn({ data: { projectId: project.id } });
       if (result.success) {
         toast.success("Project deleted successfully");
         router.invalidate();
