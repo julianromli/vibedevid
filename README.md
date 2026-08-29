@@ -40,7 +40,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Framework**: TanStack Start (Vite + Nitro) with `@tanstack/react-router` file-based routing
 - **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
-- **Database**: Neon Postgres in `aws-ap-southeast-1` (Drizzle ORM) — migrated from Supabase. All server data access uses Drizzle via `getDb()` with Better Auth session checks (`requireUser`, `requireAdminOrModeratorUser`). Use `DATABASE_URL` (pooled) for the app and `DATABASE_URL_UNPOOLED` (direct) for `drizzle-kit` and `bun run migrate:schema`. Branch policy lives in `neon.ts`. One-time Supabase → Neon scripts live in `scripts/migrate-to-neon.ts`.
+- **Database**: Neon Postgres in `aws-ap-southeast-1` (Drizzle ORM). See [Neon Postgres](#neon-postgres).
 - **Authentication**: Better Auth (`/api/auth/*`) with email/password + Google/GitHub OAuth
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
@@ -116,7 +116,7 @@ EMAIL_FROM=noreply@yourdomain.com
 5. Set up the database:
 
 ```bash
-bun run migrate:schema   # first-time Neon schema (uses DATABASE_URL_UNPOOLED when set)
+bun run migrate:schema   # 01_schema + 03_harden_schema (uses DATABASE_URL_UNPOOLED when set)
 # Migrating from Supabase (set SUPABASE_DB_URL, SUPABASE_URL, SUPABASE_ANON_KEY in .env.local):
 bun run migrate:staging -- --force  # auth.users → temporary staging (drop after import)
 bun run migrate:users    # staging → Better Auth
@@ -126,7 +126,7 @@ bun run migrate:status  # checkpoints + Neon counts
 # Or: bun run migrate:run  # schema → staging → users → data → verify, skipping checkpoints
 ```
 
-See [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md) for the full migration guide.
+See [Neon Postgres](#neon-postgres) and [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md).
 
 6. Run the development server:
 
@@ -191,20 +191,21 @@ bunx playwright test -g "should track views when visiting project page"
 
 ## Environment Variables
 
-| Variable                                    | Description                                  | Required |
-| ------------------------------------------- | -------------------------------------------- | -------- |
-| `DATABASE_URL`                              | Neon Postgres connection string (pooled)     | Yes      |
-| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars) | Yes      |
-| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks            | Yes      |
-| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                 | Yes      |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                 | Yes      |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                 | Yes      |
-| `UPLOADTHING_TOKEN`                         | UploadThing API token (keep secret!)         | Yes      |
-| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)            | Yes      |
-| `VITE_SITE_URL`                             | Same URL, exposed to browser                 | Yes      |
-| `OPENROUTER_API_KEY`                        | AI blog features                             | Yes      |
-| `RESEND_API_KEY`                            | Resend API key for auth verification/reset   | Yes      |
-| `EMAIL_FROM`                                | Verified sender address for Resend           | Yes      |
+| Variable                                    | Description                                          | Required         |
+| ------------------------------------------- | ---------------------------------------------------- | ---------------- |
+| `DATABASE_URL`                              | Neon pooled URL (hostname includes `-pooler`)        | Yes              |
+| `DATABASE_URL_UNPOOLED`                     | Neon direct URL for drizzle-kit and `migrate:schema` | For schema tools |
+| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars)         | Yes              |
+| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks                    | Yes              |
+| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                         | Yes              |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                         | Yes              |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                         | Yes              |
+| `UPLOADTHING_TOKEN`                         | UploadThing API token (keep secret!)                 | Yes              |
+| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)                    | Yes              |
+| `VITE_SITE_URL`                             | Same URL, exposed to browser                         | Yes              |
+| `OPENROUTER_API_KEY`                        | AI blog features                                     | Yes              |
+| `RESEND_API_KEY`                            | Resend API key for auth verification/reset           | Yes              |
+| `EMAIL_FROM`                                | Verified sender address for Resend                   | Yes              |
 
 ## Deployment (Cloudflare Workers)
 
@@ -236,15 +237,43 @@ Notes:
   bindings are exposed on `globalThis.__env__` per request.
 - **`VITE_*` values are inlined at build time** — rebuild before deploy whenever
   `VITE_BETTER_AUTH_URL` or `VITE_SITE_URL` changes.
-- Worker secrets (runtime): `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
-  `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`,
-  `GITHUB_CLIENT_SECRET`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`,
-  `OPENROUTER_API_KEY`, `RESEND_API_KEY`, and `EMAIL_FROM`.
+- Worker secrets (runtime): pooled `DATABASE_URL` (Singapore `-pooler` host),
+  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`,
+  `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`, `OPENROUTER_API_KEY`,
+  `RESEND_API_KEY`, and `EMAIL_FROM`. Do not put `DATABASE_URL_UNPOOLED` on the
+  Worker. Keep it in local `.env.local` for schema tools.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
 - Add OAuth redirect URLs in Google/GitHub developer consoles:
   - `https://vibedevid.com/api/auth/callback/google`
   - `https://vibedevid.com/api/auth/callback/github`
 - After cutover, remove legacy Supabase secrets from the Worker if still present.
+
+## Neon Postgres
+
+Production data is Neon Postgres in `aws-ap-southeast-1` (Singapore). All server
+reads and writes go through Drizzle `getDb()` plus Better Auth checks
+(`requireUser`, `requireAdminOrModeratorUser`).
+
+- **App / Workers** use the pooled `DATABASE_URL`. The host includes `-pooler`.
+- **Schema tools** use `DATABASE_URL_UNPOOLED` (direct). `drizzle.config.ts` and
+  `bun run migrate:schema` prefer this URL when it is set.
+- **Branch policy** is in `neon.ts`: new non-default branches get a 7-day TTL,
+  0.25–1 CU, and a 5-minute suspend.
+- **Harden migration** `scripts/migrations/neon/03_harden_schema.sql` runs after
+  `01_schema.sql`. It is idempotent. It adds unique likes and post slugs, parent
+  XOR checks, extra indexes, expired session/verification cleanup, and drops
+  `supabase_auth_staging`.
+- **Homepage cache** (`lib/server/short-ttl-cache.ts`) stores active categories
+  and home vibe videos for 5 minutes (Cloudflare Cache API on Workers, memory
+  locally). Admin vibe-video mutations clear the video cache key.
+- **Auth cleanup** — `getServerSession` deletes expired `session` and
+  `verification` rows at most once per isolate every 10 minutes.
+- **One-time Supabase import** scripts live in `scripts/migrate-to-neon.ts`.
+  Staging schema `supabase_auth_staging` holds password hashes. Drop it after
+  `migrate:users` succeeds.
+
+Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 ## Database Schema
 
@@ -254,13 +283,13 @@ Notes:
 
 **projects** - Project showcase with slug-based URLs for SEO, tags, and category
 
-**comments** - Unified comments system for both Blog and Projects
+**comments** - Unified comments for Blog and Projects. XOR check: exactly one parent.
 
-**likes** - User likes with unique constraint (one like per user per project/post)
+**likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.
 
-**views** - Session-based views tracking with 30-minute timeout, IP + User Agent fingerprinting
+**views** - Session-based views tracking with 30-minute timeout, IP + User Agent fingerprinting. XOR check: exactly one parent.
 
-**posts** - Blog posts with rich text content (JSON), featured flag, read time
+**posts** - Blog posts with rich text content (JSON), featured flag, read time, unique `slug`
 
 **post_tags** - Blog tag categorization
 
@@ -321,7 +350,8 @@ Notes:
 │   │                       #   read partner in lib/server/
 │   ├── db/                 # Drizzle schema + `getDb()` (Neon serverless)
 │   ├── auth/               # Better Auth server/client config
-│   ├── server/             # Server-only utilities (auth, runtime secrets);
+│   ├── server/             # Server-only utilities (auth, runtime secrets,
+│   │                       #   short-ttl-cache.ts);
 │   │                       #   public read modules: project-public.ts,
 │   │                       #   blog-public.ts (list + detail reads)
 │   ├── routes/             # Route helpers (server locale/translations)
@@ -332,7 +362,8 @@ Notes:
 │   └── ai/                 # AI integration (OpenRouter)
 ├── i18n/                   # react-i18next config (index.ts, routing.ts)
 ├── types/                  # TypeScript type definitions
-├── scripts/                # Database migrations (20+ SQL files)
+├── neon.ts                 # Neon branch compute policy
+├── scripts/                # migrate-to-neon.ts + scripts/migrations/neon/
 ├── tests/                  # Vitest unit tests + Playwright E2E tests
 ├── messages/               # i18n messages (en.json, id.json)
 ├── docs/                   # Documentation (security, database, deployment)
@@ -446,6 +477,8 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **Code-split below-the-fold sections** - The homepage lazy-loads non-critical sections (video showcase, community features, AI tools, reviews, FAQ, CTA, footer) with `React.lazy` + `Suspense` so they no longer block initial hydration (reduces Total Blocking Time).
 - **Long-lived asset caching** - `routeRules` in `vite.config.ts` emit `cache-control` headers (written to the generated `.output/public/_headers`) for `/optimized/*` and `/fonts/*` (immutable). Only non-overlapping directory rules are used: Cloudflare `_headers` wildcards match across `/` and concatenate every matching rule's value, so broad extension rules like `/*.avif` are avoided (they would corrupt the `/optimized/*` header).
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
+- **Short-TTL homepage cache** - Active categories and home vibe videos are cached for 5 minutes (`lib/server/short-ttl-cache.ts`) so list pages do not scan those tables on every request.
+- **SQL aggregates** - `getBatchLikeStatus` and category project counts use `GROUP BY` / `count()` in Postgres instead of loading full like or project rows into the Worker.
 - **Client-side upload compression** - User-uploaded project images go through `lib/image-compression.ts` (`onBeforeUploadBegin` on the UploadThing buttons), which downscales to 1600px and re-encodes to WebP in the browser before upload. UploadThing (`ufs.sh`) has no on-the-fly resizing and `sharp` cannot run on Cloudflare Workers, so compressing client-side is the only no-cost option — it typically turns a 380KB+ upload into ~80-120KB. Falls back to the original file if compression fails or does not reduce size.
 - **Backfill for existing images** - `scripts/backfill-image-compression.ts` (run with `bun run backfill:images`, or `--apply` to write) recompresses already-uploaded project/video images: download → WebP via sharp → re-upload to UploadThing → update the DB row → delete the old file. Runs on Node/Bun (needs `DATABASE_URL` + `UPLOADTHING_TOKEN`), defaults to a dry run. Use this once to fix images uploaded before client-side compression was added.
 
