@@ -18,11 +18,21 @@ describe("resolveLandingTestimonials", () => {
 });
 
 describe("splitTestimonialsIntoColumns", () => {
-  it("keeps all items across three columns", () => {
+  it("puts every approved person in the mobile-visible column", () => {
+    const people = ["Nadi", "Faiz", "MFSAVANA"];
+    const [columnOne] = splitTestimonialsIntoColumns(people, 3);
+    expect(new Set(columnOne)).toEqual(new Set(people));
+  });
+
+  it("rotates the full list into each column", () => {
     const columns = splitTestimonialsIntoColumns(approved, 3);
-    expect(columns.flat()).toHaveLength(approved.length);
-    expect(columns[0]).toEqual(["a0", "a3", "a6", "a9"]);
-    expect(columns[1]).toEqual(["a1", "a4", "a7"]);
-    expect(columns[2]).toEqual(["a2", "a5", "a8"]);
+    expect(columns).toHaveLength(3);
+    expect(columns[0]).toEqual(approved);
+    expect(columns[1]).toEqual([...approved.slice(1), approved[0]]);
+    expect(columns[2]).toEqual([...approved.slice(2), ...approved.slice(0, 2)]);
+  });
+
+  it("returns empty columns when there are no items", () => {
+    expect(splitTestimonialsIntoColumns([], 3)).toEqual([[], [], []]);
   });
 });

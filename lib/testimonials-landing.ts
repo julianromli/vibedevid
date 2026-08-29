@@ -3,9 +3,12 @@ export function resolveLandingTestimonials<T>(approved: T[], seed: T[]): T[] {
 }
 
 export function splitTestimonialsIntoColumns<T>(items: T[], columnCount = 3): T[][] {
-  const columns = Array.from({ length: columnCount }, () => [] as T[]);
-  items.forEach((item, index) => {
-    columns[index % columnCount]?.push(item);
+  if (items.length === 0) {
+    return Array.from({ length: columnCount }, () => [] as T[]);
+  }
+
+  return Array.from({ length: columnCount }, (_, columnIndex) => {
+    const offset = columnIndex % items.length;
+    return items.slice(offset).concat(items.slice(0, offset));
   });
-  return columns;
 }

@@ -484,10 +484,12 @@ Admin dashboard tab `testimonials` (`/dashboard?tab=testimonials`) lets role-0
 admins approve, reject, or unpublish. Reject and unpublish set `status=rejected`
 and keep the row. Approve sets `status=approved` and refreshes `approved_at`.
 
-The landing reviews section shows approved rows (newest first, all of them,
-split across the three columns). If approved count is 0, it falls back to the
-i18n seed in `messages/*/reviews.testimonials`. Schema: `testimonials` table +
-`scripts/migrations/neon/04_testimonials.sql`. Apply with `bun run migrate:schema`.
+The landing reviews section shows approved rows (newest first). Each marquee
+column gets the full list, rotated, so a small set still shows on mobile
+(columns 2 and 3 stay hidden below `md` / `lg`). If approved count is 0, it
+falls back to the i18n seed in `messages/*/reviews.testimonials`. Schema:
+`testimonials` table + `scripts/migrations/neon/04_testimonials.sql`. Apply with
+`bun run migrate:schema`.
 
 ### Admin Board Loader
 
