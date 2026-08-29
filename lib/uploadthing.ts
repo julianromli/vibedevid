@@ -1,6 +1,8 @@
 import { createUploadthing, type FileRouter, UTApi } from "uploadthing/server";
 import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
 import { requireUser } from "@/lib/server/auth";
+import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
+import { isUploadthingTokenShape } from "@/lib/uploadthing-token";
 import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
 
 const ANONYMOUS_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
@@ -10,10 +12,33 @@ export type { OurFileRouter } from "./uploadthing-router";
 const f = createUploadthing();
 
 let utapiInstance: UTApi | null = null;
+let cachedUtApiToken: string | null = null;
+
+function withoutCacheFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  if (!init || !("cache" in init)) {
+    return fetch(input, init);
+  }
+  const { cache: _cache, ...rest } = init;
+  return fetch(input, rest);
+}
 
 function getUtApi() {
-  if (!utapiInstance) {
-    utapiInstance = new UTApi();
+  const token = getServerRuntimeSecrets().uploadthingToken.trim();
+  if (!token) {
+    throw new Error("UPLOADTHING_TOKEN is not configured");
+  }
+  if (!isUploadthingTokenShape(token)) {
+    throw new Error(
+      "UPLOADTHING_TOKEN is invalid. Use the base64 token from the UploadThing dashboard.",
+    );
+  }
+
+  if (!utapiInstance || cachedUtApiToken !== token) {
+    utapiInstance = new UTApi({
+      token,
+      fetch: withoutCacheFetch,
+    });
+    cachedUtApiToken = token;
   }
   return utapiInstance;
 }

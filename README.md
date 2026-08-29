@@ -445,7 +445,12 @@ path and the route emits `noindex`. Anyone with the URL can submit (no login).
 Fields: full name, role, testimonial text, required photo. The server accepts
 `FormData`, checks JPEG/PNG/WebP magic bytes (not the client MIME string),
 uploads the photo with UploadThing `UTApi`, and inserts a `pending` row. If
-the insert fails, the uploaded file is deleted.
+the insert fails, the uploaded file is deleted. Server-side `UTApi` must
+receive `UPLOADTHING_TOKEN` from `getServerRuntimeSecrets()` (same source as
+`/api/uploadthing`). Cloudflare Workers do not expose that secret on
+`process.env`, so `new UTApi()` with no options fails the submit. The value
+must be the UploadThing dashboard token (base64 JSON with `apiKey`, `appId`,
+and `regions`), not a placeholder and not a raw `sk_live_` API key.
 
 Admin dashboard tab `testimonials` (`/dashboard?tab=testimonials`) lets role-0
 admins approve, reject, or unpublish. Reject and unpublish set `status=rejected`
