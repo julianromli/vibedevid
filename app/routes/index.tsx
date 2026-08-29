@@ -1,16 +1,16 @@
-import { asc } from "drizzle-orm";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { asc } from "drizzle-orm";
 import { z } from "zod";
 import HomePageClient from "@/app/home-page-client";
-import { fetchProjectsWithSorting } from "@/lib/actions";
 import { getCategories } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { vibeVideos } from "@/lib/db/schema";
 import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { getSiteUrl } from "@/lib/seo/site-url";
+import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 import { getVideoIconKey } from "@/lib/video-icon-key";
-import type { Project, ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
+import type { ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
 
 async function getVibeVideos(): Promise<VibeVideo[]> {
   const fallbackVideos: VibeVideo[] = [
@@ -87,14 +87,14 @@ const loadHomeData = createServerFn({ method: "GET" })
       : "all";
     const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
 
-    const { projects: initialProjects } = await fetchProjectsWithSorting(
+    const initialProjects = await fetchProjectsWithSorting(
       initialSort,
       initialFilter === "all" ? undefined : initialFilter,
       20,
     );
 
     return {
-      initialProjects: (initialProjects ?? []) as Project[],
+      initialProjects,
       initialCategories: categoryOptions,
       initialFilter,
       initialSort,

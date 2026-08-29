@@ -5,11 +5,11 @@ import { ProjectListClient } from "@/app/project/list/project-list-client";
 import { Footer } from "@/components/ui/footer";
 import { ScrollReveal } from "@/components/ui/motion-wrapper";
 import { Navbar } from "@/components/ui/navbar";
-import { fetchProjectsWithSorting } from "@/lib/actions";
 import { getCategories } from "@/lib/categories";
 import { getServerT, getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
 import { absoluteUrl } from "@/lib/seo/site-url";
 import { getCurrentUser } from "@/lib/server/auth";
+import { fetchProjectsWithSorting } from "@/lib/server/project-public";
 
 /**
  * Server-only data fetching for the project list. Wrapped in `createServerFn`
@@ -34,7 +34,7 @@ const loadProjectListData = createServerFn({ method: "GET" })
         ? requestedFilter
         : "all";
 
-    const { projects: initialProjects } = await fetchProjectsWithSorting(
+    const initialProjects = await fetchProjectsWithSorting(
       initialSort,
       initialFilter === "all" ? undefined : initialFilter,
       100,
@@ -44,7 +44,7 @@ const loadProjectListData = createServerFn({ method: "GET" })
       value: cat.name,
       label: cat.display_name,
     }));
-    const normalizedProjects = (initialProjects ?? []).map((project) => ({
+    const normalizedProjects = initialProjects.map((project) => ({
       ...project,
       image: project.image ?? "/vibedev-guest-avatar.png",
     }));

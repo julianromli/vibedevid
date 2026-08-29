@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { incrementBlogPostViewsFn } from "@/lib/actions/projects.functions";
+import { incrementBlogPostViewsFn } from "@/lib/actions/blog.functions";
 
 interface BlogViewTrackerProps {
   postId: string;

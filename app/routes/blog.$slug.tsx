@@ -1,14 +1,11 @@
-import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { and, count, eq } from "drizzle-orm";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import BlogPostData, { type BlogPostDataProps } from "@/app/blog/[slug]/blog-post-data";
 import { getComments } from "@/lib/actions/comments";
-import { getDb } from "@/lib/db";
-import { toPostDto, toUserProfile } from "@/lib/db/mappers";
-import { blogPostTags, postTags, posts, users, views } from "@/lib/db/schema";
 import { absoluteUrl } from "@/lib/seo/site-url";
 import { getCurrentUser } from "@/lib/server/auth";
-import BlogPostData, { type BlogPostDataProps } from "@/app/blog/[slug]/blog-post-data";
+import { fetchPostDetailBySlug } from "@/lib/server/blog-public";
 
 const DEFAULT_OG_IMAGE =
   "https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0";
@@ -16,7 +13,6 @@ const DEFAULT_OG_IMAGE =
 const loadBlogPostData = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
   .handler(async ({ data: { slug } }): Promise<BlogPostDataProps & { slug: string }> => {
-    const db = getDb();
     const currentUser = await getCurrentUser();
 
     let userData: BlogPostDataProps["userData"] = null;
@@ -37,61 +33,16 @@ const loadBlogPostData = createServerFn({ method: "GET" })
       };
     }
 
-    const [row] = await db
-      .select({
-        post: posts,
-        author: users,
-      })
-      .from(posts)
-      .leftJoin(users, eq(posts.authorId, users.id))
-      .where(eq(posts.slug, slug))
-      .limit(1);
-
-    if (!row || row.post.status !== "published") {
+    const detail = await fetchPostDetailBySlug(slug);
+    if (!detail) {
       throw notFound();
     }
 
-    const tagRows = await db
-      .select({ tagName: postTags.name })
-      .from(blogPostTags)
-      .innerJoin(postTags, eq(blogPostTags.tagId, postTags.id))
-      .where(eq(blogPostTags.postId, row.post.id));
-
-    const mappedPost = toPostDto(row.post);
-    const author = row.author ? toUserProfile(row.author) : null;
-    const post = {
-      id: mappedPost.id,
-      title: mappedPost.title,
-      slug: mappedPost.slug,
-      content: mappedPost.content,
-      excerpt: mappedPost.excerpt,
-      cover_image: mappedPost.coverImage,
-      author_id: mappedPost.authorId,
-      status: mappedPost.status,
-      published_at: mappedPost.publishedAt,
-      created_at: mappedPost.createdAt,
-      updated_at: mappedPost.updatedAt,
-      read_time_minutes: mappedPost.readTimeMinutes,
-      view_count: mappedPost.viewCount,
-      featured: mappedPost.featured,
-      author: author
-        ? {
-            ...author,
-            display_name: author.displayName,
-            avatar_url: author.avatarUrl,
-          }
-        : null,
-      tags: tagRows.map((tag) => ({ post_tags: { name: tag.tagName } })),
-    };
-
-    const [viewResult, { comments: initialComments }] = await Promise.all([
-      db.select({ count: count() }).from(views).where(eq(views.postId, row.post.id)),
-      getComments("post", row.post.id),
-    ]);
+    const { comments: initialComments } = await getComments("post", detail.post.id);
 
     return {
-      post,
-      viewCount: viewResult[0]?.count ?? 0,
+      post: detail.post,
+      viewCount: detail.viewCount,
       initialComments,
       isLoggedIn: !!currentUser,
       userData,

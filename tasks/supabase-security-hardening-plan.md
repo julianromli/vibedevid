@@ -473,19 +473,21 @@ export async function trackView(input: { projectId?: number; postId?: string; se
 }
 ```
 
-```typescript
+````typescript
 // lib/client-analytics.ts — REPLACE direct insert:
+// NB (2026-08-29): historical plan; `lib/actions.ts` no longer exists after the
+// Project data-access collapse — blog views now live in `lib/actions/blog.ts`
+// wrapped by `incrementBlogPostViewsFn` (lib/actions/blog.functions.ts).
 "use client";
-import { trackView } from "@/lib/actions";
+// import { trackView } from "@/lib/actions";  ← stale: module deleted
 
 export async function trackProjectView(projectId: number, sessionId: string) {
   try {
-    await trackView({ projectId, sessionId });
+    // await trackView({ projectId, sessionId });  ← stale reference
   } catch {
     // Fail silently
   }
 }
-```
 
 ### Task 3.2: Verify client-side likes still work with tightened RLS
 
@@ -510,7 +512,7 @@ After Phase 2 changes, `lib/client-likes.ts` uses the browser client (anon key).
 -- Already handled by keeping both policies but fixing performance.
 -- The two policies serve different purposes and OR semantics is correct here.
 -- Just ensure the auth.uid() is wrapped (done in Task 2.2).
-```
+````
 
 ---
 

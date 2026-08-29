@@ -1,15 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
+  cleanupProjectProvisionalUpload as cleanupProjectProvisionalUploadAction,
   deleteProject as deleteProjectAction,
   editProject as editProjectAction,
-  fetchProjectsWithSorting as fetchProjectsWithSortingAction,
-  incrementBlogPostViews as incrementBlogPostViewsAction,
-} from "@/lib/actions";
-import {
-  cleanupProjectProvisionalUpload as cleanupProjectProvisionalUploadAction,
   submitProject as submitProjectAction,
 } from "@/lib/actions/projects";
+import { fetchProjectsWithSorting as fetchProjectsWithSortingAction } from "@/lib/server/project-public";
 
 /**
  * Submit a new project. Expects a FormData payload containing the project
@@ -56,12 +53,6 @@ export const cleanupProjectProvisionalUploadFn = createServerFn({ method: "POST"
     return cleanupProjectProvisionalUploadAction(data.imageKey);
   });
 
-export const incrementBlogPostViewsFn = createServerFn({ method: "POST" })
-  .validator(z.object({ postId: z.string().min(1), sessionId: z.string().optional() }))
-  .handler(async ({ data }) => {
-    return incrementBlogPostViewsAction(data.postId, data.sessionId);
-  });
-
 /**
  * Fetch projects with sorting/filtering. Used by client-side filter UI, so it
  * must be called through this server-function boundary rather than importing
@@ -76,5 +67,11 @@ export const fetchProjectsWithSortingFn = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data }) => {
-    return fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit);
+    try {
+      const projects = await fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit);
+      return { projects, error: null } as const;
+    } catch (error) {
+      console.error("fetchProjectsWithSortingFn failed:", error);
+      return { projects: [], error: "Failed to fetch projects" } as const;
+    }
   });

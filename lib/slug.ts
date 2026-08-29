@@ -1,4 +1,3 @@
-import type React from "react";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
@@ -16,44 +15,41 @@ export function slugifyTitle(input: string, maxLen: number = 80): string {
   return base || "project";
 }
 
-export async function ensureUniqueSlug(
+/** True when a postgres error is a unique-constraint violation (code 23505). */
+export function isPgUniqueViolation(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "23505";
+}
+
+/**
+ * Insert with unique-slug retry: try `baseSlug`, then suffixed candidates
+ * (`base-2`, `base-3`, …), bounded by `maxAttempts`. The first successful
+ * insert wins; the base attempt is the uniqueness check — no separate
+ * pre-check SELECT whose race the insert then has to re-cover.
+ */
+export async function insertWithUniqueSlug<T>(
   baseSlug: string,
-  excludeProjectId?: string,
-): Promise<string> {
-  const db = getDb();
-  const excludeId = excludeProjectId ? Number.parseInt(excludeProjectId, 10) : undefined;
+  insert: (slug: string) => Promise<T>,
+  options: {
+    maxAttempts?: number;
+    isSlugConflict?: (error: unknown) => boolean;
+  } = {},
+): Promise<{ slug: string; result: T }> {
+  const maxAttempts = options.maxAttempts ?? 100;
+  const isSlugConflict = options.isSlugConflict ?? isPgUniqueViolation;
 
-  let slug = baseSlug;
-  let i = 1;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const slug = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
 
-  while (true) {
     try {
-      const [existing] = await db
-        .select({ id: projects.id })
-        .from(projects)
-        .where(eq(projects.slug, slug))
-        .limit(1);
-
-      const isExcluded = existing && excludeId !== undefined && existing.id === excludeId;
-
-      if (!existing || isExcluded) {
-        return slug;
-      }
-
-      i += 1;
-      slug = `${baseSlug}-${i}`;
-
-      if (i > 100) {
-        console.warn("Slug collision detection exceeded 100 attempts");
-        break;
-      }
+      return { slug, result: await insert(slug) };
     } catch (error) {
-      console.error("Unexpected error in ensureUniqueSlug:", error);
-      break;
+      if (!isSlugConflict(error) || attempt === maxAttempts) {
+        throw error;
+      }
     }
   }
 
-  return slug;
+  throw new Error(`Slug uniqueness exhausted after ${maxAttempts} attempts`);
 }
 
 export function isValidSlug(slug: string): boolean {
@@ -80,8 +76,3 @@ export async function getProjectIdBySlug(slug: string): Promise<string | null> {
     return null;
   }
 }
-
-export type SlugGenerationOptions = {
-  maxLength?: number;
-  excludeProjectId?: string;
-};

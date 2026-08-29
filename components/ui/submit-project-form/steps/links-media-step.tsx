@@ -1,16 +1,17 @@
+import { Image } from "@unpic/react";
 import { UploadButton } from "@uploadthing/react";
 import { CheckCircle, Loader2, X } from "lucide-react";
-import { Image } from "@unpic/react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MultipleSelector, { type Option } from "@/components/ui/multiselect";
+import type { UploadResult } from "@/components/ui/submit-project-form/types";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { compressImageFiles } from "@/lib/image-compression";
+import { PROJECT_LIMITS } from "@/lib/project-submission";
 import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
-import type { UploadResult } from "@/components/ui/submit-project-form/types";
 
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
@@ -200,7 +201,7 @@ export function LinksMediaStep({
             <p className="text-muted-foreground text-center text-sm">No technologies found.</p>
           }
           creatable
-          maxSelected={10}
+          maxSelected={PROJECT_LIMITS.MAX_TAG_COUNT}
           disabled={isLoading || isUploading}
           commandProps={{ label: "Select tech stack" }}
         />
@@ -210,7 +211,9 @@ export function LinksMediaStep({
       </div>
 
       <div className="space-y-2">
-        <Label className="form-label-enhanced">Project Screenshots (up to 10)</Label>
+        <Label className="form-label-enhanced">
+          Project Screenshots (up to {PROJECT_LIMITS.MAX_IMAGE_COUNT})
+        </Label>
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 dark:border-gray-600">
           {uploadedImageUrls.length > 0 && (
             <div className="space-y-4 mb-4">
@@ -305,7 +308,18 @@ export function LinksMediaStep({
                 <div className="space-y-3">
                   <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
-                    onBeforeUploadBegin={compressImageFiles}
+                    onBeforeUploadBegin={(files) => {
+                      const importedImageCount =
+                        importedImageUrl && !uploadedImageUrls.includes(importedImageUrl) ? 1 : 0;
+                      const remaining =
+                        PROJECT_LIMITS.MAX_IMAGE_COUNT -
+                        uploadedImageUrls.length -
+                        importedImageCount;
+                      if (remaining <= 0) {
+                        throw new Error(`Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images reached`);
+                      }
+                      return compressImageFiles(files.slice(0, remaining));
+                    }}
                     onUploadBegin={onUploadBegin}
                     onClientUploadComplete={onUploadComplete}
                     onUploadError={onUploadError}
@@ -314,7 +328,8 @@ export function LinksMediaStep({
                     content={{
                       button({ ready }: { ready: boolean }) {
                         if (ready) {
-                          const remaining = 10 - uploadedImageUrls.length;
+                          const remaining =
+                            PROJECT_LIMITS.MAX_IMAGE_COUNT - uploadedImageUrls.length;
                           return <div>Add More Images ({remaining} left)</div>;
                         }
                         return "Getting ready...";
@@ -330,7 +345,7 @@ export function LinksMediaStep({
                       }) {
                         if (!ready) return "Checking what you allow";
                         if (uploadingFlag) return "Uploading...";
-                        return `${fileTypes.join(", ")} (max 10 images)`;
+                        return `${fileTypes.join(", ")} (max ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images)`;
                       },
                     }}
                     appearance={{
@@ -340,7 +355,8 @@ export function LinksMediaStep({
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Upload screenshots of your project. You can add up to 10 images.
+                    Upload screenshots of your project. You can add up to{" "}
+                    {PROJECT_LIMITS.MAX_IMAGE_COUNT} images.
                   </p>
                 </div>
               )}

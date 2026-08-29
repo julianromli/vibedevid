@@ -14,7 +14,10 @@ import {
   DashboardContent,
   DashboardContentFallback,
 } from "@/app/(admin)/dashboard/components/dashboard-tabs";
-import { loadDashboardBoardData } from "@/app/(admin)/dashboard/dashboard-data";
+import {
+  type DashboardBoardData,
+  loadDashboardBoardData,
+} from "@/app/(admin)/dashboard/dashboard-data";
 import { Header } from "@/components/admin-panel/header";
 import { type DashboardTabValue, resolveDashboardTab } from "@/lib/admin/dashboard-tabs";
 
@@ -29,27 +32,60 @@ const TAB_TITLES: Record<DashboardTabValue, string> = {
   comments: "Comments",
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: board payloads are heterogeneous per tab
-function DashboardTabPanel({ tab, boardData }: { tab: DashboardTabValue; boardData: any }) {
-  switch (tab) {
-    case "overview":
-      return <Overview />;
-    case "analytics":
-      return <Analytics />;
+function DashboardTabPanel({
+  tab,
+  boardData,
+}: {
+  tab: DashboardTabValue;
+  boardData: DashboardBoardData;
+}) {
+  switch (boardData.kind) {
     case "events-approval":
-      return <EventsApproval {...boardData} />;
+      return <EventsApproval events={boardData.events} error={boardData.error} />;
     case "projects":
-      return <ProjectsPage {...boardData} />;
+      return (
+        <ProjectsPage
+          projects={boardData.projects}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          categories={boardData.categories}
+          page={boardData.page}
+        />
+      );
     case "blog":
-      return <BlogPage {...boardData} />;
+      return (
+        <BlogPage
+          posts={boardData.posts}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          tags={boardData.tags}
+          page={boardData.page}
+        />
+      );
     case "users":
-      return <UsersPage {...boardData} />;
+      return (
+        <UsersPage
+          users={boardData.users}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          page={boardData.page}
+        />
+      );
     case "admin-management":
-      return <AdminManagementPage {...boardData} />;
+      return <AdminManagementPage result={boardData.result} />;
     case "comments":
-      return <CommentsPage {...boardData} />;
-    default:
-      return <Overview />;
+      return (
+        <CommentsPage
+          reports={boardData.reports}
+          totalCount={boardData.totalCount}
+          error={boardData.error}
+          page={boardData.page}
+        />
+      );
+    // overview and analytics load their own data client-side; the tab alone
+    // distinguishes them.
+    case "client-fetched":
+      return tab === "analytics" ? <Analytics /> : <Overview />;
   }
 }
 

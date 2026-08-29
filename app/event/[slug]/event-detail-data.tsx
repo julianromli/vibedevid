@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
 import { Navbar } from "@/components/ui/navbar";
-import type { getEventBySlug, getRelatedEvents } from "@/lib/actions/events";
+import type { fetchEventBySlug, fetchRelatedEvents } from "@/lib/server/events-public";
 import { formatEventDateRange } from "@/lib/events-utils";
 import type { getCurrentUser } from "@/lib/server/auth";
 
-type EventData = NonNullable<Awaited<ReturnType<typeof getEventBySlug>>["event"]>;
-type RelatedEvents = NonNullable<Awaited<ReturnType<typeof getRelatedEvents>>["events"]>;
+type EventData = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>;
+type RelatedEvents = NonNullable<Awaited<ReturnType<typeof fetchRelatedEvents>>>;
 type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
 
 export interface EventDetailDataProps {

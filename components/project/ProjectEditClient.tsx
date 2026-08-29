@@ -6,7 +6,6 @@ import { UploadButton } from "@uploadthing/react";
 import { Edit, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { compressImageFiles } from "@/lib/image-compression";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,10 +23,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { editProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
+import { compressImageFiles } from "@/lib/image-compression";
+import {
+  buildProjectFieldErrors,
+  buildProjectSubmissionSchema,
+  formatProjectFieldErrors,
+  PROJECT_FORM_FIELDS,
+  PROJECT_LIMITS,
+} from "@/lib/project-submission";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
 
-const MAX_DESCRIPTION_LENGTH = 1600;
+const { MAX_DESCRIPTION_LENGTH } = PROJECT_LIMITS;
 
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
@@ -131,30 +138,53 @@ export function ProjectEditClient({
   const handleSaveEdit = async () => {
     if (!projectSlug) return;
 
+    const formData = new FormData();
+    formData.append(PROJECT_FORM_FIELDS.title, editFormData.title);
+    formData.append(PROJECT_FORM_FIELDS.description, editFormData.description);
+    formData.append(PROJECT_FORM_FIELDS.tagline, editFormData.tagline);
+    formData.append(PROJECT_FORM_FIELDS.category, editFormData.category);
+    formData.append(PROJECT_FORM_FIELDS.websiteUrl, editWebsiteUrl);
+    formData.append(PROJECT_FORM_FIELDS.imageUrls, JSON.stringify(editImageUrls));
+    formData.append(PROJECT_FORM_FIELDS.imageKeys, JSON.stringify(editImageKeys));
+
+    const tagsValues = selectedEditTags.map((tag) => tag.value);
+    formData.append(PROJECT_FORM_FIELDS.tags, JSON.stringify(tagsValues));
+    formData.append("projectSlug", projectSlug);
+
+    // NOTE: FormData is still the transport for editProjectFn. The typed
+    // model is used for client-side validation, matching the server's schema.
+    const typedInput = {
+      title: editFormData.title,
+      tagline: editFormData.tagline,
+      description: editFormData.description,
+      category: editFormData.category,
+      // Raw string: the schema normalizes valid URLs and flags invalid ones —
+      // pre-normalizing here would silently turn bad URLs into null (accepted).
+      websiteUrl: editWebsiteUrl,
+      imageUrls: editImageUrls,
+      imageKeys: editImageKeys,
+      tags: tagsValues,
+    };
+    const validation = buildProjectSubmissionSchema().safeParse(typedInput);
+    if (!validation.success) {
+      toast.error(formatProjectFieldErrors(buildProjectFieldErrors(validation.error)));
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const formData = new FormData();
-      formData.append("title", editFormData.title);
-      formData.append("description", editFormData.description);
-      formData.append("tagline", editFormData.tagline);
-      formData.append("category", editFormData.category);
-      formData.append("website_url", editWebsiteUrl);
-      formData.append("favicon_url", editFaviconUrl);
-      formData.append("image_urls", JSON.stringify(editImageUrls));
-      formData.append("image_keys", JSON.stringify(editImageKeys));
-
-      const tagsValues = selectedEditTags.map((tag) => tag.value);
-      formData.append("tags", JSON.stringify(tagsValues));
-      formData.append("projectSlug", projectSlug);
-
       const result = await editProjectFn({ data: formData });
 
       if (result.success) {
         toast.success("Project updated successfully");
         void router.invalidate();
       } else {
-        toast.error(result.error || "Failed to update project");
+        if (result.fieldErrors) {
+          toast.error(formatProjectFieldErrors(result.fieldErrors));
+        } else {
+          toast.error(result.error || "Failed to update project");
+        }
       }
     } catch (_error) {
       toast.error("Failed to update project");
@@ -371,26 +401,19 @@ export function ProjectEditClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-favicon">Favicon URL</Label>
+                <Label>Favicon</Label>
                 <div className="flex items-center gap-2">
-                  {(editFaviconUrl || (editWebsiteUrl && getFaviconUrl(editWebsiteUrl))) && (
-                    <Image
-                      src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
-                      alt="Website favicon"
-                      className="h-4 w-4 flex-shrink-0"
-                      onError={() => setEditFaviconUrl("")}
-                      width={16}
-                      height={16}
-                    />
-                  )}
-                  <Input
-                    id="edit-favicon"
-                    type="url"
-                    value={editFaviconUrl}
-                    onChange={(e) => setEditFaviconUrl(e.target.value)}
-                    placeholder="https://example.com/favicon.ico"
-                    disabled={isSaving}
+                  <Image
+                    src={editFaviconUrl || getFaviconUrl(editWebsiteUrl)}
+                    alt="Website favicon"
+                    className="h-4 w-4 flex-shrink-0"
+                    onError={() => setEditFaviconUrl("")}
+                    width={16}
+                    height={16}
                   />
+                  <p className="form-helper-text text-xs text-muted-foreground">
+                    Updated automatically from your website URL.
+                  </p>
                 </div>
               </div>
 

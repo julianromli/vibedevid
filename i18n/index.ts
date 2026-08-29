@@ -3,13 +3,13 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import en from "../messages/en.json";
 import id from "../messages/id.json";
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, LOCALES } from "@/lib/locale";
 
-const locales = ["id", "en"] as const;
-export type Locale = (typeof locales)[number];
+export type Locale = (typeof LOCALES)[number];
 
 export const routing = {
-  locales,
-  defaultLocale: "id" as Locale,
+  locales: LOCALES,
+  defaultLocale: DEFAULT_LOCALE,
 };
 
 function buildLocaleResources(localeData: typeof en) {
@@ -32,11 +32,11 @@ if (!i18n.isInitialized) {
         en: buildLocaleResources(en),
       },
       fallbackLng: routing.defaultLocale,
-      supportedLngs: [...locales],
+      supportedLngs: [...LOCALES],
       detection: {
         order: ["cookie", "navigator"],
         caches: ["cookie"],
-        lookupCookie: "NEXT_LOCALE",
+        lookupCookie: LOCALE_COOKIE_NAME,
       },
       interpolation: {
         escapeValue: false,

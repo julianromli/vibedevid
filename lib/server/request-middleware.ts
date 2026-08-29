@@ -3,9 +3,7 @@ import { type Locale, routing } from "@/i18n/routing";
 import { getSafeRedirectPath } from "@/lib/auth/credentials";
 import { getAuth } from "@/lib/auth/server";
 import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from "@/lib/constants/auth";
-
-const LOCALE_COOKIE = "NEXT_LOCALE";
-const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from "@/lib/locale";
 
 type CookieRecord = { name: string; value: string; options?: CookieSerializeOptions };
 
@@ -71,7 +69,7 @@ function createRedirectResponse(url: URL, cookies: CookieRecord[]): Response {
 
 function localeCookie(locale: string): CookieRecord {
   return {
-    name: LOCALE_COOKIE,
+    name: LOCALE_COOKIE_NAME,
     value: locale,
     options: { maxAge: LOCALE_COOKIE_MAX_AGE },
   };
@@ -84,7 +82,7 @@ function getLocaleFromRequest(request: Request, pathname: string): Locale {
     }
   }
 
-  const cookieLocale = getCookieValue(request, LOCALE_COOKIE);
+  const cookieLocale = getCookieValue(request, LOCALE_COOKIE_NAME);
   if (cookieLocale && routing.locales.includes(cookieLocale as Locale)) {
     return cookieLocale as Locale;
   }

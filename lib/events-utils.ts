@@ -1,25 +1,4 @@
-import { mockEvents } from "@/lib/data/mock-events";
 import type { AIEvent, EventCategory, EventLocationType } from "@/types/events";
-
-/**
- * Get event by slug from mock data
- */
-export function getEventBySlug(slug: string): AIEvent | undefined {
-  return mockEvents.find((event) => event.slug === slug);
-}
-
-/**
- * Get related events by category, excluding current event
- */
-export function getRelatedEvents(
-  category: EventCategory,
-  excludeId: string,
-  limit: number = 3,
-): AIEvent[] {
-  return mockEvents
-    .filter((event) => event.category === category && event.id !== excludeId)
-    .slice(0, limit);
-}
 
 /**
  * Format event date for display (e.g., "15 Feb 2025")

@@ -1,23 +1,21 @@
-import { revalidatePath } from "@/lib/revalidation";
-import { z } from "zod";
-import { fetchFavicon } from "../favicon-utils";
-import { normalizeProjectWebsiteUrl } from "../project-url";
-import { ensureUniqueSlug, slugifyTitle } from "../slug";
-import { getDb } from "@/lib/db";
-import { projects, categories, users } from "@/lib/db/schema";
-import { getServerSession } from "@/lib/server/auth";
 import { eq } from "drizzle-orm";
+import type { z } from "zod";
+import { getDb } from "@/lib/db";
+import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
+import {
+  buildProjectFieldErrors,
+  buildProjectSubmissionSchema,
+  type ProjectFieldErrors,
+  type ProjectSubmissionInput,
+  parseProjectFormData,
+  parseResultToFieldErrors,
+} from "@/lib/project-submission";
+import { revalidatePath } from "@/lib/revalidation";
+import { getServerSession, requireUser } from "@/lib/server/auth";
+import { fetchFavicon } from "../favicon-utils";
+import { getProjectIdBySlug, insertWithUniqueSlug, slugifyTitle } from "../slug";
 
-type SubmitProjectFieldName =
-  | "title"
-  | "tagline"
-  | "description"
-  | "category"
-  | "website_url"
-  | "image_urls"
-  | "tags";
-
-type SubmitProjectFieldErrors = Partial<Record<SubmitProjectFieldName, string[]>>;
+type SubmitProjectFieldErrors = ProjectFieldErrors;
 
 interface SubmitProjectResult {
   success: boolean;
@@ -26,16 +24,8 @@ interface SubmitProjectResult {
   fieldErrors?: SubmitProjectFieldErrors;
 }
 
-interface SubmitProjectInput {
-  title: string;
-  description: string;
-  category: string;
-  websiteUrl: string | null;
-  imageUrls: string[];
-  imageKeys: string[];
-  tagline: string;
-  tags: string[];
-}
+// The validated submission model is the shared ProjectSubmissionInput.
+type SubmitProjectInput = ProjectSubmissionInput;
 
 interface ProvisionalUploadCleanupResult {
   success: boolean;
@@ -46,35 +36,6 @@ const DEFAULT_FAVICON = "/default-favicon.svg";
 const PROJECT_LIST_PATH = "/project/list";
 const UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred";
 const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields and try again";
-const MAX_TITLE_LENGTH = 120;
-const MIN_TITLE_LENGTH = 3;
-const MAX_TAGLINE_LENGTH = 160;
-const MIN_TAGLINE_LENGTH = 10;
-const MAX_DESCRIPTION_LENGTH = 1600;
-const MIN_DESCRIPTION_LENGTH = 30;
-const MIN_DESCRIPTION_WORDS = 5;
-const MAX_TAG_COUNT = 10;
-const MAX_TAG_LENGTH = 32;
-const FIELD_NAME_MAP: Record<string, SubmitProjectFieldName> = {
-  title: "title",
-  tagline: "tagline",
-  description: "description",
-  category: "category",
-  websiteUrl: "website_url",
-  imageUrls: "image_urls",
-  tags: "tags",
-};
-
-interface SubmitProjectRawInput {
-  title: string;
-  description: string;
-  category: string;
-  websiteUrl: string;
-  imageUrls: string;
-  imageKeys: string;
-  tagline: string;
-  tags: string;
-}
 
 interface SubmitProjectValidationSuccess {
   success: true;
@@ -86,45 +47,8 @@ interface SubmitProjectValidationFailure {
   result: SubmitProjectResult;
 }
 
-const getFormValue = (formData: FormData, fieldName: string): string => {
-  const value = formData.get(fieldName);
-  return typeof value === "string" ? value.trim() : "";
-};
-
-const hasLettersOrNumbers = (value: string): boolean => /[a-z0-9]/i.test(value);
-
-const hasMeaningfulDescription = (value: string): boolean => {
-  const words = value.match(/[a-z0-9][a-z0-9''+.#/-]*/gi) ?? [];
-  return words.length >= MIN_DESCRIPTION_WORDS;
-};
-
-const normalizeZodIssues = (error: z.ZodError): SubmitProjectFieldErrors => {
-  const fieldErrors: SubmitProjectFieldErrors = {};
-
-  for (const issue of error.issues) {
-    const path = issue.path[0];
-    if (typeof path !== "string") {
-      continue;
-    }
-
-    const fieldName = FIELD_NAME_MAP[path];
-    if (!fieldName) {
-      continue;
-    }
-
-    const messages = fieldErrors[fieldName] ?? [];
-    if (!messages.includes(issue.message)) {
-      messages.push(issue.message);
-    }
-
-    fieldErrors[fieldName] = messages;
-  }
-
-  return fieldErrors;
-};
-
 const buildValidationErrorResult = (error: z.ZodError): SubmitProjectResult => {
-  const fieldErrors = normalizeZodIssues(error);
+  const fieldErrors = buildProjectFieldErrors(error);
   const firstFieldError = Object.values(fieldErrors).flat()[0];
 
   return {
@@ -134,244 +58,24 @@ const buildValidationErrorResult = (error: z.ZodError): SubmitProjectResult => {
   };
 };
 
-const addTagIssue = (ctx: z.RefinementCtx, message: string) => {
-  ctx.addIssue({
-    code: z.ZodIssueCode.custom,
-    message,
-  });
-};
-
-const parseTagList = (value: string, ctx: z.RefinementCtx): unknown[] | typeof z.NEVER => {
-  if (!value) {
-    addTagIssue(ctx, "Add at least one tag");
-    return z.NEVER;
-  }
-
-  try {
-    const parsedTags: unknown = JSON.parse(value);
-    if (Array.isArray(parsedTags)) {
-      return parsedTags;
-    }
-  } catch {
-    // Fall through to shared validation error below.
-  }
-
-  addTagIssue(ctx, "Tags must be a valid list");
-  return z.NEVER;
-};
-
-const normalizeTagValue = (rawTag: unknown, ctx: z.RefinementCtx): string | null => {
-  if (typeof rawTag !== "string") {
-    addTagIssue(ctx, "Each tag must be text");
-    return null;
-  }
-
-  const normalizedTag = rawTag.trim().toLowerCase();
-  if (!normalizedTag) {
-    addTagIssue(ctx, "Tags cannot be blank");
-    return null;
-  }
-
-  if (!hasLettersOrNumbers(normalizedTag)) {
-    addTagIssue(ctx, "Tags must include letters or numbers");
-    return null;
-  }
-
-  if (normalizedTag.length > MAX_TAG_LENGTH) {
-    addTagIssue(ctx, `Each tag must be ${MAX_TAG_LENGTH} characters or fewer`);
-    return null;
-  }
-
-  return normalizedTag;
-};
-
-const normalizeTags = (value: string, ctx: z.RefinementCtx): string[] | typeof z.NEVER => {
-  const parsedTags = parseTagList(value, ctx);
-  if (parsedTags === z.NEVER) {
-    return z.NEVER;
-  }
-
-  if (parsedTags.length > MAX_TAG_COUNT) {
-    addTagIssue(ctx, `Use ${MAX_TAG_COUNT} tags or fewer`);
-  }
-
-  const normalizedTags: string[] = [];
-  const seenTags = new Set<string>();
-
-  for (const rawTag of parsedTags) {
-    const normalizedTag = normalizeTagValue(rawTag, ctx);
-    if (!normalizedTag || seenTags.has(normalizedTag)) {
-      continue;
-    }
-
-    seenTags.add(normalizedTag);
-    normalizedTags.push(normalizedTag);
-  }
-
-  if (normalizedTags.length === 0) {
-    addTagIssue(ctx, "Add at least one tag");
-    return z.NEVER;
-  }
-
-  return normalizedTags;
-};
-
-const normalizeWebsiteUrl = (
-  value: string,
-  ctx: z.RefinementCtx,
-): string | null | typeof z.NEVER => {
-  if (!value) {
-    return null;
-  }
-
-  const normalizedWebsiteUrl = normalizeProjectWebsiteUrl(value);
-  if (!normalizedWebsiteUrl) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Enter a valid website URL",
-    });
-    return z.NEVER;
-  }
-
-  return normalizedWebsiteUrl;
-};
-
-const MAX_IMAGE_COUNT = 10;
-
-const parseImageArray = (value: string, ctx: z.RefinementCtx): string[] | typeof z.NEVER => {
-  if (!value) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "At least one project screenshot is required",
-    });
-    return z.NEVER;
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Image URLs must be a valid list",
-      });
-      return z.NEVER;
-    }
-
-    if (parsed.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one project screenshot is required",
-      });
-      return z.NEVER;
-    }
-
-    if (parsed.length > MAX_IMAGE_COUNT) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Maximum ${MAX_IMAGE_COUNT} images allowed`,
-      });
-      return z.NEVER;
-    }
-
-    return parsed.filter((url): url is string => typeof url === "string" && url.trim().length > 0);
-  } catch {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Invalid image URLs format",
-    });
-    return z.NEVER;
-  }
-};
-
-const parseImageKeysArray = (value: string, _ctx: z.RefinementCtx): string[] => {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter((key): key is string => typeof key === "string" && key.trim().length > 0);
-  } catch {
-    return [];
-  }
-};
-
-const buildSubmitProjectSchema = (activeCategoryNames: readonly string[]) => {
-  const activeCategorySet = new Set(activeCategoryNames);
-
-  return z
-    .object({
-      title: z
-        .string()
-        .trim()
-        .min(MIN_TITLE_LENGTH, `Title must be at least ${MIN_TITLE_LENGTH} characters`)
-        .max(MAX_TITLE_LENGTH, `Title must be ${MAX_TITLE_LENGTH} characters or fewer`)
-        .refine(hasLettersOrNumbers, "Title must include letters or numbers"),
-      tagline: z
-        .string()
-        .trim()
-        .max(MAX_TAGLINE_LENGTH, `Tagline must be ${MAX_TAGLINE_LENGTH} characters or fewer`)
-        .refine(
-          (value) => value.length === 0 || value.length >= MIN_TAGLINE_LENGTH,
-          `Tagline must be at least ${MIN_TAGLINE_LENGTH} characters or left empty`,
-        )
-        .refine(
-          (value) => value.length === 0 || hasLettersOrNumbers(value),
-          "Tagline must include letters or numbers",
-        ),
-      description: z
-        .string()
-        .trim()
-        .min(
-          MIN_DESCRIPTION_LENGTH,
-          `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters`,
-        )
-        .max(
-          MAX_DESCRIPTION_LENGTH,
-          `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`,
-        )
-        .refine(
-          hasMeaningfulDescription,
-          "Description must clearly explain what your project does",
-        ),
-      category: z.string().trim().min(1, "Category is required"),
-      websiteUrl: z.string().trim().transform(normalizeWebsiteUrl),
-      imageUrls: z.string().transform(parseImageArray),
-      imageKeys: z.string().transform(parseImageKeysArray),
-      tags: z.string().transform(normalizeTags),
-    })
-    .superRefine((input, ctx) => {
-      if (!activeCategorySet.has(input.category)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["category"],
-          message: "Choose an active category",
-        });
-      }
-    });
-};
-
-const readSubmitProjectInput = (formData: FormData): SubmitProjectRawInput => ({
-  title: getFormValue(formData, "title"),
-  description: getFormValue(formData, "description"),
-  category: getFormValue(formData, "category"),
-  websiteUrl: getFormValue(formData, "website_url"),
-  imageUrls: getFormValue(formData, "image_urls"),
-  imageKeys: getFormValue(formData, "image_keys"),
-  tagline: getFormValue(formData, "tagline"),
-  tags: getFormValue(formData, "tags"),
-});
-
 export async function validateAndNormalizeSubmitProjectInput(
   formData: FormData,
   activeCategoryNames: readonly string[],
 ): Promise<SubmitProjectValidationSuccess | SubmitProjectValidationFailure> {
-  const rawInput = readSubmitProjectInput(formData);
-  const schema = buildSubmitProjectSchema(activeCategoryNames);
-  const parsedInput = schema.safeParse(rawInput);
+  const parsed = parseProjectFormData(formData);
+  if (!parsed.ok) {
+    return {
+      success: false,
+      result: {
+        success: false,
+        fieldErrors: parseResultToFieldErrors(parsed.issues),
+        error: parsed.issues[0]?.message || VALIDATION_ERROR_MESSAGE,
+      },
+    };
+  }
+
+  const schema = buildProjectSubmissionSchema(activeCategoryNames);
+  const parsedInput = schema.safeParse(parsed.input);
 
   if (!parsedInput.success) {
     return {
@@ -518,37 +222,22 @@ const insertProject = async (
     .returning({ slug: projects.slug });
 };
 
-const isSlugConflict = (error: unknown): boolean => {
-  const pgError = error as { code?: string; message?: string };
-  return pgError?.code === "23505" && pgError.message?.includes("slug") === true;
-};
-
 const createProjectWithRetry = async (
   input: SubmitProjectInput,
   authorId: string,
   faviconUrl: string,
 ): Promise<SubmitProjectResult> => {
   const baseSlug = slugifyTitle(input.title);
-  const slug = await ensureUniqueSlug(baseSlug);
 
   try {
-    const initialInsert = await insertProject(input, authorId, faviconUrl, slug);
-    return { success: true, slug: initialInsert[0]?.slug || slug };
+    const { slug } = await insertWithUniqueSlug(baseSlug, (candidateSlug) =>
+      insertProject(input, authorId, faviconUrl, candidateSlug),
+    );
+    return { success: true, slug };
   } catch (error) {
-    if (!isSlugConflict(error)) {
-      const pgError = error as { message?: string };
-      return { success: false, error: pgError.message || UNEXPECTED_ERROR_MESSAGE };
-    }
-  }
-
-  const retrySlug = await ensureUniqueSlug(baseSlug);
-
-  try {
-    const retryInsert = await insertProject(input, authorId, faviconUrl, retrySlug);
-    return { success: true, slug: retryInsert[0]?.slug || retrySlug };
-  } catch (error) {
-    const pgError = error as { message?: string };
-    return { success: false, error: pgError.message || UNEXPECTED_ERROR_MESSAGE };
+    const message =
+      error instanceof Error && error.message ? error.message : UNEXPECTED_ERROR_MESSAGE;
+    return { success: false, error: message };
   }
 };
 
@@ -591,6 +280,173 @@ export async function cleanupReplacedProjectProvisionalUpload(
   }
 
   return cleanupProvisionalUploadByKey(normalizedPreviousKey);
+}
+export async function editProject(projectSlug: string, formData: FormData) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    return { success: false, error: "Project slug is required" };
+  }
+
+  const projectIdStr = await getProjectIdBySlug(projectSlug.trim());
+  if (!projectIdStr) {
+    return { success: false, error: "Project not found" };
+  }
+
+  const projectId = Number(projectIdStr);
+  if (!Number.isInteger(projectId)) {
+    return { success: false, error: "Project not found" };
+  }
+
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
+    return { success: false, error: "You must be logged in to edit projects" };
+  }
+
+  const db = getDb();
+
+  try {
+    const [project] = await db
+      .select({
+        authorId: projects.authorId,
+        websiteUrl: projects.websiteUrl,
+        faviconUrl: projects.faviconUrl,
+      })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project) {
+      return { success: false, error: "Project not found" };
+    }
+
+    if (project.authorId !== user.id) {
+      return { success: false, error: "You can only edit your own projects" };
+    }
+
+    const parsed = parseProjectFormData(formData);
+    if (!parsed.ok) {
+      return {
+        success: false,
+        fieldErrors: parseResultToFieldErrors(parsed.issues),
+        error: parsed.issues[0]?.message || VALIDATION_ERROR_MESSAGE,
+      };
+    }
+
+    const activeCategories = await getActiveCategoryNames();
+    const activeCategoryNames = activeCategories.error ? [] : activeCategories.data;
+    const validation = buildProjectSubmissionSchema(activeCategoryNames).safeParse(parsed.input);
+
+    if (!validation.success) {
+      return buildValidationErrorResult(validation.error);
+    }
+
+    const input = validation.data;
+
+    // Preserve the existing favicon unless the website URL actually changed —
+    // avoids a network fetch + surprise favicon swap on unrelated edits.
+    const websiteChanged = (input.websiteUrl ?? null) !== (project.websiteUrl ?? null);
+    let faviconUrl: string | undefined;
+    if (websiteChanged && input.websiteUrl) {
+      try {
+        faviconUrl = await fetchFavicon(input.websiteUrl);
+      } catch (e) {
+        console.warn("Failed to fetch favicon, keeping existing", e);
+      }
+    }
+
+    await db
+      .update(projects)
+      .set({
+        title: input.title,
+        description: input.description,
+        category: input.category,
+        websiteUrl: input.websiteUrl,
+        imageUrls: input.imageUrls,
+        imageKeys: input.imageKeys,
+        tagline: input.tagline || null,
+        ...(faviconUrl && { faviconUrl }),
+        tags: input.tags,
+        updatedAt: new Date(),
+      })
+      .where(eq(projects.id, projectId));
+    revalidatePath(`/project/${projectSlug}`);
+    revalidatePath("/project/list");
+
+    return { success: true, slug: projectSlug };
+  } catch (error) {
+    console.error("Edit project error:", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
+export async function deleteProject(projectSlug: string) {
+  if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
+    return { success: false, error: "Project slug is required" };
+  }
+
+  const projectIdStr = await getProjectIdBySlug(projectSlug.trim());
+  if (!projectIdStr) {
+    return { success: false, error: "Project not found" };
+  }
+
+  const projectId = Number(projectIdStr);
+  if (!Number.isInteger(projectId)) {
+    return { success: false, error: "Project not found" };
+  }
+
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
+    return { success: false, error: "You must be logged in to delete projects" };
+  }
+
+  const db = getDb();
+
+  try {
+    const [project] = await db
+      .select({ authorId: projects.authorId, imageKeys: projects.imageKeys })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project) {
+      return { success: false, error: "Project not found" };
+    }
+
+    if (project.authorId !== user.id) {
+      return { success: false, error: "You can only delete your own projects" };
+    }
+
+    await Promise.all([
+      db.delete(comments).where(eq(comments.projectId, projectId)),
+      db.delete(likes).where(eq(likes.projectId, projectId)),
+      db.delete(views).where(eq(views.projectId, projectId)),
+    ]);
+
+    await db.delete(projects).where(eq(projects.id, projectId));
+
+    // Cleanup runs after the rows are gone. Deleting images first would leave
+    // the project row surviving with broken images if the DB deletes failed.
+    if (project.imageKeys?.length) {
+      try {
+        const { deleteUploadthingFiles } = await import("../uploadthing");
+        await deleteUploadthingFiles(project.imageKeys);
+      } catch {
+        console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
+      }
+    }
+
+    revalidatePath("/project/list");
+    revalidatePath(`/project/${projectSlug}`);
+
+    console.log("[Delete Project] Successfully deleted project with slug:", projectSlug);
+    return { success: true };
+  } catch (error) {
+    console.error("Delete project error:", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
 }
 
 export async function submitProject(

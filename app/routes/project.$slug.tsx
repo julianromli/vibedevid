@@ -1,13 +1,13 @@
-import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getProjectBySlug } from "@/lib/actions";
+import ProjectDetailsPage, { type ProjectDetailsData } from "@/app/project/[slug]/page";
 import { getComments } from "@/lib/actions/comments";
 import { getCategories } from "@/lib/categories";
 import { absoluteUrl } from "@/lib/seo/site-url";
 import { checkProjectOwnership, getCurrentUser } from "@/lib/server/auth";
+import { getProjectBySlug } from "@/lib/server/project-public";
 import { getProjectByUUID, isUUID } from "@/lib/server/utils";
-import ProjectDetailsPage, { type ProjectDetailsData } from "@/app/project/[slug]/page";
 
 /**
  * Server-only data fetching for a project detail page. Wrapped in
@@ -26,13 +26,13 @@ const loadProjectData = createServerFn({ method: "GET" })
       throw notFound();
     }
 
-    const [currentUser, { project, error: projectError }, categories] = await Promise.all([
+    const [currentUser, project, categories] = await Promise.all([
       getCurrentUser(),
       getProjectBySlug(slug),
       getCategories(),
     ]);
 
-    if (projectError || !project) {
+    if (!project) {
       throw notFound();
     }
 

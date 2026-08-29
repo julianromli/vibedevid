@@ -1,7 +1,7 @@
 import { revalidatePath, revalidateTag } from "@/lib/revalidation";
-import { slugifyTitle } from "@/lib/slug";
+import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 import { getDb } from "@/lib/db";
-import { posts, postTags, blogPostTags, users } from "@/lib/db/schema";
+import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
 import { USER_ROLE } from "@/lib/auth/permissions";
 import { getServerSession } from "@/lib/server/auth";
@@ -386,4 +386,31 @@ export async function deleteBlogPost(id: string) {
   revalidatePath("/blog");
   revalidateTag("blog-list-posts", "max");
   return { success: true };
+}
+
+export async function incrementBlogPostViews(postId: string, sessionId?: string) {
+  if (!postId || typeof postId !== "string" || postId.trim() === "") {
+    console.error("[Server] incrementBlogPostViews: postId is required");
+    return;
+  }
+
+  const session = await getServerSession();
+  const db = getDb();
+  const viewDate = new Date().toISOString().split("T")[0];
+
+  try {
+    await db.insert(views).values({
+      postId: postId.trim(),
+      userId: session?.user?.id || null,
+      sessionId: sessionId || null,
+      ipAddress: null,
+      viewDate,
+    });
+  } catch (error) {
+    if (isPgUniqueViolation(error)) {
+      console.log("[Server] Blog view already tracked for this session");
+    } else {
+      console.error("[Server] Increment blog views error:", error);
+    }
+  }
 }
