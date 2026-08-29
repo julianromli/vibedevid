@@ -1,7 +1,7 @@
 import { and, count, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { toPostDto, toUserProfile } from "@/lib/db/mappers";
-import { blogPostTags, postTags, posts, users, views } from "@/lib/db/schema";
+import { blogPostTags, posts, postTags, users, views } from "@/lib/db/schema";
 
 export interface BlogAuthor {
   display_name: string;
@@ -25,10 +25,37 @@ export interface BlogPostListItem {
   tags?: BlogPostTag[];
 }
 
-/** Detail-read wire shape — byte-compatible with the blog.$slug route loader's former composition. */
 export interface BlogPostDetail {
-  post: Record<string, unknown>;
+  post: PublishedPostDetail;
   viewCount: number;
+}
+
+/** Detail-read wire shape shared with app/blog/[slug]/blog-post-data.tsx. */
+export interface PublishedPostDetail {
+  id: string;
+  title: string;
+  slug: string;
+  // `string | object` deliberately: serializer only accepts closed shapes and
+  // legacy posts carry either a JSON tree or plain text.
+  content: string | object;
+  excerpt: string | null;
+  cover_image: string | null;
+  author_id: string | null;
+  status: string;
+  published_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  read_time_minutes: number | null;
+  featured: boolean;
+  author: PublishedPostAuthor | null;
+  tags: BlogPostTag[];
+}
+
+export interface PublishedPostAuthor {
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  role: number | null;
 }
 
 /**
@@ -74,11 +101,14 @@ export async function fetchPostDetailBySlug(slug: string): Promise<BlogPostDetai
   const mappedPost = toPostDto(row.post);
   const author = row.author ? toUserProfile(row.author) : null;
 
-  const post = {
+  const post: PublishedPostDetail = {
     id: mappedPost.id,
     title: mappedPost.title,
     slug: mappedPost.slug,
-    content: mappedPost.content,
+    content:
+      typeof mappedPost.content === "object" && mappedPost.content !== null
+        ? mappedPost.content
+        : "",
     excerpt: mappedPost.excerpt,
     cover_image: mappedPost.coverImage,
     author_id: mappedPost.authorId,
@@ -87,13 +117,13 @@ export async function fetchPostDetailBySlug(slug: string): Promise<BlogPostDetai
     created_at: mappedPost.createdAt,
     updated_at: mappedPost.updatedAt,
     read_time_minutes: mappedPost.readTimeMinutes,
-    view_count: mappedPost.viewCount,
-    featured: mappedPost.featured,
+    featured: mappedPost.featured ?? false,
     author: author
       ? {
-          ...author,
+          username: author.username,
           display_name: author.displayName,
           avatar_url: author.avatarUrl || "/placeholder.svg",
+          role: author.role,
         }
       : null,
     tags: tagRows.map((tag) => ({ post_tags: { name: tag.tagName } })),

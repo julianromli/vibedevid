@@ -1,21 +1,12 @@
-import { revalidatePath, revalidateTag } from "@/lib/revalidation";
-import { validateEventForm } from "@/lib/event-form-utils";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { events } from "@/lib/db/schema";
 import { toEventDto } from "@/lib/db/mappers";
+import { events } from "@/lib/db/schema";
+import { validateEventForm } from "@/lib/event-form-utils";
+import { revalidatePath, revalidateTag } from "@/lib/revalidation";
 import { requireAdminOrModeratorUser, requireUser } from "@/lib/server/auth";
-import { slugifyTitle } from "@/lib/slug";
-import { eq, desc } from "drizzle-orm";
+import { insertWithUniqueSlug, slugifyTitle } from "@/lib/slug";
 import type { EventFormData } from "@/types/events";
-
-const isSlugConflict = (error: unknown): boolean => {
-  const pgError = error as { code?: string; message?: string };
-  return (
-    pgError?.code === "23505" &&
-    typeof pgError.message === "string" &&
-    pgError.message.includes("slug")
-  );
-};
 
 async function checkAdminAccess() {
   try {
@@ -38,29 +29,10 @@ export async function submitEvent(formData: EventFormData) {
     const db = getDb();
 
     const baseSlug = formData.slug?.trim() || slugifyTitle(formData.name);
-    const ensureUniqueEventSlug = async (base: string): Promise<string> => {
-      let candidate = base;
-      let attempt = 1;
-      while (attempt <= 100) {
-        const [existing] = await db
-          .select({ slug: events.slug })
-          .from(events)
-          .where(eq(events.slug, candidate))
-          .limit(1);
-        if (!existing) {
-          return candidate;
-        }
-        attempt += 1;
-        candidate = `${base}-${attempt}`;
-      }
-      throw new Error("Slug uniqueness exhausted after 100 attempts");
-    };
 
-    const slug = await ensureUniqueEventSlug(baseSlug);
-
-    const insertEvent = (resolutionSlug: string) =>
+    await insertWithUniqueSlug(baseSlug, (slug) =>
       db.insert(events).values({
-        slug: resolutionSlug,
+        slug,
         name: formData.name,
         date: formData.date,
         time: formData.time,
@@ -74,17 +46,8 @@ export async function submitEvent(formData: EventFormData) {
         status: "upcoming",
         approved: false,
         submittedBy: user.id,
-      });
-
-    try {
-      await insertEvent(slug);
-    } catch (error) {
-      if (!isSlugConflict(error)) {
-        throw error;
-      }
-      const retrySlug = await ensureUniqueEventSlug(baseSlug);
-      await insertEvent(retrySlug);
-    }
+      }),
+    );
 
     revalidatePath("/event/list");
     revalidateTag("event-list-events", "max");

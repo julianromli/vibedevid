@@ -67,5 +67,11 @@ export const fetchProjectsWithSortingFn = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data }) => {
-    return fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit);
+    try {
+      const projects = await fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit);
+      return { projects, error: null } as const;
+    } catch (error) {
+      console.error("fetchProjectsWithSortingFn failed:", error);
+      return { projects: [], error: "Failed to fetch projects" } as const;
+    }
   });

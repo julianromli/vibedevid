@@ -1,6 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ArrowLeft, Calendar, Clock, Eye } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { BlogViewTracker } from "@/components/blog/blog-view-tracker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Navbar } from "@/components/ui/navbar";
 import { UserDisplayName } from "@/components/ui/user-display-name";
 import type { getComments } from "@/lib/actions/comments";
 import { contentToHtml } from "@/lib/blog-utils";
+import type { PublishedPostDetail } from "@/lib/server/blog-public";
 import { slugifyTitle } from "@/lib/slug";
 
 type InitialComments = Awaited<ReturnType<typeof getComments>>["comments"];
@@ -24,8 +25,7 @@ interface BlogUserData {
 }
 
 export interface BlogPostDataProps {
-  // biome-ignore lint/suspicious/noExplicitAny: post shape comes from a wide Supabase select
-  post: any;
+  post: PublishedPostDetail;
   viewCount: number;
   initialComments: InitialComments;
   isLoggedIn: boolean;
@@ -33,7 +33,6 @@ export interface BlogPostDataProps {
   commentUser: { id: string; name: string; avatar?: string } | null;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: legacy page with lots of UI
 export default function BlogPostData({
   post,
   viewCount,
@@ -43,11 +42,23 @@ export default function BlogPostData({
   commentUser,
 }: BlogPostDataProps) {
   // Flatten tags from nested structure
-  const postTags: string[] =
-    post?.tags
-      ?.map((t: { post_tags: { name: string } | null }) => t.post_tags?.name)
-      .filter(Boolean) ?? [];
+  const postTags: string[] = post.tags
+    .map((tag) => tag.post_tags?.name ?? "")
+    .filter((name) => name.length > 0);
   const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null;
+  const renderPostContent = () => {
+    if (typeof post.content === "object" && post.content !== null) {
+      return (
+        <div
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized via DOMPurify in contentToHtml
+          dangerouslySetInnerHTML={{
+            __html: contentToHtml(post.content as Record<string, unknown>),
+          }}
+        />
+      );
+    }
+    return <p>{typeof post.content === "string" ? post.content : ""}</p>;
+  };
   const authorContent = (
     <>
       <Avatar className="h-8 w-8">
@@ -69,7 +80,6 @@ export default function BlogPostData({
 
       <header className="relative min-h-[60vh] overflow-hidden pt-16">
         {post.cover_image ? (
-          /* biome-ignore lint/performance/noImgElement: cover image may be remote and handled by existing setup */
           <img
             src={post.cover_image}
             alt={post.title}
@@ -154,12 +164,7 @@ export default function BlogPostData({
         )}
 
         <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
-          {post.content && typeof post.content === "object" ? (
-            /* biome-ignore lint/security/noDangerouslySetInnerHtml: post content is sanitized/serialized before render */
-            <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
-          ) : (
-            <p>{post.content}</p>
-          )}
+          {renderPostContent()}
         </div>
 
         <hr className="my-12 border-border" />

@@ -1,19 +1,21 @@
-import { revalidatePath } from "@/lib/revalidation";
-import { z } from "zod";
-import { fetchFavicon } from "../favicon-utils";
-import { ensureUniqueSlug, getProjectIdBySlug, slugifyTitle } from "../slug";
+import { eq } from "drizzle-orm";
+import type { z } from "zod";
 import { getDb } from "@/lib/db";
-import { projects, categories, users, comments, likes, views } from "@/lib/db/schema";
-import { getServerSession, requireUser } from "@/lib/server/auth";
+import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
-  readProjectFormData,
-  type ProjectScreenshotFieldErrors,
+  type ProjectFieldErrors,
+  type ProjectSubmissionInput,
+  parseProjectFormData,
+  parseResultToFieldErrors,
 } from "@/lib/project-submission";
-import { eq } from "drizzle-orm";
+import { revalidatePath } from "@/lib/revalidation";
+import { getServerSession, requireUser } from "@/lib/server/auth";
+import { fetchFavicon } from "../favicon-utils";
+import { getProjectIdBySlug, insertWithUniqueSlug, slugifyTitle } from "../slug";
 
-type SubmitProjectFieldErrors = ProjectScreenshotFieldErrors;
+type SubmitProjectFieldErrors = ProjectFieldErrors;
 
 interface SubmitProjectResult {
   success: boolean;
@@ -22,16 +24,8 @@ interface SubmitProjectResult {
   fieldErrors?: SubmitProjectFieldErrors;
 }
 
-interface SubmitProjectInput {
-  title: string;
-  description: string;
-  category: string;
-  websiteUrl: string | null;
-  imageUrls: string[];
-  imageKeys: string[];
-  tagline: string;
-  tags: string[];
-}
+// The validated submission model is the shared ProjectSubmissionInput.
+type SubmitProjectInput = ProjectSubmissionInput;
 
 interface ProvisionalUploadCleanupResult {
   success: boolean;
@@ -68,9 +62,20 @@ export async function validateAndNormalizeSubmitProjectInput(
   formData: FormData,
   activeCategoryNames: readonly string[],
 ): Promise<SubmitProjectValidationSuccess | SubmitProjectValidationFailure> {
-  const rawInput = readProjectFormData(formData);
+  const parsed = parseProjectFormData(formData);
+  if (!parsed.ok) {
+    return {
+      success: false,
+      result: {
+        success: false,
+        fieldErrors: parseResultToFieldErrors(parsed.issues),
+        error: parsed.issues[0]?.message || VALIDATION_ERROR_MESSAGE,
+      },
+    };
+  }
+
   const schema = buildProjectSubmissionSchema(activeCategoryNames);
-  const parsedInput = schema.safeParse(rawInput);
+  const parsedInput = schema.safeParse(parsed.input);
 
   if (!parsedInput.success) {
     return {
@@ -217,37 +222,22 @@ const insertProject = async (
     .returning({ slug: projects.slug });
 };
 
-const isSlugConflict = (error: unknown): boolean => {
-  const pgError = error as { code?: string; message?: string };
-  return pgError?.code === "23505" && pgError.message?.includes("slug") === true;
-};
-
 const createProjectWithRetry = async (
   input: SubmitProjectInput,
   authorId: string,
   faviconUrl: string,
 ): Promise<SubmitProjectResult> => {
   const baseSlug = slugifyTitle(input.title);
-  const slug = await ensureUniqueSlug(baseSlug);
 
   try {
-    const initialInsert = await insertProject(input, authorId, faviconUrl, slug);
-    return { success: true, slug: initialInsert[0]?.slug || slug };
+    const { slug } = await insertWithUniqueSlug(baseSlug, (candidateSlug) =>
+      insertProject(input, authorId, faviconUrl, candidateSlug),
+    );
+    return { success: true, slug };
   } catch (error) {
-    if (!isSlugConflict(error)) {
-      const pgError = error as { message?: string };
-      return { success: false, error: pgError.message || UNEXPECTED_ERROR_MESSAGE };
-    }
-  }
-
-  const retrySlug = await ensureUniqueSlug(baseSlug);
-
-  try {
-    const retryInsert = await insertProject(input, authorId, faviconUrl, retrySlug);
-    return { success: true, slug: retryInsert[0]?.slug || retrySlug };
-  } catch (error) {
-    const pgError = error as { message?: string };
-    return { success: false, error: pgError.message || UNEXPECTED_ERROR_MESSAGE };
+    const message =
+      error instanceof Error && error.message ? error.message : UNEXPECTED_ERROR_MESSAGE;
+    return { success: false, error: message };
   }
 };
 
@@ -317,7 +307,11 @@ export async function editProject(projectSlug: string, formData: FormData) {
 
   try {
     const [project] = await db
-      .select({ authorId: projects.authorId })
+      .select({
+        authorId: projects.authorId,
+        websiteUrl: projects.websiteUrl,
+        faviconUrl: projects.faviconUrl,
+      })
       .from(projects)
       .where(eq(projects.id, projectId))
       .limit(1);
@@ -330,18 +324,30 @@ export async function editProject(projectSlug: string, formData: FormData) {
       return { success: false, error: "You can only edit your own projects" };
     }
 
-    const rawInput = readProjectFormData(formData);
+    const parsed = parseProjectFormData(formData);
+    if (!parsed.ok) {
+      return {
+        success: false,
+        fieldErrors: parseResultToFieldErrors(parsed.issues),
+        error: parsed.issues[0]?.message || VALIDATION_ERROR_MESSAGE,
+      };
+    }
+
     const activeCategories = await getActiveCategoryNames();
     const activeCategoryNames = activeCategories.error ? [] : activeCategories.data;
-    const validation = buildProjectSubmissionSchema(activeCategoryNames).safeParse(rawInput);
+    const validation = buildProjectSubmissionSchema(activeCategoryNames).safeParse(parsed.input);
 
     if (!validation.success) {
       return buildValidationErrorResult(validation.error);
     }
 
     const input = validation.data;
+
+    // Preserve the existing favicon unless the website URL actually changed —
+    // avoids a network fetch + surprise favicon swap on unrelated edits.
+    const websiteChanged = (input.websiteUrl ?? null) !== (project.websiteUrl ?? null);
     let faviconUrl: string | undefined;
-    if (input.websiteUrl) {
+    if (websiteChanged && input.websiteUrl) {
       try {
         faviconUrl = await fetchFavicon(input.websiteUrl);
       } catch (e) {
@@ -364,7 +370,6 @@ export async function editProject(projectSlug: string, formData: FormData) {
         updatedAt: new Date(),
       })
       .where(eq(projects.id, projectId));
-
     revalidatePath(`/project/${projectSlug}`);
     revalidatePath("/project/list");
 
@@ -414,14 +419,6 @@ export async function deleteProject(projectSlug: string) {
       return { success: false, error: "You can only delete your own projects" };
     }
 
-    await Promise.all([
-      db.delete(comments).where(eq(comments.projectId, projectId)),
-      db.delete(likes).where(eq(likes.projectId, projectId)),
-      db.delete(views).where(eq(views.projectId, projectId)),
-    ]);
-
-    await db.delete(projects).where(eq(projects.id, projectId));
-
     if (project.imageKeys?.length) {
       try {
         const { deleteUploadthingFiles } = await import("../uploadthing");
@@ -430,6 +427,14 @@ export async function deleteProject(projectSlug: string) {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }
     }
+
+    await Promise.all([
+      db.delete(comments).where(eq(comments.projectId, projectId)),
+      db.delete(likes).where(eq(likes.projectId, projectId)),
+      db.delete(views).where(eq(views.projectId, projectId)),
+    ]);
+
+    await db.delete(projects).where(eq(projects.id, projectId));
 
     revalidatePath("/project/list");
     revalidatePath(`/project/${projectSlug}`);

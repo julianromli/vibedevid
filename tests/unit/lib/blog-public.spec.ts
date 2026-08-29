@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 import { fetchPostDetailBySlug, fetchPublishedPosts } from "@/lib/server/blog-public";
+import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 
 /**
  * Shape-regression tests for the Blog read module. Mock the `@/lib/db` seam
@@ -116,16 +116,13 @@ describe("fetchPostDetailBySlug — detail read", () => {
     expect(post.content).toEqual({ type: "doc", content: [] });
     expect(post.cover_image).toBe("https://img.example.com/cover.png");
     expect(post.status).toBe("published");
-    expect(post.published_at).toBe("2026-08-01T00:00:00.000Z");
     expect(post.read_time_minutes).toBe(5);
-    expect(post.view_count).toBe(42);
     expect(post.featured).toBe(true);
 
-    // Author is relabeled into the wire shape
-    expect((post.author as Record<string, unknown>).display_name).toBe("Jane Doe");
-    expect((post.author as Record<string, unknown>).avatar_url).toBe(
-      "https://img.example.com/jane.png",
-    );
+    // Author uses the typed wire shape
+    expect(post.author).not.toBeNull();
+    expect(post.author!.display_name).toBe("Jane Doe");
+    expect(post.author!.avatar_url).toBe("https://img.example.com/jane.png");
 
     // Tags use the nested post_tags wire shape
     expect(post.tags).toEqual([

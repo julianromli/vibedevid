@@ -1,17 +1,17 @@
+import { Image } from "@unpic/react";
 import { UploadButton } from "@uploadthing/react";
 import { CheckCircle, Loader2, X } from "lucide-react";
-import { Image } from "@unpic/react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MultipleSelector, { type Option } from "@/components/ui/multiselect";
+import type { UploadResult } from "@/components/ui/submit-project-form/types";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { compressImageFiles } from "@/lib/image-compression";
+import { PROJECT_LIMITS } from "@/lib/project-submission";
 import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
-import { PROJECT_LIMITS } from "@/lib/project-submission";
-import type { UploadResult } from "@/components/ui/submit-project-form/types";
 
 const techOptions: Option[] = [
   { value: "next.js", label: "Next.js" },
@@ -308,7 +308,13 @@ export function LinksMediaStep({
                 <div className="space-y-3">
                   <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
-                    onBeforeUploadBegin={compressImageFiles}
+                    onBeforeUploadBegin={(files) => {
+                      const remaining = PROJECT_LIMITS.MAX_IMAGE_COUNT - uploadedImageUrls.length;
+                      if (remaining <= 0) {
+                        throw new Error(`Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images reached`);
+                      }
+                      return compressImageFiles(files.slice(0, remaining));
+                    }}
                     onUploadBegin={onUploadBegin}
                     onClientUploadComplete={onUploadComplete}
                     onUploadError={onUploadError}

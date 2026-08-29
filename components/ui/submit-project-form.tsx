@@ -1,11 +1,12 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter } from "@/lib/navigation";
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Option } from "@/components/ui/multiselect";
 import { Stepper } from "@/components/ui/stepper";
 import { BasicsStep } from "@/components/ui/submit-project-form/steps/basics-step";
 import { LinksMediaStep } from "@/components/ui/submit-project-form/steps/links-media-step";
@@ -18,7 +19,7 @@ import {
 } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
-import type { Option } from "@/components/ui/multiselect";
+import { useRouter } from "@/lib/navigation";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
@@ -26,9 +27,9 @@ import {
   PROJECT_FIELD_SCHEMAS,
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
-  readProjectFormData,
+  parseProjectFormData,
+  parseResultToFieldErrors,
 } from "@/lib/project-submission";
-import { z } from "zod";
 
 // --- Types ---
 
@@ -366,15 +367,14 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
   const validateCurrentStep = (): boolean => {
     setError(null);
 
-    const rawInput = readProjectFormData(buildSubmitFormData(getCurrentDraftState()));
+    const parsed = parseProjectFormData(buildSubmitFormData(getCurrentDraftState()));
+    if (!parsed.ok) {
+      setError(formatProjectFieldErrors(parseResultToFieldErrors(parsed.issues)));
+      return false;
+    }
+    const input = parsed.input;
 
     if (currentStep === 1) {
-      const stepInput = {
-        title: rawInput.title,
-        tagline: rawInput.tagline,
-        description: rawInput.description,
-        category: rawInput.category,
-      };
       const partial = z.object({
         title: PROJECT_FIELD_SCHEMAS.title,
         tagline: PROJECT_FIELD_SCHEMAS.tagline,
@@ -382,7 +382,7 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
         category: PROJECT_FIELD_SCHEMAS.category,
       });
 
-      const result = partial.safeParse(stepInput);
+      const result = partial.safeParse(input);
       if (!result.success) {
         setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
         return false;
@@ -390,18 +390,13 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     }
 
     if (currentStep === 2) {
-      const stepInput = {
-        websiteUrl: rawInput.websiteUrl,
-        imageUrls: rawInput.imageUrls,
-        tags: rawInput.tags,
-      };
       const partial = z.object({
         websiteUrl: PROJECT_FIELD_SCHEMAS.websiteUrl,
         imageUrls: PROJECT_FIELD_SCHEMAS.imageUrls,
         tags: PROJECT_FIELD_SCHEMAS.tags,
       });
 
-      const result = partial.safeParse(stepInput);
+      const result = partial.safeParse(input);
       if (!result.success) {
         setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
         return false;
@@ -432,17 +427,18 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
     if (!validateCurrentStep()) return;
 
     // Final gate: validate ALL fields, not just the active step, before talking to the server.
+    const parsed = parseProjectFormData(buildSubmitFormData(getCurrentDraftState()));
+    if (!parsed.ok) {
+      setError(formatProjectFieldErrors(parseResultToFieldErrors(parsed.issues)));
+      return;
+    }
     const fullValidation = buildProjectSubmissionSchema(
       categories.map((category) => category.name),
-    ).safeParse(readProjectFormData(buildSubmitFormData(getCurrentDraftState())));
+    ).safeParse(parsed.input);
     if (!fullValidation.success) {
       setError(formatProjectFieldErrors(buildProjectFieldErrors(fullValidation.error)));
       return;
     }
-
-    setIsLoading(true);
-    setError(null);
-
     const formData = buildSubmitFormData(getCurrentDraftState());
     formData.set("userId", userId);
 

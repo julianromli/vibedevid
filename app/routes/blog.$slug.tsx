@@ -1,11 +1,12 @@
-import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import BlogPostData, { type BlogPostDataProps } from "@/app/blog/[slug]/blog-post-data";
 import { getComments } from "@/lib/actions/comments";
 import { absoluteUrl } from "@/lib/seo/site-url";
 import { getCurrentUser } from "@/lib/server/auth";
 import { fetchPostDetailBySlug } from "@/lib/server/blog-public";
-import BlogPostData, { type BlogPostDataProps } from "@/app/blog/[slug]/blog-post-data";
+
 const DEFAULT_OG_IMAGE =
   "https://elyql1q8be.ufs.sh/f/SidHyTM6vHFNWvWOsz96heqapobuABSCvEXgf9wT2xdRkGM0";
 
@@ -37,7 +38,7 @@ const loadBlogPostData = createServerFn({ method: "GET" })
       throw notFound();
     }
 
-    const { comments: initialComments } = await getComments("post", detail.post.id as string);
+    const { comments: initialComments } = await getComments("post", detail.post.id);
 
     return {
       post: detail.post,

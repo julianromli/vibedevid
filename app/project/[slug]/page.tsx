@@ -109,11 +109,11 @@ function renderDescription(text: string): ReactNode {
 
 // Presentational component — data is fetched in the route loader (app/routes/project.$slug.tsx)
 import type { getCurrentUser } from "@/lib/server/auth";
-import type { getProjectBySlug } from "@/lib/server/project-public";
 import type { getCategories } from "@/lib/categories";
 import type { getComments } from "@/lib/actions/comments";
+import type { ProjectDetail } from "@/lib/server/project-public";
 
-type ProjectData = NonNullable<Awaited<ReturnType<typeof getProjectBySlug>>["project"]>;
+type ProjectData = ProjectDetail;
 type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
 type Categories = Awaited<ReturnType<typeof getCategories>>;
 type InitialComments = Awaited<ReturnType<typeof getComments>>["comments"];

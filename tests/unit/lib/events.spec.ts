@@ -31,32 +31,14 @@ const validFormData: EventFormData = {
 
 const h = vi.hoisted(() => {
   const state = {
-    slugCheckRows: [] as Array<{ slug: string } | undefined>,
     insertOutcomes: [] as Array<"ok" | "conflict" | "throw">,
     attempted: [] as string[],
     inserted: [] as Record<string, unknown>[],
   };
 
-  function makeQuery(resolveWith: () => unknown[] | Promise<unknown[]>): Record<string, unknown> {
-    const q: Record<string, unknown> & { then?: unknown } = {};
-    q.where = () => q;
-    q.from = () => q;
-    q.limit = () => q;
-    q.values = () => q;
-    q.then = (resolve: (v: unknown) => void, reject: (e: unknown) => void) => {
-      Promise.resolve(resolveWith()).then(resolve, reject);
-    };
-    return q;
-  }
-
   return {
     state,
     createMockDb: (s = state) => ({
-      select: () =>
-        makeQuery(() => {
-          const row = s.slugCheckRows.shift();
-          return row ? [row] : [];
-        }),
       insert: () => ({
         values: (values: Record<string, unknown>) => {
           const outcome = s.insertOutcomes.shift() ?? "ok";
@@ -68,7 +50,9 @@ const h = vi.hoisted(() => {
             return Promise.reject(
               Object.assign(
                 new Error('duplicate key value violates unique constraint "events_slug_unique"'),
-                { code: "23505" },
+                {
+                  code: "23505",
+                },
               ),
             );
           }
@@ -76,11 +60,6 @@ const h = vi.hoisted(() => {
           return Promise.resolve();
         },
       }),
-      update: () => ({
-        set: () => ({ where: () => Promise.resolve([{ id: "x" }]) }),
-        returning: () => ({}),
-      }),
-      delete: () => ({ returning: () => Promise.resolve([{ id: "x" }]) }),
     }),
   };
 });
@@ -100,7 +79,6 @@ vi.mock("@/lib/revalidation", () => ({
 }));
 
 beforeEach(() => {
-  h.state.slugCheckRows = [];
   h.state.insertOutcomes = [];
   h.state.attempted = [];
   h.state.inserted = [];
@@ -132,19 +110,15 @@ describe("submitEvent — event submission seam", () => {
 
   it("retries with a suffixed slug on a unique collision", async () => {
     h.state.insertOutcomes = ["conflict", "ok"];
-    // First slug check: unique. Retry check after collision: the base is taken,
-    // so the second candidate resolves unique.
-    h.state.slugCheckRows = [undefined, { slug: "ai-workshop-jakarta" }, undefined];
 
     const result = await submitEvent(validFormData);
 
     expect(result.success).toBe(true);
-    // First attempt fails on collision, so only the retry is recorded as inserted.
+    // Base attempt fails on 23505, retry suffix wins.
     expect(h.state.attempted).toEqual(["ai-workshop-jakarta", "ai-workshop-jakarta-2"]);
     expect(h.state.inserted).toHaveLength(1);
     expect(h.state.inserted[0].slug).toBe("ai-workshop-jakarta-2");
   });
-
   it("propagates non-slug failures as a generic error", async () => {
     h.state.insertOutcomes = ["throw"];
 

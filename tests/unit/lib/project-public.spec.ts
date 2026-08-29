@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 import { fetchProjectsWithSorting, getProjectBySlug } from "@/lib/server/project-public";
+import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 
 /**
  * Shape-regression tests for the Project read module.
  *
  * No database connection: `@/lib/db`, `@/lib/categories`, and
  * `@/lib/server/auth` are mocked at the module seam. The tests lock the
- * *interface contracts* the route loaders and presentational components
- * depend on — the result keys on success and on failure.
+ * *interface contract* the route loaders and presentational components
+ * depend on — success shapes, absence (`null`/`[]`), and the rule that
+ * database failures THROW rather than degrade into bogus empty reads.
  */
 
 const UUID = "0f47d16c-3c2a-4e8e-b9b2-7e8d1f9a11aa";
@@ -39,11 +40,13 @@ const h = vi.hoisted(() => {
     selectRows: unknown[];
     batchLikes: unknown[];
     failKeys: string[];
+    batchFail: boolean;
   } = {
     countQueue: [],
     selectRows: [],
     batchLikes: [],
     failKeys: [],
+    batchFail: false,
   };
 
   function resolveRows(selection: Record<string, unknown> | undefined): unknown[] {
@@ -55,6 +58,9 @@ const h = vi.hoisted(() => {
       return [{ value: state.countQueue.shift() ?? 0 }];
     }
     if (keys.includes("projectId")) {
+      if (state.batchFail) {
+        throw new Error("mocked likes query failure");
+      }
       return state.batchLikes;
     }
     return state.selectRows;
@@ -91,6 +97,7 @@ beforeEach(() => {
   h.state.selectRows = [];
   h.state.batchLikes = [];
   h.state.failKeys = [];
+  h.state.batchFail = false;
 });
 
 describe("getProjectBySlug — detail read", () => {
@@ -108,14 +115,12 @@ describe("getProjectBySlug — detail read", () => {
     ];
     h.state.countQueue = [12, 345, 200, 3]; // likes, total views, unique views, today views
 
-    const result = await getProjectBySlug("pijar-mahir");
+    const project = await getProjectBySlug("pijar-mahir");
 
-    expect(result.error).toBeNull();
-    expect(result.project).not.toBeNull();
-    const project = result.project!;
-    expect(project.id).toBe(7);
-    expect(project.slug).toBe("pijar-mahir");
-    expect(project.author).toEqual({
+    expect(project).not.toBeNull();
+    expect(project!.id).toBe(7);
+    expect(project!.slug).toBe("pijar-mahir");
+    expect(project!.author).toEqual({
       name: "Jane Doe",
       username: "jane",
       role: 2,
@@ -123,35 +128,35 @@ describe("getProjectBySlug — detail read", () => {
       bio: "Bio",
       location: "Jakarta",
     });
-    expect(project.category).toBe("Education"); // display name resolved
-    expect(project.categoryRaw).toBe("education");
-    expect(project.likes).toBe(12);
-    expect(project.views).toBe(345);
-    expect(project.uniqueViews).toBe(200);
-    expect(project.todayViews).toBe(3);
-    expect(project.imageUrls).toEqual([
+    expect(project!.category).toBe("Education"); // display name resolved
+    expect(project!.categoryRaw).toBe("education");
+    expect(project!.likes).toBe(12);
+    expect(project!.views).toBe(345);
+    expect(project!.uniqueViews).toBe(200);
+    expect(project!.todayViews).toBe(3);
+    expect(project!.imageUrls).toEqual([
       "https://img.example.com/1.png",
       "https://img.example.com/2.png",
     ]);
-    expect(project.imageKeys).toEqual(["key-1", "key-2"]);
-    expect(project.tags).toEqual(["edtech"]);
-    expect(project.createdAt).toBe("2026-08-01T00:00:00.000Z");
+    expect(project!.imageKeys).toEqual(["key-1", "key-2"]);
+    expect(project!.tags).toEqual(["edtech"]);
+    expect(project!.createdAt).toBe("2026-08-01T00:00:00.000Z");
   });
 
-  it("rejects an empty slug without touching the database", async () => {
-    const result = await getProjectBySlug("   ");
-
-    expect(result.project).toBeNull();
-    expect(result.error).toBe("Project slug is required");
+  it("returns null for an empty slug without touching the database", async () => {
+    await expect(getProjectBySlug("   ")).resolves.toBeNull();
   });
 
-  it("degrades to the error variant when the database rejects", async () => {
+  it("returns null when no project matches the slug", async () => {
+    h.state.selectRows = [];
+
+    await expect(getProjectBySlug("missing")).resolves.toBeNull();
+  });
+
+  it("throws when the database rejects", async () => {
     h.state.failKeys = ["project"];
 
-    const result = await getProjectBySlug("pijar-mahir");
-
-    expect(result.project).toBeNull();
-    expect(result.error).toBe("Failed to load project");
+    await expect(getProjectBySlug("pijar-mahir")).rejects.toThrow("mocked db failure");
   });
 });
 
@@ -189,15 +194,14 @@ describe("fetchProjectsWithSorting — list read", () => {
       { projectId: 8, userId: "other" },
     ];
 
-    const result = await fetchProjectsWithSorting("newest", "education", 20);
+    const projects = await fetchProjectsWithSorting("newest", "education", 20);
 
-    expect(result.error).toBeNull();
-    expect(result.projects).toHaveLength(2);
+    expect(projects).toHaveLength(2);
     // Newest first: "pijar-mahir" is newer (Aug 1) than "other-project" (Jul 1).
-    expect(result.projects[0].slug).toBe("pijar-mahir");
-    expect(result.projects[0].createdAt).toBe("2026-08-01T00:00:00.000Z");
+    expect(projects[0].slug).toBe("pijar-mahir");
+    expect(projects[0].createdAt).toBe("2026-08-01T00:00:00.000Z");
 
-    const card = result.projects[1];
+    const card = projects[1];
     expect(card.category).toBe("Education");
     expect(card.likes).toBe(2);
     expect(card.views).toBe(0); // list cards carry a placeholder view count
@@ -229,28 +233,41 @@ describe("fetchProjectsWithSorting — list read", () => {
     ];
     h.state.batchLikes = [{ projectId: 7, userId: UUID }]; // only pijar-mahir has a like
 
-    const result = await fetchProjectsWithSorting("top", undefined, 20);
+    const projects = await fetchProjectsWithSorting("top", undefined, 20);
 
-    expect(result.error).toBeNull();
-    expect(result.projects.map((p) => p.slug)).toEqual(["pijar-mahir", "other-project"]);
-    expect(result.projects[0].likes).toBe(1);
+    expect(projects.map((p) => p.slug)).toEqual(["pijar-mahir", "other-project"]);
+    expect(projects[0].likes).toBe(1);
   });
 
   it("returns an empty list when there are no projects", async () => {
     h.state.selectRows = [];
 
-    const result = await fetchProjectsWithSorting("newest", undefined, 20);
-
-    expect(result.error).toBeNull();
-    expect(result.projects).toEqual([]);
+    await expect(fetchProjectsWithSorting("newest", undefined, 20)).resolves.toEqual([]);
   });
 
-  it("degrades to the error variant when the database rejects", async () => {
+  it("throws when the projects query rejects", async () => {
     h.state.failKeys = ["project"];
 
-    const result = await fetchProjectsWithSorting("newest", undefined, 20);
+    await expect(fetchProjectsWithSorting("newest", undefined, 20)).rejects.toThrow(
+      "mocked db failure",
+    );
+  });
 
-    expect(result.projects).toEqual([]);
-    expect(result.error).toBe("Failed to fetch projects");
+  it("degrades to zeroed likes when only the likes query fails", async () => {
+    h.state.selectRows = [
+      {
+        project: projectRow,
+        authorUsername: "jane",
+        authorDisplayName: "Jane Doe",
+        authorAvatarUrl: null,
+        authorRole: 2,
+      },
+    ];
+    h.state.batchFail = true;
+
+    const projects = await fetchProjectsWithSorting("newest", undefined, 20);
+
+    expect(projects).toHaveLength(1);
+    expect(projects[0].likes).toBe(0);
   });
 });

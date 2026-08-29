@@ -477,7 +477,7 @@ export async function trackView(input: { projectId?: number; postId?: string; se
 // lib/client-analytics.ts — REPLACE direct insert:
 // NB (2026-08-29): historical plan; `lib/actions.ts` no longer exists after the
 // Project data-access collapse — blog views now live in `lib/actions/blog.ts`
-// wrapped by `incrementBlogPostViewsFn` (lib/actions/projects.functions.ts).
+// wrapped by `incrementBlogPostViewsFn` (lib/actions/blog.functions.ts).
 "use client";
 // import { trackView } from "@/lib/actions";  ← stale: module deleted
 

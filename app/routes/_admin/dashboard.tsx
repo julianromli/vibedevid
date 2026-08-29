@@ -15,8 +15,8 @@ import {
   DashboardContentFallback,
 } from "@/app/(admin)/dashboard/components/dashboard-tabs";
 import {
-  loadDashboardBoardData,
   type DashboardBoardData,
+  loadDashboardBoardData,
 } from "@/app/(admin)/dashboard/dashboard-data";
 import { Header } from "@/components/admin-panel/header";
 import { type DashboardTabValue, resolveDashboardTab } from "@/lib/admin/dashboard-tabs";
@@ -39,16 +39,10 @@ function DashboardTabPanel({
   tab: DashboardTabValue;
   boardData: DashboardBoardData;
 }) {
-  switch (tab) {
-    case "overview":
-      return <Overview />;
-    case "analytics":
-      return <Analytics />;
+  switch (boardData.kind) {
     case "events-approval":
-      if (boardData.kind !== "events-approval") return <Overview />;
       return <EventsApproval events={boardData.events} error={boardData.error} />;
     case "projects":
-      if (boardData.kind !== "projects") return <Overview />;
       return (
         <ProjectsPage
           projects={boardData.projects}
@@ -59,7 +53,6 @@ function DashboardTabPanel({
         />
       );
     case "blog":
-      if (boardData.kind !== "blog") return <Overview />;
       return (
         <BlogPage
           posts={boardData.posts}
@@ -70,7 +63,6 @@ function DashboardTabPanel({
         />
       );
     case "users":
-      if (boardData.kind !== "users") return <Overview />;
       return (
         <UsersPage
           users={boardData.users}
@@ -80,10 +72,8 @@ function DashboardTabPanel({
         />
       );
     case "admin-management":
-      if (boardData.kind !== "admin-management") return <Overview />;
       return <AdminManagementPage result={boardData.result} />;
     case "comments":
-      if (boardData.kind !== "comments") return <Overview />;
       return (
         <CommentsPage
           reports={boardData.reports}
@@ -92,8 +82,10 @@ function DashboardTabPanel({
           page={boardData.page}
         />
       );
-    default:
-      return <Overview />;
+    // overview and analytics load their own data client-side; the tab alone
+    // distinguishes them.
+    case "client-fetched":
+      return tab === "analytics" ? <Analytics /> : <Overview />;
   }
 }
 

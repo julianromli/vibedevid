@@ -6,7 +6,6 @@ import { UploadButton } from "@uploadthing/react";
 import { Edit, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { compressImageFiles } from "@/lib/image-compression";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,16 +23,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { editProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
-import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
-import type { OurFileRouter } from "@/lib/uploadthing-router";
+import { compressImageFiles } from "@/lib/image-compression";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
   formatProjectFieldErrors,
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
-  readProjectFormData,
 } from "@/lib/project-submission";
+import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
+import type { OurFileRouter } from "@/lib/uploadthing-router";
 
 const { MAX_DESCRIPTION_LENGTH } = PROJECT_LIMITS;
 
@@ -152,7 +151,21 @@ export function ProjectEditClient({
     formData.append(PROJECT_FORM_FIELDS.tags, JSON.stringify(tagsValues));
     formData.append("projectSlug", projectSlug);
 
-    const validation = buildProjectSubmissionSchema().safeParse(readProjectFormData(formData));
+    // NOTE: FormData is still the transport for editProjectFn. The typed
+    // model is used for client-side validation, matching the server's schema.
+    const typedInput = {
+      title: editFormData.title,
+      tagline: editFormData.tagline,
+      description: editFormData.description,
+      category: editFormData.category,
+      // Raw string: the schema normalizes valid URLs and flags invalid ones —
+      // pre-normalizing here would silently turn bad URLs into null (accepted).
+      websiteUrl: editWebsiteUrl,
+      imageUrls: editImageUrls,
+      imageKeys: editImageKeys,
+      tags: tagsValues,
+    };
+    const validation = buildProjectSubmissionSchema().safeParse(typedInput);
     if (!validation.success) {
       toast.error(formatProjectFieldErrors(buildProjectFieldErrors(validation.error)));
       return;
