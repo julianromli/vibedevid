@@ -419,6 +419,16 @@ export async function deleteProject(projectSlug: string) {
       return { success: false, error: "You can only delete your own projects" };
     }
 
+    await Promise.all([
+      db.delete(comments).where(eq(comments.projectId, projectId)),
+      db.delete(likes).where(eq(likes.projectId, projectId)),
+      db.delete(views).where(eq(views.projectId, projectId)),
+    ]);
+
+    await db.delete(projects).where(eq(projects.id, projectId));
+
+    // Cleanup runs after the rows are gone. Deleting images first would leave
+    // the project row surviving with broken images if the DB deletes failed.
     if (project.imageKeys?.length) {
       try {
         const { deleteUploadthingFiles } = await import("../uploadthing");
@@ -427,14 +437,6 @@ export async function deleteProject(projectSlug: string) {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }
     }
-
-    await Promise.all([
-      db.delete(comments).where(eq(comments.projectId, projectId)),
-      db.delete(likes).where(eq(likes.projectId, projectId)),
-      db.delete(views).where(eq(views.projectId, projectId)),
-    ]);
-
-    await db.delete(projects).where(eq(projects.id, projectId));
 
     revalidatePath("/project/list");
     revalidatePath(`/project/${projectSlug}`);
