@@ -235,8 +235,25 @@ export async function resetPasswordWithEmail(
 export function mergeAuthHeadersIntoResponse(response: Response, authHeaders?: Headers): Response {
   if (!authHeaders) return response;
 
-  const headers = new Headers(response.headers);
-  appendSetCookies(headers, authHeaders);
+  // Rebuild headers WITHOUT Set-Cookie to avoid the Fetch API Headers
+  // constructor collapsing multiple Set-Cookie values into one comma-joined
+  // header (per spec). Then re-append existing + auth Set-Cookie values
+  // individually so they survive as separate entries.
+  const headers = new Headers();
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") {
+      headers.set(key, value);
+    }
+  });
+  // Preserve existing Set-Cookie from the redirect Response (usually none, but safe)
+  for (const existing of response.headers.getSetCookie()) {
+    headers.append("Set-Cookie", existing);
+  }
+  // Append auth session cookies from better-auth response
+  for (const cookie of authHeaders.getSetCookie()) {
+    headers.append("Set-Cookie", cookie);
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
