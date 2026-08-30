@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getSafeRedirectPath } from "@/lib/auth/credentials";
+import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { getServerSession } from "@/lib/server/auth";
 
 const DEFAULT_REDIRECT = "/blog/editor";

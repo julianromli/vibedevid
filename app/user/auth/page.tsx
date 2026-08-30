@@ -6,12 +6,13 @@ import { Link } from "@tanstack/react-router";
 import { useSearchParams } from "@/lib/navigation";
 import { useTranslation } from "react-i18next";
 import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { signIn, useSession } from "@/lib/auth/client";
+import { authClient, signIn, signUp, useSession } from "@/lib/auth/client";
 import { useRouter } from "@/lib/navigation";
 
 function getSafeAuthRedirectPath(value: string | null): string {
@@ -46,6 +47,13 @@ function AuthPageContent() {
   const error = searchParams.get("error");
   const success = searchParams.get("success");
 
+  // Form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (isPending) return;
     if (!session?.user?.emailVerified) return;
@@ -60,6 +68,95 @@ function AuthPageContent() {
       callbackURL: safeRedirectTo,
       errorCallbackURL: "/user/auth",
     });
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await signIn.email({
+        email,
+        password,
+        callbackURL: safeRedirectTo,
+        rememberMe,
+      });
+
+      if (error) {
+        toast.error(error.message || "Sign in failed");
+        return;
+      }
+
+      // Session is set automatically by the client SDK.
+      // The useSession() hook will pick it up and the useEffect
+      // above will redirect to safeRedirectTo.
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await signUp.email({
+        email,
+        password,
+        name: username || email.split("@")[0] || "User",
+        callbackURL: `/user/auth/confirm-email?email=${encodeURIComponent(email)}`,
+      });
+
+      if (error) {
+        toast.error(error.message || "Sign up failed");
+        return;
+      }
+
+      // Navigate to confirm-email page
+      router.navigate({
+        to: "/user/auth/confirm-email",
+        replace: true,
+      });
+      // Pass email via query string for the confirm-email page to pick up
+      const url = new URL(window.location.href);
+      url.pathname = "/user/auth/confirm-email";
+      url.search = `?email=${encodeURIComponent(email)}`;
+      window.history.replaceState(null, "", url.toString());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: `${window.location.origin}/user/auth`,
+      });
+
+      if (error) {
+        toast.error(error.message || "Failed to send reset email");
+        return;
+      }
+
+      toast.success("Password reset email sent. Check your inbox.");
+      setAuthMode("signin");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -169,22 +266,16 @@ function AuthPageContent() {
           )}
 
           {!isForgotPassword ? (
-            <form
-              method="POST"
-              action={isSignUp ? "/api/auth/sign-up" : "/api/auth/sign-in"}
-              className="space-y-4"
-            >
-              <input type="hidden" name="redirectTo" value={safeRedirectTo} />
-              {isSignUp ? <input type="hidden" name="mode" value="signup" /> : null}
-
+            <form onSubmit={isSignUp ? handleEmailSignUp : handleEmailSignIn} className="space-y-4">
               {isSignUp ? (
                 <div className="relative">
                   <Input
                     type="text"
-                    name="username"
                     placeholder="Username"
                     autoComplete="username"
                     required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="h-12 rounded-xl border-border bg-muted/30 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                   />
                 </div>
@@ -194,20 +285,22 @@ function AuthPageContent() {
                 <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                 <Input
                   type="email"
-                  name="email"
                   placeholder="Enter your email"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="h-12 rounded-xl border-border bg-muted/30 pl-12 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                 />
               </div>
 
               <Input
                 type="password"
-                name="password"
                 placeholder="Enter your password"
                 autoComplete={isSignUp ? "new-password" : "current-password"}
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="h-12 rounded-xl border-border bg-muted/30 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
               />
 
@@ -216,7 +309,8 @@ function AuthPageContent() {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="remember"
-                      name="remember"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
                       className="border-border transition-all duration-200 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground"
                     />
                     <label htmlFor="remember" className="text-muted-foreground text-sm">
@@ -236,9 +330,14 @@ function AuthPageContent() {
               <Button
                 type="submit"
                 data-testid="auth-submit"
+                disabled={isSubmitting}
                 className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
-                {isSignUp ? "Create an account" : "Sign in"}
+                {isSubmitting
+                  ? "Loading..."
+                  : isSignUp
+                    ? "Create an account"
+                    : "Sign in"}
               </Button>
 
               <div className="relative my-6">
@@ -286,27 +385,26 @@ function AuthPageContent() {
               </div>
             </form>
           ) : (
-            <form method="POST" action="/api/auth/reset-password" className="space-y-4">
-              <input type="hidden" name="mode" value="reset" />
-              <input type="hidden" name="redirectTo" value={safeRedirectTo} />
-
+            <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="relative">
                 <Mail className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transform text-muted-foreground transition-all duration-200" />
                 <Input
                   type="email"
-                  name="email"
                   placeholder="Enter your email address"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="h-12 rounded-xl border-border bg-muted/30 pl-12 text-foreground transition-all duration-200 placeholder:text-muted-foreground focus:border-foreground/40 focus:ring-foreground/20"
                 />
               </div>
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="h-12 w-full rounded-xl bg-primary font-medium text-base text-primary-foreground transition-all duration-300 hover:bg-primary/90"
               >
-                Send reset link
+                {isSubmitting ? "Loading..." : "Send reset link"}
               </Button>
             </form>
           )}

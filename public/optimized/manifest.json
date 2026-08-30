@@ -1,7 +1,13 @@
 [
   {
     "file": "hero-vibedevid-showcase.png",
-    "widths": [640, 960, 1200, 1600, 2400],
+    "widths": [
+      640,
+      960,
+      1200,
+      1600,
+      2400
+    ],
     "variants": [
       "hero-vibedevid-showcase-640.avif",
       "hero-vibedevid-showcase-640.webp",
@@ -17,7 +23,10 @@
   },
   {
     "file": "modern-tech-workspace.png",
-    "widths": [640, 1024],
+    "widths": [
+      640,
+      1024
+    ],
     "variants": [
       "modern-tech-workspace-640.avif",
       "modern-tech-workspace-640.webp",
@@ -27,7 +36,11 @@
   },
   {
     "file": "professional-woman-dark-hair.png",
-    "widths": [128, 256, 512],
+    "widths": [
+      128,
+      256,
+      512
+    ],
     "variants": [
       "professional-woman-dark-hair-128.avif",
       "professional-woman-dark-hair-128.webp",
@@ -39,7 +52,11 @@
   },
   {
     "file": "blonde-woman-glasses.png",
-    "widths": [128, 256, 512],
+    "widths": [
+      128,
+      256,
+      512
+    ],
     "variants": [
       "blonde-woman-glasses-128.avif",
       "blonde-woman-glasses-128.webp",
@@ -51,7 +68,11 @@
   },
   {
     "file": "asian-man-short-hair.png",
-    "widths": [128, 256, 512],
+    "widths": [
+      128,
+      256,
+      512
+    ],
     "variants": [
       "asian-man-short-hair-128.avif",
       "asian-man-short-hair-128.webp",
@@ -63,7 +84,11 @@
   },
   {
     "file": "hispanic-man-beard.png",
-    "widths": [128, 256, 512],
+    "widths": [
+      128,
+      256,
+      512
+    ],
     "variants": [
       "hispanic-man-beard-128.avif",
       "hispanic-man-beard-128.webp",
