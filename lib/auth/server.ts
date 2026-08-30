@@ -1,4 +1,5 @@
 import { compare, hash } from "bcryptjs";
+import { APIError } from "better-auth/api";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
@@ -6,6 +7,33 @@ import { escapeHtml } from "@/lib/auth/html";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
+
+const allowedEmailDomains = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "yahoo.com",
+  "yahoo.co.id",
+  "outlook.com",
+  "outlook.co.id",
+  "hotmail.com",
+  "live.com",
+]);
+
+function getEmailDomain(value: string): string | null {
+  const at = value.lastIndexOf("@");
+  if (at === -1) return null;
+  const domain = value
+    .slice(at + 1)
+    .toLowerCase()
+    .trim();
+  return domain || null;
+}
+
+function isEmailDomainAllowed(value: string): boolean {
+  const domain = getEmailDomain(value);
+  if (!domain) return false;
+  return allowedEmailDomains.has(domain);
+}
 
 function getAuthConfig() {
   const secrets = getServerRuntimeSecrets();
@@ -136,6 +164,22 @@ export function createAuth() {
         : {}),
     },
     plugins: [tanstackStartCookies()],
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            if (!isEmailDomainAllowed(user.email)) {
+              const domain = getEmailDomain(user.email);
+              throw new APIError("BAD_REQUEST", {
+                message: domain
+                  ? `Domain ${domain} is not allowed. Use Gmail, Yahoo, or Outlook.`
+                  : "Invalid email format.",
+              });
+            }
+          },
+        },
+      },
+    },
   });
 }
 

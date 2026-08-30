@@ -1,6 +1,6 @@
 import { type CookieSerializeOptions, serialize } from "cookie-es";
 import { type Locale, routing } from "@/i18n/routing";
-import { getSafeRedirectPath } from "@/lib/auth/credentials";
+import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { getAuth } from "@/lib/auth/server";
 import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from "@/lib/constants/auth";
 import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from "@/lib/locale";
@@ -35,47 +35,6 @@ function appendSetCookie(headers: Headers, cookie: CookieRecord) {
       ...cookie.options,
     }),
   );
-}
-
-function appendSetCookies(headers: Headers, source?: Headers) {
-  if (!source) return;
-  for (const cookie of source.getSetCookie()) {
-    headers.append("Set-Cookie", cookie);
-  }
-}
-
-function mergeCookiesIntoResponse(response: Response, cookies: CookieRecord[]): Response {
-  if (cookies.length === 0) return response;
-
-  // Only append NEW cookies to the response. Do NOT copy/re-append existing
-  // Set-Cookie headers — the route handler already set those (e.g. the auth
-  // session cookie from better-auth). Re-appending them produces duplicate
-  // Set-Cookie lines in the response, which some browsers silently drop,
-  // causing the session cookie to be lost on refresh.
-  //
-  // `new Headers(response.headers)` is not used because the Headers
-  // constructor collapses multiple Set-Cookie values into a single
-  // comma-joined header (per spec), corrupting cookies that contain commas.
-  const headers = new Headers();
-  response.headers.forEach((value, key) => {
-    if (key.toLowerCase() !== "set-cookie") {
-      headers.set(key, value);
-    }
-  });
-  // Preserve existing Set-Cookie headers as-is (no re-appending)
-  for (const existing of response.headers.getSetCookie()) {
-    headers.append("Set-Cookie", existing);
-  }
-  // Append only the new cookies (e.g. NEXT_LOCALE)
-  for (const cookie of cookies) {
-    appendSetCookie(headers, cookie);
-  }
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
 }
 
 function createRedirectResponse(url: URL, cookies: CookieRecord[]): Response {
@@ -129,6 +88,16 @@ export function shouldSkipRequestMiddleware(pathname: string): boolean {
   return /\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map|txt|xml|json)$/i.test(pathname);
 }
 
+/**
+ * Locale middleware — handles /en → / redirect and sets NEXT_LOCALE cookie.
+ * Auth middleware (session checks, confirm-email redirects) is also here
+ * because it needs to set cookies on redirect responses.
+ *
+ * Cookie handling for auth API routes (/api/auth/*) is now entirely handled
+ * by better-auth's built-in handler (via tanstackStartCookies plugin).
+ * No manual Set-Cookie merging needed — that was the source of the duplicate
+ * cookie bug that caused sessions to be lost on refresh.
+ */
 export async function applyLocaleMiddleware(
   request: Request,
   pathname: string,
@@ -160,6 +129,12 @@ export async function applyAuthMiddleware(
   localeCookies: CookieRecord[],
 ): Promise<Response | { cookies: CookieRecord[] }> {
   const pendingCookies: CookieRecord[] = [...localeCookies];
+
+  // Skip auth checks for better-auth's own API routes — they handle
+  // their own session/cookie management.
+  if (pathname.startsWith("/api/auth/")) {
+    return { cookies: pendingCookies };
+  }
 
   try {
     const auth = getAuth();
@@ -199,14 +174,16 @@ export async function applyAuthMiddleware(
         headers: request.headers,
         asResponse: true,
       });
+
+      // Merge signOut cookies into redirect response without duplicating
+      const headers = new Headers(redirectResponse.headers);
+      for (const cookie of signOutResponse.headers.getSetCookie()) {
+        headers.append("Set-Cookie", cookie);
+      }
       return new Response(redirectResponse.body, {
         status: redirectResponse.status,
         statusText: redirectResponse.statusText,
-        headers: (() => {
-          const headers = new Headers(redirectResponse.headers);
-          appendSetCookies(headers, signOutResponse.headers);
-          return headers;
-        })(),
+        headers,
       });
     }
 
@@ -220,6 +197,39 @@ export async function applyAuthMiddleware(
   return { cookies: pendingCookies };
 }
 
+/**
+ * Merge locale/auth cookies into a route handler's response.
+ *
+ * This is ONLY for locale cookies (NEXT_LOCALE) and confirm-email hints —
+ * NOT for auth session cookies. better-auth's tanstackStartCookies plugin
+ * handles session cookies internally via the /api/auth/* catch-all route.
+ *
+ * The previous implementation used `new Headers(response.headers)` which
+ * collapses multiple Set-Cookie values into a single comma-joined header
+ * (per Fetch API spec), corrupting cookies. This version avoids that by
+ * using getSetCookie() to preserve them as separate entries.
+ */
 export function withResponseCookies(response: Response, cookies: CookieRecord[]): Response {
-  return mergeCookiesIntoResponse(response, cookies);
+  if (cookies.length === 0) return response;
+
+  const headers = new Headers();
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") {
+      headers.set(key, value);
+    }
+  });
+  // Preserve existing Set-Cookie headers as-is
+  for (const existing of response.headers.getSetCookie()) {
+    headers.append("Set-Cookie", existing);
+  }
+  // Append new cookies (locale, confirm-email hint)
+  for (const cookie of cookies) {
+    appendSetCookie(headers, cookie);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
