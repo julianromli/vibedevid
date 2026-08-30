@@ -47,7 +47,24 @@ function appendSetCookies(headers: Headers, source?: Headers) {
 function mergeCookiesIntoResponse(response: Response, cookies: CookieRecord[]): Response {
   if (cookies.length === 0) return response;
 
-  const headers = new Headers(response.headers);
+  // Build a fresh header set: copy everything EXCEPT Set-Cookie, then append
+  // the response's existing Set-Cookie values followed by the new cookies.
+  // The previous implementation used `new Headers(response.headers)` which
+  // collapsed multiple Set-Cookie headers into one — and when combined with
+  // cookies already present from the route handler (auth session), produced
+  // duplicate Set-Cookie lines in the 302. Some browsers silently drop the
+  // second occurrence, causing the session cookie to be lost on refresh.
+  const headers = new Headers();
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") {
+      headers.set(key, value);
+    }
+  });
+  // Re-append existing Set-Cookie values
+  for (const existing of response.headers.getSetCookie()) {
+    headers.append("Set-Cookie", existing);
+  }
+  // Append new cookies
   for (const cookie of cookies) {
     appendSetCookie(headers, cookie);
   }
