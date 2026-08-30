@@ -1,25 +1,26 @@
-import { createServerFn } from "@tanstack/react-start";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { z } from "zod";
-import { getServerLocale } from "@/lib/routes/helpers";
-import { absoluteUrl } from "@/lib/seo/site-url";
-import { fetchEventBySlug, fetchRelatedEvents } from "@/lib/server/events-public";
-import { getCurrentUser } from "@/lib/server/auth";
-import EventDetailData from "@/app/event/[slug]/event-detail-data";
+import { createFileRoute, notFound } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
+import EventDetailData from '@/app/event/[slug]/event-detail-data'
+import { getServerLocale } from '@/lib/routes/helpers'
+import { breadcrumbListSchema, eventSchema } from '@/lib/seo/schema-templates'
+import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
+import { getCurrentUser } from '@/lib/server/auth'
+import { fetchEventBySlug, fetchRelatedEvents } from '@/lib/server/events-public'
 
-const loadEventData = createServerFn({ method: "GET" })
+const loadEventData = createServerFn({ method: 'GET' })
   .validator(z.object({ slug: z.string().min(1) }))
   .handler(async ({ data: { slug } }) => {
-    const event = await fetchEventBySlug(slug);
+    const event = await fetchEventBySlug(slug)
     if (!event) {
-      throw notFound();
+      throw notFound()
     }
 
     const [relatedEvents, currentUser, locale] = await Promise.all([
       fetchRelatedEvents(event.category, event.id),
       getCurrentUser(),
       getServerLocale(),
-    ]);
+    ])
 
     return {
       event,
@@ -27,53 +28,70 @@ const loadEventData = createServerFn({ method: "GET" })
       currentUser,
       slug,
       locale,
-    };
-  });
+    }
+  })
 
-export const Route = createFileRoute("/event/$slug")({
+export const Route = createFileRoute('/event/$slug')({
   loader: async ({ params }) => {
-    return loadEventData({ data: { slug: params.slug } });
+    return loadEventData({ data: { slug: params.slug } })
   },
   head: ({ loaderData }) => {
-    const event = loaderData?.event;
-    const locale = loaderData?.locale ?? "id";
+    const event = loaderData?.event
+    const locale = loaderData?.locale ?? 'id'
 
     if (!event) {
       return {
-        meta: [{ title: "Event Not Found | AI Events Indonesia" }],
-      };
+        meta: [{ title: 'Event Not Found | AI Events Indonesia' }],
+      }
     }
 
-    const description = event.description.slice(0, 160);
-    const pathname = `/event/${event.slug}`;
-    const url = absoluteUrl(pathname);
+    const description = event.description.slice(0, 160)
+    const pathname = `/event/${event.slug}`
+    const url = absoluteUrl(pathname)
 
     return {
       meta: [
         { title: `${event.name} | AI Events Indonesia` },
-        { name: "description", content: description },
-        { property: "og:title", content: event.name },
-        { property: "og:description", content: description },
-        { property: "og:url", content: url },
-        { property: "og:site_name", content: "VibeDev ID" },
-        { property: "og:image", content: event.coverImage },
-        { property: "og:locale", content: locale === "en" ? "en_US" : "id_ID" },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: event.name },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: event.coverImage },
-        { name: "twitter:site", content: "@vibedevid" },
-        { name: "twitter:creator", content: "@vibedevid" },
+        { name: 'description', content: description },
+        { property: 'og:title', content: event.name },
+        { property: 'og:description', content: description },
+        { property: 'og:url', content: url },
+        { property: 'og:site_name', content: 'VibeDev ID' },
+        { property: 'og:image', content: event.coverImage },
+        { property: 'og:locale', content: locale === 'en' ? 'en_US' : 'id_ID' },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: event.name },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: event.coverImage },
+        { name: 'twitter:site', content: '@vibedevid' },
+        { name: 'twitter:creator', content: '@vibedevid' },
       ],
-      links: [{ rel: "canonical", href: pathname }],
-    };
+      links: [{ rel: 'canonical', href: pathname }],
+    }
   },
   component: EventDetailRoute,
-});
+})
 
 function EventDetailRoute() {
-  const { event, relatedEvents, currentUser } = Route.useLoaderData();
+  const { event, relatedEvents, currentUser } = Route.useLoaderData()
 
-  return <EventDetailData event={event} relatedEvents={relatedEvents} currentUser={currentUser} />;
+  const eventData = eventSchema(event)
+  const breadcrumbs = breadcrumbListSchema([
+    { name: 'Home', url: getSiteUrl() },
+    { name: 'Events', url: absoluteUrl('/event/list') },
+    { name: event.name, url: absoluteUrl(`/event/${event.slug}`) },
+  ])
+
+  return (
+    <>
+      <script type="application/ld+json">{JSON.stringify(eventData)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>
+      <EventDetailData
+        event={event}
+        relatedEvents={relatedEvents}
+        currentUser={currentUser}
+      />
+    </>
+  )
 }
