@@ -141,7 +141,7 @@ function AuthPageContent() {
     try {
       const { error } = await authClient.requestPasswordReset({
         email,
-        redirectTo: `${window.location.origin}/user/auth`,
+        redirectTo: `${window.location.origin}/user/auth/reset-password`,
       });
 
       if (error) {
