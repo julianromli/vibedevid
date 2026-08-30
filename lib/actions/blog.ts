@@ -151,7 +151,26 @@ export async function updateBlogPost(
 
   if (updateDataRaw.title) {
     updateData.title = updateDataRaw.title;
-    updateData.slug = slugifyTitle(updateDataRaw.title);
+
+    // Only regenerate slug if the title actually changed. Regenerating
+    // blindly would strip the unique-suffix added during create
+    // (e.g. `...-mtf56oe1` → `...`), colliding with another post and
+    // throwing a 23505 unique-violation on the `posts.slug` index —
+    // manifesting as "Failed to update post" whenever you edit+publish.
+    const newSlug = slugifyTitle(updateDataRaw.title);
+    if (newSlug !== post.slug) {
+      // Title changed → regenerate a unique slug (re-use the same
+      // suffix strategy as createBlogPost to avoid collisions).
+      const existing = await db
+        .select({ slug: posts.slug })
+        .from(posts)
+        .where(like(posts.slug, `${newSlug}%`));
+      if (existing.some((p: { slug: string }) => p.slug === newSlug)) {
+        updateData.slug = `${newSlug}-${Date.now().toString(36)}`;
+      } else {
+        updateData.slug = newSlug;
+      }
+    }
   }
 
   if (data.excerpt !== undefined) {
