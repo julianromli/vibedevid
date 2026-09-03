@@ -9,7 +9,7 @@ Dokumentasi teknis dan operasional untuk project VibeDev ID.
 | Document                            | Description                                    |
 | ----------------------------------- | ---------------------------------------------- |
 | [Design System](./design-system.md) | Color palette, typography, components, spacing |
-| [WARP.md](../WARP.md)               | Living knowledge base (main reference)         |
+| [README.md](../README.md)           | App overview, local setup, and Cloudflare deploy |
 | [SECURITY.md](../SECURITY.md)       | Security guidelines & practices                |
 
 ---
@@ -28,8 +28,8 @@ Dokumentasi terkait database schema, optimization, dan indexing.
 
 Panduan deployment dan release management.
 
-- [Vercel Deployment](./deployment/vercel.md) - Vercel deployment guide
-- [Rollout & Rollback](./deployment/rollout-rollback.md) - Release rollout & rollback procedures
+- [Cloudflare Workers](../README.md#deployment-cloudflare-workers) - Current deploy path (Nitro `cloudflare_module` + Wrangler)
+- [Rollout & Rollback](./deployment/rollout-rollback.md) - Historical slug-migration release notes
 
 ### Migrations
 

@@ -62,7 +62,17 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Hosting**: Cloudflare Workers (Nitro `cloudflare_module` preset)
 - **Toast**: Sonner
 
-> Note: this app was migrated from Next.js 16 App Router to TanStack Start. Some `app/` subfolders still use Next.js-style names but are now plain view/component modules imported by route files in `app/routes/`.
+> Note: this app was migrated from Next.js 16 App Router to TanStack Start. Some `app/` subfolders still use Next.js-style names (`page.tsx`, `[slug]`, `(admin)`) but are now plain view/component modules imported by route files in `app/routes/`. A full rename of those folders is high-churn with little runtime benefit, so they stay as live view modules.
+
+### Leftovers we keep on purpose
+
+| Leftover | Why it stays |
+| --- | --- |
+| `NEXT_LOCALE` cookie | Live locale source. Public pages and tests still read this name. |
+| `NEXT_PUBLIC_SITE_URL` | Live server/SEO site URL. Also a Worker secret. `VITE_SITE_URL` is the browser twin. |
+| `next-themes` | Theme library. It is not the Next.js framework. |
+| `public/sw.js` + root unregister script | Uninstall shim for the old Next.js service worker. Already-installed clients still need it. |
+| Next-named folders under `app/` (except `app/routes/`) | Live view modules. Routes import them. |
 
 ## Getting Started
 
@@ -81,8 +91,8 @@ OAuth, UploadThing, Resend, and OpenRouter are optional. You can browse the app 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/vibedevid_v0.git
-cd vibedevid_v0
+git clone https://github.com/julianromli/vibedevid.git
+cd vibedevid
 ```
 
 2. Install dependencies:

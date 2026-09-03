@@ -24,9 +24,3 @@ export function getSiteConfig() {
       "http://localhost:3000",
   };
 }
-
-/** @deprecated Use getSiteConfig() — kept for gradual migration */
-export const getSupabaseConfig = getSiteConfig;
-
-/** @deprecated No longer used after Neon migration */
-export const getSupabaseServerConfig = getSiteConfig;
