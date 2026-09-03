@@ -3,15 +3,15 @@
 # dependencies
 /node_modules
 
-# next.js
-/.next/
-/out/
-
 # production
 /build
 .output/
 .tanstack/
 app/routeTree.gen.ts
+
+# leftover local folders from the Next.js era (safe to ignore if they reappear)
+/.next/
+/out/
 
 # debug
 npm-debug.log*
@@ -26,16 +26,15 @@ yarn-error.log*
 # Neon workspace link (org/project/branch ids)
 .neon
 
-# vercel
+# leftover Vercel / Next.js local files
 .vercel
+next-env.d.ts
+.next-docs/
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 .worktrees/
 nul
-# next-agents-md
-.next-docs/
 
 # Editor settings
 .zed/

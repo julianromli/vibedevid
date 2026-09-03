@@ -5,61 +5,68 @@
 ### Best Practices
 
 1. **Never commit sensitive keys to version control**
-   - Use `.env.local` for local development (already in .gitignore)
-   - Use `.env.example` or `.env.local.example` for documentation with placeholder values
+   - Use `.env.local` for local development (already in `.gitignore`)
+   - Use `.env.example` for documentation with placeholder values
 
-2. **Use proper prefixes**
-   - `NEXT_PUBLIC_*` - For variables that can be exposed to the browser
-   - All other variables - Server-side only, kept secret
+2. **Use the current prefixes**
+   - `VITE_*` — values Vite inlines into the browser bundle
+   - `NEXT_PUBLIC_SITE_URL` — live server/SEO site URL (legacy name, still required)
+   - All other variables — server-only. Read them through `getServerRuntimeSecrets()` on Workers.
 
-3. **Sensitive Variables (Keep Secret!)**
-   - `SUPABASE_SERVICE_ROLE_KEY` - Full admin access to your database
-   - `UPLOADTHING_TOKEN` - API access to your file upload service
-   - Any other API keys or tokens without `NEXT_PUBLIC_` prefix
+3. **Sensitive variables (keep secret)**
+   - `DATABASE_URL` — Neon pooled connection string
+   - `BETTER_AUTH_SECRET` — Better Auth signing secret
+   - `GOOGLE_CLIENT_SECRET` / `GITHUB_CLIENT_SECRET` — OAuth secrets
+   - `UPLOADTHING_TOKEN` — file upload API access
+   - `OPENROUTER_API_KEY` / `RESEND_API_KEY` — optional provider keys
 
-4. **Public Variables (Safe to expose)**
-   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public anonymous key with RLS protection
-   - `NEXT_PUBLIC_SITE_URL` - Your website URL
+4. **Public variables (safe to expose)**
+   - `VITE_SITE_URL` / `NEXT_PUBLIC_SITE_URL` — website URL
+   - `VITE_BETTER_AUTH_URL` — public auth callback URL
 
 ### Setting Up Environment Variables
 
 #### Local Development
 
-1. Copy `.env.local.example` to `.env.local`
+1. Copy `.env.example` to `.env.local`
 2. Fill in your actual values
 3. Never commit `.env.local`
 
 #### Cloudflare Workers Deployment
 
 1. Set runtime secrets with Wrangler (never commit them):
-   `bunx wrangler secret put <NAME>` or `bunx wrangler secret bulk <file.json>`
-2. Required keys: `SUPABASE_SERVICE_ROLE_KEY`, `UPLOADTHING_TOKEN`,
-   `OPENROUTER_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`
-3. Use your actual values, not placeholders
+   `bunx wrangler secret put <NAME>` or `bun run scripts/sync-wrangler-secrets.ts`
+2. Required runtime keys: `DATABASE_URL`, `BETTER_AUTH_SECRET`,
+   `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, plus OAuth and upload keys
+   when those features are enabled
+3. Do not put `DATABASE_URL_UNPOOLED` on the Worker. Keep it in local
+   `.env.local` for schema tools.
+4. `VITE_*` values are inlined at build time. Rebuild before deploy when
+   they change.
 
 ### Security Checklist
 
 - [ ] `.env.local` is in `.gitignore`
 - [ ] No real API keys in `.env.example`
-- [ ] No console.log of sensitive tokens
-- [ ] Server-side keys only used in server components/API routes
+- [ ] No `console.log` of sensitive tokens
+- [ ] Server-only keys are read via `getServerRuntimeSecrets()`, not `process.env` on Workers
 - [ ] Regular key rotation for production environments
 
 ### If Keys Are Exposed
 
 1. **Immediately rotate the exposed keys**
-   - Supabase: Project Settings > API > Regenerate keys
-   - UploadThing: Dashboard > Regenerate API key
+   - Neon: rotate the connection string
+   - Better Auth: generate a new `BETTER_AUTH_SECRET`
+   - UploadThing: Dashboard → regenerate token
+   - OAuth: rotate Google/GitHub client secrets
 
 2. **Update all environments**
    - Local `.env.local`
-   - Vercel environment variables
+   - Worker secrets
    - Any other deployments
 
 3. **Check for unauthorized usage**
-   - Review Supabase logs
+   - Review Neon query logs
    - Check UploadThing usage statistics
 
 ## Reporting Security Issues

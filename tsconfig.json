@@ -19,5 +19,5 @@
     "types": ["vite-plus/client"]
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "admin-kit"]
+  "exclude": ["node_modules"]
 }
