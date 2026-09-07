@@ -1,17 +1,10 @@
+import { escapeXml } from './escape-xml'
+
 export interface SitemapEntry {
   loc: string
   lastmod: string
   changefreq: string
   priority: string
-}
-
-export function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
 }
 
 export function buildSitemapXml(entries: SitemapEntry[]): string {

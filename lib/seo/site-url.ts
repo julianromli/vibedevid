@@ -8,16 +8,16 @@ export const JOIN_COMMUNITY_URL = 'https://wa.vibedeveloper.id'
 
 /**
  * Hosts that serve (or used to serve) the same site. Requests to these hosts
- * 301 to {@link CANONICAL_SITE_ORIGIN}. `getSiteUrl()` also rewrites them so
- * robots, sitemap, and canonical tags stay on the apex even if an env var
- * still holds the old domain.
+ * redirect to {@link CANONICAL_SITE_ORIGIN} (301 for GET/HEAD, 308 otherwise).
+ * `getSiteUrl()` also rewrites them so robots, sitemap, and canonical tags stay
+ * on the apex even if an env var still holds the old domain.
  */
 export const SITE_HOST_ALIASES = new Set(['www.vibedeveloper.id', 'vibedevid.com', 'www.vibedevid.com'])
 
 type EnvRecord = Record<string, string | undefined>
 
 function isLikelySupabaseUrl(url: URL): boolean {
-  const host = url.hostname.toLowerCase()
+  const host = normalizeHostname(url.hostname)
   return host.endsWith('.supabase.co') || host.endsWith('.supabase.in')
 }
 
@@ -25,6 +25,14 @@ function readWorkerEnv(name: string): string | undefined {
   const cfEnv = (globalThis as { __env__?: EnvRecord }).__env__
   const value = cfEnv?.[name]
   return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function readProcessEnv(name: string): string | undefined {
+  if (typeof process === 'undefined') return undefined
+  const value = process.env[name]
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
 }
 
 function readViteSiteUrl(): string | undefined {
@@ -56,8 +64,13 @@ function normalizeUrl(input: string | undefined | null): URL | null {
   }
 }
 
+/** Lowercase host and strip a DNS trailing-dot FQDN (`vibedevid.com.`). */
+export function normalizeHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/\.+$/, '')
+}
+
 function toCanonicalOrigin(url: URL): URL {
-  const host = url.hostname.toLowerCase()
+  const host = normalizeHostname(url.hostname)
   if (host === CANONICAL_SITE_HOST || SITE_HOST_ALIASES.has(host)) {
     url.hostname = CANONICAL_SITE_HOST
     url.protocol = 'https:'
@@ -71,7 +84,7 @@ function originString(url: URL): string {
 }
 
 function isDevelopmentRuntime(): boolean {
-  if (process.env.NODE_ENV === 'development') return true
+  if (readProcessEnv('NODE_ENV') === 'development') return true
   try {
     return import.meta.env?.DEV === true
   } catch {
@@ -91,9 +104,9 @@ export function getSiteUrl(): string {
   const candidates = [
     readWorkerEnv('NEXT_PUBLIC_SITE_URL'),
     readWorkerEnv('VITE_SITE_URL'),
-    process.env.NEXT_PUBLIC_SITE_URL,
-    process.env.SITE_URL,
-    process.env.VITE_SITE_URL,
+    readProcessEnv('NEXT_PUBLIC_SITE_URL'),
+    readProcessEnv('SITE_URL'),
+    readProcessEnv('VITE_SITE_URL'),
     readViteSiteUrl(),
   ]
 
@@ -114,8 +127,9 @@ export function absoluteUrl(pathname: string): string {
 }
 
 /**
- * Permanent redirect target when the request Host is a site alias.
- * Returns null for the canonical host, localhost, and preview URLs.
+ * Permanent redirect target when the request Host is a site alias, or the
+ * canonical host in DNS trailing-dot form. Returns null for the bare canonical
+ * host, localhost, and preview URLs.
  */
 export function getCanonicalHostRedirect(request: Request): string | null {
   let requestUrl: URL
@@ -125,8 +139,11 @@ export function getCanonicalHostRedirect(request: Request): string | null {
     return null
   }
 
-  const host = requestHost(request, requestUrl)
-  if (!SITE_HOST_ALIASES.has(host)) return null
+  const rawHost = requestHost(request, requestUrl)
+  const host = normalizeHostname(rawHost)
+  const isAlias = SITE_HOST_ALIASES.has(host)
+  const isFqdnCanonical = host === CANONICAL_SITE_HOST && rawHost !== host
+  if (!isAlias && !isFqdnCanonical) return null
 
   return `${CANONICAL_SITE_ORIGIN}${requestUrl.pathname}${requestUrl.search}`
 }
@@ -135,8 +152,11 @@ export function canonicalHostRedirectResponse(request: Request): Response | null
   const location = getCanonicalHostRedirect(request)
   if (!location) return null
 
+  const method = request.method.toUpperCase()
+  const status = method === 'GET' || method === 'HEAD' ? 301 : 308
+
   return new Response(null, {
-    status: 301,
+    status,
     headers: {
       Location: location,
       'Cache-Control': 'public, max-age=3600',

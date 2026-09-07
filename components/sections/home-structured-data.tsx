@@ -8,51 +8,52 @@
 import { FAQ_DATA } from '@/lib/constants/faqs'
 import { getSiteUrl } from '@/lib/seo/site-url'
 
-const siteUrl = getSiteUrl()
-
-const ORGANIZATION_SCHEMA = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'VibeDev ID',
-  alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
-  url: siteUrl,
-  logo: `${siteUrl}/vibedev-logo.png`,
-  description:
-    'Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.',
-  foundingDate: '2024',
-  address: {
-    '@type': 'PostalAddress',
-    addressCountry: 'ID',
-    addressRegion: 'Indonesia',
-  },
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'Community Support',
-    email: 'hello@vibedevid.com',
-  },
-  sameAs: ['https://github.com/vibedevid', 'https://twitter.com/vibedevid', 'https://linkedin.com/company/vibedevid'],
-  memberOf: {
+function organizationSchema(siteUrl: string) {
+  return {
+    '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Indonesian Developer Community',
-  },
-  keywords: [
-    'vibe coding',
-    'komunitas vibe coding',
-    'komunitas vibe coding indonesia',
-    'vibe coder indonesia',
-    'coding pake AI',
-    'AI untuk coding',
-    'developer indonesia',
-    'open source indonesia',
-  ],
-  audience: {
-    '@type': 'Audience',
-    audienceType: 'Developers, AI Enthusiasts, Tech Innovators',
-    geographicArea: 'Indonesia',
-  },
+    name: 'VibeDev ID',
+    alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
+    url: siteUrl,
+    logo: `${siteUrl}/vibedev-logo.png`,
+    description:
+      'Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.',
+    foundingDate: '2024',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'ID',
+      addressRegion: 'Indonesia',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'Community Support',
+      email: 'hello@vibedevid.com',
+    },
+    sameAs: ['https://github.com/vibedevid', 'https://twitter.com/vibedevid', 'https://linkedin.com/company/vibedevid'],
+    memberOf: {
+      '@type': 'Organization',
+      name: 'Indonesian Developer Community',
+    },
+    keywords: [
+      'vibe coding',
+      'komunitas vibe coding',
+      'komunitas vibe coding indonesia',
+      'vibe coder indonesia',
+      'coding pake AI',
+      'AI untuk coding',
+      'developer indonesia',
+      'open source indonesia',
+    ],
+    audience: {
+      '@type': 'Audience',
+      audienceType: 'Developers, AI Enthusiasts, Tech Innovators',
+      geographicArea: 'Indonesia',
+    },
+  }
 }
 
 export function HomeStructuredData() {
+  const siteUrl = getSiteUrl()
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -72,7 +73,7 @@ export function HomeStructuredData() {
         id="organization-schema"
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema(siteUrl)) }}
       />
       <script
         id="faq-schema"

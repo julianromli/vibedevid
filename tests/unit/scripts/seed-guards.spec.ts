@@ -10,6 +10,11 @@ describe('isProductionSiteUrl', () => {
     expect(isProductionSiteUrl('https://www.vibedeveloper.id')).toBe(true)
   })
 
+  it('treats DNS trailing-dot production hosts as blocked', () => {
+    expect(isProductionSiteUrl('https://vibedeveloper.id.')).toBe(true)
+    expect(isProductionSiteUrl('https://www.vibedevid.com.')).toBe(true)
+  })
+
   it('allows localhost and empty values', () => {
     expect(isProductionSiteUrl('http://localhost:3000')).toBe(false)
     expect(isProductionSiteUrl(undefined)).toBe(false)
@@ -22,6 +27,15 @@ describe('assertSafeSeedTarget', () => {
     expect(() =>
       assertSafeSeedTarget({
         siteUrls: ['http://localhost:3000', 'https://vibedevid.com'],
+        allowProduction: false,
+      }),
+    ).toThrow(/Refusing to seed/)
+  })
+
+  it('throws when a production URL uses a DNS trailing-dot host', () => {
+    expect(() =>
+      assertSafeSeedTarget({
+        siteUrls: ['https://vibedeveloper.id.'],
         allowProduction: false,
       }),
     ).toThrow(/Refusing to seed/)

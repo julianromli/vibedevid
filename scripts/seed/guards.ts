@@ -1,10 +1,12 @@
+import { normalizeHostname } from '@/lib/seo/site-url'
+
 export const PRODUCTION_SITE_HOSTS = ['vibedeveloper.id', 'vibedevid.com'] as const
 
 export function isProductionSiteUrl(url: string | undefined): boolean {
   if (!url) return false
 
   try {
-    const host = new URL(url).hostname.toLowerCase()
+    const host = normalizeHostname(new URL(url).hostname)
     return PRODUCTION_SITE_HOSTS.some(
       (productionHost) => host === productionHost || host.endsWith(`.${productionHost}`),
     )

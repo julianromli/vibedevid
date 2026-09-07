@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { escapeXml } from "@/lib/seo/escape-xml";
 
 /**
  * Dynamic Open Graph image endpoint.
@@ -8,15 +9,6 @@ import { createFileRoute } from "@tanstack/react-router";
  * Cloudflare Workers (no Satori/WASM bundle). Consumers reference it as
  * `/api/og?title=...`.
  */
-
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 /** Naive word-wrap into at most `maxLines` lines of ~`maxChars` characters. */
 function wrapText(text: string, maxChars: number, maxLines: number): string[] {

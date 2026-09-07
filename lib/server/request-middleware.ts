@@ -78,7 +78,8 @@ function getLocaleFromRequest(request: Request, pathname: string): Locale {
 }
 
 /**
- * 301 alias hosts (`www`, legacy `vibedevid.com`) to the canonical apex.
+ * Redirect alias hosts (`www`, legacy `vibedevid.com`) to the canonical apex.
+ * GET/HEAD use 301; other methods use 308 so POST bodies stay intact.
  * Runs for every path, including `/robots.txt` and `/sitemap.xml`.
  */
 export function applyCanonicalHostRedirect(request: Request): Response | null {

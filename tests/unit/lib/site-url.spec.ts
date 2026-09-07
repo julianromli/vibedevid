@@ -24,6 +24,14 @@ describe('getSiteUrl', () => {
     expect(getSiteUrl()).toBe(CANONICAL_SITE_ORIGIN)
   })
 
+  it('strips a DNS trailing-dot FQDN before rewriting the origin', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://vibedevid.com.')
+    expect(getSiteUrl()).toBe(CANONICAL_SITE_ORIGIN)
+
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://vibedeveloper.id.')
+    expect(getSiteUrl()).toBe(CANONICAL_SITE_ORIGIN)
+  })
+
   it('reads the Worker binding when process.env is empty', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', '')
     vi.stubEnv('VITE_SITE_URL', '')
@@ -66,10 +74,40 @@ describe('getCanonicalHostRedirect', () => {
     expect(getCanonicalHostRedirect(new Request('http://localhost:3000/'))).toBeNull()
   })
 
-  it('returns a 301 response for alias hosts', () => {
-    const response = canonicalHostRedirectResponse(new Request('https://vibedevid.com/sitemap.xml'))
-    expect(response?.status).toBe(301)
-    expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/sitemap.xml`)
+  it('returns a 301 response for GET and HEAD on alias hosts', () => {
+    const getResponse = canonicalHostRedirectResponse(new Request('https://vibedevid.com/sitemap.xml'))
+    expect(getResponse?.status).toBe(301)
+    expect(getResponse?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/sitemap.xml`)
+
+    const headResponse = canonicalHostRedirectResponse(
+      new Request('https://www.vibedeveloper.id/sitemap.xml', { method: 'HEAD' }),
+    )
+    expect(headResponse?.status).toBe(301)
+    expect(headResponse?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/sitemap.xml`)
+  })
+
+  it('returns a 308 response for POST on alias hosts so the method is preserved', () => {
+    const response = canonicalHostRedirectResponse(
+      new Request('https://vibedevid.com/api/auth/sign-in', { method: 'POST' }),
+    )
+    expect(response?.status).toBe(308)
+    expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/api/auth/sign-in`)
+  })
+
+  it('redirects DNS trailing-dot alias and canonical hosts', () => {
+    expect(getCanonicalHostRedirect(new Request('https://vibedevid.com./blog'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/blog`,
+    )
+    expect(
+      getCanonicalHostRedirect(
+        new Request('https://example.workers.dev/robots.txt', {
+          headers: { host: 'www.vibedeveloper.id.' },
+        }),
+      ),
+    ).toBe(`${CANONICAL_SITE_ORIGIN}/robots.txt`)
+    expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id./event/list'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/event/list`,
+    )
   })
 })
 
