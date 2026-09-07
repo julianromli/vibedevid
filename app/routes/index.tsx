@@ -1,62 +1,61 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { asc } from "drizzle-orm";
-import { z } from "zod";
-import HomePageClient from "@/app/home-page-client";
-import { getCategories } from "@/lib/categories";
-import { getDb } from "@/lib/db";
-import { vibeVideos } from "@/lib/db/schema";
-import { getSingleSearchParam, normalizeSortParam } from "@/lib/routes/helpers";
-import { getSiteUrl } from "@/lib/seo/site-url";
-import { loadHomeProjects } from "@/lib/server/home-projects";
-import { getCachedJson, setCachedJson, SHORT_TTL_CACHE_KEYS } from "@/lib/server/short-ttl-cache";
-import { getApprovedTestimonials } from "@/lib/server/testimonials-public";
-import { getVideoIconKey } from "@/lib/video-icon-key";
-import type { ProjectFilterOption, User, VibeVideo } from "@/types/homepage";
+import { createFileRoute } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { asc } from 'drizzle-orm'
+import { z } from 'zod'
+import HomePageClient from '@/app/home-page-client'
+import { getCategories } from '@/lib/categories'
+import { getDb } from '@/lib/db'
+import { vibeVideos } from '@/lib/db/schema'
+import { getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
+import { getSiteUrl } from '@/lib/seo/site-url'
+import { loadHomeProjects } from '@/lib/server/home-projects'
+import { getCachedJson, SHORT_TTL_CACHE_KEYS, setCachedJson } from '@/lib/server/short-ttl-cache'
+import { getApprovedTestimonials } from '@/lib/server/testimonials-public'
+import { getVideoIconKey } from '@/lib/video-icon-key'
+import type { ProjectFilterOption, User, VibeVideo } from '@/types/homepage'
 
 function resolveInitialFilter(
   categories: Awaited<ReturnType<typeof getCategories>>,
   requestedFilter: string | undefined,
 ): string {
-  const options = (categories ?? []).map((category) => category.name);
-  return requestedFilter && options.includes(requestedFilter) ? requestedFilter : "all";
+  const options = (categories ?? []).map((category) => category.name)
+  return requestedFilter && options.includes(requestedFilter) ? requestedFilter : 'all'
 }
 
 async function getVibeVideos(): Promise<VibeVideo[]> {
   const fallbackVideos: VibeVideo[] = [
     {
-      title: "Next.js Tutorial: Full Stack App Development",
+      title: 'Next.js Tutorial: Full Stack App Development',
       description:
-        "Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      videoId: "dQw4w9WgXcQ",
-      publishedAt: "2024-12-20",
-      viewCount: "12.5K",
-      iconKey: "code",
+        'Learn to build a full stack web app with Next.js, Prisma, and PostgreSQL from scratch to deployment.',
+      thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      videoId: 'dQw4w9WgXcQ',
+      publishedAt: '2024-12-20',
+      viewCount: '12.5K',
+      iconKey: 'code',
     },
     {
-      title: "Live Coding: Building Modern Dashboard",
-      description:
-        "Live coding session to build a modern admin dashboard with React and Tailwind CSS.",
-      thumbnail: "https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg",
-      videoId: "9bZkp7q19f0",
-      publishedAt: "2024-12-15",
-      viewCount: "8.3K",
-      iconKey: "play",
+      title: 'Live Coding: Building Modern Dashboard',
+      description: 'Live coding session to build a modern admin dashboard with React and Tailwind CSS.',
+      thumbnail: 'https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg',
+      videoId: '9bZkp7q19f0',
+      publishedAt: '2024-12-15',
+      viewCount: '8.3K',
+      iconKey: 'play',
     },
-  ];
+  ]
 
   try {
-    const cached = await getCachedJson<VibeVideo[]>(SHORT_TTL_CACHE_KEYS.vibeVideos);
+    const cached = await getCachedJson<VibeVideo[]>(SHORT_TTL_CACHE_KEYS.vibeVideos)
     if (cached && cached.length > 0) {
-      return cached;
+      return cached
     }
 
-    const db = getDb();
-    const data = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position));
+    const db = getDb()
+    const data = await db.select().from(vibeVideos).orderBy(asc(vibeVideos.position))
 
     if (!data || data.length === 0) {
-      return fallbackVideos;
+      return fallbackVideos
     }
 
     const videos = data.map((video) => ({
@@ -66,15 +65,15 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
       thumbnail: video.thumbnail,
       videoId: video.videoId,
       publishedAt: video.publishedAt,
-      viewCount: video.viewCount ?? "0",
+      viewCount: video.viewCount ?? '0',
       position: video.position,
       iconKey: getVideoIconKey(video.title, video.description),
-    }));
-    await setCachedJson(SHORT_TTL_CACHE_KEYS.vibeVideos, videos);
-    return videos;
+    }))
+    await setCachedJson(SHORT_TTL_CACHE_KEYS.vibeVideos, videos)
+    return videos
   } catch (err) {
-    console.error("[getVibeVideos] failed:", err instanceof Error ? err.message : String(err));
-    return fallbackVideos;
+    console.error('[getVibeVideos] failed:', err instanceof Error ? err.message : String(err))
+    return fallbackVideos
   }
 }
 
@@ -83,7 +82,7 @@ async function getVibeVideos(): Promise<VibeVideo[]> {
  * the server-only Supabase clients never execute (or get bundled) on the
  * client when the loader re-runs during client-side navigation.
  */
-const loadHomeData = createServerFn({ method: "GET" })
+const loadHomeData = createServerFn({ method: 'GET' })
   .validator(
     z.object({
       filter: z.string().optional(),
@@ -91,30 +90,27 @@ const loadHomeData = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data: search }) => {
-    const categoriesPromise = getCategories();
-    const initialSort = normalizeSortParam(getSingleSearchParam(search.sort));
-    const requestedFilter = getSingleSearchParam(search.filter);
+    const categoriesPromise = getCategories()
+    const initialSort = normalizeSortParam(getSingleSearchParam(search.sort))
+    const requestedFilter = getSingleSearchParam(search.filter)
 
     const projectsPromise = categoriesPromise.then(async (categories) => {
-      const initialFilter = resolveInitialFilter(categories, requestedFilter);
-      const initialProjects = await loadHomeProjects(
-        initialSort,
-        initialFilter === "all" ? undefined : initialFilter,
-      );
-      return { initialFilter, initialProjects };
-    });
+      const initialFilter = resolveInitialFilter(categories, requestedFilter)
+      const initialProjects = await loadHomeProjects(initialSort, initialFilter === 'all' ? undefined : initialFilter)
+      return { initialFilter, initialProjects }
+    })
 
     const [categories, initialVibeVideos, initialTestimonials, projectResult] = await Promise.all([
       categoriesPromise,
       getVibeVideos(),
       getApprovedTestimonials(),
       projectsPromise,
-    ]);
+    ])
 
     const categoryOptions: ProjectFilterOption[] = (categories ?? []).map((category) => ({
       value: category.name,
       label: category.display_name,
-    }));
+    }))
 
     return {
       initialProjects: projectResult.initialProjects,
@@ -123,20 +119,20 @@ const loadHomeData = createServerFn({ method: "GET" })
       initialSort,
       initialVibeVideos,
       initialTestimonials,
-    };
-  });
+    }
+  })
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
-    filter: typeof search.filter === "string" ? search.filter : undefined,
-    sort: typeof search.sort === "string" ? search.sort : undefined,
+    filter: typeof search.filter === 'string' ? search.filter : undefined,
+    sort: typeof search.sort === 'string' ? search.sort : undefined,
   }),
   loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
   loader: async ({ deps, context }) => {
-    const data = await loadHomeData({ data: { filter: deps.filter, sort: deps.sort } });
+    const data = await loadHomeData({ data: { filter: deps.filter, sort: deps.sort } })
     // Reuse the user already resolved in the root `beforeLoad` instead of
     // re-querying it here (saves a `users` SELECT per homepage request).
-    const currentUser = context.currentUser;
+    const currentUser = context.currentUser
     const initialUser: User | null = currentUser
       ? {
           id: currentUser.id,
@@ -146,39 +142,40 @@ export const Route = createFileRoute("/")({
           username: currentUser.username,
           role: currentUser.role ?? null,
         }
-      : null;
+      : null
 
     return {
       ...data,
       initialIsLoggedIn: !!currentUser,
       initialUser,
-    };
+    }
   },
   // Consolidate `?filter`/`?sort` variants onto the clean homepage URL so
   // crawlers don't treat each combination as a separate duplicate page.
   head: () => ({
+    meta: [{ property: 'og:url', content: getSiteUrl() }],
     links: [
-      { rel: "canonical", href: getSiteUrl() },
+      { rel: 'canonical', href: getSiteUrl() },
       // Preload the LCP hero image (desktop AVIF breakpoint) so the browser
       // fetches it before discovering it in the rendered DOM. Matches the
       // `sizes` used by the hero <picture>.
       {
-        rel: "preload",
-        as: "image",
-        href: "/optimized/hero-vibedevid-showcase-1200.avif",
-        type: "image/avif",
+        rel: 'preload',
+        as: 'image',
+        href: '/optimized/hero-vibedevid-showcase-1200.avif',
+        type: 'image/avif',
         imageSrcSet:
-          "/optimized/hero-vibedevid-showcase-640.avif 640w, /optimized/hero-vibedevid-showcase-960.avif 960w, /optimized/hero-vibedevid-showcase-1200.avif 1200w, /optimized/hero-vibedevid-showcase-1600.avif 1600w, /optimized/hero-vibedevid-showcase-2400.avif 2400w",
-        imageSizes: "(min-width: 1024px) 1200px, 100vw",
-        fetchPriority: "high",
+          '/optimized/hero-vibedevid-showcase-640.avif 640w, /optimized/hero-vibedevid-showcase-960.avif 960w, /optimized/hero-vibedevid-showcase-1200.avif 1200w, /optimized/hero-vibedevid-showcase-1600.avif 1600w, /optimized/hero-vibedevid-showcase-2400.avif 2400w',
+        imageSizes: '(min-width: 1024px) 1200px, 100vw',
+        fetchPriority: 'high',
       },
     ],
   }),
   component: HomeRoute,
-});
+})
 
 function HomeRoute() {
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData()
 
   return (
     <HomePageClient
@@ -191,5 +188,5 @@ function HomeRoute() {
       initialVibeVideos={data.initialVibeVideos}
       initialTestimonials={data.initialTestimonials}
     />
-  );
+  )
 }

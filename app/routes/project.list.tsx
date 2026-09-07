@@ -99,6 +99,7 @@ export const Route = createFileRoute('/project/list')({
       { property: 'og:site_name', content: 'VibeDev ID' },
       { property: 'og:type', content: 'website' },
       { property: 'og:locale', content: 'id_ID' },
+      { property: 'og:url', content: absoluteUrl('/project/list') },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:site', content: '@vibedevid' },
     ],

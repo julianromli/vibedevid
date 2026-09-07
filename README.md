@@ -13,7 +13,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 📝 **Project Showcase** - Share dan showcase project keren lo
 - 💬 **Community Interaction** - Comments, likes, dan diskusi project
 - 🤝 **Networking & Collaboration** - Connect sama developer yang sepikiran
-- 💬 **Join Community** - Tombol Join Community di homepage (hero dan CTA) membuka `https://wa.vibedevid.com`
+- 💬 **Join Community** - Tombol Join Community di homepage (hero dan CTA) membuka `https://wa.vibedeveloper.id`
 - 📰 **Blog System** - Rich text editor dengan Novel/TipTap untuk artikel teknis
 - 📊 **Views Tracking** - Session-based analytics untuk project insights
 - 🤖 **AI Leaderboard** - Ranking dan showcase AI tools favorit komunitas
@@ -123,7 +123,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 VITE_SITE_URL=http://localhost:3000
 ```
 
-Keep `VITE_SITE_URL` and `NEXT_PUBLIC_SITE_URL` on localhost. The seed script refuses `vibedevid.com`.
+Keep `VITE_SITE_URL` and `NEXT_PUBLIC_SITE_URL` on localhost. The seed script refuses `vibedeveloper.id` and `vibedevid.com`.
 
 5. Apply the schema and load demo data:
 
@@ -239,13 +239,17 @@ bunx playwright test -g "should track views when visiting project page"
 
 The app deploys to Cloudflare Workers using the Nitro `cloudflare_module` preset
 (configured in `vite.config.ts`) plus `wrangler.jsonc` at the repo root.
-Production site: [https://vibedevid.com](https://vibedevid.com).
+Production site: [https://vibedeveloper.id](https://vibedeveloper.id).
+`www.vibedeveloper.id`, `vibedevid.com`, and `www.vibedevid.com` 301 to the
+apex. Canonical tags, `robots.txt` (`Host` + `Sitemap`), and `/sitemap.xml`
+always use `https://vibedeveloper.id`, even if a Worker secret still holds the
+old domain.
 
 ```bash
 # 1. Build with production client URLs baked in (VITE_* are compile-time)
-NEXT_PUBLIC_SITE_URL=https://vibedevid.com \
-VITE_SITE_URL=https://vibedevid.com \
-VITE_BETTER_AUTH_URL=https://vibedevid.com \
+NEXT_PUBLIC_SITE_URL=https://vibedeveloper.id \
+VITE_SITE_URL=https://vibedeveloper.id \
+VITE_BETTER_AUTH_URL=https://vibedeveloper.id \
 bun run build
 
 # 2. Preview locally on Workers runtime (copy .env.local → .dev.vars)
@@ -273,8 +277,13 @@ Notes:
   Worker. Keep it in local `.env.local` for schema tools.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
 - Add OAuth redirect URLs in Google/GitHub developer consoles:
-  - `https://vibedevid.com/api/auth/callback/google`
-  - `https://vibedevid.com/api/auth/callback/github`
+  - `https://vibedeveloper.id/api/auth/callback/google`
+  - `https://vibedeveloper.id/api/auth/callback/github`
+- After deploy, set Worker secrets `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL`
+  to `https://vibedeveloper.id`. Point `vibedevid.com` DNS at this Worker (or a
+  registrar 301) so the old host is not a separate Apache site.
+- In Cloudflare, skip Bot Fight / WAF challenge for `/robots.txt` and
+  `/sitemap.xml` so Google can fetch them.
 - After cutover, remove legacy Supabase secrets from the Worker if still present.
 
 ## Neon Postgres
@@ -287,7 +296,8 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
 - **Schema tools** use `DATABASE_URL_UNPOOLED` (direct). `drizzle.config.ts`,
   `bun run migrate:schema`, and `bun run db:seed` prefer this URL when it is set.
 - **Local demo data** — `bun run db:seed` upserts seed-owned rows (users, projects,
-  posts, events, and related tables). It refuses `vibedevid.com` site URLs. Use
+  posts, events, and related tables). It refuses `vibedeveloper.id` and
+  `vibedevid.com` site URLs. Use
   `--reset` to delete seed-owned rows and insert them again.
 - **Branch policy** is in `neon.ts`: new non-default branches get a 7-day TTL,
   0.25–1 CU, and a 5-minute suspend.
@@ -570,8 +580,8 @@ Search-engine optimization is handled at the route level:
 - **Server-rendered meta** - Per-route `head()` blocks emit title, description, Open Graph, and Twitter Card tags (rendered in SSR HTML, verifiable with a Googlebot user-agent).
 - **Structured data** - Organization + WebSite JSON-LD in the root route.
 - **Dynamic sitemap** - `app/routes/sitemap[.]xml.ts` queries Neon (Drizzle) for published posts, projects, approved events, and public profiles, plus static routes. Auth-gated pages are excluded; `lastmod` uses real content timestamps with a fallback.
-- **robots.txt** - `app/routes/robots[.]txt.ts` serves a single `User-agent: *` group, disallows private/API paths, and references the sitemap. Note: if Cloudflare's managed robots.txt is enabled it will shadow this route — keep only one source of truth.
-- **Canonical URLs** - Self-referencing canonicals on content and list pages; the homepage and `/project/list` consolidate `?filter`/`?sort` variants onto their clean URLs.
+- **robots.txt** - `app/routes/robots[.]txt.ts` serves a single `User-agent: *` group, disallows private/API paths, and references `https://vibedeveloper.id/sitemap.xml`. `Host` is the canonical apex. Note: if Cloudflare's managed robots.txt is enabled it will shadow this route — keep only one source of truth.
+- **Canonical URLs** - Self-referencing canonicals on content and list pages (`https://vibedeveloper.id/...`). The homepage and `/project/list` consolidate `?filter`/`?sort` variants onto their clean URLs. The root layout does not emit a homepage canonical, so child pages do not get two canonical tags. Alias hosts 301 to the apex.
 - **noindex** - Admin, dashboard, blog editor, project submit, `/testimonial`, and auth routes emit `robots: noindex, nofollow` via the shared `NOINDEX_META` helper in `lib/seo/site-url.ts`.
 - **Dynamic OG image** - `app/routes/api/og.ts` renders a branded 1200×630 SVG from a `title` query param (dependency-free, Cloudflare Workers-safe).
 - **LCP-friendly images** - Below-the-fold images use `loading="lazy"`; preload is reserved for the hero/logo (above the fold).

@@ -245,11 +245,11 @@ psql -c "SELECT COUNT(*) FROM projects WHERE slug IS NULL;"
 psql -c "SELECT slug, COUNT(*) FROM projects GROUP BY slug HAVING COUNT(*) > 1;"
 
 # Application health check
-curl -I https://vibedevid.com/project/test-slug
-curl -I https://vibedevid.com/project/550e8400-e29b-41d4-a716-446655440001
+curl -I https://vibedeveloper.id/project/test-slug
+curl -I https://vibedeveloper.id/project/550e8400-e29b-41d4-a716-446655440001
 
 # Performance monitoring
-time curl -s https://vibedevid.com/ > /dev/null
+time curl -s https://vibedeveloper.id/ > /dev/null
 ```
 
 ---

@@ -51,7 +51,6 @@ export const Route = createRootRoute({
         { property: 'og:locale', content: 'id_ID' },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:url', content: siteUrl },
         { property: 'og:image', content: ogImage },
         { property: 'og:image:type', content: 'image/png' },
         { property: 'og:image:width', content: '1200' },
@@ -68,7 +67,6 @@ export const Route = createRootRoute({
       links: [
         { rel: 'stylesheet', href: appCss },
         { rel: 'icon', type: 'image/svg+xml', href: '/default-favicon.svg' },
-        { rel: 'canonical', href: siteUrl },
       ],
     }
   },
@@ -89,7 +87,10 @@ function RootLayout() {
       className="font-sans antialiased"
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: ssrLocaleScript(locale) }} />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: SSR locale marker must run before hydration.
+          dangerouslySetInnerHTML={{ __html: ssrLocaleScript(locale) }}
+        />
         <HeadContent />
         {import.meta.env.DEV && (
           <script
@@ -152,6 +153,7 @@ function RootLayout() {
         </I18nextProvider>
         <AgentationProvider />
         <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: uninstall shim for the leftover Next.js service worker.
           dangerouslySetInnerHTML={{
             __html: `
             if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
