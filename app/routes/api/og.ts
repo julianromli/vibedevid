@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { escapeXml } from "@/lib/seo/escape-xml";
+import { createFileRoute } from '@tanstack/react-router'
+import { escapeXml } from '@/lib/seo/escape-xml'
 
 /**
  * Dynamic Open Graph image endpoint.
@@ -12,50 +12,50 @@ import { escapeXml } from "@/lib/seo/escape-xml";
 
 /** Naive word-wrap into at most `maxLines` lines of ~`maxChars` characters. */
 function wrapText(text: string, maxChars: number, maxLines: number): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = "";
+  const words = text.split(/\s+/).filter(Boolean)
+  const lines: string[] = []
+  let current = ''
 
   for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
+    const candidate = current ? `${current} ${word}` : word
     if (candidate.length > maxChars && current) {
-      lines.push(current);
-      current = word;
-      if (lines.length === maxLines - 1) break;
+      lines.push(current)
+      current = word
+      if (lines.length === maxLines - 1) break
     } else {
-      current = candidate;
+      current = candidate
     }
   }
 
-  if (current && lines.length < maxLines) lines.push(current);
+  if (current && lines.length < maxLines) lines.push(current)
 
   // Ellipsize if the title overflowed the allowed line budget.
-  const consumed = lines.join(" ").length;
+  const consumed = lines.join(' ').length
   if (consumed < text.length && lines.length > 0) {
-    lines[lines.length - 1] = `${lines[lines.length - 1].replace(/\s+\S*$/, "")}…`;
+    lines[lines.length - 1] = `${lines[lines.length - 1].replace(/\s+\S*$/, '')}…`
   }
 
-  return lines;
+  return lines
 }
 
-export const Route = createFileRoute("/api/og")({
+export const Route = createFileRoute('/api/og')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { searchParams } = new URL(request.url);
-        const rawTitle = searchParams.get("title");
+        const { searchParams } = new URL(request.url)
+        const rawTitle = searchParams.get('title')
 
         if (!rawTitle) {
-          return new Response("Missing title", { status: 400 });
+          return new Response('Missing title', { status: 400 })
         }
 
-        const title = rawTitle.slice(0, 140);
-        const subtitle = (searchParams.get("subtitle") || "VibeDev ID").slice(0, 80);
+        const title = rawTitle.slice(0, 140)
+        const subtitle = (searchParams.get('subtitle') || 'VibeDev ID').slice(0, 80)
 
-        const titleLines = wrapText(title, 28, 3);
+        const titleLines = wrapText(title, 28, 3)
         const titleSvg = titleLines
           .map((line, i) => `<tspan x="80" dy="${i === 0 ? 0 : 84}">${escapeXml(line)}</tspan>`)
-          .join("");
+          .join('')
 
         const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
@@ -70,16 +70,16 @@ export const Route = createFileRoute("/api/og")({
   <text x="80" y="120" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="32" font-weight="600" fill="#a78bfa" letter-spacing="2">VIBEDEV ID</text>
   <text y="280" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="68" font-weight="800" fill="#ffffff">${titleSvg}</text>
   <text x="80" y="560" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="30" font-weight="500" fill="#a3a3a3">${escapeXml(subtitle)}</text>
-</svg>`;
+</svg>`
 
         return new Response(svg, {
           status: 200,
           headers: {
-            "Content-Type": "image/svg+xml; charset=utf-8",
-            "Cache-Control": "public, max-age=86400, s-maxage=86400, immutable",
+            'Content-Type': 'image/svg+xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400, immutable',
           },
-        });
+        })
       },
     },
   },
-});
+})

@@ -95,9 +95,7 @@ describe('getCanonicalHostRedirect', () => {
   })
 
   it('redirects DNS trailing-dot alias and canonical hosts', () => {
-    expect(getCanonicalHostRedirect(new Request('https://vibedevid.com./blog'))).toBe(
-      `${CANONICAL_SITE_ORIGIN}/blog`,
-    )
+    expect(getCanonicalHostRedirect(new Request('https://vibedevid.com./blog'))).toBe(`${CANONICAL_SITE_ORIGIN}/blog`)
     expect(
       getCanonicalHostRedirect(
         new Request('https://example.workers.dev/robots.txt', {
