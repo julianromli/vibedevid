@@ -28,8 +28,7 @@ function readWorkerEnv(name: string): string | undefined {
 }
 
 function readProcessEnv(name: string): string | undefined {
-  if (typeof process === 'undefined') return undefined
-  const value = process.env[name]
+  const value = process?.env?.[name]
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : undefined

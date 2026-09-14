@@ -43,6 +43,18 @@ describe('getSiteUrl', () => {
     expect(getSiteUrl()).toBe(CANONICAL_SITE_ORIGIN)
   })
 
+  it('returns a default origin when process.env is missing', () => {
+    const processRef = process as NodeJS.Process & { env?: NodeJS.ProcessEnv }
+    const originalEnv = processRef.env
+    processRef.env = undefined
+
+    try {
+      expect(getSiteUrl()).toMatch(/^https?:\/\/[^/]+$/)
+    } finally {
+      processRef.env = originalEnv
+    }
+  })
+
   it('keeps localhost for local development', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'http://localhost:3000')
     expect(getSiteUrl()).toBe('http://localhost:3000')
