@@ -44,6 +44,7 @@ describe('getSiteUrl', () => {
   })
 
   it('returns a default origin when process.env is missing', () => {
+    // process exists (Node/Vitest). Only env is missing, as on some edge runtimes.
     const processRef = process as NodeJS.Process & { env?: NodeJS.ProcessEnv }
     const originalEnv = processRef.env
     processRef.env = undefined
