@@ -12,6 +12,7 @@ export const Route = createFileRoute('/terms')({
           'Ketentuan layanan VibeDev ID — komunitas vibe coding Indonesia. Syarat dan ketentuan penggunaan platform.',
       },
       { name: 'robots', content: 'index, follow' },
+      { property: 'og:url', content: absoluteUrl('/terms') },
     ],
     links: [{ rel: 'canonical', href: absoluteUrl('/terms') }],
   }),

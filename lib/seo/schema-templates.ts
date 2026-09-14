@@ -19,7 +19,9 @@ import type { PublishedPostDetail } from '@/lib/server/blog-public'
 import type { ProjectDetail } from '@/lib/server/project-public'
 import type { EventDto } from '@/types/domain'
 
-const SITE_LOGO = 'https://vibedevid.com/vibedevid_final_black.svg'
+function siteLogoUrl(): string {
+  return absoluteUrl('/vibedevid_final_black.svg')
+}
 
 /**
  * BlogPosting schema for a blog post detail page.
@@ -50,7 +52,7 @@ export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
       name: 'VibeDev ID',
       logo: {
         '@type': 'ImageObject',
-        url: SITE_LOGO,
+        url: siteLogoUrl(),
       },
     },
     mainEntityOfPage: {

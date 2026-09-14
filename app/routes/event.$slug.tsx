@@ -67,7 +67,7 @@ export const Route = createFileRoute('/event/$slug')({
         { name: 'twitter:site', content: '@vibedevid' },
         { name: 'twitter:creator', content: '@vibedevid' },
       ],
-      links: [{ rel: 'canonical', href: pathname }],
+      links: [{ rel: 'canonical', href: url }],
     }
   },
   component: EventDetailRoute,
