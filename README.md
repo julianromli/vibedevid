@@ -155,7 +155,7 @@ Use `http://localhost:3000` for sign-in. `http://127.0.0.1:3000` fails Better Au
 
 ### Cloud Agents
 
-Cursor Cloud Agents install Bun 1.3.14, run `bun install --frozen-lockfile`, then start `bun run dev` on port 3000. If `DATABASE_URL` is unset, startup creates a temporary Neon database (claim it within 72 hours) and loads demo data with `bun run db:setup`. See `AGENTS.md` for the seed login and which checks pass.
+Cursor Cloud Agents install Bun 1.3.14, run `bun install --frozen-lockfile`, then start `bun run dev` on port 3000. If `DATABASE_URL` is unset, startup creates a temporary Neon database (claim it within 72 hours) and loads demo data with `bun run db:setup`. If `DATABASE_URL` is already set, startup uses that database and does not seed it. Set `DATABASE_URL_UNPOOLED` to the direct host (no `-pooler` in the hostname) before `bun run migrate:schema`. See `AGENTS.md` for the seed login and which checks pass.
 
 ### Local seed accounts
 
