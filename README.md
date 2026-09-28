@@ -151,6 +151,12 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000). Log in with a seed account below. New sign-up still needs email verification. Without Resend, the verification link prints in the server log.
 
+Use `http://localhost:3000` for sign-in. `http://127.0.0.1:3000` fails Better Auth with `Invalid origin` when `BETTER_AUTH_URL` is localhost.
+
+### Cloud Agents
+
+Cursor Cloud Agents install Bun 1.3.14, run `bun install --frozen-lockfile`, then start `bun run dev` on port 3000. If `DATABASE_URL` is unset, startup creates a temporary Neon database (claim it within 72 hours) and loads demo data with `bun run db:setup`. See `AGENTS.md` for the seed login and which checks pass.
+
 ### Local seed accounts
 
 Shared password: `VibeDevLocal1!`
