@@ -123,7 +123,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 VITE_SITE_URL=http://localhost:3000
 ```
 
-Keep `VITE_SITE_URL` and `NEXT_PUBLIC_SITE_URL` on localhost. The seed script refuses `vibedeveloper.id` and `vibedevid.com`.
+Keep `VITE_SITE_URL` and `NEXT_PUBLIC_SITE_URL` on localhost. The seed script refuses `vibedeveloper.id` and `vibedevid.com`. It also refuses a database that already has a non-seed user. That guard stops demo rows from landing on production again.
 
 5. Apply the schema and load demo data:
 
@@ -137,9 +137,10 @@ This runs `migrate:schema` then `db:seed`. You can run the steps apart:
 bun run migrate:schema
 bun run db:seed
 # bun run db:seed -- --reset   # delete seed-owned rows, then insert again
+bun run db:purge-seed         # delete demo rows only; real content stays
 ```
 
-`db:seed` is idempotent. It upserts seed rows only and does not wipe rows you create after that.
+`db:seed` is idempotent. It upserts seed rows only and does not wipe rows you create after that. If demo seed rows were loaded into production, the next request to `https://vibedeveloper.id` deletes only those rows (seed accounts, `seed-*` slugs, the "Community highlight" videos, and the Ayu Pratama / Bimo Santoso testimonials). You can run the same delete with `bun run db:purge-seed` against that database.
 
 One-time Supabase → Neon import is not part of this path. See [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md).
 
@@ -176,6 +177,7 @@ vp install
 bun run db:setup
 bun run db:seed
 bun run db:seed -- --reset
+bun run db:purge-seed
 
 # Development server (vite dev, port 3000)
 bun run dev
@@ -297,8 +299,11 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
   `bun run migrate:schema`, and `bun run db:seed` prefer this URL when it is set.
 - **Local demo data** — `bun run db:seed` upserts seed-owned rows (users, projects,
   posts, events, and related tables). It refuses `vibedeveloper.id` and
-  `vibedevid.com` site URLs. Use
-  `--reset` to delete seed-owned rows and insert them again.
+  `vibedevid.com` site URLs, and it refuses a database that already has a
+  non-seed user. Use `--reset` to delete seed-owned rows and insert them again.
+  `bun run db:purge-seed` deletes demo rows and leaves real content. The
+  production Worker also runs that delete once per isolate when the request
+  host is `vibedeveloper.id`.
 - **Branch policy** is in `neon.ts`: new non-default branches get a 7-day TTL,
   0.25–1 CU, and a 5-minute suspend.
 - **Harden migration** `scripts/migrations/neon/03_harden_schema.sql` runs after

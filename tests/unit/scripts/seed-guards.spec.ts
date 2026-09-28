@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { parseEnvFile } from '@/scripts/seed/env'
-import { assertSafeSeedTarget, isProductionSiteUrl } from '@/scripts/seed/guards'
+import {
+  assertNoRealUsersBeforeSeed,
+  assertSafeSeedTarget,
+  isProductionSiteUrl,
+  requestUrlIsProduction,
+} from '@/scripts/seed/guards'
 
 describe('isProductionSiteUrl', () => {
   it('treats production hosts as blocked', () => {
@@ -48,6 +53,27 @@ describe('assertSafeSeedTarget', () => {
         allowProduction: true,
       }),
     ).not.toThrow()
+  })
+})
+
+describe('requestUrlIsProduction', () => {
+  it('matches the live site and skips localhost', () => {
+    expect(requestUrlIsProduction('https://vibedeveloper.id/')).toBe(true)
+    expect(requestUrlIsProduction('https://www.vibedeveloper.id/project/seed-pointer-ai')).toBe(true)
+    expect(requestUrlIsProduction('http://localhost:3000/')).toBe(false)
+  })
+})
+
+describe('assertNoRealUsersBeforeSeed', () => {
+  it('blocks a database that already has real users', () => {
+    expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 4, allowProduction: false })).toThrow(
+      /non-seed user/,
+    )
+  })
+
+  it('allows an empty database and an explicit override', () => {
+    expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 0, allowProduction: false })).not.toThrow()
+    expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 4, allowProduction: true })).not.toThrow()
   })
 })
 

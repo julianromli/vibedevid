@@ -27,7 +27,7 @@ import {
   SEED_VIEWS,
   seedOwnedIds,
 } from "./seed/fixtures";
-import { assertSafeSeedTarget } from "./seed/guards";
+import { assertNoRealUsersBeforeSeed, assertSafeSeedTarget } from "./seed/guards";
 import { hashSeedPassword } from "./seed/hash";
 
 type SeedSql = postgres.TransactionSql;
@@ -382,6 +382,15 @@ async function main() {
   const owned = seedOwnedIds();
 
   try {
+    const [outsider] = await sql<{ count: number }[]>`
+      SELECT COUNT(*)::int AS count
+      FROM "user"
+      WHERE NOT (email = ANY(${SEED_USERS.map((user) => user.email)}))
+    `;
+    assertNoRealUsersBeforeSeed({
+      realUserCount: Number(outsider?.count ?? 0),
+      allowProduction: process.env.SEED_ALLOW_PRODUCTION === "1",
+    });
     await sql.begin(async (tx) => {
       if (reset) {
         console.log("Resetting seed-owned rows...");

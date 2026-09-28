@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   assertSeedFixtures,
   SEED_CATEGORIES,
+  SEED_DESCRIPTION_MARKER,
   SEED_COMMENTS,
   SEED_EVENTS,
   SEED_LIKES,
@@ -21,6 +22,12 @@ describe("seed fixtures", () => {
     expect(SEED_USERS.map((user) => user.role).sort()).toEqual([0, 1, 2, 2]);
     for (const user of SEED_USERS) {
       expect(user.email.endsWith("@gmail.com")).toBe(true);
+    }
+  });
+
+  it("marks project descriptions so the production purge can find them", () => {
+    for (const project of SEED_PROJECTS) {
+      expect(project.description).toContain(SEED_DESCRIPTION_MARKER);
     }
   });
 

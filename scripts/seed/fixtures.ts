@@ -224,8 +224,10 @@ export const SEED_CATEGORIES: SeedCategory[] = [
   },
 ];
 
+export const SEED_DESCRIPTION_MARKER = "This local seed project is long enough";
+
 const longDescription = (topic: string) =>
-  `${topic} This local seed project is long enough for the public project cards and the submit form limits. It exists so contributors can browse lists, filters, likes, and comments without production data.`;
+  `${topic} ${SEED_DESCRIPTION_MARKER} for the public project cards and the submit form limits. It exists so contributors can browse lists, filters, likes, and comments without production data.`;
 
 export const SEED_PROJECTS: SeedProject[] = [
   {
