@@ -24,6 +24,7 @@ interface ProjectListClientProps {
   initialNextCursor?: string | null;
   initialFilter: string;
   initialSort: SortBy;
+  initialAuthor?: string;
   filterOptions: ProjectFilterOption[];
 }
 
@@ -115,6 +116,7 @@ export function ProjectListClient({
   initialNextCursor = null,
   initialFilter,
   initialSort,
+  initialAuthor,
   filterOptions,
 }: ProjectListClientProps) {
   const { t } = useTranslation("projectList");
@@ -140,6 +142,7 @@ export function ProjectListClient({
     initialCategories: [{ value: "all", label: tCommon("all") }, ...filterOptions],
     initialFilter,
     initialSort,
+    initialAuthor,
   });
 
   const visibleProjectCount = projects.length;

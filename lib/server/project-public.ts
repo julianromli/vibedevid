@@ -285,6 +285,7 @@ export interface ProjectPage {
 export async function fetchProjectPage(options: {
   sortBy?: "trending" | "top" | "newest";
   category?: string;
+  authorUsername?: string;
   limit?: number;
   cursor?: string | null;
 }): Promise<ProjectPage> {
@@ -320,7 +321,14 @@ export async function fetchProjectPage(options: {
         : eq(projects.category, category);
   }
 
-  const filters = [categoryCondition, cursor ? projectCursorCondition(sortBy, cursor) : undefined].filter(
+  const authorCondition = options.authorUsername
+    ? eq(users.username, options.authorUsername)
+    : undefined;
+  const filters = [
+    categoryCondition,
+    authorCondition,
+    cursor ? projectCursorCondition(sortBy, cursor) : undefined,
+  ].filter(
     (filter): filter is SQL => Boolean(filter),
   );
 

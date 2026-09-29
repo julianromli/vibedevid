@@ -335,6 +335,8 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 Home and `/project/list` keep the category and sort in the `filter` and `sort` search params. "Load more" asks for the next page of 18. A failed load shows an error instead of a blank grid. Deleting a project deletes that one row; comments, likes, and views are removed by the foreign-key cascade.
 
+Project list indexes: `scripts/migrations/neon/08_project_list_indexes.sql` (`created_at`, and `category` + `created_at`). Apply with `bun run migrate:schema`. A profile that has more than the 10 shown projects links to `/project/list?author=<username>`. Category badges on a profile use the category display name.
+
 **comments** - Unified comments for Blog and Projects. XOR check: exactly one parent.
 
 **likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.

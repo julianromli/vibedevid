@@ -11,6 +11,7 @@ import {
   users,
   views,
 } from "@/lib/db/schema";
+import { getCategories } from "@/lib/categories";
 import { getCurrentUser } from "@/lib/server/auth";
 
 export interface ProfileUser {
@@ -130,6 +131,8 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
 
   if (projectRows.length === 0) return [];
 
+  const categoryRows = await getCategories();
+  const categoryNames = new Map(categoryRows.map((category) => [category.name, category.display_name]));
   const projectIds = projectRows.map((project) => project.id);
   const [likesData, viewsData, commentsData] = await Promise.all([
     db
@@ -166,7 +169,7 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
       slug: project.slug,
       title: project.title,
       description: project.description,
-      category: project.category,
+      category: categoryNames.get(project.category ?? "") || project.category,
       website_url: project.websiteUrl,
       image_url: primaryImage,
       thumbnail_url: primaryImage,

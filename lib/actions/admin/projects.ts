@@ -1,5 +1,5 @@
 import { revalidatePath } from "@/lib/revalidation";
-import { normalizeProjectWebsiteUrl } from "../../project-url";
+import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
 import { getDb } from "@/lib/db";
 import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
 import { toProjectDto } from "@/lib/db/mappers";
@@ -201,36 +201,33 @@ export async function adminUpdateProject(
   try {
     await checkAdminAccess();
 
-    const normalizedWebsiteUrl =
-      updates.website_url === undefined
-        ? undefined
-        : updates.website_url === null
-          ? null
-          : updates.website_url.trim().length === 0
-            ? null
-            : normalizeProjectWebsiteUrl(updates.website_url);
-
-    if (
-      updates.website_url !== undefined &&
-      updates.website_url !== null &&
-      updates.website_url.trim().length > 0 &&
-      !normalizedWebsiteUrl
-    ) {
-      return { success: false, error: "Enter a valid website URL" };
+    const parsed = ProjectUpdateSchema.safeParse({
+      title: updates.title,
+      description: updates.description,
+      category: updates.category,
+      website_url: updates.website_url,
+      image_url: updates.image_url,
+      tagline: updates.tagline,
+      tags: updates.tags,
+      featured: updates.featured,
+    });
+    if (!parsed.success) {
+      return { success: false, error: "Invalid project update" };
     }
+    const patch = parsed.data;
 
     const db = getDb();
     const updatedRows = await db
       .update(projects)
       .set({
-        ...(updates.title !== undefined && { title: updates.title }),
-        ...(updates.description !== undefined && { description: updates.description }),
-        ...(updates.category !== undefined && { category: updates.category }),
-        ...(updates.website_url !== undefined && { websiteUrl: normalizedWebsiteUrl }),
-        ...(updates.image_url !== undefined && { imageUrl: updates.image_url }),
-        ...(updates.tagline !== undefined && { tagline: updates.tagline }),
-        ...(updates.tags !== undefined && { tags: updates.tags }),
-        ...(updates.featured !== undefined && { featured: updates.featured }),
+        ...(patch.title !== undefined && { title: patch.title }),
+        ...(patch.description !== undefined && { description: patch.description }),
+        ...(patch.category !== undefined && { category: patch.category }),
+        ...(patch.website_url !== undefined && { websiteUrl: patch.website_url }),
+        ...(patch.image_url !== undefined && { imageUrl: patch.image_url }),
+        ...(patch.tagline !== undefined && { tagline: patch.tagline }),
+        ...(patch.tags !== undefined && { tags: patch.tags }),
+        ...(patch.featured !== undefined && { featured: patch.featured }),
         updatedAt: new Date(),
       })
       .where(eq(projects.id, projectId))

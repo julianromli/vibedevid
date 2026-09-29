@@ -65,6 +65,7 @@ export const fetchProjectsWithSortingFn = createServerFn({ method: "GET" })
     z.object({
       sortBy: z.enum(["trending", "top", "newest"]).default("newest"),
       category: z.string().optional(),
+      authorUsername: z.string().min(1).max(32).optional(),
       limit: z.number().int().positive().max(PROJECT_PAGE_SIZE).default(PROJECT_PAGE_SIZE),
       cursor: z.string().optional(),
     }),
@@ -74,6 +75,7 @@ export const fetchProjectsWithSortingFn = createServerFn({ method: "GET" })
       const page = await fetchProjectPageAction({
         sortBy: data.sortBy,
         category: data.category,
+        authorUsername: data.authorUsername,
         limit: data.limit,
         cursor: data.cursor,
       });

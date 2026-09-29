@@ -464,6 +464,7 @@ export function ProjectEditClient({
                               className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
                               onClick={() => removeImage(index)}
                               disabled={isSaving}
+                              aria-label={`Remove screenshot ${index + 1}`}
                             >
                               <X className="h-3 w-3" />
                             </Button>

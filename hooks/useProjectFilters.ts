@@ -18,6 +18,7 @@ interface UseProjectFiltersOptions {
   initialSort?: SortBy;
   initialNextCursor?: string | null;
   initialError?: string | null;
+  initialAuthor?: string;
 }
 
 const ALL_FILTER_VALUE = "all";
@@ -30,13 +31,20 @@ async function fetchProjectsWithTimeout(
   sortBy: SortBy,
   category?: string,
   cursor?: string | null,
+  authorUsername?: string,
 ): Promise<FetchProjectsResult> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
     return await Promise.race([
       fetchProjectsWithSortingFn({
-        data: { sortBy, category, limit: PROJECT_PAGE_SIZE, cursor: cursor ?? undefined },
+        data: {
+          sortBy,
+          category,
+          limit: PROJECT_PAGE_SIZE,
+          cursor: cursor ?? undefined,
+          authorUsername,
+        },
       }),
       new Promise<FetchProjectsResult>((_, reject) => {
         timeoutId = setTimeout(() => {
@@ -63,11 +71,13 @@ async function loadFilteredProjects(
   sortBy: SortBy,
   selectedFilter: string,
   cursor?: string | null,
+  authorUsername?: string,
 ): Promise<{ projects: Project[]; nextCursor: string | null }> {
   const result = await fetchProjectsWithTimeout(
     sortBy,
     selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
     cursor,
+    authorUsername,
   );
 
   if (result.error) {
@@ -85,6 +95,7 @@ export function useProjectFilters({
   initialSort = DEFAULT_SORT,
   initialNextCursor = null,
   initialError = null,
+  initialAuthor,
 }: UseProjectFiltersOptions) {
   const navigate = useNavigate();
   const [selectedFilter, setSelectedFilterState] = useState(initialFilter);
@@ -144,7 +155,12 @@ export function useProjectFilters({
       try {
         setLoading(true);
 
-        const page = await loadFilteredProjects(selectedTrending, selectedFilter);
+        const page = await loadFilteredProjects(
+          selectedTrending,
+          selectedFilter,
+          null,
+          initialAuthor,
+        );
 
         if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return;
@@ -172,7 +188,7 @@ export function useProjectFilters({
     return () => {
       isActive = false;
     };
-  }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter]);
+  }, [authReady, initialAuthor, initialFilter, initialSort, selectedTrending, selectedFilter]);
 
   // Browser back/forward updates the loader search, which replaces this page.
   useEffect(() => {
@@ -192,7 +208,7 @@ export function useProjectFilters({
     const filter = selectedFilter;
     setLoadingMore(true);
 
-    void loadFilteredProjects(sortBy, filter, cursor)
+    void loadFilteredProjects(sortBy, filter, cursor, initialAuthor)
       .then((page) => {
         if (latestRequestIdRef.current !== requestId) return;
         setProjects((current) => [...current, ...page.projects]);
@@ -213,10 +229,11 @@ export function useProjectFilters({
   const writeSearch = (filter: string, sort: SortBy) => {
     void navigate({
       to: ".",
-      search: {
+      search: (prev) => ({
+        ...(prev as { filter?: string; sort?: string; author?: string }),
         filter: filter === ALL_FILTER_VALUE ? undefined : filter,
         sort: sort === DEFAULT_SORT ? undefined : sort,
-      },
+      }),
       replace: true,
       resetScroll: false,
     });
