@@ -71,6 +71,27 @@ export const projects = pgTable(
   ],
 );
 
+/**
+ * Server-side record of project screenshots uploaded by a user.
+ * Deletes and saves may use a key only when this row says the caller owns it.
+ */
+export const projectUploadFiles = pgTable(
+  "project_upload_files",
+  {
+    key: text("key").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    projectId: integer("project_id").references(() => projects.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_project_upload_files_user_id").on(table.userId),
+    index("idx_project_upload_files_project_id").on(table.projectId),
+  ],
+);
+
 export const posts = pgTable(
   "posts",
   {

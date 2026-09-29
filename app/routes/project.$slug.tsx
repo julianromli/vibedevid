@@ -7,7 +7,7 @@ import { getCategories } from '@/lib/categories'
 import { breadcrumbListSchema, softwareApplicationSchema } from '@/lib/seo/schema-templates'
 import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
 import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
-import { getProjectBySlug } from '@/lib/server/project-public'
+import { getOwnedProjectImageKeys, getProjectBySlug } from '@/lib/server/project-public'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
 /**
@@ -39,8 +39,10 @@ const loadProjectData = createServerFn({ method: 'GET' })
 
     const { comments: initialComments } = await getComments('project', String(project.id))
     const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
+    const ownerImageKeys =
+      isOwner && currentUser ? await getOwnedProjectImageKeys(slug, currentUser.id) : []
 
-    return { slug, project, currentUser, categories, initialComments, isOwner }
+    return { slug, project, currentUser, categories, initialComments, isOwner, ownerImageKeys }
   })
 
 export const Route = createFileRoute('/project/$slug')({

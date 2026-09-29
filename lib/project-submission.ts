@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isAllowedProjectImageUrl } from "@/lib/project-images";
 import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 
 /**
@@ -148,13 +149,21 @@ const websiteUrlSchema = z
     return normalized;
   });
 
-const imageUrlsSchema = z
-  .array(z.string())
-  .min(1, "At least one project screenshot is required")
-  .max(PROJECT_LIMITS.MAX_IMAGE_COUNT, `Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images allowed`)
-  .refine((urls) => urls.every((url) => url.trim().length > 0), "Image URLs cannot be blank");
+const imageUrlItemSchema = z
+  .string()
+  .trim()
+  .min(1, "Image URLs cannot be blank")
+  .max(2048, "Image URL is too long")
+  .refine(isAllowedProjectImageUrl, "Screenshots must be uploaded images or a GitHub preview");
 
-const imageKeysSchema = z.array(z.string());
+const imageUrlsSchema = z
+  .array(imageUrlItemSchema)
+  .min(1, "At least one project screenshot is required")
+  .max(PROJECT_LIMITS.MAX_IMAGE_COUNT, `Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images allowed`);
+
+const imageKeysSchema = z
+  .array(z.string().trim().min(1).max(512))
+  .max(PROJECT_LIMITS.MAX_IMAGE_COUNT, `Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images allowed`);
 
 const tagsSchema = z
   .array(z.string())
@@ -188,9 +197,44 @@ export const PROJECT_FIELD_SCHEMAS: {
   [K in keyof ProjectSubmissionInput]: (typeof TYPED_SCHEMA)[K];
 } = TYPED_SCHEMA;
 
+export interface ProjectSubmissionSchemaOptions {
+  /**
+   * URLs already stored on the project being edited. They stay valid so an
+   * older screenshot host does not block an unrelated edit. New URLs still
+   * have to pass the allow-list.
+   */
+  grandfatheredImageUrls?: readonly string[];
+}
+
 /** Compose the per-field schemas into the whole-form schema over the typed input. */
-export function buildProjectSubmissionSchema(categoryNames?: readonly string[]) {
-  const objectSchema = z.object(TYPED_SCHEMA);
+export function buildProjectSubmissionSchema(
+  categoryNames?: readonly string[],
+  options?: ProjectSubmissionSchemaOptions,
+) {
+  const grandfathered = new Set(
+    (options?.grandfatheredImageUrls ?? []).map((url) => url.trim()).filter(Boolean),
+  );
+  const imageUrls = grandfathered.size
+    ? z
+        .array(
+          z
+            .string()
+            .trim()
+            .min(1, "Image URLs cannot be blank")
+            .max(2048, "Image URL is too long")
+            .refine(
+              (url) => isAllowedProjectImageUrl(url) || grandfathered.has(url),
+              "Screenshots must be uploaded images or a GitHub preview",
+            ),
+        )
+        .min(1, "At least one project screenshot is required")
+        .max(
+          PROJECT_LIMITS.MAX_IMAGE_COUNT,
+          `Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images allowed`,
+        )
+    : TYPED_SCHEMA.imageUrls;
+
+  const objectSchema = z.object({ ...TYPED_SCHEMA, imageUrls });
 
   if (!categoryNames || categoryNames.length === 0) {
     return objectSchema;

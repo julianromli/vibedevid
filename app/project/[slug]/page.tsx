@@ -125,10 +125,11 @@ export interface ProjectDetailsData {
   categories: Categories;
   initialComments: InitialComments;
   isOwner: boolean;
+  ownerImageKeys: string[];
 }
 
 export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData }) {
-  const { slug, project, currentUser, categories, initialComments, isOwner } = data;
+  const { slug, project, currentUser, categories, initialComments, isOwner, ownerImageKeys } = data;
   return (
     <div className="bg-grid-pattern relative min-h-screen">
       {/* Background Gradient Overlay */}
@@ -260,7 +261,7 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
                     url: project.url,
                     imageUrls: project.imageUrls,
                     image: project.image,
-                    imageKeys: project.imageKeys,
+                    imageKeys: ownerImageKeys,
                     tags: project.tags,
                     faviconUrl: project.faviconUrl,
                   }}

@@ -329,6 +329,8 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 **projects** - Project showcase with slug-based URLs for SEO, tags, and category
 
+**project_upload_files** - Ledger of project screenshots (`key`, `user_id`, `url`, `project_id`). A signed-in user can save or delete an UploadThing key only when this row says they uploaded it. Public project reads do not include keys. Apply `scripts/migrations/neon/05_project_upload_files.sql` with `bun run migrate:schema` before deploying the upload-authorization change. Existing project rows keep their current images; only new uploads need a ledger row.
+
 **comments** - Unified comments for Blog and Projects. XOR check: exactly one parent.
 
 **likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.

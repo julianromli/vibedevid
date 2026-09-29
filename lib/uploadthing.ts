@@ -1,6 +1,7 @@
 import { createUploadthing, type FileRouter, UTApi } from "uploadthing/server";
 import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
 import { requireUser } from "@/lib/server/auth";
+import { recordProjectUpload } from "@/lib/server/project-uploads";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
 import { isUploadthingTokenShape } from "@/lib/uploadthing-token";
 import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
@@ -120,6 +121,12 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       const ufsUrl = getUfsUrl(file);
       const url = ufsUrl ?? file.url;
+
+      await recordProjectUpload({
+        key: file.key,
+        url,
+        userId: metadata.userId,
+      });
 
       const uploadedFile = {
         uploadedBy: metadata.userId,
