@@ -163,7 +163,6 @@ export function softwareApplicationSchema(project: ProjectDetail) {
     operatingSystem: 'Web',
     url: url,
     ...(image ? { screenshot: image } : {}),
-    ...(project.url ? { downloadUrl: project.url } : {}),
     ...(project.tags.length > 0 ? { keywords: project.tags.join(', ') } : {}),
     author: {
       '@type': 'Person',
@@ -176,14 +175,6 @@ export function softwareApplicationSchema(project: ProjectDetail) {
       priceCurrency: 'IDR',
       availability: 'https://schema.org/InStock',
     },
-    aggregateRating:
-      project.likes > 0
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: '5',
-            reviewCount: project.likes,
-          }
-        : undefined,
   }
 }
 

@@ -121,6 +121,8 @@ export function ProminentLikeButton({
         className="py-0 pe-0 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
         variant="default"
         onClick={handleClick}
+        aria-pressed={isLiked}
+        aria-label={isLiked ? "Unlike this project" : "Like this project"}
         title={
           !isLoggedIn
             ? "Sign in to like projects"

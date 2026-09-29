@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePenLine, FileText, FolderOpen, LayoutGrid, User } from "lucide-react";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlogTab } from "@/components/profile/blog-tab";
@@ -168,7 +168,20 @@ export default function ProfilePage({ data }: { data: ProfilePageData }) {
 
           <TabsContent value="projects" className="mt-0 focus-visible:outline-none">
             {userProjects.length > 0 ? (
-              <ProjectTab projects={userProjects} />
+              <div className="space-y-6">
+                <ProjectTab projects={userProjects} />
+                {user && userStats.projects > userProjects.length ? (
+                  <div className="text-center">
+                    <Link
+                      to="/project/list"
+                      search={{ author: user.username }}
+                      className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      View all projects
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <ScaleIn>
                 <EmptyState

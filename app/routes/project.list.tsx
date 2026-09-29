@@ -21,12 +21,14 @@ const loadProjectListData = createServerFn({ method: 'GET' })
     z.object({
       filter: z.string().optional(),
       sort: z.string().optional(),
+      author: z.string().optional(),
     }),
   )
   .handler(async ({ data: search }) => {
     const [t, categories] = await Promise.all([getServerT('projectList'), getCategories()])
 
     const initialSort = normalizeSortParam(getSingleSearchParam(search.sort))
+    const initialAuthor = getSingleSearchParam(search.author)
     const requestedFilter = getSingleSearchParam(search.filter)
     const initialFilter =
       requestedFilter && categories.some((category) => category.name === requestedFilter) ? requestedFilter : 'all'
@@ -34,6 +36,7 @@ const loadProjectListData = createServerFn({ method: 'GET' })
     const page = await fetchProjectPage({
       sortBy: initialSort,
       category: initialFilter === 'all' ? undefined : initialFilter,
+      authorUsername: initialAuthor,
       limit: PROJECT_PAGE_SIZE,
     })
 
@@ -53,18 +56,28 @@ const loadProjectListData = createServerFn({ method: 'GET' })
       initialNextCursor: page.nextCursor,
       initialFilter,
       initialSort,
+      initialAuthor,
       filterOptions,
     }
   })
 
 export const Route = createFileRoute('/project/list')({
-  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { filter?: string; sort?: string; author?: string } => ({
     filter: typeof search.filter === 'string' ? search.filter : undefined,
     sort: typeof search.sort === 'string' ? search.sort : undefined,
+    author: typeof search.author === 'string' ? search.author : undefined,
   }),
-  loaderDeps: ({ search }) => ({ filter: search.filter, sort: search.sort }),
+  loaderDeps: ({ search }) => ({
+    filter: search.filter,
+    sort: search.sort,
+    author: search.author,
+  }),
   loader: async ({ deps, context }) => {
-    const data = await loadProjectListData({ data: { filter: deps.filter, sort: deps.sort } })
+    const data = await loadProjectListData({
+      data: { filter: deps.filter, sort: deps.sort, author: deps.author },
+    })
     // Reuse the user already resolved in the root `beforeLoad` instead of
     // re-querying it here (saves a `users` SELECT per project-list request).
     const currentUser = context.currentUser
@@ -136,6 +149,7 @@ function ProjectListRoute() {
               initialNextCursor={data.initialNextCursor}
               initialFilter={data.initialFilter}
               initialSort={data.initialSort}
+              initialAuthor={data.initialAuthor}
               filterOptions={data.filterOptions}
             />
           </div>
