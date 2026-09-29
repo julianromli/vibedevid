@@ -333,6 +333,8 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 **rate_limit_buckets** - Fixed-window counters for guest comments (5 per 10 minutes per IP) and GitHub import (20 per hour per signed-in user). Apply `scripts/migrations/neon/07_rate_limit_buckets.sql` with `bun run migrate:schema`. If the table is missing, those routes use an in-memory limit inside the current Worker isolate instead of failing. No extra Redis or Upstash env vars.
 
+Home and `/project/list` keep the category and sort in the `filter` and `sort` search params. "Load more" asks for the next page of 18. A failed load shows an error instead of a blank grid. Deleting a project deletes that one row; comments, likes, and views are removed by the foreign-key cascade.
+
 **comments** - Unified comments for Blog and Projects. XOR check: exactly one parent.
 
 **likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.

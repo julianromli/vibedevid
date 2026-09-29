@@ -44,6 +44,7 @@ interface HomePageClientProps {
   initialUser: User | null
   initialProjects: Project[]
   initialNextCursor?: string | null
+  initialError?: string | null
   initialCategories: ProjectFilterOption[]
   initialFilter: string
   initialSort: SortBy
@@ -60,6 +61,7 @@ export default function HomePageClient({
   initialUser,
   initialProjects,
   initialNextCursor = null,
+  initialError = null,
   initialCategories,
   initialFilter,
   initialSort,
@@ -88,6 +90,7 @@ export default function HomePageClient({
         <ProjectShowcaseProvider
           initialProjects={initialProjects}
           initialNextCursor={initialNextCursor}
+          initialError={initialError}
           initialCategories={initialCategories}
           initialFilter={initialFilter}
           initialSort={initialSort}

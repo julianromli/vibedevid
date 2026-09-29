@@ -19,6 +19,7 @@ interface ProjectShowcaseState {
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
+  error: string | null;
   selectedFilter: string;
   selectedTrending: SortBy;
   filterOptions: ProjectFilterOption[];
@@ -41,6 +42,7 @@ interface ProjectShowcaseProviderProps {
   children: React.ReactNode;
   initialProjects: Project[];
   initialNextCursor?: string | null;
+  initialError?: string | null;
   initialCategories: ProjectFilterOption[];
   initialFilter: string;
   initialSort: SortBy;
@@ -50,6 +52,7 @@ export function ProjectShowcaseProvider({
   children,
   initialProjects,
   initialNextCursor = null,
+  initialError = null,
   initialCategories,
   initialFilter,
   initialSort,
@@ -58,6 +61,7 @@ export function ProjectShowcaseProvider({
     authReady: true,
     initialProjects,
     initialNextCursor,
+    initialError,
     initialCategories,
     initialFilter,
     initialSort,
@@ -70,6 +74,7 @@ export function ProjectShowcaseProvider({
         loading: projectFilters.loading,
         loadingMore: projectFilters.loadingMore,
         hasMore: projectFilters.hasMore,
+        error: projectFilters.error,
         selectedFilter: projectFilters.selectedFilter,
         selectedTrending: projectFilters.selectedTrending,
         filterOptions: projectFilters.filterOptions,
@@ -85,6 +90,7 @@ export function ProjectShowcaseProvider({
       projectFilters.loading,
       projectFilters.loadingMore,
       projectFilters.hasMore,
+      projectFilters.error,
       projectFilters.loadMore,
       projectFilters.selectedFilter,
       projectFilters.selectedTrending,

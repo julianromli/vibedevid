@@ -555,10 +555,12 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       return true;
     }
     try {
-      const result = await cleanupProjectProvisionalUploadFn({
-        data: { imageKey: uploadedImageKeys[uploadedImageKeys.length - 1] },
-      });
-      if (result.success) {
+      const results = await Promise.all(
+        uploadedImageKeys.map((imageKey) =>
+          cleanupProjectProvisionalUploadFn({ data: { imageKey } }),
+        ),
+      );
+      if (results.every((result) => result.success)) {
         setUploadedImageUrls([]);
         setUploadedImageKeys([]);
         return true;

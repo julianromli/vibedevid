@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { z } from "zod";
 import { getDb } from "@/lib/db";
-import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
+import { categories, projects, users } from "@/lib/db/schema";
 import { alignProjectImages, INVALID_PROJECT_IMAGE_MESSAGE } from "@/lib/project-images";
 import {
   buildProjectFieldErrors,
@@ -411,6 +411,19 @@ export async function editProject(projectSlug: string, formData: FormData) {
 
     await syncProjectUploadAttachments(user.id, projectId, aligned.imageKeys);
 
+    const removedKeys = (project.imageKeys ?? []).filter(
+      (key) => key && !aligned.imageKeys.includes(key),
+    );
+    if (removedKeys.length > 0) {
+      try {
+        const { deleteUploadthingFiles } = await import("../uploadthing");
+        await deleteUploadthingFiles(removedKeys);
+        await Promise.all(removedKeys.map((key) => forgetProjectUpload(key)));
+      } catch (cleanupError) {
+        console.warn("Failed to delete removed project images:", cleanupError);
+      }
+    }
+
     revalidatePath(`/project/${projectSlug}`);
     revalidatePath("/project/list");
 
@@ -465,12 +478,9 @@ export async function deleteProject(projectSlug: string) {
       return { success: false, error: "You can only delete your own projects" };
     }
 
-    await Promise.all([
-      db.delete(comments).where(eq(comments.projectId, projectId)),
-      db.delete(likes).where(eq(likes.projectId, projectId)),
-      db.delete(views).where(eq(views.projectId, projectId)),
-    ]);
-
+    // One DELETE. comments, likes, and views use ON DELETE CASCADE.
+    // neon-http cannot open a multi-statement transaction, and a single
+    // statement is already atomic.
     await db.delete(projects).where(eq(projects.id, projectId));
 
     // Cleanup runs after the rows are gone. Deleting images first would leave

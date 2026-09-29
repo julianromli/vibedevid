@@ -98,15 +98,6 @@ function getPrimaryProjectImage(
   return imageUrl || null;
 }
 
-function tallyByProjectId(rows: { projectId: number | null }[]) {
-  return rows.reduce<Record<number, number>>((acc, row) => {
-    if (row.projectId != null) {
-      acc[row.projectId] = (acc[row.projectId] || 0) + 1;
-    }
-    return acc;
-  }, {});
-}
-
 async function fetchUserProjects(username: string): Promise<UserProject[]> {
   const db = getDb();
 
@@ -119,7 +110,19 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
   if (!user) return [];
 
   const projectRows = await db
-    .select()
+    .select({
+      id: projects.id,
+      slug: projects.slug,
+      title: projects.title,
+      description: projects.description,
+      category: projects.category,
+      websiteUrl: projects.websiteUrl,
+      imageUrl: projects.imageUrl,
+      imageUrls: projects.imageUrls,
+      authorId: projects.authorId,
+      createdAt: projects.createdAt,
+      updatedAt: projects.updatedAt,
+    })
     .from(projects)
     .where(eq(projects.authorId, user.id))
     .orderBy(desc(projects.createdAt))
@@ -130,22 +133,31 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
   const projectIds = projectRows.map((project) => project.id);
   const [likesData, viewsData, commentsData] = await Promise.all([
     db
-      .select({ projectId: likes.projectId })
+      .select({ projectId: likes.projectId, total: count() })
       .from(likes)
-      .where(inArray(likes.projectId, projectIds)),
+      .where(inArray(likes.projectId, projectIds))
+      .groupBy(likes.projectId),
     db
-      .select({ projectId: views.projectId })
+      .select({ projectId: views.projectId, total: count() })
       .from(views)
-      .where(inArray(views.projectId, projectIds)),
+      .where(inArray(views.projectId, projectIds))
+      .groupBy(views.projectId),
     db
-      .select({ projectId: comments.projectId })
+      .select({ projectId: comments.projectId, total: count() })
       .from(comments)
-      .where(inArray(comments.projectId, projectIds)),
+      .where(inArray(comments.projectId, projectIds))
+      .groupBy(comments.projectId),
   ]);
 
-  const likeCounts = tallyByProjectId(likesData);
-  const viewCounts = tallyByProjectId(viewsData);
-  const commentCounts = tallyByProjectId(commentsData);
+  const likeCounts = Object.fromEntries(
+    likesData.map((row) => [row.projectId, Number(row.total) || 0]),
+  );
+  const viewCounts = Object.fromEntries(
+    viewsData.map((row) => [row.projectId, Number(row.total) || 0]),
+  );
+  const commentCounts = Object.fromEntries(
+    commentsData.map((row) => [row.projectId, Number(row.total) || 0]),
+  );
 
   return projectRows.map((project) => {
     const primaryImage = getPrimaryProjectImage(project.imageUrls, project.imageUrl);

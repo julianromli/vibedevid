@@ -326,7 +326,16 @@ export async function fetchProjectPage(options: {
 
   const projectRows = await db
     .select({
-      project: projects,
+      id: projects.id,
+      slug: projects.slug,
+      title: projects.title,
+      description: projects.description,
+      category: projects.category,
+      websiteUrl: projects.websiteUrl,
+      imageUrl: projects.imageUrl,
+      imageUrls: projects.imageUrls,
+      tags: projects.tags,
+      createdAt: projects.createdAt,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
       authorAvatarUrl: users.avatarUrl,
@@ -343,34 +352,34 @@ export async function fetchProjectPage(options: {
   }
 
   const session = await getServerSession();
-  const projectIds = projectRows.map((p) => p.project.id);
+  const projectIds = projectRows.map((row) => row.id);
   const likesByProjectId = await getBatchLikeStatus(projectIds, session?.user?.id);
 
   const formattedProjects: ProjectCard[] = projectRows.map((row) => {
-    const mapped = toProjectDto(row.project);
-    const projectLikesData = likesByProjectId[String(mapped.id)] ?? {
+    const projectLikesData = likesByProjectId[String(row.id)] ?? {
       totalLikes: 0,
       isLiked: false,
     };
-    const categoryDisplayName = categoryMap.get(mapped.category) || mapped.category;
+    const categoryDisplayName = categoryMap.get(row.category) || row.category;
+    const createdAt = row.createdAt instanceof Date ? row.createdAt.toISOString() : "";
 
     return {
-      id: mapped.id,
-      slug: mapped.slug,
-      title: mapped.title,
-      description: mapped.description ?? undefined,
-      image: getPrimaryProjectImage(mapped),
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description ?? undefined,
+      image: getPrimaryProjectImage(row),
       author: {
         name: row.authorDisplayName || "Unknown",
         username: row.authorUsername || "unknown",
         role: row.authorRole ?? null,
         avatar: row.authorAvatarUrl || "/vibedev-guest-avatar.png",
       },
-      url: mapped.websiteUrl || undefined,
+      url: row.websiteUrl || undefined,
       category: categoryDisplayName,
       likes: projectLikesData.totalLikes,
       views: 0,
-      createdAt: mapped.createdAt ?? "",
+      createdAt,
     };
   });
 

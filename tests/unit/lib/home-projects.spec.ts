@@ -19,6 +19,7 @@ describe("loadHomeProjects", () => {
     await expect(loadHomeProjects("newest", undefined)).resolves.toEqual({
       projects,
       nextCursor: "next",
+      error: null,
     });
     expect(fetchProjectPage).toHaveBeenCalledWith({
       sortBy: "newest",
@@ -34,6 +35,7 @@ describe("loadHomeProjects", () => {
     await expect(loadHomeProjects("trending", "saas")).resolves.toEqual({
       projects: [],
       nextCursor: null,
+      error: "Could not load projects",
     });
     expect(consoleError).toHaveBeenCalled();
 

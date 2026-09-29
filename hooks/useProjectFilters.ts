@@ -3,6 +3,7 @@
  * Handles filter state, sorting, and data fetching
  */
 
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { fetchProjectsWithSortingFn } from "@/lib/actions/projects.functions";
 import { getCategoriesFn } from "@/lib/categories";
@@ -16,6 +17,7 @@ interface UseProjectFiltersOptions {
   initialFilter?: string;
   initialSort?: SortBy;
   initialNextCursor?: string | null;
+  initialError?: string | null;
 }
 
 const ALL_FILTER_VALUE = "all";
@@ -82,14 +84,17 @@ export function useProjectFilters({
   initialFilter = ALL_FILTER_VALUE,
   initialSort = DEFAULT_SORT,
   initialNextCursor = null,
+  initialError = null,
 }: UseProjectFiltersOptions) {
-  const [selectedFilter, setSelectedFilter] = useState(initialFilter);
-  const [selectedTrending, setSelectedTrending] = useState<SortBy>(initialSort);
+  const navigate = useNavigate();
+  const [selectedFilter, setSelectedFilterState] = useState(initialFilter);
+  const [selectedTrending, setSelectedTrendingState] = useState<SortBy>(initialSort);
   const [filterOptions, setFilterOptions] = useState<ProjectFilterOption[]>(initialCategories);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [loading, setLoading] = useState(initialProjects.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(initialError);
   const shouldSkipInitialFetchRef = useRef(initialProjects.length > 0);
   const latestRequestIdRef = useRef(0);
 
@@ -147,12 +152,14 @@ export function useProjectFilters({
 
         setProjects(page.projects);
         setNextCursor(page.nextCursor);
+        setError(null);
       } catch (error) {
         if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return;
         }
 
         console.error("Error fetching projects:", error);
+        setError("Could not load projects");
       } finally {
         if (isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           setLoading(false);
@@ -166,6 +173,15 @@ export function useProjectFilters({
       isActive = false;
     };
   }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter]);
+
+  // Browser back/forward updates the loader search, which replaces this page.
+  useEffect(() => {
+    setSelectedFilterState(initialFilter);
+    setSelectedTrendingState(initialSort);
+    setProjects(initialProjects);
+    setNextCursor(initialNextCursor);
+    setError(initialError);
+  }, [initialError, initialFilter, initialNextCursor, initialProjects, initialSort]);
 
   const loadMore = () => {
     if (!nextCursor || loading || loadingMore) return;
@@ -185,6 +201,7 @@ export function useProjectFilters({
       .catch((error: unknown) => {
         if (latestRequestIdRef.current !== requestId) return;
         console.error("Error fetching more projects:", error);
+        setError("Could not load more projects");
       })
       .finally(() => {
         if (latestRequestIdRef.current === requestId) {
@@ -193,11 +210,34 @@ export function useProjectFilters({
       });
   };
 
+  const writeSearch = (filter: string, sort: SortBy) => {
+    void navigate({
+      to: ".",
+      search: {
+        filter: filter === ALL_FILTER_VALUE ? undefined : filter,
+        sort: sort === DEFAULT_SORT ? undefined : sort,
+      },
+      replace: true,
+      resetScroll: false,
+    });
+  };
+
+  const setSelectedFilter = (filter: string) => {
+    setSelectedFilterState(filter);
+    writeSearch(filter, selectedTrending);
+  };
+
+  const setSelectedTrending = (sort: SortBy) => {
+    setSelectedTrendingState(sort);
+    writeSearch(selectedFilter, sort);
+  };
+
   return {
     selectedFilter,
     setSelectedFilter,
     selectedTrending,
     setSelectedTrending,
+    error,
     filterOptions,
     projects,
     loading,

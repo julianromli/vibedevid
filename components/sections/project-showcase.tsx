@@ -208,7 +208,7 @@ export function ProjectShowcase() {
   const { t } = useTranslation("projectShowcase");
   const { t: tCommon } = useTranslation("common");
   const {
-    state: { projects, loading, loadingMore, hasMore, selectedFilter, selectedTrending, filterOptions },
+    state: { projects, loading, loadingMore, hasMore, error, selectedFilter, selectedTrending, filterOptions },
     actions: { setSelectedFilter, setSelectedTrending, loadMore },
   } = useProjectShowcase();
 
@@ -289,6 +289,20 @@ export function ProjectShowcase() {
             />
           </div>
         </div>
+
+        {error ? (
+          <p role="alert" className="mb-6 text-center text-destructive">
+            {error}
+          </p>
+        ) : null}
+
+        {!loading && projects.length === 0 && !error ? (
+          <p className="py-12 text-center text-muted-foreground text-lg">
+            {selectedFilter === "all"
+              ? "No projects yet. Be the first to share one."
+              : "No projects in this category."}
+          </p>
+        ) : null}
 
         {/* Project Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

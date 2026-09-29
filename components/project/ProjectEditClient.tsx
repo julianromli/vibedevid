@@ -93,7 +93,7 @@ export function ProjectEditClient({
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
@@ -180,6 +180,7 @@ export function ProjectEditClient({
 
       if (result.success) {
         toast.success("Project updated successfully");
+        setIsEditing(false);
         void router.invalidate();
       } else {
         if (result.fieldErrors) {
@@ -188,7 +189,7 @@ export function ProjectEditClient({
           toast.error(result.error || "Failed to update project");
         }
       }
-    } catch (_error) {
+    } catch {
       toast.error("Failed to update project");
     } finally {
       setIsSaving(false);
@@ -524,7 +525,8 @@ export function ProjectEditClient({
                     !editFormData.description.trim() ||
                     editFormData.description.length > MAX_DESCRIPTION_LENGTH ||
                     editImageUrls.length === 0 ||
-                    isSaving
+                    isSaving ||
+                    isUploading
                   }
                 >
                   {isSaving ? (

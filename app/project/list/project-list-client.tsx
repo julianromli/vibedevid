@@ -131,6 +131,7 @@ export function ProjectListClient({
     loading,
     loadingMore,
     hasMore,
+    error,
     loadMore,
   } = useProjectFilters({
     authReady: true,
@@ -221,6 +222,12 @@ export function ProjectListClient({
           </div>
         </div>
       </div>
+
+      {error ? (
+        <p role="alert" className="mb-6 text-center text-destructive">
+          {error}
+        </p>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (

@@ -180,22 +180,44 @@ describe("fetchProjectsWithSorting — list read", () => {
     createdAt: new Date("2026-07-01T00:00:00Z"),
   };
 
+  function listRow(
+    project: typeof projectRow,
+    author: {
+      authorUsername: string;
+      authorDisplayName: string;
+      authorAvatarUrl: string | null;
+      authorRole: number | null;
+    },
+  ) {
+    return {
+      id: project.id,
+      slug: project.slug,
+      title: project.title,
+      description: project.description,
+      category: project.category,
+      websiteUrl: project.websiteUrl,
+      imageUrl: project.imageUrl,
+      imageUrls: project.imageUrls,
+      tags: project.tags,
+      createdAt: project.createdAt,
+      ...author,
+    };
+  }
+
   it("returns the list-card shape with display-name categories", async () => {
     h.state.selectRows = [
-      {
-        project: { ...projectRow, createdAt: new Date("2026-08-01T00:00:00Z") },
+      listRow(projectRow, {
         authorUsername: "jane",
         authorDisplayName: "Jane Doe",
         authorAvatarUrl: null,
         authorRole: 2,
-      },
-      {
-        project: otherProject,
+      }),
+      listRow(otherProject, {
         authorUsername: "bob",
         authorDisplayName: "Bob",
         authorAvatarUrl: "/bob.png",
         authorRole: null,
-      },
+      }),
     ];
     h.state.batchLikes = [{ projectId: 8, totalLikes: 2, isLiked: false }];
 
@@ -221,20 +243,18 @@ describe("fetchProjectsWithSorting — list read", () => {
 
   it("returns like counts for the top sort (SQL applies the order)", async () => {
     h.state.selectRows = [
-      {
-        project: projectRow, // 1 like incoming below
+      listRow(projectRow, {
         authorUsername: "jane",
         authorDisplayName: "Jane Doe",
         authorAvatarUrl: null,
         authorRole: 2,
-      },
-      {
-        project: otherProject,
+      }),
+      listRow(otherProject, {
         authorUsername: "bob",
         authorDisplayName: "Bob",
         authorAvatarUrl: null,
         authorRole: 2,
-      },
+      }),
     ];
     h.state.batchLikes = [{ projectId: 7, totalLikes: 1, isLiked: false }];
 
@@ -251,7 +271,7 @@ describe("fetchProjectsWithSorting — list read", () => {
   });
 
   it("throws when the projects query rejects", async () => {
-    h.state.failKeys = ["project"];
+    h.state.failKeys = ["slug"];
 
     await expect(fetchProjectsWithSorting("newest", undefined, 20)).rejects.toThrow(
       "mocked db failure",
@@ -260,13 +280,12 @@ describe("fetchProjectsWithSorting — list read", () => {
 
   it("degrades to zeroed likes when only the likes query fails", async () => {
     h.state.selectRows = [
-      {
-        project: projectRow,
+      listRow(projectRow, {
         authorUsername: "jane",
         authorDisplayName: "Jane Doe",
         authorAvatarUrl: null,
         authorRole: 2,
-      },
+      }),
     ];
     h.state.batchFail = true;
 

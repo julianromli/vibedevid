@@ -5,6 +5,7 @@ import type { SortBy } from "@/types/homepage";
 export interface HomeProjectPage {
   projects: ProjectCard[];
   nextCursor: string | null;
+  error: string | null;
 }
 
 /**
@@ -16,12 +17,13 @@ export async function loadHomeProjects(
   category: string | undefined,
 ): Promise<HomeProjectPage> {
   try {
-    return await fetchProjectPage({ sortBy, category, limit: PROJECT_PAGE_SIZE });
+    const page = await fetchProjectPage({ sortBy, category, limit: PROJECT_PAGE_SIZE });
+    return { ...page, error: null };
   } catch (error) {
     console.error(
       "[loadHomeProjects] failed:",
       error instanceof Error ? error.message : String(error),
     );
-    return { projects: [], nextCursor: null };
+    return { projects: [], nextCursor: null, error: "Could not load projects" };
   }
 }
