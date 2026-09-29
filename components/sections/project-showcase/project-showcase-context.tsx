@@ -17,6 +17,8 @@ import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 interface ProjectShowcaseState {
   projects: Project[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
   selectedFilter: string;
   selectedTrending: SortBy;
   filterOptions: ProjectFilterOption[];
@@ -25,6 +27,7 @@ interface ProjectShowcaseState {
 interface ProjectShowcaseActions {
   setSelectedFilter: (filter: string) => void;
   setSelectedTrending: (trending: SortBy) => void;
+  loadMore: () => void;
 }
 
 interface ProjectShowcaseContextValue {
@@ -37,6 +40,7 @@ const ProjectShowcaseContext = createContext<ProjectShowcaseContextValue | null>
 interface ProjectShowcaseProviderProps {
   children: React.ReactNode;
   initialProjects: Project[];
+  initialNextCursor?: string | null;
   initialCategories: ProjectFilterOption[];
   initialFilter: string;
   initialSort: SortBy;
@@ -45,6 +49,7 @@ interface ProjectShowcaseProviderProps {
 export function ProjectShowcaseProvider({
   children,
   initialProjects,
+  initialNextCursor = null,
   initialCategories,
   initialFilter,
   initialSort,
@@ -52,6 +57,7 @@ export function ProjectShowcaseProvider({
   const projectFilters = useProjectFilters({
     authReady: true,
     initialProjects,
+    initialNextCursor,
     initialCategories,
     initialFilter,
     initialSort,
@@ -62,6 +68,8 @@ export function ProjectShowcaseProvider({
       state: {
         projects: projectFilters.projects,
         loading: projectFilters.loading,
+        loadingMore: projectFilters.loadingMore,
+        hasMore: projectFilters.hasMore,
         selectedFilter: projectFilters.selectedFilter,
         selectedTrending: projectFilters.selectedTrending,
         filterOptions: projectFilters.filterOptions,
@@ -69,11 +77,15 @@ export function ProjectShowcaseProvider({
       actions: {
         setSelectedFilter: projectFilters.setSelectedFilter,
         setSelectedTrending: projectFilters.setSelectedTrending,
+        loadMore: projectFilters.loadMore,
       },
     }),
     [
       projectFilters.projects,
       projectFilters.loading,
+      projectFilters.loadingMore,
+      projectFilters.hasMore,
+      projectFilters.loadMore,
       projectFilters.selectedFilter,
       projectFilters.selectedTrending,
       projectFilters.filterOptions,

@@ -208,8 +208,8 @@ export function ProjectShowcase() {
   const { t } = useTranslation("projectShowcase");
   const { t: tCommon } = useTranslation("common");
   const {
-    state: { projects, loading, selectedFilter, selectedTrending, filterOptions },
-    actions: { setSelectedFilter, setSelectedTrending },
+    state: { projects, loading, loadingMore, hasMore, selectedFilter, selectedTrending, filterOptions },
+    actions: { setSelectedFilter, setSelectedTrending, loadMore },
   } = useProjectShowcase();
 
   const resolvedFilterOptions = [{ value: "all", label: tCommon("all") }, ...filterOptions];
@@ -218,7 +218,6 @@ export function ProjectShowcase() {
     { value: "top", label: t("trendingOptions.top") },
     { value: "newest", label: t("trendingOptions.newest") },
   ];
-  const [visibleProjects, setVisibleProjects] = useState(6);
   const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   return (
@@ -311,9 +310,7 @@ export function ProjectShowcase() {
                   </div>
                 </div>
               ))
-            : projects
-                .slice(0, visibleProjects)
-                .map((project, index) => (
+            : projects.map((project, index) => (
                   <ProjectCard
                     key={project.id}
                     project={project}
@@ -324,11 +321,12 @@ export function ProjectShowcase() {
         </div>
 
         {/* Load More button */}
-        {!loading && visibleProjects < projects.length && (
+        {!loading && hasMore && (
           <div className="mt-8 text-center">
             <Button
               variant="outline"
-              onClick={() => setVisibleProjects((prev) => prev + 6)}
+              onClick={loadMore}
+              disabled={loadingMore}
               className="px-8 py-2"
             >
               {t("loadMoreButton")}

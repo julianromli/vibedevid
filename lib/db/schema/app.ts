@@ -183,6 +183,9 @@ export const views = pgTable(
     index("idx_views_project_id").on(table.projectId),
     index("idx_views_post_id").on(table.postId),
     index("idx_views_project_id_view_date").on(table.projectId, table.viewDate),
+    uniqueIndex("views_project_session_day_uidx")
+      .on(table.projectId, table.sessionId, table.viewDate)
+      .where(sql`${table.projectId} IS NOT NULL AND ${table.sessionId} IS NOT NULL`),
     check("views_parent_xor", sql`(project_id IS NULL) <> (post_id IS NULL)`),
   ],
 );

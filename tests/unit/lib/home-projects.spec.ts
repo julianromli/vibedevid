@@ -1,30 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { loadHomeProjects } from "@/lib/server/home-projects";
 
-const fetchProjectsWithSorting = vi.hoisted(() => vi.fn());
+const fetchProjectPage = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/server/project-public", () => ({
-  fetchProjectsWithSorting,
+  fetchProjectPage,
 }));
 
 beforeEach(() => {
-  fetchProjectsWithSorting.mockReset();
+  fetchProjectPage.mockReset();
 });
 
 describe("loadHomeProjects", () => {
-  it("returns the project list when the query succeeds", async () => {
+  it("returns the project page when the query succeeds", async () => {
     const projects = [{ id: 1, slug: "demo", title: "Demo" }];
-    fetchProjectsWithSorting.mockResolvedValue(projects);
+    fetchProjectPage.mockResolvedValue({ projects, nextCursor: "next" });
 
-    await expect(loadHomeProjects("newest", undefined)).resolves.toEqual(projects);
-    expect(fetchProjectsWithSorting).toHaveBeenCalledWith("newest", undefined, 20);
+    await expect(loadHomeProjects("newest", undefined)).resolves.toEqual({
+      projects,
+      nextCursor: "next",
+    });
+    expect(fetchProjectPage).toHaveBeenCalledWith({
+      sortBy: "newest",
+      category: undefined,
+      limit: 18,
+    });
   });
 
-  it("returns an empty list when the query throws", async () => {
-    fetchProjectsWithSorting.mockRejectedValue(new Error("connection refused"));
+  it("returns an empty page when the query throws", async () => {
+    fetchProjectPage.mockRejectedValue(new Error("connection refused"));
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await expect(loadHomeProjects("trending", "saas")).resolves.toEqual([]);
+    await expect(loadHomeProjects("trending", "saas")).resolves.toEqual({
+      projects: [],
+      nextCursor: null,
+    });
     expect(consoleError).toHaveBeenCalled();
 
     consoleError.mockRestore();

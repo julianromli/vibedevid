@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchProjectsWithSortingFn } from "@/lib/actions/projects.functions";
 import { getCategoriesFn } from "@/lib/categories";
+import { PROJECT_PAGE_SIZE } from "@/lib/project-page-cursor";
 import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 
 interface UseProjectFiltersOptions {
@@ -14,6 +15,7 @@ interface UseProjectFiltersOptions {
   initialCategories?: ProjectFilterOption[];
   initialFilter?: string;
   initialSort?: SortBy;
+  initialNextCursor?: string | null;
 }
 
 const ALL_FILTER_VALUE = "all";
@@ -25,12 +27,15 @@ type FetchProjectsResult = Awaited<ReturnType<typeof fetchProjectsWithSortingFn>
 async function fetchProjectsWithTimeout(
   sortBy: SortBy,
   category?: string,
+  cursor?: string | null,
 ): Promise<FetchProjectsResult> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
     return await Promise.race([
-      fetchProjectsWithSortingFn({ data: { sortBy, category, limit: 20 } }),
+      fetchProjectsWithSortingFn({
+        data: { sortBy, category, limit: PROJECT_PAGE_SIZE, cursor: cursor ?? undefined },
+      }),
       new Promise<FetchProjectsResult>((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error(`Project fetch timed out after ${PROJECT_FETCH_TIMEOUT_MS}ms`));
@@ -52,17 +57,22 @@ function isCurrentProjectRequest(
   return isActive && currentRequestId === requestId;
 }
 
-async function loadFilteredProjects(sortBy: SortBy, selectedFilter: string): Promise<Project[]> {
-  const { projects, error } = await fetchProjectsWithTimeout(
+async function loadFilteredProjects(
+  sortBy: SortBy,
+  selectedFilter: string,
+  cursor?: string | null,
+): Promise<{ projects: Project[]; nextCursor: string | null }> {
+  const result = await fetchProjectsWithTimeout(
     sortBy,
     selectedFilter === ALL_FILTER_VALUE ? undefined : selectedFilter,
+    cursor,
   );
 
-  if (error) {
-    throw new Error(error);
+  if (result.error) {
+    throw new Error(result.error);
   }
 
-  return projects || [];
+  return { projects: result.projects || [], nextCursor: result.nextCursor };
 }
 
 export function useProjectFilters({
@@ -71,13 +81,15 @@ export function useProjectFilters({
   initialCategories = [],
   initialFilter = ALL_FILTER_VALUE,
   initialSort = DEFAULT_SORT,
+  initialNextCursor = null,
 }: UseProjectFiltersOptions) {
   const [selectedFilter, setSelectedFilter] = useState(initialFilter);
   const [selectedTrending, setSelectedTrending] = useState<SortBy>(initialSort);
-  const [visibleProjects, setVisibleProjects] = useState(6);
   const [filterOptions, setFilterOptions] = useState<ProjectFilterOption[]>(initialCategories);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [loading, setLoading] = useState(initialProjects.length === 0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const shouldSkipInitialFetchRef = useRef(initialProjects.length > 0);
   const latestRequestIdRef = useRef(0);
 
@@ -101,7 +113,7 @@ export function useProjectFilters({
       }
     };
 
-    fetchFilterCategories();
+    void fetchFilterCategories();
   }, [initialCategories]);
 
   // Fetch projects with sorting while ignoring stale responses.
@@ -127,13 +139,14 @@ export function useProjectFilters({
       try {
         setLoading(true);
 
-        const fetchedProjects = await loadFilteredProjects(selectedTrending, selectedFilter);
+        const page = await loadFilteredProjects(selectedTrending, selectedFilter);
 
         if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return;
         }
 
-        setProjects(fetchedProjects);
+        setProjects(page.projects);
+        setNextCursor(page.nextCursor);
       } catch (error) {
         if (!isCurrentProjectRequest(isActive, latestRequestIdRef.current, requestId)) {
           return;
@@ -147,19 +160,37 @@ export function useProjectFilters({
       }
     };
 
-    fetchProjects();
+    void fetchProjects();
 
     return () => {
       isActive = false;
     };
   }, [authReady, initialFilter, initialSort, selectedTrending, selectedFilter]);
 
-  useEffect(() => {
-    setVisibleProjects(6);
-  }, [selectedFilter, selectedTrending]);
-
   const loadMore = () => {
-    setVisibleProjects((prev) => prev + 6);
+    if (!nextCursor || loading || loadingMore) return;
+
+    const requestId = latestRequestIdRef.current;
+    const cursor = nextCursor;
+    const sortBy = selectedTrending;
+    const filter = selectedFilter;
+    setLoadingMore(true);
+
+    void loadFilteredProjects(sortBy, filter, cursor)
+      .then((page) => {
+        if (latestRequestIdRef.current !== requestId) return;
+        setProjects((current) => [...current, ...page.projects]);
+        setNextCursor(page.nextCursor);
+      })
+      .catch((error: unknown) => {
+        if (latestRequestIdRef.current !== requestId) return;
+        console.error("Error fetching more projects:", error);
+      })
+      .finally(() => {
+        if (latestRequestIdRef.current === requestId) {
+          setLoadingMore(false);
+        }
+      });
   };
 
   return {
@@ -167,10 +198,11 @@ export function useProjectFilters({
     setSelectedFilter,
     selectedTrending,
     setSelectedTrending,
-    visibleProjects,
     filterOptions,
     projects,
     loading,
+    loadingMore,
+    hasMore: Boolean(nextCursor),
     loadMore,
   };
 }

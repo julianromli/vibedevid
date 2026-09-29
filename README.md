@@ -335,7 +335,7 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 **likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.
 
-**views** - Session-based views tracking with 30-minute timeout, IP + User Agent fingerprinting. XOR check: exactly one parent.
+**views** - Session-based views tracking. A project page records one row per browser session per calendar day (`scripts/migrations/neon/06_project_view_dedupe.sql`, apply with `bun run migrate:schema`). Crawler user agents are skipped. XOR check: exactly one parent.
 
 **posts** - Blog posts with rich text content (JSON), featured flag, read time, unique `slug`
 
