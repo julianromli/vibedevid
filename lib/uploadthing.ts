@@ -122,6 +122,18 @@ export const ourFileRouter = {
       const ufsUrl = getUfsUrl(file);
       const url = ufsUrl ?? file.url;
 
+      const sniffed = await fetch(url)
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return sniffImageMime(new Uint8Array(await response.arrayBuffer()));
+        })
+        .catch(() => null);
+
+      if (!sniffed) {
+        await deleteUploadthingFiles(file.key);
+        throw new Error("Only JPG, PNG, and WebP images are allowed");
+      }
+
       await recordProjectUpload({
         key: file.key,
         url,

@@ -4,25 +4,68 @@
 
 const DEFAULT_FAVICON = "/default-favicon.svg";
 
-/**
- * Reject private, loopback, and link-local hosts before any outbound fetch.
- */
-export function isBlockedHostname(hostname: string): boolean {
-  const lower = hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (lower === "localhost" || lower.endsWith(".localhost")) return true;
-  if (lower === "0.0.0.0" || lower === "::1" || lower === "0:0:0:0:0:0:0:1") return true;
+const BLOCKED_HOST_NAMES = new Set([
+  "localhost",
+  "metadata.google.internal",
+  "metadata.google.com",
+  "metadata.goog",
+]);
 
-  const ipv4 = lower.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (ipv4) {
-    const first = Number(ipv4[1]);
-    const second = Number(ipv4[2]);
-    if (first === 10) return true;
-    if (first === 127) return true;
-    if (first === 169 && second === 254) return true;
-    if (first === 172 && second >= 16 && second <= 31) return true;
-    if (first === 192 && second === 168) return true;
+function parseIpv4Octet(part: string): number | null {
+  if (!/^\d+$/.test(part)) return null;
+  const value = part.length > 1 && part.startsWith("0") ? Number.parseInt(part, 8) : Number(part);
+  if (!Number.isInteger(value) || value < 0 || value > 255) return null;
+  return value;
+}
+
+function isBlockedIpv4(first: number, second: number): boolean {
+  if (first === 0 || first === 10 || first === 127) return true;
+  if (first === 169 && second === 254) return true;
+  if (first === 172 && second >= 16 && second <= 31) return true;
+  if (first === 192 && second === 168) return true;
+  if (first === 100 && second >= 64 && second <= 127) return true;
+  if (first >= 224) return true;
+  return false;
+}
+
+function isBlockedIpv4Literal(host: string): boolean {
+  if (/^\d+$/.test(host)) {
+    const value = Number(host);
+    if (!Number.isSafeInteger(value) || value < 0 || value > 0xffffffff) return true;
+    return isBlockedIpv4((value >>> 24) & 255, (value >>> 16) & 255);
   }
 
+  const parts = host.split(".");
+  if (parts.length !== 4) return false;
+  const octets = parts.map(parseIpv4Octet);
+  if (octets.some((octet) => octet == null)) return true;
+  return isBlockedIpv4(octets[0] as number, octets[1] as number);
+}
+
+function isBlockedIpv6(host: string): boolean {
+  if (!host.includes(":")) return false;
+  if (host === "::" || host === "::1" || host === "0:0:0:0:0:0:0:1") return true;
+  if (host.startsWith("fc") || host.startsWith("fd")) return true;
+  if (/^fe[89ab]/.test(host)) return true;
+  if (host.startsWith("::ffff:")) return isBlockedHostname(host.slice("::ffff:".length));
+  return false;
+}
+
+/**
+ * Reject private, loopback, link-local, and metadata hosts before any outbound fetch.
+ * Numeric tricks (decimal, octal, IPv4-mapped IPv6) are blocked. DNS rebinding is
+ * not resolved here: this module is also imported by the browser, and Workers
+ * do not offer a stable resolver.
+ */
+export function isBlockedHostname(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host) return true;
+  if (BLOCKED_HOST_NAMES.has(host)) return true;
+  if (host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
+    return true;
+  }
+  if (isBlockedIpv6(host)) return true;
+  if (isBlockedIpv4Literal(host)) return true;
   return false;
 }
 

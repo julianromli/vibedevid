@@ -17,6 +17,17 @@ describe("isBlockedHostname", () => {
     expect(isBlockedHostname("169.254.1.1")).toBe(true);
   });
 
+  it("blocks metadata hosts, decimal loopback, and private IPv6", () => {
+    expect(isBlockedHostname("metadata.google.internal")).toBe(true);
+    expect(isBlockedHostname("169.254.169.254")).toBe(true);
+    expect(isBlockedHostname("2130706433")).toBe(true);
+    expect(isBlockedHostname("0177.0.0.1")).toBe(true);
+    expect(isBlockedHostname("fd00::1")).toBe(true);
+    expect(isBlockedHostname("fe80::1")).toBe(true);
+    expect(isBlockedHostname("::ffff:127.0.0.1")).toBe(true);
+    expect(isBlockedHostname("db.internal")).toBe(true);
+  });
+
   it("allows a public hostname", () => {
     expect(isBlockedHostname("github.com")).toBe(false);
     expect(isBlockedHostname("example.com")).toBe(false);

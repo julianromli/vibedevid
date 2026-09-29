@@ -92,6 +92,13 @@ export const projectUploadFiles = pgTable(
   ],
 );
 
+/** Fixed-window counters. See `lib/server/rate-limit.ts`. */
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  bucket: text("bucket").primaryKey(),
+  count: integer("count").notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+});
+
 export const posts = pgTable(
   "posts",
   {

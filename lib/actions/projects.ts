@@ -12,6 +12,7 @@ import {
   parseResultToFieldErrors,
 } from "@/lib/project-submission";
 import { revalidatePath } from "@/lib/revalidation";
+import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession, requireUser } from "@/lib/server/auth";
 import {
   claimProvisionalUploadKey,
@@ -214,9 +215,8 @@ const createProjectWithRetry = async (
     const id = result[0]?.id;
     return { success: true, slug, id };
   } catch (error) {
-    const message =
-      error instanceof Error && error.message ? error.message : UNEXPECTED_ERROR_MESSAGE;
-    return { success: false, error: message };
+    console.error("Create project failed:", error);
+    return { success: false, error: UNEXPECTED_ERROR_MESSAGE };
   }
 };
 
@@ -311,6 +311,11 @@ export async function editProject(projectSlug: string, formData: FormData) {
     return { success: false, error: "You must be logged in to edit projects" };
   }
 
+  const blocked = await mutationBlockReason(user.id);
+  if (blocked) {
+    return { success: false, error: blocked };
+  }
+
   const db = getDb();
 
   try {
@@ -345,7 +350,10 @@ export async function editProject(projectSlug: string, formData: FormData) {
     }
 
     const activeCategories = await getActiveCategoryNames();
-    const activeCategoryNames = activeCategories.error ? [] : activeCategories.data;
+    if (activeCategories.error) {
+      return { success: false, error: "Could not load categories. Try again." };
+    }
+    const activeCategoryNames = activeCategories.data;
     const existingUrls = [
       ...(project.imageUrls ?? []),
       ...(project.imageUrl ? [project.imageUrl] : []),
@@ -435,6 +443,11 @@ export async function deleteProject(projectSlug: string) {
     return { success: false, error: "You must be logged in to delete projects" };
   }
 
+  const blocked = await mutationBlockReason(user.id);
+  if (blocked) {
+    return { success: false, error: blocked };
+  }
+
   const db = getDb();
 
   try {
@@ -497,6 +510,11 @@ export async function submitProject(
       return { success: false, error: "You must be logged in to submit projects" };
     }
     actorId = session.user.id;
+
+    const blocked = await mutationBlockReason(actorId);
+    if (blocked) {
+      return { success: false, error: blocked };
+    }
 
     const activeCategories = await getActiveCategoryNames();
     if (activeCategories.error) {
