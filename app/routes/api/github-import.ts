@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { mutationBlockReason } from "@/lib/server/account-status";
+import { getServerSession } from "@/lib/server/auth";
+import { consumeRateLimit } from "@/lib/server/rate-limit";
 
 type GitHubRepo = {
   name: string;
@@ -116,6 +119,28 @@ export const Route = createFileRoute("/api/github-import")({
       // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: One route handles fetch + normalization for a single import contract.
       POST: async ({ request }) => {
         try {
+          const session = await getServerSession();
+          if (!session?.user) {
+            return Response.json({ error: "You must be logged in" }, { status: 401 });
+          }
+
+          const blocked = await mutationBlockReason(session.user.id);
+          if (blocked) {
+            return Response.json({ error: blocked }, { status: 403 });
+          }
+
+          const allowed = await consumeRateLimit(
+            `github-import:${session.user.id}`,
+            20,
+            60 * 60 * 1000,
+          );
+          if (!allowed) {
+            return Response.json(
+              { error: "Too many import requests. Try again later." },
+              { status: 429 },
+            );
+          }
+
           const { repoUrl } = await request.json();
           const parsed = parseRepoUrl(String(repoUrl || ""));
           if (!parsed) {

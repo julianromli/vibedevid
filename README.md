@@ -331,6 +331,8 @@ Workspace link file `.neon` is gitignored. Do not commit connection strings.
 
 **project_upload_files** - Ledger of project screenshots (`key`, `user_id`, `url`, `project_id`). A signed-in user can save or delete an UploadThing key only when this row says they uploaded it. Public project reads do not include keys. Apply `scripts/migrations/neon/05_project_upload_files.sql` with `bun run migrate:schema` before deploying the upload-authorization change. Existing project rows keep their current images; only new uploads need a ledger row.
 
+**rate_limit_buckets** - Fixed-window counters for guest comments (5 per 10 minutes per IP) and GitHub import (20 per hour per signed-in user). Apply `scripts/migrations/neon/07_rate_limit_buckets.sql` with `bun run migrate:schema`. If the table is missing, those routes use an in-memory limit inside the current Worker isolate instead of failing. No extra Redis or Upstash env vars.
+
 **comments** - Unified comments for Blog and Projects. XOR check: exactly one parent.
 
 **likes** - User likes. Unique per `(user_id, project_id)` or `(user_id, post_id)`. XOR check: exactly one parent.

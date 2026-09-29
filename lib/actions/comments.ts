@@ -1,7 +1,11 @@
 import { revalidatePath } from "@/lib/revalidation";
+import { getRequest } from "@tanstack/react-start/server";
+import { guestCommentNameError } from "@/lib/comment-policy";
 import { getDb } from "@/lib/db";
 import { comments, users, blogReports } from "@/lib/db/schema";
+import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession } from "@/lib/server/auth";
+import { clientIpFromHeaders, consumeRateLimit } from "@/lib/server/rate-limit";
 import { eq, desc } from "drizzle-orm";
 import type {
   Comment,
@@ -27,6 +31,25 @@ export async function createComment(input: CreateCommentInput): Promise<CommentR
 
   const session = await getServerSession();
   const userId = session?.user?.id ?? null;
+
+  if (userId) {
+    const blocked = await mutationBlockReason(userId);
+    if (blocked) return { success: false, error: blocked };
+  } else {
+    const nameError = guestCommentNameError(guestName);
+    if (nameError) return { success: false, error: nameError };
+
+    let headers: Headers | undefined;
+    try {
+      headers = getRequest().headers;
+    } catch {
+      headers = undefined;
+    }
+    const ip = headers ? clientIpFromHeaders(headers) : "unknown";
+    const allowed = await consumeRateLimit(`guest-comment:${ip}`, 5, 10 * 60 * 1000);
+    if (!allowed) return { success: false, error: "Too many comments. Try again later." };
+  }
+
   const db = getDb();
 
   const insertValues: {

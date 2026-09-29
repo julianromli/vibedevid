@@ -3,6 +3,7 @@ import { z } from "zod";
 import { and, count, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { likes, projects } from "@/lib/db/schema";
+import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession } from "@/lib/server/auth";
 import { isPgUniqueViolation } from "@/lib/slug";
 
@@ -69,6 +70,11 @@ export const toggleLikeFn = createServerFn({ method: "POST" })
     const session = await getServerSession();
     if (!session?.user) {
       return { error: "You must be logged in to like projects" };
+    }
+
+    const blocked = await mutationBlockReason(session.user.id);
+    if (blocked) {
+      return { error: blocked };
     }
 
     const db = getDb();
