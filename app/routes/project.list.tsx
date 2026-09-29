@@ -8,7 +8,8 @@ import { Navbar } from '@/components/ui/navbar'
 import { getCategories } from '@/lib/categories'
 import { getServerT, getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
 import { absoluteUrl } from '@/lib/seo/site-url'
-import { fetchProjectsWithSorting } from '@/lib/server/project-public'
+import { PROJECT_PAGE_SIZE } from '@/lib/project-page-cursor'
+import { fetchProjectPage } from '@/lib/server/project-public'
 
 /**
  * Server-only data fetching for the project list. Wrapped in `createServerFn`
@@ -30,17 +31,17 @@ const loadProjectListData = createServerFn({ method: 'GET' })
     const initialFilter =
       requestedFilter && categories.some((category) => category.name === requestedFilter) ? requestedFilter : 'all'
 
-    const initialProjects = await fetchProjectsWithSorting(
-      initialSort,
-      initialFilter === 'all' ? undefined : initialFilter,
-      100,
-    )
+    const page = await fetchProjectPage({
+      sortBy: initialSort,
+      category: initialFilter === 'all' ? undefined : initialFilter,
+      limit: PROJECT_PAGE_SIZE,
+    })
 
     const filterOptions = categories.map((cat) => ({
       value: cat.name,
       label: cat.display_name,
     }))
-    const normalizedProjects = initialProjects.map((project) => ({
+    const normalizedProjects = page.projects.map((project) => ({
       ...project,
       image: project.image ?? '/vibedev-guest-avatar.png',
     }))
@@ -49,6 +50,7 @@ const loadProjectListData = createServerFn({ method: 'GET' })
       title: t('title'),
       description: t('description'),
       initialProjects: normalizedProjects,
+      initialNextCursor: page.nextCursor,
       initialFilter,
       initialSort,
       filterOptions,
@@ -131,6 +133,7 @@ function ProjectListRoute() {
 
             <ProjectListClient
               initialProjects={data.initialProjects}
+              initialNextCursor={data.initialNextCursor}
               initialFilter={data.initialFilter}
               initialSort={data.initialSort}
               filterOptions={data.filterOptions}

@@ -136,6 +136,7 @@ describe("getProjectBySlug — detail read", () => {
     });
     expect(project!.category).toBe("Education"); // display name resolved
     expect(project!.categoryRaw).toBe("education");
+    expect(project!.image).toBe("https://img.example.com/1.png");
     expect(project!.likes).toBe(12);
     expect(project!.views).toBe(345);
     expect(project!.uniqueViews).toBe(200);
@@ -218,7 +219,7 @@ describe("fetchProjectsWithSorting — list read", () => {
     });
   });
 
-  it("orders by likes desc for the top sort", async () => {
+  it("returns like counts for the top sort (SQL applies the order)", async () => {
     h.state.selectRows = [
       {
         project: projectRow, // 1 like incoming below

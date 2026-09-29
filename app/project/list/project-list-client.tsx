@@ -21,6 +21,7 @@ const EAGER_PROJECT_THUMBNAIL_COUNT = 3;
 
 interface ProjectListClientProps {
   initialProjects: Project[];
+  initialNextCursor?: string | null;
   initialFilter: string;
   initialSort: SortBy;
   filterOptions: ProjectFilterOption[];
@@ -111,6 +112,7 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
 
 export function ProjectListClient({
   initialProjects,
+  initialNextCursor = null,
   initialFilter,
   initialSort,
   filterOptions,
@@ -124,20 +126,22 @@ export function ProjectListClient({
     setSelectedFilter,
     selectedTrending,
     setSelectedTrending,
-    visibleProjects,
     filterOptions: resolvedFilterOptions,
     projects,
     loading,
+    loadingMore,
+    hasMore,
     loadMore,
   } = useProjectFilters({
     authReady: true,
     initialProjects,
+    initialNextCursor,
     initialCategories: [{ value: "all", label: tCommon("all") }, ...filterOptions],
     initialFilter,
     initialSort,
   });
 
-  const visibleProjectCount = Math.min(visibleProjects, projects.length);
+  const visibleProjectCount = projects.length;
 
   const trendingOptions = [
     { value: "trending" as SortBy, label: t("trendingOptions.trending") },
@@ -232,9 +236,7 @@ export function ProjectListClient({
             </Button>
           </div>
         ) : (
-          projects
-            .slice(0, visibleProjects)
-            .map((project, index) => (
+          projects.map((project, index) => (
               <ProjectListCard
                 key={project.id}
                 project={project}
@@ -245,9 +247,14 @@ export function ProjectListClient({
         )}
       </div>
 
-      {!loading && visibleProjects < projects.length && (
+      {!loading && hasMore && (
         <div className="mt-8 text-center">
-          <Button variant="outline" onClick={loadMore} className="px-8 py-2">
+          <Button
+            variant="outline"
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-8 py-2"
+          >
             {t("loadMoreButton")}
           </Button>
         </div>

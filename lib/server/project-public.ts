@@ -6,6 +6,8 @@ import {
   eq,
   inArray,
   isNotNull,
+  lt,
+  or,
   sql,
   type SQL,
 } from "drizzle-orm";
@@ -13,6 +15,13 @@ import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { toProjectDto } from "@/lib/db/mappers";
 import { likes, projects, users, views } from "@/lib/db/schema";
+import {
+  decodeProjectCursor,
+  encodeProjectCursor,
+  PROJECT_PAGE_SIZE,
+  trendingScore,
+  type ProjectPageCursor,
+} from "@/lib/project-page-cursor";
 import { getServerSession } from "@/lib/server/auth";
 
 export interface ProjectCardAuthor {
@@ -119,7 +128,7 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
     title: mapped.title,
     description: mapped.description ?? "",
     fullDescription: mapped.description ?? "",
-    image: mapped.imageUrl,
+    image: getPrimaryProjectImage(mapped),
     imageUrls: mapped.imageUrls?.length
       ? mapped.imageUrls
       : mapped.imageUrl
@@ -223,11 +232,65 @@ async function getBatchLikeStatus(
   return Object.fromEntries(likesByProject);
 }
 
-export async function fetchProjectsWithSorting(
-  sortBy: "trending" | "top" | "newest" = "newest",
-  category?: string,
-  limit: number = 20,
-): Promise<ProjectCard[]> {
+const likeCountSql = sql<number>`(select count(*)::int from ${likes} where ${likes.projectId} = ${projects.id})`;
+
+const trendingScoreSql = sql<number>`(
+  (select count(*)::int from ${likes} where ${likes.projectId} = ${projects.id})::float
+  / greatest(1, extract(epoch from (now() - ${projects.createdAt})) / 86400.0)
+)`;
+
+function projectOrder(sortBy: "trending" | "top" | "newest") {
+  if (sortBy === "top") {
+    return [desc(likeCountSql), desc(projects.createdAt), desc(projects.id)];
+  }
+  if (sortBy === "trending") {
+    return [desc(trendingScoreSql), desc(projects.id)];
+  }
+  return [desc(projects.createdAt), desc(projects.id)];
+}
+
+function projectCursorCondition(
+  sortBy: "trending" | "top" | "newest",
+  cursor: ProjectPageCursor,
+): SQL {
+  const createdAt = new Date(cursor.createdAt);
+  if (sortBy === "top") {
+    return or(
+      sql`${likeCountSql} < ${cursor.likes}`,
+      and(sql`${likeCountSql} = ${cursor.likes}`, lt(projects.createdAt, createdAt)),
+      and(
+        sql`${likeCountSql} = ${cursor.likes}`,
+        eq(projects.createdAt, createdAt),
+        lt(projects.id, cursor.id),
+      ),
+    ) as SQL;
+  }
+  if (sortBy === "trending") {
+    return or(
+      sql`${trendingScoreSql} < ${cursor.score}`,
+      and(sql`${trendingScoreSql} = ${cursor.score}`, lt(projects.id, cursor.id)),
+    ) as SQL;
+  }
+  return or(
+    lt(projects.createdAt, createdAt),
+    and(eq(projects.createdAt, createdAt), lt(projects.id, cursor.id)),
+  ) as SQL;
+}
+
+export interface ProjectPage {
+  projects: ProjectCard[];
+  nextCursor: string | null;
+}
+
+export async function fetchProjectPage(options: {
+  sortBy?: "trending" | "top" | "newest";
+  category?: string;
+  limit?: number;
+  cursor?: string | null;
+}): Promise<ProjectPage> {
+  const sortBy = options.sortBy ?? "newest";
+  const limit = options.limit ?? PROJECT_PAGE_SIZE;
+  const cursor = decodeProjectCursor(options.cursor);
   const categories = await getCategories();
 
   const categoryMap = new Map<string, string>();
@@ -236,12 +299,7 @@ export async function fetchProjectsWithSorting(
   }
 
   const db = getDb();
-  const CANDIDATE_MULTIPLIER = 5;
-  const MAX_CANDIDATES = 200;
-  const fetchLimit =
-    sortBy === "newest"
-      ? limit
-      : Math.min(MAX_CANDIDATES, Math.max(limit, limit * CANDIDATE_MULTIPLIER));
+  const category = options.category;
 
   let categoryCondition: SQL | undefined;
   if (category && category !== "all") {
@@ -262,6 +320,10 @@ export async function fetchProjectsWithSorting(
         : eq(projects.category, category);
   }
 
+  const filters = [categoryCondition, cursor ? projectCursorCondition(sortBy, cursor) : undefined].filter(
+    (filter): filter is SQL => Boolean(filter),
+  );
+
   const projectRows = await db
     .select({
       project: projects,
@@ -272,12 +334,12 @@ export async function fetchProjectsWithSorting(
     })
     .from(projects)
     .innerJoin(users, eq(projects.authorId, users.id))
-    .where(categoryCondition)
-    .orderBy(desc(projects.createdAt))
-    .limit(fetchLimit);
+    .where(filters.length > 0 ? and(...filters) : undefined)
+    .orderBy(...projectOrder(sortBy))
+    .limit(limit);
 
   if (!projectRows.length) {
-    return [];
+    return { projects: [], nextCursor: null };
   }
 
   const session = await getServerSession();
@@ -312,34 +374,25 @@ export async function fetchProjectsWithSorting(
     };
   });
 
-  if (sortBy === "newest") {
-    formattedProjects.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  } else if (sortBy === "top") {
-    formattedProjects.sort((a, b) => {
-      if (b.likes !== a.likes) {
-        return b.likes - a.likes;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  } else {
-    const trendingScore = (likes: number, createdAt: string) => {
-      const ageInDays = Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 86400000);
-      return likes / ageInDays;
-    };
+  const last = formattedProjects[formattedProjects.length - 1];
+  const nextCursor =
+    formattedProjects.length === limit && last
+      ? encodeProjectCursor({
+          id: Number(last.id),
+          createdAt: last.createdAt,
+          likes: last.likes,
+          score: trendingScore(last.likes, last.createdAt),
+        })
+      : null;
 
-    formattedProjects.sort((a, b) => {
-      const scoreDiff = trendingScore(b.likes, b.createdAt) - trendingScore(a.likes, a.createdAt);
-      if (scoreDiff !== 0) {
-        return scoreDiff;
-      }
-      if (b.likes !== a.likes) {
-        return b.likes - a.likes;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }
+  return { projects: formattedProjects, nextCursor };
+}
 
-  return formattedProjects.slice(0, limit);
+export async function fetchProjectsWithSorting(
+  sortBy: "trending" | "top" | "newest" = "newest",
+  category?: string,
+  limit: number = PROJECT_PAGE_SIZE,
+): Promise<ProjectCard[]> {
+  const page = await fetchProjectPage({ sortBy, category, limit });
+  return page.projects;
 }

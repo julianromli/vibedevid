@@ -6,7 +6,9 @@ import {
   editProject as editProjectAction,
   submitProject as submitProjectAction,
 } from "@/lib/actions/projects";
-import { fetchProjectsWithSorting as fetchProjectsWithSortingAction } from "@/lib/server/project-public";
+import { PROJECT_PAGE_SIZE } from "@/lib/project-page-cursor";
+import { fetchProjectPage as fetchProjectPageAction } from "@/lib/server/project-public";
+import { recordProjectView as recordProjectViewAction } from "@/lib/server/project-views";
 
 /**
  * Submit a new project. Expects a FormData payload containing the project
@@ -63,15 +65,28 @@ export const fetchProjectsWithSortingFn = createServerFn({ method: "GET" })
     z.object({
       sortBy: z.enum(["trending", "top", "newest"]).default("newest"),
       category: z.string().optional(),
-      limit: z.number().int().positive().max(100).default(20),
+      limit: z.number().int().positive().max(PROJECT_PAGE_SIZE).default(PROJECT_PAGE_SIZE),
+      cursor: z.string().optional(),
     }),
   )
   .handler(async ({ data }) => {
     try {
-      const projects = await fetchProjectsWithSortingAction(data.sortBy, data.category, data.limit);
-      return { projects, error: null } as const;
+      const page = await fetchProjectPageAction({
+        sortBy: data.sortBy,
+        category: data.category,
+        limit: data.limit,
+        cursor: data.cursor,
+      });
+      return { projects: page.projects, nextCursor: page.nextCursor, error: null } as const;
     } catch (error) {
       console.error("fetchProjectsWithSortingFn failed:", error);
-      return { projects: [], error: "Failed to fetch projects" } as const;
+      return { projects: [], nextCursor: null, error: "Failed to fetch projects" } as const;
     }
+  });
+
+export const recordProjectViewFn = createServerFn({ method: "POST" })
+  .validator(z.object({ slug: z.string().min(1).max(120), sessionId: z.string().min(8).max(80) }))
+  .handler(async ({ data }) => {
+    await recordProjectViewAction(data.slug, data.sessionId);
+    return { ok: true as const };
   });

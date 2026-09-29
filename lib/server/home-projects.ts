@@ -1,5 +1,11 @@
-import { fetchProjectsWithSorting, type ProjectCard } from "@/lib/server/project-public";
+import { PROJECT_PAGE_SIZE } from "@/lib/project-page-cursor";
+import { fetchProjectPage, type ProjectCard } from "@/lib/server/project-public";
 import type { SortBy } from "@/types/homepage";
+
+export interface HomeProjectPage {
+  projects: ProjectCard[];
+  nextCursor: string | null;
+}
 
 /**
  * Homepage project list. Database failures return an empty list so the rest
@@ -8,14 +14,14 @@ import type { SortBy } from "@/types/homepage";
 export async function loadHomeProjects(
   sortBy: SortBy,
   category: string | undefined,
-): Promise<ProjectCard[]> {
+): Promise<HomeProjectPage> {
   try {
-    return await fetchProjectsWithSorting(sortBy, category, 20);
+    return await fetchProjectPage({ sortBy, category, limit: PROJECT_PAGE_SIZE });
   } catch (error) {
     console.error(
       "[loadHomeProjects] failed:",
       error instanceof Error ? error.message : String(error),
     );
-    return [];
+    return { projects: [], nextCursor: null };
   }
 }

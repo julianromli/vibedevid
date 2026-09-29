@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { ProjectActionsClient } from "@/components/project/ProjectActionsClient";
 import { ProjectEditClient } from "@/components/project/ProjectEditClient";
+import { ProjectViewTracker } from "@/components/project/ProjectViewTracker";
 import { ShareButton } from "@/components/project/ShareButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -135,7 +136,8 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
       {/* Background Gradient Overlay */}
       <div className="from-background/80 via-background/60 to-background/80 absolute inset-0 bg-gradient-to-b"></div>
 
-      <Navbar showNavigation={true} isLoggedIn={!!currentUser} user={currentUser || undefined} />
+        <Navbar showNavigation={true} isLoggedIn={!!currentUser} user={currentUser || undefined} />
+        <ProjectViewTracker slug={slug} />
 
       {/* Content Container */}
       <div className="relative mx-auto max-w-6xl px-4 pt-24 pb-8 sm:px-6 lg:px-8">
