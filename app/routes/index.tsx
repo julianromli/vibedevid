@@ -97,7 +97,12 @@ const loadHomeData = createServerFn({ method: 'GET' })
     const projectsPromise = categoriesPromise.then(async (categories) => {
       const initialFilter = resolveInitialFilter(categories, requestedFilter)
       const page = await loadHomeProjects(initialSort, initialFilter === 'all' ? undefined : initialFilter)
-      return { initialFilter, initialProjects: page.projects, initialNextCursor: page.nextCursor }
+      return {
+        initialFilter,
+        initialProjects: page.projects,
+        initialNextCursor: page.nextCursor,
+        initialError: page.error,
+      }
     })
 
     const [categories, initialVibeVideos, initialTestimonials, projectResult] = await Promise.all([
@@ -115,6 +120,7 @@ const loadHomeData = createServerFn({ method: 'GET' })
     return {
       initialProjects: projectResult.initialProjects,
       initialNextCursor: projectResult.initialNextCursor,
+      initialError: projectResult.initialError,
       initialCategories: categoryOptions,
       initialFilter: projectResult.initialFilter,
       initialSort,
@@ -184,6 +190,7 @@ function HomeRoute() {
       initialUser={data.initialUser}
       initialProjects={data.initialProjects}
       initialNextCursor={data.initialNextCursor}
+      initialError={data.initialError}
       initialCategories={data.initialCategories}
       initialFilter={data.initialFilter}
       initialSort={data.initialSort}

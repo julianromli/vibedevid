@@ -114,48 +114,44 @@ export async function getAllProjects(
 
     const projectIds = projectRows.map((row) => row.project.id);
 
+    const emptyCounts: { projectId: number | null; total: number }[] = [];
     const [likeRows, viewRows, commentRows] = await Promise.all([
       projectIds.length > 0
         ? db
-            .select({ projectId: likes.projectId })
+            .select({ projectId: likes.projectId, total: count() })
             .from(likes)
             .where(inArray(likes.projectId, projectIds))
-        : Promise.resolve([]),
+            .groupBy(likes.projectId)
+        : Promise.resolve(emptyCounts),
       projectIds.length > 0
         ? db
-            .select({ projectId: views.projectId })
+            .select({ projectId: views.projectId, total: count() })
             .from(views)
             .where(inArray(views.projectId, projectIds))
-        : Promise.resolve([]),
+            .groupBy(views.projectId)
+        : Promise.resolve(emptyCounts),
       projectIds.length > 0
         ? db
-            .select({ projectId: comments.projectId })
+            .select({ projectId: comments.projectId, total: count() })
             .from(comments)
             .where(inArray(comments.projectId, projectIds))
-        : Promise.resolve([]),
+            .groupBy(comments.projectId)
+        : Promise.resolve(emptyCounts),
     ]);
 
     const likesCount: Record<number, number> = {};
     const viewsCount: Record<number, number> = {};
     const commentsCount: Record<number, number> = {};
 
-    likeRows.forEach((like) => {
-      if (like.projectId) {
-        likesCount[like.projectId] = (likesCount[like.projectId] || 0) + 1;
-      }
-    });
-
-    viewRows.forEach((view) => {
-      if (view.projectId) {
-        viewsCount[view.projectId] = (viewsCount[view.projectId] || 0) + 1;
-      }
-    });
-
-    commentRows.forEach((comment) => {
-      if (comment.projectId) {
-        commentsCount[comment.projectId] = (commentsCount[comment.projectId] || 0) + 1;
-      }
-    });
+    for (const row of likeRows) {
+      if (row.projectId != null) likesCount[row.projectId] = Number(row.total) || 0;
+    }
+    for (const row of viewRows) {
+      if (row.projectId != null) viewsCount[row.projectId] = Number(row.total) || 0;
+    }
+    for (const row of commentRows) {
+      if (row.projectId != null) commentsCount[row.projectId] = Number(row.total) || 0;
+    }
 
     const formattedProjects: AdminProject[] = projectRows.map((row) => {
       const mapped = toProjectDto(row.project);
@@ -268,11 +264,11 @@ export async function adminDeleteProject(
 
     const db = getDb();
 
-    await Promise.all([
-      db.delete(comments).where(eq(comments.projectId, projectId)),
-      db.delete(likes).where(eq(likes.projectId, projectId)),
-      db.delete(views).where(eq(views.projectId, projectId)),
-    ]);
+    const [existing] = await db
+      .select({ imageKeys: projects.imageKeys })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
 
     const deletedRows = await db
       .delete(projects)
@@ -281,6 +277,17 @@ export async function adminDeleteProject(
 
     if (!deletedRows.length) {
       return { success: false, error: "Project could not be deleted" };
+    }
+
+    if (existing?.imageKeys?.length) {
+      try {
+        const { deleteUploadthingFiles } = await import("@/lib/uploadthing");
+        const { forgetProjectUpload } = await import("@/lib/server/project-uploads");
+        await deleteUploadthingFiles(existing.imageKeys);
+        await Promise.all(existing.imageKeys.map((key) => forgetProjectUpload(key)));
+      } catch (cleanupError) {
+        console.warn("Failed to delete admin project images:", cleanupError);
+      }
     }
 
     revalidatePath("/project/list");

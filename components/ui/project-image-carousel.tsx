@@ -43,10 +43,22 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
   }, [images.length]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          target.isContentEditable
+        ) {
+          return;
+        }
+      }
+      if (event.key === "ArrowLeft") {
         goToPrevious();
-      } else if (e.key === "ArrowRight") {
+      } else if (event.key === "ArrowRight") {
         goToNext();
       }
     };
