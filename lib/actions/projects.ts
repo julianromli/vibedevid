@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { z } from "zod";
 import { getDb } from "@/lib/db";
 import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
+import { alignProjectImages, INVALID_PROJECT_IMAGE_MESSAGE } from "@/lib/project-images";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
@@ -12,6 +13,12 @@ import {
 } from "@/lib/project-submission";
 import { revalidatePath } from "@/lib/revalidation";
 import { getServerSession, requireUser } from "@/lib/server/auth";
+import {
+  claimProvisionalUploadKey,
+  forgetProjectUpload,
+  listOwnedProjectUploads,
+  syncProjectUploadAttachments,
+} from "@/lib/server/project-uploads";
 import { fetchFavicon } from "../favicon-utils";
 import { getProjectIdBySlug, insertWithUniqueSlug, slugifyTitle } from "../slug";
 
@@ -125,36 +132,6 @@ const cleanupProvisionalUploadByKey = async (
   }
 };
 
-const cleanupProvisionalUploadByKeys = async (
-  imageKeys: string[] | null | undefined,
-): Promise<ProvisionalUploadCleanupResult> => {
-  if (!imageKeys || imageKeys.length === 0) {
-    return {
-      success: true,
-      deletedCount: 0,
-    };
-  }
-
-  const normalizedKeys = imageKeys.map((key) => key?.trim()).filter(Boolean) as string[];
-
-  if (normalizedKeys.length === 0) {
-    return {
-      success: true,
-      deletedCount: 0,
-    };
-  }
-
-  try {
-    const { deleteUploadthingFiles } = await import("../uploadthing");
-    return await deleteUploadthingFiles(normalizedKeys);
-  } catch {
-    return {
-      success: false,
-      deletedCount: 0,
-    };
-  }
-};
-
 const revalidateProjectCreationPaths = (slug: string) => {
   revalidatePath(PROJECT_LIST_PATH);
   revalidatePath(`/project/${slug}`);
@@ -219,27 +196,45 @@ const insertProject = async (
       tags: input.tags,
       slug,
     })
-    .returning({ slug: projects.slug });
+    .returning({ slug: projects.slug, id: projects.id });
 };
 
 const createProjectWithRetry = async (
   input: SubmitProjectInput,
   authorId: string,
   faviconUrl: string,
-): Promise<SubmitProjectResult> => {
+): Promise<SubmitProjectResult & { id?: number }> => {
   const baseSlug = slugifyTitle(input.title);
 
   try {
-    const { slug } = await insertWithUniqueSlug(baseSlug, (candidateSlug) =>
+    const { slug, result } = await insertWithUniqueSlug(baseSlug, (candidateSlug) =>
       insertProject(input, authorId, faviconUrl, candidateSlug),
     );
-    return { success: true, slug };
+    const id = result[0]?.id;
+    return { success: true, slug, id };
   } catch (error) {
     const message =
       error instanceof Error && error.message ? error.message : UNEXPECTED_ERROR_MESSAGE;
     return { success: false, error: message };
   }
 };
+
+async function resolveStoredImages(
+  userId: string,
+  input: SubmitProjectInput,
+  existing: { projectId: number | null; imageUrls: string[]; imageKeys: string[] },
+): Promise<{ ok: true; imageUrls: string[]; imageKeys: string[] } | { ok: false; error: string }> {
+  const knownUploads = await listOwnedProjectUploads(userId, input.imageKeys);
+  return alignProjectImages({
+    submittedUrls: input.imageUrls,
+    submittedKeys: input.imageKeys,
+    knownUploads,
+    actorUserId: userId,
+    projectId: existing.projectId,
+    existingUrls: existing.imageUrls,
+    existingKeys: existing.imageKeys,
+  });
+}
 
 export async function cleanupProjectProvisionalUpload(
   imageKey: string,
@@ -253,7 +248,19 @@ export async function cleanupProjectProvisionalUpload(
     };
   }
 
-  return cleanupProvisionalUploadByKey(imageKey);
+  const ownedKey = await claimProvisionalUploadKey(session.user.id, imageKey);
+  if (!ownedKey) {
+    return {
+      success: false,
+      deletedCount: 0,
+    };
+  }
+
+  const result = await cleanupProvisionalUploadByKey(ownedKey);
+  if (result.success && result.deletedCount > 0) {
+    await forgetProjectUpload(ownedKey);
+  }
+  return result;
 }
 
 export async function cleanupReplacedProjectProvisionalUpload(
@@ -279,7 +286,7 @@ export async function cleanupReplacedProjectProvisionalUpload(
     };
   }
 
-  return cleanupProvisionalUploadByKey(normalizedPreviousKey);
+  return cleanupProjectProvisionalUpload(normalizedPreviousKey);
 }
 export async function editProject(projectSlug: string, formData: FormData) {
   if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
@@ -311,6 +318,9 @@ export async function editProject(projectSlug: string, formData: FormData) {
         authorId: projects.authorId,
         websiteUrl: projects.websiteUrl,
         faviconUrl: projects.faviconUrl,
+        imageUrl: projects.imageUrl,
+        imageUrls: projects.imageUrls,
+        imageKeys: projects.imageKeys,
       })
       .from(projects)
       .where(eq(projects.id, projectId))
@@ -335,13 +345,31 @@ export async function editProject(projectSlug: string, formData: FormData) {
 
     const activeCategories = await getActiveCategoryNames();
     const activeCategoryNames = activeCategories.error ? [] : activeCategories.data;
-    const validation = buildProjectSubmissionSchema(activeCategoryNames).safeParse(parsed.input);
+    const existingUrls = [
+      ...(project.imageUrls ?? []),
+      ...(project.imageUrl ? [project.imageUrl] : []),
+    ];
+    const validation = buildProjectSubmissionSchema(activeCategoryNames, {
+      grandfatheredImageUrls: existingUrls,
+    }).safeParse(parsed.input);
 
     if (!validation.success) {
       return buildValidationErrorResult(validation.error);
     }
 
     const input = validation.data;
+    const aligned = await resolveStoredImages(user.id, input, {
+      projectId,
+      imageUrls: existingUrls,
+      imageKeys: project.imageKeys ?? [],
+    });
+    if (!aligned.ok) {
+      return {
+        success: false,
+        error: aligned.error,
+        fieldErrors: { image_urls: [aligned.error] },
+      };
+    }
 
     // Preserve the existing favicon unless the website URL actually changed —
     // avoids a network fetch + surprise favicon swap on unrelated edits.
@@ -362,14 +390,17 @@ export async function editProject(projectSlug: string, formData: FormData) {
         description: input.description,
         category: input.category,
         websiteUrl: input.websiteUrl,
-        imageUrls: input.imageUrls,
-        imageKeys: input.imageKeys,
+        imageUrls: aligned.imageUrls,
+        imageKeys: aligned.imageKeys,
         tagline: input.tagline || null,
         ...(faviconUrl && { faviconUrl }),
         tags: input.tags,
         updatedAt: new Date(),
       })
       .where(eq(projects.id, projectId));
+
+    await syncProjectUploadAttachments(user.id, projectId, aligned.imageKeys);
+
     revalidatePath(`/project/${projectSlug}`);
     revalidatePath("/project/list");
 
@@ -433,6 +464,7 @@ export async function deleteProject(projectSlug: string) {
       try {
         const { deleteUploadthingFiles } = await import("../uploadthing");
         await deleteUploadthingFiles(project.imageKeys);
+        await Promise.all(project.imageKeys.map((key) => forgetProjectUpload(key)));
       } catch {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }
@@ -454,6 +486,7 @@ export async function submitProject(
   userId: string,
 ): Promise<SubmitProjectResult> {
   let provisionalImageKeys: string[] = [];
+  let actorId = "";
 
   try {
     const session = await getServerSession();
@@ -461,6 +494,7 @@ export async function submitProject(
     if (!session?.user) {
       return { success: false, error: "You must be logged in to submit projects" };
     }
+    actorId = session.user.id;
 
     const activeCategories = await getActiveCategoryNames();
     if (activeCategories.error) {
@@ -476,23 +510,54 @@ export async function submitProject(
     }
 
     const input = validationResult.data;
-    provisionalImageKeys = input.imageKeys;
+    const aligned = await resolveStoredImages(actorId, input, {
+      projectId: null,
+      imageUrls: [],
+      imageKeys: [],
+    });
+    if (!aligned.ok) {
+      return {
+        success: false,
+        error: aligned.error || INVALID_PROJECT_IMAGE_MESSAGE,
+        fieldErrors: { image_urls: [aligned.error] },
+      };
+    }
+
+    provisionalImageKeys = aligned.imageKeys;
+    const storedInput = {
+      ...input,
+      imageUrls: aligned.imageUrls,
+      imageKeys: aligned.imageKeys,
+    };
 
     const [faviconUrl, authorId] = await Promise.all([
       getFaviconOrDefault(input.websiteUrl ?? ""),
       resolveAuthorId(session.user.id, userId),
     ]);
 
-    const result = await createProjectWithRetry(input, authorId, faviconUrl);
-    if (!result.success || !result.slug) {
-      await cleanupProvisionalUploadByKeys(input.imageKeys);
-      return result;
+    const result = await createProjectWithRetry(storedInput, authorId, faviconUrl);
+    if (!result.success || !result.slug || result.id == null) {
+      await cleanupOwnedProvisionalKeys(actorId, aligned.imageKeys);
+      return result.success ? { success: false, error: UNEXPECTED_ERROR_MESSAGE } : result;
     }
 
+    await syncProjectUploadAttachments(actorId, result.id, aligned.imageKeys);
     revalidateProjectCreationPaths(result.slug);
-    return result;
+    return { success: true, slug: result.slug };
   } catch {
-    await cleanupProvisionalUploadByKeys(provisionalImageKeys);
+    await cleanupOwnedProvisionalKeys(actorId, provisionalImageKeys);
     return { success: false, error: UNEXPECTED_ERROR_MESSAGE };
+  }
+}
+
+async function cleanupOwnedProvisionalKeys(userId: string, keys: string[]) {
+  if (!userId) return;
+  for (const key of keys) {
+    const ownedKey = await claimProvisionalUploadKey(userId, key);
+    if (!ownedKey) continue;
+    const result = await cleanupProvisionalUploadByKey(ownedKey);
+    if (result.success && result.deletedCount > 0) {
+      await forgetProjectUpload(ownedKey);
+    }
   }
 }

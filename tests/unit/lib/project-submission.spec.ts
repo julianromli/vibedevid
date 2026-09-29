@@ -27,7 +27,7 @@ function formDataOf(overrides: Partial<Record<string, string>>): FormData {
       "A learning platform for Indonesian students that helps them prepare for national exams with video lessons and practice questions.",
     category: "education",
     website_url: "",
-    image_urls: JSON.stringify(["https://img.example.com/1.png"]),
+    image_urls: JSON.stringify(["https://utfs.io/f/key-1"]),
     image_keys: JSON.stringify(["key-1"]),
     tags: JSON.stringify(["edtech"]),
   };
@@ -73,7 +73,7 @@ describe("parseProjectFormData — wire -> typed model", () => {
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.input.title).toBe("Pijar Mahir");
-    expect(parsed.input.imageUrls).toEqual(["https://img.example.com/1.png"]);
+    expect(parsed.input.imageUrls).toEqual(["https://utfs.io/f/key-1"]);
     expect(parsed.input.imageKeys).toEqual(["key-1"]);
     expect(parsed.input.tags).toEqual(["edtech"]);
     expect(parsed.input.websiteUrl).toBe("");
@@ -144,6 +144,16 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
     expect(result.success).toBe(false);
     const fieldErrors = buildProjectFieldErrors(result.error!);
     expect(fieldErrors.website_url).toContain("Enter a valid website URL");
+  });
+
+  it("rejects screenshots that are not uploaded or a GitHub preview", () => {
+    const result = parseAndValidate(
+      formDataOf({ image_urls: JSON.stringify(["https://img.example.com/1.png"]) }),
+      ["education"],
+    );
+    expect(result.success).toBe(false);
+    const fieldErrors = buildProjectFieldErrors(result.error!);
+    expect(fieldErrors.image_urls?.[0]).toContain("uploaded images");
   });
 
   it("rejects empty image lists", () => {

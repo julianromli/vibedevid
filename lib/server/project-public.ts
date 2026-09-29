@@ -44,7 +44,6 @@ export interface ProjectDetail {
   fullDescription: string;
   image: string | null;
   imageUrls: string[];
-  imageKeys: string[];
   author: ProjectCardAuthor & { bio: string; location: string };
   url: string | null;
   category: string;
@@ -126,7 +125,6 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
       : mapped.imageUrl
         ? [mapped.imageUrl]
         : [],
-    imageKeys: mapped.imageKeys || [],
     author: {
       name: row.authorDisplayName,
       username: row.authorUsername,
@@ -147,6 +145,24 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
     todayViews: todayViewsResult[0]?.value || 0,
     createdAt: mapped.createdAt ?? "",
   };
+}
+
+/**
+ * Screenshot keys for the signed-in owner only. Public detail reads do not
+ * include keys, because a key is enough to ask UploadThing to delete the file.
+ */
+export async function getOwnedProjectImageKeys(slug: string, userId: string): Promise<string[]> {
+  if (!slug.trim() || !userId) return [];
+
+  const db = getDb();
+  const [row] = await db
+    .select({ authorId: projects.authorId, imageKeys: projects.imageKeys })
+    .from(projects)
+    .where(eq(projects.slug, slug.trim()))
+    .limit(1);
+
+  if (!row || row.authorId !== userId) return [];
+  return row.imageKeys ?? [];
 }
 
 const getPrimaryProjectImage = (project: {

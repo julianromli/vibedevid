@@ -144,7 +144,7 @@ describe("getProjectBySlug — detail read", () => {
       "https://img.example.com/1.png",
       "https://img.example.com/2.png",
     ]);
-    expect(project!.imageKeys).toEqual(["key-1", "key-2"]);
+    expect(project).not.toHaveProperty("imageKeys");
     expect(project!.tags).toEqual(["edtech"]);
     expect(project!.createdAt).toBe("2026-08-01T00:00:00.000Z");
   });

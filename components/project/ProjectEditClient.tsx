@@ -165,7 +165,9 @@ export function ProjectEditClient({
       imageKeys: editImageKeys,
       tags: tagsValues,
     };
-    const validation = buildProjectSubmissionSchema().safeParse(typedInput);
+    const validation = buildProjectSubmissionSchema(undefined, {
+      grandfatheredImageUrls: project.imageUrls,
+    }).safeParse(typedInput);
     if (!validation.success) {
       toast.error(formatProjectFieldErrors(buildProjectFieldErrors(validation.error)));
       return;
