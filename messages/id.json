@@ -32,7 +32,8 @@
     "close": "Tutup",
     "submitProject": "Kirim Project",
     "all": "Semua",
-    "skipToMainContent": "Lewati ke konten utama"
+    "skipToMainContent": "Lewati ke konten utama",
+    "viewCount": "{{count}} ditonton"
   },
   "settings": {
     "language": "Bahasa",

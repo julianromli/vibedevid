@@ -14,6 +14,21 @@ import { makeFakeDb } from "@/tests/unit/lib/fake-db";
 
 const UUID = "0f47d16c-3c2a-4e8e-b9b2-7e8d1f9a11aa";
 
+function sqlText(value: unknown): string {
+  const chunks = (value as { queryChunks?: unknown[] } | null)?.queryChunks ?? [];
+  return chunks
+    .map((chunk) => {
+      if (!chunk || typeof chunk !== "object") return "";
+      if ("value" in chunk && Array.isArray((chunk as { value: unknown }).value)) {
+        const parts = (chunk as { value: unknown[] }).value;
+        return parts.every((part) => typeof part === "string") ? parts.join("") : "";
+      }
+      if ("queryChunks" in chunk) return sqlText(chunk);
+      return "";
+    })
+    .join("");
+}
+
 // A `ProjectRow` as produced by the projects table (camelCase Drizzle keys).
 const projectRow = {
   id: 7,
@@ -41,17 +56,20 @@ const h = vi.hoisted(() => {
     batchLikes: unknown[];
     failKeys: string[];
     batchFail: boolean;
+    selections: Array<Record<string, unknown> | undefined>;
   } = {
     countQueue: [],
     selectRows: [],
     batchLikes: [],
     failKeys: [],
     batchFail: false,
+    selections: [],
   };
 
   const getDbCalls = { count: 0 };
 
   function resolveRows(selection: Record<string, unknown> | undefined): unknown[] {
+    state.selections.push(selection);
     const keys = Object.keys(selection ?? {});
     if (state.failKeys.some((key) => keys.includes(key))) {
       throw new Error("mocked db failure");
@@ -103,6 +121,7 @@ beforeEach(() => {
   h.state.batchLikes = [];
   h.state.failKeys = [];
   h.state.batchFail = false;
+  h.state.selections = [];
   h.getDbCalls.count = 0;
 });
 
@@ -181,13 +200,25 @@ describe("fetchProjectsWithSorting — list read", () => {
   };
 
   function listRow(
-    project: typeof projectRow,
+    project: {
+      id: number;
+      slug: string;
+      title: string;
+      description: string | null;
+      category: string;
+      websiteUrl: string | null;
+      imageUrl: string | null;
+      imageUrls: string[] | null;
+      tags: string[];
+      createdAt: Date;
+    },
     author: {
       authorUsername: string;
       authorDisplayName: string;
       authorAvatarUrl: string | null;
       authorRole: number | null;
     },
+    viewCount = 0,
   ) {
     return {
       id: project.id,
@@ -200,24 +231,33 @@ describe("fetchProjectsWithSorting — list read", () => {
       imageUrls: project.imageUrls,
       tags: project.tags,
       createdAt: project.createdAt,
+      viewCount,
       ...author,
     };
   }
 
   it("returns the list-card shape with display-name categories", async () => {
     h.state.selectRows = [
-      listRow(projectRow, {
-        authorUsername: "jane",
-        authorDisplayName: "Jane Doe",
-        authorAvatarUrl: null,
-        authorRole: 2,
-      }),
-      listRow(otherProject, {
-        authorUsername: "bob",
-        authorDisplayName: "Bob",
-        authorAvatarUrl: "/bob.png",
-        authorRole: null,
-      }),
+      listRow(
+        projectRow,
+        {
+          authorUsername: "jane",
+          authorDisplayName: "Jane Doe",
+          authorAvatarUrl: null,
+          authorRole: 2,
+        },
+        11,
+      ),
+      listRow(
+        otherProject,
+        {
+          authorUsername: "bob",
+          authorDisplayName: "Bob",
+          authorAvatarUrl: "/bob.png",
+          authorRole: null,
+        },
+        4,
+      ),
     ];
     h.state.batchLikes = [{ projectId: 8, totalLikes: 2, isLiked: false }];
 
@@ -227,11 +267,22 @@ describe("fetchProjectsWithSorting — list read", () => {
     // Newest first: "pijar-mahir" is newer (Aug 1) than "other-project" (Jul 1).
     expect(projects[0].slug).toBe("pijar-mahir");
     expect(projects[0].createdAt).toBe("2026-08-01T00:00:00.000Z");
+    expect(projects[0].views).toBe(11);
+
+    const pageSelect = h.state.selections.find(
+      (selection) => selection && "slug" in selection && "viewCount" in selection,
+    );
+    const viewCount = pageSelect?.viewCount as { usedTables?: string[] } | undefined;
+    expect(viewCount).toBeTruthy();
+    expect(sqlText(viewCount)).toMatch(/count\(\*\)::int/i);
+    expect(viewCount?.usedTables).toContain("views");
+    // One page query plus one batched likes query. View totals stay in the page query.
+    expect(h.getDbCalls.count).toBe(2);
 
     const card = projects[1];
     expect(card.category).toBe("Education");
     expect(card.likes).toBe(2);
-    expect(card.views).toBe(0); // list cards carry a placeholder view count
+    expect(card.views).toBe(4);
     expect(card.image).toBeNull(); // imageUrls null + imageUrl null → primary image null
     expect(card.author).toEqual({
       name: "Bob",

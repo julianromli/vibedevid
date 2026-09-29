@@ -32,7 +32,8 @@
     "close": "Close",
     "submitProject": "Submit Project",
     "all": "All",
-    "skipToMainContent": "Skip to main content"
+    "skipToMainContent": "Skip to main content",
+    "viewCount": "{{count}} views"
   },
   "settings": {
     "language": "Language",

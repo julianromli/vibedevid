@@ -234,6 +234,12 @@ async function getBatchLikeStatus(
 
 const likeCountSql = sql<number>`(select count(*)::int from ${likes} where ${likes.projectId} = ${projects.id})`;
 
+// Same total as the project detail page. Counted in the page SELECT, not once per card.
+// `idx_views_project_id` serves this lookup. The unique index
+// `views_project_session_day_uidx` is partial (session_id is not null), so a full
+// row count cannot use it without dropping older rows that have no session.
+const viewCountSql = sql<number>`(select count(*)::int from ${views} where ${views.projectId} = ${projects.id})`;
+
 const trendingScoreSql = sql<number>`(
   (select count(*)::int from ${likes} where ${likes.projectId} = ${projects.id})::float
   / greatest(1, extract(epoch from (now() - ${projects.createdAt})) / 86400.0)
@@ -348,6 +354,7 @@ export async function fetchProjectPage(options: {
       authorDisplayName: users.displayName,
       authorAvatarUrl: users.avatarUrl,
       authorRole: users.role,
+      viewCount: viewCountSql,
     })
     .from(projects)
     .innerJoin(users, eq(projects.authorId, users.id))
@@ -386,7 +393,7 @@ export async function fetchProjectPage(options: {
       url: row.websiteUrl || undefined,
       category: categoryDisplayName,
       likes: projectLikesData.totalLikes,
-      views: 0,
+      views: Number(row.viewCount) || 0,
       createdAt,
     };
   });
