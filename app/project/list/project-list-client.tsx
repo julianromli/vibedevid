@@ -10,6 +10,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { FilterControls } from "@/components/ui/filter-controls";
 import { HeartButtonDisplay } from "@/components/ui/heart-button-display";
+import { ViewCountDisplay } from "@/components/ui/view-count-display";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { ProjectGridSkeleton } from "@/components/ui/skeleton";
 import { UserDisplayName } from "@/components/ui/user-display-name";
@@ -103,7 +104,8 @@ function ProjectListCard({ project, index, prefersReducedMotion }: ProjectListCa
             />
           </Link>
         </div>
-        <div className="relative z-20">
+        <div className="relative z-20 flex items-center gap-3">
+          <ViewCountDisplay views={project.views || 0} />
           <HeartButtonDisplay likes={project.likes || 0} variant="default" />
         </div>
       </div>
