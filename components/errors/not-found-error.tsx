@@ -1,10 +1,19 @@
-import { Link } from "@tanstack/react-router";
-import { BackButton } from "../back-button";
-import { Button } from "../ui/button";
+import { Link } from '@tanstack/react-router'
+import { BackButton } from '../back-button'
+import { Button } from '../ui/button'
 
 export default function NotFoundError() {
   return (
     <div className="h-svh">
+      <title>Halaman tidak ditemukan | VibeDev ID</title>
+      <meta
+        name="robots"
+        content="noindex, nofollow"
+      />
+      <meta
+        name="description"
+        content="Halaman yang Anda buka tidak ada di VibeDev ID."
+      />
       <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2">
         <h1 className="text-[7rem] leading-tight font-bold">404</h1>
         <span className="font-medium">Oops! Page Not Found!</span>
@@ -20,5 +29,5 @@ export default function NotFoundError() {
         </div>
       </div>
     </div>
-  );
+  )
 }

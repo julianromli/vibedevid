@@ -33,7 +33,19 @@
     "submitProject": "Kirim Project",
     "all": "Semua",
     "skipToMainContent": "Lewati ke konten utama",
-    "viewCount": "{{count}} ditonton"
+    "viewCount": "{{count}} ditonton",
+    "author": "Penulis",
+    "blogIntro": "Artikel, tutorial, dan cerita seputar vibe coding, AI, dan pengembangan software dari komunitas VibeDev ID.",
+    "eventsTitle": "Event AI dan coding di Indonesia",
+    "eventsIntro": "Workshop, meetup, conference, dan hackathon seputar AI dan coding dari komunitas VibeDev ID.",
+    "breadcrumbs": {
+      "home": "Beranda",
+      "projects": "Project",
+      "blog": "Blog",
+      "events": "Event",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Syarat Layanan"
+    }
   },
   "settings": {
     "language": "Bahasa",
@@ -61,7 +73,7 @@
   },
   "projectShowcase": {
     "title": "Showcase Project Developer Indonesia",
-    "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
+    "description": "Temukan project dari komunitas VibeDev ID. Filter karya berdasarkan kategori.",
     "submitButton": "Submit Project",
     "loadMoreButton": "Muat Project Lainnya",
     "trendingOptions": {
@@ -106,16 +118,16 @@
     },
     "safeSpace": {
       "title": "Safe Space untuk Belajar",
-      "description": "Environment supportive buat semua level. Mau pemula atau expert, semua saling bantu dan grow together."
+      "description": "Tempat belajar untuk semua level. Pemula dan yang sudah lama coding saling bantu."
     },
     "collaboration": {
       "title": "Kolaborasi Tanpa Batas",
-      "description": "Bikin project bareng, share knowledge, dan build something amazing together."
+      "description": "Bikin project bareng dan saling bagi pengetahuan."
     }
   },
   "aiTools": {
     "title": "AI untuk Coding & Development Tools",
-    "description": "Explore tool AI terbaru untuk coding pake AI yang lebih efisien. Integrasikan AI coding agents favorit untuk workflow development yang next-level.",
+    "description": "Lihat tool AI untuk coding. Sambungkan AI coding agent yang lo pakai ke workflow lo.",
     "learnMore": "Pelajari Lebih Lanjut",
     "tools": {
       "claudeCode": {
@@ -206,7 +218,7 @@
   },
   "projectList": {
     "title": "Showcase Project Developer Indonesia",
-    "description": "Temukan project keren yang dibuat oleh komunitas vibe coder Indonesia. Dari AI tools sampai open source projects, semua karya developer terbaik ada di sini.",
+    "description": "Temukan project dari komunitas VibeDev ID. Filter karya berdasarkan kategori.",
     "filter": "Filter",
     "submitButton": "Submit Project",
     "noProjects": "Belum ada project dengan filter yang dipilih",
@@ -322,7 +334,7 @@
       },
       "4": {
         "question": "Teknologi dan AI tools apa aja yang didukung?",
-        "answer": "Komunitas vibe coding Indonesia kami embrace semua teknologi modern! Member aktif kerja dengan React, Next.js, Python, AI/ML frameworks, dan tools untuk coding pake AI seperti GitHub Copilot, ChatGPT, dan Claude. Kalau itu cutting-edge tech, lo pasti nemu expert vibe coder di sini."
+        "answer": "Member di sini kerja dengan React, Next.js, Python, framework AI/ML, dan tool coding AI seperti GitHub Copilot, ChatGPT, dan Claude."
       }
     }
   }

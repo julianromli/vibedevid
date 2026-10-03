@@ -3,36 +3,35 @@
  * Displays frequently asked questions with an animated accordion (Framer Motion)
  */
 
-"use client";
+'use client'
 
-import { Plus } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useId, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
-import { cn } from "@/lib/utils";
+import { Plus } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
+import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 
 interface FAQItem {
-  question: string;
-  answer: string;
+  question: string
+  answer: string
 }
 
 interface FAQAccordionItemProps {
-  faq: FAQItem;
-  isOpen: boolean;
-  onToggle: () => void;
-  prefersReducedMotion: boolean;
+  faq: FAQItem
+  isOpen: boolean
+  onToggle: () => void
+  prefersReducedMotion: boolean
 }
 
 function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAccordionItemProps) {
-  const contentId = useId();
+  const contentId = useId()
 
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground rounded-xl border shadow-sm",
-        !prefersReducedMotion && "transition-shadow duration-300",
-        isOpen && "shadow-md",
+        'bg-card text-card-foreground rounded-xl border shadow-sm',
+        !prefersReducedMotion && 'transition-shadow duration-300',
+        isOpen && 'shadow-md',
       )}
     >
       <button
@@ -41,8 +40,8 @@ function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAc
         aria-expanded={isOpen}
         aria-controls={contentId}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between p-6 text-left font-semibold",
-          !prefersReducedMotion && "transition-colors duration-200",
+          'flex w-full cursor-pointer items-center justify-between p-6 text-left font-semibold',
+          !prefersReducedMotion && 'transition-colors duration-200',
         )}
       >
         <span className="pr-4">{faq.question}</span>
@@ -56,61 +55,55 @@ function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAc
         </motion.span>
       </button>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            id={contentId}
-            role="region"
-            key="content"
-            initial={prefersReducedMotion ? { opacity: 1 } : { height: 0, opacity: 0 }}
-            animate={prefersReducedMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-            exit={prefersReducedMotion ? { opacity: 1 } : { height: 0, opacity: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: [0.2, 0, 0, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="px-6 pb-6">
-              <p className="text-muted-foreground text-left leading-relaxed">{faq.answer}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        id={contentId}
+        className={cn('grid', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
+      >
+        <div className="overflow-hidden">
+          <p className="text-muted-foreground px-6 pb-6 text-left leading-relaxed">{faq.answer}</p>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
 
 export function FAQSection() {
-  const { t } = useTranslation("faq");
-  const prefersReducedMotion = useReducedMotion() ?? false;
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const { t } = useTranslation('faq')
+  const prefersReducedMotion = useReducedMotion() ?? false
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
 
-  const faqItems = t("items", { returnObjects: true }) as Record<string, FAQItem>;
-  const faqArray = Object.values(faqItems);
+  const faqItems = t('items', { returnObjects: true }) as Record<string, FAQItem>
+  const faqArray = Object.values(faqItems).filter((item): item is FAQItem =>
+    Boolean(item && typeof item.question === 'string' && item.answer),
+  )
 
   const toggleItem = (question: string) => {
-    setOpenItems((prev) => ({ ...prev, [question]: !prev[question] }));
-  };
+    setOpenItems((prev) => ({ ...prev, [question]: !prev[question] }))
+  }
 
   return (
-    <section id="faq" className="py-20" data-animate>
+    <section
+      id="faq"
+      className="py-20"
+    >
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <ScrollReveal className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t("title")}</h2>
-          <p className="text-muted-foreground text-xl">{t("subtitle")}</p>
-        </ScrollReveal>
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
+          <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
+        </div>
 
-        <StaggerContainer className="space-y-4">
+        <div className="space-y-4">
           {faqArray.map((faq) => (
-            <StaggerItem key={faq.question}>
-              <FAQAccordionItem
-                faq={faq}
-                isOpen={Boolean(openItems[faq.question])}
-                onToggle={() => toggleItem(faq.question)}
-                prefersReducedMotion={prefersReducedMotion}
-              />
-            </StaggerItem>
+            <FAQAccordionItem
+              key={faq.question}
+              faq={faq}
+              isOpen={Boolean(openItems[faq.question])}
+              onToggle={() => toggleItem(faq.question)}
+              prefersReducedMotion={prefersReducedMotion}
+            />
           ))}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
-  );
+  )
 }

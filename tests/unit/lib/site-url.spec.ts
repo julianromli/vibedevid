@@ -47,7 +47,7 @@ describe('getSiteUrl', () => {
     // process exists (Node/Vitest). Only env is missing, as on some edge runtimes.
     const processRef = process as NodeJS.Process & { env?: NodeJS.ProcessEnv }
     const originalEnv = processRef.env
-    processRef.env = undefined
+    processRef.env = undefined as unknown as NodeJS.ProcessEnv
 
     try {
       expect(getSiteUrl()).toMatch(/^https?:\/\/[^/]+$/)
@@ -85,6 +85,29 @@ describe('getCanonicalHostRedirect', () => {
   it('does not redirect the canonical host or localhost', () => {
     expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id/blog'))).toBeNull()
     expect(getCanonicalHostRedirect(new Request('http://localhost:3000/'))).toBeNull()
+  })
+
+  it('collapses host, locale prefix, trailing slash, and path aliases into one hop', () => {
+    expect(getCanonicalHostRedirect(new Request('https://www.vibedeveloper.id/en/calendar/?ref=nav'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/event/list?ref=nav`,
+    )
+    expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id/blog/'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/blog`,
+    )
+    expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id/terms'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/terms-of-service`,
+    )
+    expect(getCanonicalHostRedirect(new Request('https://vibedevid.com/en/blog/'))).toBe(
+      `${CANONICAL_SITE_ORIGIN}/blog`,
+    )
+    expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id/api/auth/sign-in/'))).toBeNull()
+  })
+
+  it('sets the English locale cookie when /en is removed', () => {
+    const response = canonicalHostRedirectResponse(new Request('https://vibedeveloper.id/en/blog'))
+    expect(response?.status).toBe(301)
+    expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/blog`)
+    expect(response?.headers.get('set-cookie')).toContain('NEXT_LOCALE=en')
   })
 
   it('returns a 301 response for GET and HEAD on alias hosts', () => {
@@ -133,6 +156,9 @@ describe('robots.txt', () => {
     const body = buildRobotsTxt()
     expect(body).toContain(`Sitemap: ${CANONICAL_SITE_ORIGIN}/sitemap.xml`)
     expect(body).toContain(`Host: ${CANONICAL_SITE_ORIGIN}`)
+    expect(body).toContain('User-agent: Googlebot')
+    expect(body).toContain('Allow: /')
+    expect(body).not.toMatch(/^Disallow: \/$/m)
     expect(body).not.toContain('vibedevid.com')
   })
 })
@@ -151,5 +177,16 @@ describe('sitemap.xml', () => {
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
     expect(xml).toContain(`<loc>${CANONICAL_SITE_ORIGIN}/blog/a&amp;b</loc>`)
     expect(xml).not.toContain('<loc>https://vibedevid.com')
+  })
+
+  it('omits lastmod when the page has no modification time', () => {
+    const xml = buildSitemapXml([
+      {
+        loc: `${CANONICAL_SITE_ORIGIN}/privacy-policy`,
+        changefreq: 'yearly',
+        priority: '0.3',
+      },
+    ])
+    expect(xml).not.toContain('<lastmod>')
   })
 })

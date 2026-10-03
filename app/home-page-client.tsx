@@ -1,11 +1,13 @@
 'use client'
 
 import { lazy, Suspense } from 'react'
+import { FAQSection } from '@/components/sections/faq-section'
 import { HeroSection } from '@/components/sections/hero-section'
 import { HomeStructuredData } from '@/components/sections/home-structured-data'
 import { ProjectShowcase } from '@/components/sections/project-showcase'
 import { ProjectShowcaseProvider } from '@/components/sections/project-showcase/project-showcase-context'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
 import { JOIN_COMMUNITY_URL } from '@/lib/seo/site-url'
 import type { Project, ProjectFilterOption, SortBy, Testimonial, User, VibeVideo } from '@/types/homepage'
@@ -33,9 +35,7 @@ const ReviewsSection = lazy(() =>
     default: m.ReviewsSection,
   })),
 )
-const FAQSection = lazy(() => import('@/components/sections/faq-section').then((m) => ({ default: m.FAQSection })))
 const CTASection = lazy(() => import('@/components/sections/cta-section').then((m) => ({ default: m.CTASection })))
-const Footer = lazy(() => import('@/components/ui/footer').then((m) => ({ default: m.Footer })))
 
 const SectionFallback = <div className="mx-auto my-12 h-48 w-full max-w-7xl animate-pulse rounded-lg bg-muted/20" />
 
@@ -121,17 +121,13 @@ export default function HomePageClient({
         <ReviewsSection approvedTestimonials={initialTestimonials} />
       </Suspense>
 
-      <Suspense fallback={SectionFallback}>
-        <FAQSection />
-      </Suspense>
+      <FAQSection />
 
       <Suspense fallback={SectionFallback}>
         <CTASection joinHref={JOIN_COMMUNITY_URL} />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <Footer />
-      </Suspense>
+      <Footer />
     </main>
   )
 }

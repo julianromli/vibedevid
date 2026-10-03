@@ -3,8 +3,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import EventDetailData from '@/app/event/[slug]/event-detail-data'
 import { getServerLocale } from '@/lib/routes/helpers'
-import { breadcrumbListSchema, eventSchema } from '@/lib/seo/schema-templates'
-import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
+import { publicPageHead } from '@/lib/seo/page-meta'
+import { eventSchema } from '@/lib/seo/schema-templates'
 import { getCurrentUser } from '@/lib/server/auth'
 import { fetchEventBySlug, fetchRelatedEvents } from '@/lib/server/events-public'
 
@@ -46,29 +46,14 @@ export const Route = createFileRoute('/event/$slug')({
     }
 
     const description = event.description.slice(0, 160)
-    const pathname = `/event/${event.slug}`
-    const url = absoluteUrl(pathname)
 
-    return {
-      meta: [
-        { title: `${event.name} | AI Events Indonesia` },
-        { name: 'description', content: description },
-        { property: 'og:title', content: event.name },
-        { property: 'og:description', content: description },
-        { property: 'og:url', content: url },
-        { property: 'og:site_name', content: 'VibeDev ID' },
-        { property: 'og:image', content: event.coverImage },
-        { property: 'og:locale', content: locale === 'en' ? 'en_US' : 'id_ID' },
-        { property: 'og:type', content: 'website' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: event.name },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: event.coverImage },
-        { name: 'twitter:site', content: '@vibedevid' },
-        { name: 'twitter:creator', content: '@vibedevid' },
-      ],
-      links: [{ rel: 'canonical', href: url }],
-    }
+    return publicPageHead({
+      title: `${event.name} | VibeDev ID`,
+      description,
+      path: `/event/${event.slug}`,
+      image: event.coverImage,
+      locale: locale === 'en' ? 'en_US' : 'id_ID',
+    })
   },
   component: EventDetailRoute,
 })
@@ -77,16 +62,10 @@ function EventDetailRoute() {
   const { event, relatedEvents, currentUser } = Route.useLoaderData()
 
   const eventData = eventSchema(event)
-  const breadcrumbs = breadcrumbListSchema([
-    { name: 'Home', url: getSiteUrl() },
-    { name: 'Events', url: absoluteUrl('/event/list') },
-    { name: event.name, url: absoluteUrl(`/event/${event.slug}`) },
-  ])
 
   return (
     <>
       <script type="application/ld+json">{JSON.stringify(eventData)}</script>
-      <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>
       <EventDetailData
         event={event}
         relatedEvents={relatedEvents}

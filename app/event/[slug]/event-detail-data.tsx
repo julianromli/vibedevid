@@ -1,50 +1,50 @@
-import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from "lucide-react";
-import { Image } from "@unpic/react";
-import { Link } from "@tanstack/react-router";
-import { EventCard } from "@/components/event/event-card";
-import { EventShareButton } from "@/components/event/event-share-button";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Footer } from "@/components/ui/footer";
-import { Navbar } from "@/components/ui/navbar";
-import type { fetchEventBySlug, fetchRelatedEvents } from "@/lib/server/events-public";
-import { formatEventDateRange } from "@/lib/events-utils";
-import type { getCurrentUser } from "@/lib/server/auth";
+import { Link } from '@tanstack/react-router'
+import { Image } from '@unpic/react'
+import { ArrowLeft, Calendar, ExternalLink, MapPin, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { EventCard } from '@/components/event/event-card'
+import { EventShareButton } from '@/components/event/event-share-button'
+import { PageBreadcrumbs } from '@/components/seo/page-breadcrumbs'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import { formatEventDateRange } from '@/lib/events-utils'
+import type { getCurrentUser } from '@/lib/server/auth'
+import type { fetchEventBySlug, fetchRelatedEvents } from '@/lib/server/events-public'
 
-type EventData = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>;
-type RelatedEvents = NonNullable<Awaited<ReturnType<typeof fetchRelatedEvents>>>;
-type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
+type EventData = NonNullable<Awaited<ReturnType<typeof fetchEventBySlug>>>
+type RelatedEvents = NonNullable<Awaited<ReturnType<typeof fetchRelatedEvents>>>
+type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>
 
 export interface EventDetailDataProps {
-  event: EventData;
-  relatedEvents: RelatedEvents;
-  currentUser: CurrentUser;
+  event: EventData
+  relatedEvents: RelatedEvents
+  currentUser: CurrentUser
 }
 
-export default function EventDetailData({
-  event,
-  relatedEvents,
-  currentUser,
-}: EventDetailDataProps) {
-  const isPastEvent = event.status === "past";
-  const formattedDate = formatEventDateRange(event.date, event.time, event.endDate, event.endTime);
+export default function EventDetailData({ event, relatedEvents, currentUser }: EventDetailDataProps) {
+  const { t } = useTranslation('common')
+  const isPastEvent = event.status === 'past'
+  const formattedDate = formatEventDateRange(event.date, event.time, event.endDate, event.endTime)
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar showNavigation={true} isLoggedIn={!!currentUser} user={currentUser || undefined} />
+      <Navbar
+        showNavigation={true}
+        isLoggedIn={!!currentUser}
+        user={currentUser || undefined}
+      />
 
       <main className="container mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 lg:px-8">
-        {/* Back Navigation */}
-        <div className="mb-8">
-          <Link
-            to="/event/list"
-            className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Events
-          </Link>
-        </div>
+        <PageBreadcrumbs
+          items={[
+            { name: t('breadcrumbs.home'), href: '/' },
+            { name: t('breadcrumbs.events'), href: '/event/list' },
+            { name: event.name, href: `/event/${event.slug}` },
+          ]}
+        />
 
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Main Content Area */}
@@ -52,16 +52,15 @@ export default function EventDetailData({
             {/* Header Section */}
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="capitalize">
+                <Badge
+                  variant="secondary"
+                  className="capitalize"
+                >
                   {event.category}
                 </Badge>
                 <Badge
                   variant={
-                    event.status === "upcoming"
-                      ? "default"
-                      : event.status === "ongoing"
-                        ? "secondary"
-                        : "outline"
+                    event.status === 'upcoming' ? 'default' : event.status === 'ongoing' ? 'secondary' : 'outline'
                   }
                   className="capitalize"
                 >
@@ -91,9 +90,7 @@ export default function EventDetailData({
                     <Calendar className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-                      Date & Time
-                    </p>
+                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">Date & Time</p>
                     <p className="mt-1 font-semibold text-sm">{formattedDate}</p>
                   </div>
                 </CardContent>
@@ -105,9 +102,7 @@ export default function EventDetailData({
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-                      Location
-                    </p>
+                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">Location</p>
                     <p className="mt-1 font-semibold text-sm capitalize">{event.locationType}</p>
                     <p className="text-muted-foreground text-xs">{event.locationDetail}</p>
                   </div>
@@ -120,9 +115,7 @@ export default function EventDetailData({
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-                      Organizer
-                    </p>
+                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">Organizer</p>
                     <p className="mt-1 font-semibold text-sm">{event.organizer}</p>
                   </div>
                 </CardContent>
@@ -132,9 +125,7 @@ export default function EventDetailData({
             {/* Description */}
             <div className="prose prose-neutral dark:prose-invert max-w-none">
               <h2 className="mb-4 font-bold">About this Event</h2>
-              <p className="whitespace-pre-line text-muted-foreground leading-relaxed">
-                {event.description}
-              </p>
+              <p className="whitespace-pre-line text-muted-foreground leading-relaxed">{event.description}</p>
             </div>
           </div>
 
@@ -150,11 +141,14 @@ export default function EventDetailData({
                       <div className="space-y-2">
                         <h3 className="font-bold text-xl">Ready to join?</h3>
                         <p className="text-muted-foreground text-sm">
-                          Secure your spot for this event. Registration is open until seats are
-                          filled.
+                          Secure your spot for this event. Registration is open until seats are filled.
                         </p>
                       </div>
-                      <Button asChild size="lg" className="w-full font-semibold shadow-md">
+                      <Button
+                        asChild
+                        size="lg"
+                        className="w-full font-semibold shadow-md"
+                      >
                         <a
                           href={event.registrationUrl}
                           target="_blank"
@@ -175,7 +169,10 @@ export default function EventDetailData({
                     </div>
                   )}
 
-                  <EventShareButton eventTitle={event.name} eventSlug={event.slug} />
+                  <EventShareButton
+                    eventTitle={event.name}
+                    eventSlug={event.slug}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -188,14 +185,21 @@ export default function EventDetailData({
             <div className="mb-8 flex items-center justify-between">
               <h2 className="font-bold text-2xl tracking-tight">Related Events</h2>
               <Link to="/event/list">
-                <Button variant="ghost" className="gap-1">
+                <Button
+                  variant="ghost"
+                  className="gap-1"
+                >
                   View all <ArrowLeft className="h-4 w-4 rotate-180" />
                 </Button>
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedEvents.map((relatedEvent) => (
-                <EventCard key={relatedEvent.id} event={relatedEvent} variant="grid" />
+                <EventCard
+                  key={relatedEvent.id}
+                  event={relatedEvent}
+                  variant="grid"
+                />
               ))}
             </div>
           </div>
@@ -204,5 +208,5 @@ export default function EventDetailData({
 
       <Footer />
     </div>
-  );
+  )
 }

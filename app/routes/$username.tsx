@@ -4,8 +4,9 @@ import { z } from 'zod'
 import ProfilePage from '@/app/[username]/page'
 import { loadProfilePageData } from '@/app/[username]/profile-data'
 import { isReservedProfileSlug, parseProfileUsernameParam } from '@/lib/reserved-profile-slugs'
+import { publicPageHead } from '@/lib/seo/page-meta'
 import { profilePageSchema } from '@/lib/seo/schema-templates'
-import { absoluteUrl } from '@/lib/seo/site-url'
+import { NOINDEX_META } from '@/lib/seo/site-url'
 
 /**
  * Server-only profile data fetching. Wrapped in `createServerFn` so the
@@ -35,33 +36,19 @@ export const Route = createFileRoute('/$username')({
   head: ({ loaderData }) => {
     const user = loaderData?.user
     if (!user) {
-      return { meta: [{ title: 'User Not Found | VibeDev ID' }] }
+      return { meta: [NOINDEX_META] }
     }
 
     const name = user.display_name || user.username
     const description = (user.bio || `Profil ${name} di VibeDev ID`).slice(0, 160)
-    const url = absoluteUrl(`/${user.username}`)
-    const image = user.avatar_url || undefined
 
-    return {
-      meta: [
-        { title: `${name} (@${user.username}) | VibeDev ID` },
-        { name: 'description', content: description },
-        { property: 'og:title', content: name },
-        { property: 'og:description', content: description },
-        { property: 'og:url', content: url },
-        { property: 'og:type', content: 'profile' },
-        { property: 'og:site_name', content: 'VibeDev ID' },
-        { property: 'og:locale', content: 'id_ID' },
-        ...(image ? [{ property: 'og:image', content: image }] : []),
-        { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: name },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:site', content: '@vibedevid' },
-        ...(image ? [{ name: 'twitter:image', content: image }] : []),
-      ],
-      links: [{ rel: 'canonical', href: url }],
-    }
+    return publicPageHead({
+      title: `${name} (@${user.username}) | VibeDev ID`,
+      description,
+      path: `/${user.username}`,
+      image: user.avatar_url,
+      type: 'profile',
+    })
   },
   component: UsernameRoute,
 })

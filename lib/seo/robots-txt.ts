@@ -15,14 +15,11 @@ const DISALLOWED_PATHS = [
   '/auth/',
 ]
 
+function agentGroup(userAgent: string): string[] {
+  return [`User-agent: ${userAgent}`, 'Allow: /', ...DISALLOWED_PATHS.map((path) => `Disallow: ${path}`), '']
+}
+
 export function buildRobotsTxt(origin = CANONICAL_SITE_ORIGIN): string {
   const base = origin.replace(/\/$/, '')
-  return [
-    'User-agent: *',
-    'Allow: /',
-    ...DISALLOWED_PATHS.map((path) => `Disallow: ${path}`),
-    '',
-    `Sitemap: ${base}/sitemap.xml`,
-    `Host: ${base}`,
-  ].join('\n')
+  return [...agentGroup('*'), ...agentGroup('Googlebot'), `Sitemap: ${base}/sitemap.xml`, `Host: ${base}`].join('\n')
 }

@@ -33,7 +33,19 @@
     "submitProject": "Submit Project",
     "all": "All",
     "skipToMainContent": "Skip to main content",
-    "viewCount": "{{count}} views"
+    "viewCount": "{{count}} views",
+    "author": "Author",
+    "blogIntro": "Articles, tutorials, and stories about vibe coding, AI, and software from the VibeDev ID community.",
+    "eventsTitle": "AI and coding events in Indonesia",
+    "eventsIntro": "Workshops, meetups, conferences, and hackathons about AI and coding from the VibeDev ID community.",
+    "breadcrumbs": {
+      "home": "Home",
+      "projects": "Projects",
+      "blog": "Blog",
+      "events": "Events",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
   },
   "settings": {
     "language": "Language",
@@ -61,7 +73,7 @@
   },
   "projectShowcase": {
     "title": "Indonesian Developer Project Showcase",
-    "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
+    "description": "Find projects from the VibeDev ID community. Filter work by category.",
     "submitButton": "Submit Project",
     "loadMoreButton": "Load More Projects",
     "trendingOptions": {
@@ -106,16 +118,16 @@
     },
     "safeSpace": {
       "title": "Safe Space to Learn",
-      "description": "Supportive environment for all levels. Whether beginner or expert, everyone helps each other grow together."
+      "description": "A place to learn for every level. Beginners and experienced coders help each other."
     },
     "collaboration": {
       "title": "Limitless Collaboration",
-      "description": "Build projects together, share knowledge, and build something amazing together."
+      "description": "Build projects together and share what you know."
     }
   },
   "aiTools": {
     "title": "AI for Coding & Development Tools",
-    "description": "Explore the latest AI tools for more efficient AI-powered coding. Integrate your favorite AI coding agents for a next-level development workflow.",
+    "description": "See AI tools for coding. Connect the AI coding agents you use to your workflow.",
     "learnMore": "Learn More",
     "tools": {
       "claudeCode": {
@@ -206,7 +218,7 @@
   },
   "projectList": {
     "title": "Indonesian Developer Project Showcase",
-    "description": "Discover cool projects created by the Indonesian vibe coder community. From AI tools to open source projects, all the best developer works are here.",
+    "description": "Find projects from the VibeDev ID community. Filter work by category.",
     "filter": "Filter",
     "submitButton": "Submit Project",
     "noProjects": "No projects found with the selected filter",
@@ -322,7 +334,7 @@
       },
       "4": {
         "question": "What technology and AI tools are supported?",
-        "answer": "Our Indonesian vibe coding community embraces all modern technologies! Active members work with React, Next.js, Python, AI/ML frameworks, and AI coding tools like GitHub Copilot, ChatGPT, and Claude. If it's cutting-edge tech, you'll surely find expert vibe coders here."
+        "answer": "Members here use React, Next.js, Python, AI/ML frameworks, and AI coding tools such as GitHub Copilot, ChatGPT, and Claude."
       }
     }
   }

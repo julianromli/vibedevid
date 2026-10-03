@@ -33,36 +33,15 @@ export const Route = createRootRoute({
   },
   errorComponent: DefaultRouteError,
   head: () => {
-    const siteUrl = getSiteUrl()
-    const ogImage = `${siteUrl}/og-image.png`
-    const title = 'VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia'
-    const description =
-      'Komunitas vibe coding terbesar di Indonesia. Showcase project, event, blog, dan belajar coding dengan AI.'
-
     return {
       meta: [
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { title },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'VibeDev ID' },
         { property: 'og:locale', content: 'id_ID' },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: ogImage },
-        { property: 'og:image:type', content: 'image/png' },
-        { property: 'og:image:width', content: '1200' },
-        { property: 'og:image:height', content: '630' },
-        { property: 'og:image:alt', content: title },
-        // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:site', content: '@vibedevid' },
         { name: 'twitter:creator', content: '@vibedevid' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: ogImage },
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
@@ -127,14 +106,6 @@ function RootLayout() {
             name: 'VibeDev ID',
             url: siteUrl,
             inLanguage: 'id-ID',
-            potentialAction: {
-              '@type': 'SearchAction',
-              target: {
-                '@type': 'EntryPoint',
-                urlTemplate: `${siteUrl}/project/list?filter={search_term_string}`,
-              },
-              'query-input': 'required name=search_term_string',
-            },
           })}
         </script>
       </head>

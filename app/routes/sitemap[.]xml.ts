@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { eq, isNotNull } from 'drizzle-orm'
+import { isReservedProfileSlug } from '@/lib/reserved-profile-slugs'
 import { getSiteUrl } from '@/lib/seo/site-url'
 import { buildSitemapXml, type SitemapEntry } from '@/lib/seo/sitemap-xml'
 
@@ -8,7 +9,6 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: '/project/list', priority: '0.8', changefreq: 'daily' },
   { path: '/blog', priority: '0.8', changefreq: 'daily' },
   { path: '/event/list', priority: '0.7', changefreq: 'daily' },
-  { path: '/terms', priority: '0.3', changefreq: 'yearly' },
   { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly' },
   { path: '/terms-of-service', priority: '0.3', changefreq: 'yearly' },
 ]
@@ -24,10 +24,9 @@ function toIso(value: unknown, fallback: string): string {
   return fallback
 }
 
-function staticEntries(base: string, fallbackIso: string): SitemapEntry[] {
+function staticEntries(base: string): SitemapEntry[] {
   return STATIC_ROUTES.map((route) => ({
     loc: `${base}${route.path}`,
-    lastmod: fallbackIso,
     changefreq: route.changefreq,
     priority: route.priority,
   }))
@@ -80,7 +79,7 @@ async function getDynamicEntries(base: string, fallbackIso: string): Promise<Sit
       }))
 
     const userEntries = userRows
-      .filter((row) => row.username)
+      .filter((row) => row.username && !isReservedProfileSlug(row.username))
       .map((row) => ({
         loc: `${base}/${row.username}`,
         lastmod: toIso(row.updatedAt, fallbackIso),
@@ -111,7 +110,7 @@ export const Route = createFileRoute('/sitemap.xml')({
       GET: async () => {
         const base = getSiteUrl().replace(/\/$/, '')
         const fallbackIso = new Date().toISOString()
-        const staticOnly = staticEntries(base, fallbackIso)
+        const staticOnly = staticEntries(base)
 
         try {
           const dynamicEntries = await getDynamicEntries(base, fallbackIso)

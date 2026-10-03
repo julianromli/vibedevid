@@ -1,92 +1,82 @@
-"use client";
+'use client'
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { Image } from "@unpic/react";
-import { useCallback, useEffect, useState } from "react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Button } from "@/components/ui/button";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn } from "@/lib/utils";
+import { Image } from '@unpic/react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useState } from 'react'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Button } from '@/components/ui/button'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 interface ProjectImageCarouselProps {
-  images: string[];
-  alt: string;
-  className?: string;
+  images: string[]
+  alt: string
+  className?: string
 }
 
 export function ProjectImageCarousel({ images, alt, className }: ProjectImageCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   const goToNext = useCallback(() => {
-    if (images.length === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  }, [images.length]);
+    if (images.length === 0) return
+    setCurrentIndex((prev) => (prev + 1) % images.length)
+  }, [images.length])
 
   const goToPrevious = useCallback(() => {
-    if (images.length === 0) return;
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  }, [images.length]);
+    if (images.length === 0) return
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+  }, [images.length])
 
   const goToIndex = useCallback((index: number) => {
-    setCurrentIndex(index);
-  }, []);
+    setCurrentIndex(index)
+  }, [])
 
   useEffect(() => {
     if (images.length === 0) {
-      setCurrentIndex(0);
-      return;
+      setCurrentIndex(0)
+      return
     }
 
-    setCurrentIndex((prev) => Math.min(prev, images.length - 1));
-  }, [images.length]);
+    setCurrentIndex((prev) => Math.min(prev, images.length - 1))
+  }, [images.length])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target;
+      const target = event.target
       if (target instanceof HTMLElement) {
-        const tag = target.tagName;
-        if (
-          tag === "INPUT" ||
-          tag === "TEXTAREA" ||
-          tag === "SELECT" ||
-          target.isContentEditable
-        ) {
-          return;
+        const tag = target.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable) {
+          return
         }
       }
-      if (event.key === "ArrowLeft") {
-        goToPrevious();
-      } else if (event.key === "ArrowRight") {
-        goToNext();
+      if (event.key === 'ArrowLeft') {
+        goToPrevious()
+      } else if (event.key === 'ArrowRight') {
+        goToNext()
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goToNext, goToPrevious]);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [goToNext, goToPrevious])
 
   if (!images || images.length === 0) {
     return (
-      <div className={`bg-muted relative overflow-hidden rounded-xl ${className || ""}`}>
+      <div className={`bg-muted relative overflow-hidden rounded-xl ${className || ''}`}>
         <AspectRatio ratio={16 / 9}>
-          <Image
-            src="/placeholder.svg"
-            alt="No images"
-            layout="fullWidth"
-            className="h-full w-full object-cover"
-          />
+          <div className="text-muted-foreground flex h-full w-full items-center justify-center text-sm">No images</div>
         </AspectRatio>
       </div>
-    );
+    )
   }
 
-  const showNavigation = images.length > 1;
-  const currentImage = images[currentIndex] ?? images[0];
+  const showNavigation = images.length > 1
+  const currentImage = images[currentIndex] ?? images[0]
 
   return (
-    <div className={cn("bg-muted relative overflow-hidden rounded-xl", className)}>
+    <div className={cn('bg-muted relative overflow-hidden rounded-xl', className)}>
       <AspectRatio ratio={16 / 9}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -103,7 +93,8 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
             <Image
               src={currentImage}
               alt={`${alt} - Image ${currentIndex + 1} of ${images.length}`}
-              layout="fullWidth"
+              width={1600}
+              height={900}
               className="h-full w-full object-contain"
             />
           </motion.div>
@@ -145,8 +136,8 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
                 type="button"
                 onClick={() => goToIndex(index)}
                 className={cn(
-                  "h-2 w-2 origin-center rounded-full transition-[background-color,opacity,transform] duration-150 ease-out motion-reduce:transition-none",
-                  index === currentIndex ? "scale-x-150 bg-white" : "bg-white/50 hover:bg-white/75",
+                  'h-2 w-2 origin-center rounded-full transition-[background-color,opacity,transform] duration-150 ease-out motion-reduce:transition-none',
+                  index === currentIndex ? 'scale-x-150 bg-white' : 'bg-white/50 hover:bg-white/75',
                 )}
                 aria-label={`Go to image ${index + 1}`}
               />
@@ -155,5 +146,5 @@ export function ProjectImageCarousel({ images, alt, className }: ProjectImageCar
         </>
       )}
     </div>
-  );
+  )
 }

@@ -1,63 +1,28 @@
 /**
- * Structured data (JSON-LD) for the home page.
- *
- * Extracted from the page body so the home composition stays focused on layout
- * and data wiring. Injects the Organization and FAQ schema markup.
+ * FAQPage JSON-LD for the homepage.
+ * Questions and answers come from the same i18n catalog as the visible FAQ.
  */
 
-import { FAQ_DATA } from '@/lib/constants/faqs'
-import { getSiteUrl } from '@/lib/seo/site-url'
+import { useTranslation } from 'react-i18next'
 
-function organizationSchema(siteUrl: string) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'VibeDev ID',
-    alternateName: ['Komunitas Vibe Coding Indonesia', 'VibeDev Indonesia'],
-    url: siteUrl,
-    logo: `${siteUrl}/vibedev-logo.png`,
-    description:
-      'Komunitas vibe coding Indonesia No. 1 untuk developer, AI enthusiasts, dan tech innovators. Tempat belajar coding pake AI, kolaborasi project open source, dan networking dengan vibe coder Indonesia terbaik.',
-    foundingDate: '2024',
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: 'ID',
-      addressRegion: 'Indonesia',
-    },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'Community Support',
-      email: 'hello@vibedevid.com',
-    },
-    sameAs: ['https://github.com/vibedevid', 'https://twitter.com/vibedevid', 'https://linkedin.com/company/vibedevid'],
-    memberOf: {
-      '@type': 'Organization',
-      name: 'Indonesian Developer Community',
-    },
-    keywords: [
-      'vibe coding',
-      'komunitas vibe coding',
-      'komunitas vibe coding indonesia',
-      'vibe coder indonesia',
-      'coding pake AI',
-      'AI untuk coding',
-      'developer indonesia',
-      'open source indonesia',
-    ],
-    audience: {
-      '@type': 'Audience',
-      audienceType: 'Developers, AI Enthusiasts, Tech Innovators',
-      geographicArea: 'Indonesia',
-    },
-  }
+interface FaqItem {
+  question: string
+  answer: string
 }
 
 export function HomeStructuredData() {
-  const siteUrl = getSiteUrl()
+  const { t } = useTranslation('faq')
+  const faqItems = t('items', { returnObjects: true }) as Record<string, FaqItem>
+  const faqs = Object.values(faqItems).filter((item): item is FaqItem =>
+    Boolean(item && typeof item.question === 'string' && item.answer),
+  )
+
+  if (faqs.length === 0) return null
+
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: FAQ_DATA.map((faq) => ({
+    mainEntity: faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.question,
       acceptedAnswer: {
@@ -67,20 +32,5 @@ export function HomeStructuredData() {
     })),
   }
 
-  return (
-    <>
-      <script
-        id="organization-schema"
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema(siteUrl)) }}
-      />
-      <script
-        id="faq-schema"
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema must be injected as raw script content.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-    </>
-  )
+  return <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
 }

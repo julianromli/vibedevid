@@ -33,6 +33,8 @@ export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
   const authorName = author?.display_name || 'VibeDev ID'
   const image = post.cover_image || undefined
   const keywords = post.tags.map((t) => t.post_tags?.name).filter((name): name is string => Boolean(name))
+  const authorImage = author?.avatar_url || undefined
+  const authorBio = author?.bio?.trim() || undefined
 
   return {
     '@context': 'https://schema.org',
@@ -46,6 +48,8 @@ export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
       '@type': 'Person',
       name: authorName,
       url: author?.username ? absoluteUrl(`/${author.username}`) : undefined,
+      image: authorImage,
+      description: authorBio,
     },
     publisher: {
       '@type': 'Organization',
@@ -67,6 +71,16 @@ export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
  * Event schema for an event detail page.
  * https://schema.org/Event
  */
+function eventLocation(event: EventDto) {
+  if (event.locationType === 'online') {
+    if (!event.registrationUrl) return undefined
+    return { '@type': 'VirtualLocation', url: event.registrationUrl }
+  }
+
+  if (!event.locationDetail) return undefined
+  return { '@type': 'Place', name: event.locationDetail, address: event.locationDetail }
+}
+
 export function eventSchema(event: EventDto) {
   const url = absoluteUrl(`/event/${event.slug}`)
   const image = event.coverImage || undefined
@@ -79,7 +93,7 @@ export function eventSchema(event: EventDto) {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.name,
-    description: event.description,
+    description: event.description || undefined,
     startDate: startISO,
     endDate: endISO || undefined,
     eventStatus: 'https://schema.org/EventScheduled',
@@ -90,17 +104,7 @@ export function eventSchema(event: EventDto) {
           ? 'https://schema.org/OfflineEventAttendanceMode'
           : 'https://schema.org/MixedEventAttendanceMode',
     image: image,
-    location:
-      event.locationType === 'online'
-        ? {
-            '@type': 'VirtualLocation',
-            url: event.registrationUrl,
-          }
-        : {
-            '@type': 'Place',
-            name: event.locationDetail,
-            address: event.locationDetail,
-          },
+    location: eventLocation(event),
     organizer: {
       '@type': 'Organization',
       name: event.organizer,
@@ -125,6 +129,7 @@ export function profilePageSchema(user: ProfileUser) {
   if (user.twitter_url) sameAs.push(user.twitter_url)
   if (user.instagram_url) sameAs.push(user.instagram_url)
   if (user.threads_url) sameAs.push(user.threads_url)
+  if (user.website) sameAs.push(user.website)
 
   return {
     '@context': 'https://schema.org',
@@ -138,7 +143,6 @@ export function profilePageSchema(user: ProfileUser) {
       image: image,
       description: user.bio || undefined,
       ...(user.location ? { address: user.location } : {}),
-      ...(user.website ? { 'rdfs:comment': user.website } : {}),
       ...(sameAs.length > 0 ? { sameAs } : {}),
     },
   }
@@ -168,12 +172,6 @@ export function softwareApplicationSchema(project: ProjectDetail) {
       '@type': 'Person',
       name: author.name,
       url: absoluteUrl(`/${author.username}`),
-    },
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'IDR',
-      availability: 'https://schema.org/InStock',
     },
   }
 }

@@ -1,24 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import TermsPage from '@/app/terms/page'
-import { absoluteUrl } from '@/lib/seo/site-url'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/terms')({
-  head: () => ({
-    meta: [
-      { title: 'Ketentuan Layanan | VibeDev ID' },
-      {
-        name: 'description',
-        content:
-          'Ketentuan layanan VibeDev ID — komunitas vibe coding Indonesia. Syarat dan ketentuan penggunaan platform.',
-      },
-      { name: 'robots', content: 'index, follow' },
-      { property: 'og:url', content: absoluteUrl('/terms') },
-    ],
-    links: [{ rel: 'canonical', href: absoluteUrl('/terms') }],
-  }),
-  component: TermsRoute,
+  beforeLoad: () => {
+    throw redirect({ to: '/terms-of-service', statusCode: 301 })
+  },
 })
-
-function TermsRoute() {
-  return <TermsPage />
-}

@@ -1,14 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { ProjectListClient } from '@/app/project/list/project-list-client'
+import { PageBreadcrumbs } from '@/components/seo/page-breadcrumbs'
 import { Footer } from '@/components/ui/footer'
 import { ScrollReveal } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
 import { getCategories } from '@/lib/categories'
-import { getServerT, getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
-import { absoluteUrl } from '@/lib/seo/site-url'
 import { PROJECT_PAGE_SIZE } from '@/lib/project-page-cursor'
+import { getServerT, getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
+import { publicPageHead } from '@/lib/seo/page-meta'
 import { fetchProjectPage } from '@/lib/server/project-public'
 
 /**
@@ -62,9 +64,7 @@ const loadProjectListData = createServerFn({ method: 'GET' })
   })
 
 export const Route = createFileRoute('/project/list')({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { filter?: string; sort?: string; author?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { filter?: string; sort?: string; author?: string } => ({
     filter: typeof search.filter === 'string' ? search.filter : undefined,
     sort: typeof search.sort === 'string' ? search.sort : undefined,
     author: typeof search.author === 'string' ? search.author : undefined,
@@ -98,33 +98,19 @@ export const Route = createFileRoute('/project/list')({
   },
   // Self-referencing canonical to the clean list URL so `?filter`/`?sort`
   // variants consolidate onto a single indexable page.
-  head: () => ({
-    meta: [
-      { title: 'Project Showcase Vibe Coding Indonesia | VibeDev ID' },
-      {
-        name: 'description',
-        content:
-          'Jelajahi dan filter project dari komunitas vibe coding Indonesia. Lihat karya developer Indonesia yang dibangun dengan AI coding tools.',
-      },
-      { property: 'og:title', content: 'Project Showcase | VibeDev ID' },
-      {
-        property: 'og:description',
-        content: 'Jelajahi dan filter project dari komunitas vibe coding Indonesia.',
-      },
-      { property: 'og:site_name', content: 'VibeDev ID' },
-      { property: 'og:type', content: 'website' },
-      { property: 'og:locale', content: 'id_ID' },
-      { property: 'og:url', content: absoluteUrl('/project/list') },
-      { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:site', content: '@vibedevid' },
-    ],
-    links: [{ rel: 'canonical', href: absoluteUrl('/project/list') }],
-  }),
+  head: () =>
+    publicPageHead({
+      title: 'Project Showcase Vibe Coding Indonesia | VibeDev ID',
+      description:
+        'Jelajahi dan filter project dari komunitas vibe coding Indonesia. Lihat karya developer Indonesia yang dibangun dengan AI coding tools.',
+      path: '/project/list',
+    }),
   component: ProjectListRoute,
 })
 
 function ProjectListRoute() {
   const data = Route.useLoaderData()
+  const { t } = useTranslation('common')
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,6 +125,12 @@ function ProjectListRoute() {
 
         <section className="relative bg-transparent py-12 pt-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageBreadcrumbs
+              items={[
+                { name: t('breadcrumbs.home'), href: '/' },
+                { name: t('breadcrumbs.projects'), href: '/project/list' },
+              ]}
+            />
             <ScrollReveal className="mb-12 text-center">
               <h1 className="mb-4 font-bold text-4xl text-foreground tracking-tight lg:text-5xl">{data.title}</h1>
               <p className="mx-auto max-w-2xl text-muted-foreground text-xl">{data.description}</p>
