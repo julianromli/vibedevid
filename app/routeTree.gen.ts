@@ -11,11 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestimonialRouteImport } from './routes/testimonial'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
-import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as UsernameRouteImport } from './routes/$username'
@@ -57,11 +55,6 @@ const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -75,11 +68,6 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalendarRoute = CalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -237,11 +225,9 @@ export interface FileRoutesByFullPath {
   '/$username': typeof UsernameRoute
   '/admin': typeof AdminRoute
   '/blog': typeof BlogRouteWithChildren
-  '/calendar': typeof CalendarRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/testimonial': typeof TestimonialRoute
   '/dashboard': typeof AdminDashboardRoute
@@ -274,11 +260,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/admin': typeof AdminRoute
-  '/calendar': typeof CalendarRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/testimonial': typeof TestimonialRoute
   '/dashboard': typeof AdminDashboardRoute
@@ -313,11 +297,9 @@ export interface FileRoutesById {
   '/$username': typeof UsernameRoute
   '/admin': typeof AdminRoute
   '/blog': typeof BlogRouteWithChildren
-  '/calendar': typeof CalendarRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms': typeof TermsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/testimonial': typeof TestimonialRoute
   '/_admin/dashboard': typeof AdminDashboardRoute
@@ -353,11 +335,9 @@ export interface FileRouteTypes {
     | '/$username'
     | '/admin'
     | '/blog'
-    | '/calendar'
     | '/privacy-policy'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/terms'
     | '/terms-of-service'
     | '/testimonial'
     | '/dashboard'
@@ -390,11 +370,9 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/admin'
-    | '/calendar'
     | '/privacy-policy'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/terms'
     | '/terms-of-service'
     | '/testimonial'
     | '/dashboard'
@@ -428,11 +406,9 @@ export interface FileRouteTypes {
     | '/$username'
     | '/admin'
     | '/blog'
-    | '/calendar'
     | '/privacy-policy'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/terms'
     | '/terms-of-service'
     | '/testimonial'
     | '/_admin/dashboard'
@@ -468,11 +444,9 @@ export interface RootRouteChildren {
   UsernameRoute: typeof UsernameRoute
   AdminRoute: typeof AdminRoute
   BlogRoute: typeof BlogRouteWithChildren
-  CalendarRoute: typeof CalendarRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TermsRoute: typeof TermsRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   TestimonialRoute: typeof TestimonialRoute
   ApiAuthCheckRoute: typeof ApiAuthCheckRoute
@@ -509,13 +483,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -535,13 +502,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calendar': {
-      id: '/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -829,11 +789,9 @@ const rootRouteChildren: RootRouteChildren = {
   UsernameRoute: UsernameRoute,
   AdminRoute: AdminRoute,
   BlogRoute: BlogRouteWithChildren,
-  CalendarRoute: CalendarRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TermsRoute: TermsRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   TestimonialRoute: TestimonialRoute,
   ApiAuthCheckRoute: ApiAuthCheckRoute,

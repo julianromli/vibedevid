@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
+import { isReservedProfileSlug } from '@/lib/reserved-profile-slugs'
 import { buildRobotsTxt } from '@/lib/seo/robots-txt'
 import {
   absoluteUrl,
@@ -8,7 +9,7 @@ import {
   getSiteUrl,
   JOIN_COMMUNITY_URL,
 } from '@/lib/seo/site-url'
-import { buildSitemapXml } from '@/lib/seo/sitemap-xml'
+import { buildSitemapXml, sitemapUnavailableResponse, timestampToLastmod } from '@/lib/seo/sitemap-xml'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -103,10 +104,28 @@ describe('getCanonicalHostRedirect', () => {
     expect(getCanonicalHostRedirect(new Request('https://vibedeveloper.id/api/auth/sign-in/'))).toBeNull()
   })
 
-  it('sets the English locale cookie when /en is removed', () => {
-    const response = canonicalHostRedirectResponse(new Request('https://vibedeveloper.id/en/blog'))
+  it('uses a temporary redirect and a private cache header when the only change is /en', () => {
+    const response = canonicalHostRedirectResponse(new Request('https://vibedeveloper.id/en/blog?ref=nav'))
+    expect(response?.status).toBe(302)
+    expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/blog?ref=nav`)
+    expect(response?.headers.get('Cache-Control')).toBe('private, no-store')
+    expect(response?.headers.get('set-cookie')).toContain('NEXT_LOCALE=en')
+    expect(response?.headers.get('Cache-Control')).not.toContain('public')
+  })
+
+  it('keeps a public 301 for a trailing slash and does not set a cookie', () => {
+    const response = canonicalHostRedirectResponse(new Request('https://vibedeveloper.id/blog/'))
     expect(response?.status).toBe(301)
     expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/blog`)
+    expect(response?.headers.get('Cache-Control')).toBe('public, max-age=3600')
+    expect(response?.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('uses 301 without a public cache when /en is combined with another canonical change', () => {
+    const response = canonicalHostRedirectResponse(new Request('https://www.vibedeveloper.id/en/calendar/?ref=nav'))
+    expect(response?.status).toBe(301)
+    expect(response?.headers.get('Location')).toBe(`${CANONICAL_SITE_ORIGIN}/event/list?ref=nav`)
+    expect(response?.headers.get('Cache-Control')).toBe('private, no-store')
     expect(response?.headers.get('set-cookie')).toContain('NEXT_LOCALE=en')
   })
 
@@ -156,10 +175,27 @@ describe('robots.txt', () => {
     const body = buildRobotsTxt()
     expect(body).toContain(`Sitemap: ${CANONICAL_SITE_ORIGIN}/sitemap.xml`)
     expect(body).toContain(`Host: ${CANONICAL_SITE_ORIGIN}`)
-    expect(body).toContain('User-agent: Googlebot')
+    expect(body).not.toContain('User-agent: Googlebot')
     expect(body).toContain('Allow: /')
     expect(body).not.toMatch(/^Disallow: \/$/m)
     expect(body).not.toContain('vibedevid.com')
+    expect(body).toContain('Disallow: /admin$')
+    expect(body).toContain('Disallow: /admin/')
+    expect(body).toContain('Disallow: /dashboard$')
+    expect(body).toContain('Disallow: /dashboard/')
+    expect(body).toContain('Disallow: /testimonial$')
+    expect(body).toContain('Disallow: /testimonial/')
+    expect(body).not.toMatch(/^Disallow: \/admin$/m)
+    expect(body).not.toMatch(/^Disallow: \/dashboard$/m)
+    expect(body).not.toMatch(/^Disallow: \/testimonial$/m)
+  })
+
+  it('blocks the same exact slugs the sitemap skips, and leaves longer profile names', () => {
+    expect(isReservedProfileSlug('admin')).toBe(true)
+    expect(isReservedProfileSlug('dashboard')).toBe(true)
+    expect(isReservedProfileSlug('testimonial')).toBe(true)
+    expect(isReservedProfileSlug('administrator')).toBe(false)
+    expect(isReservedProfileSlug('testimonials')).toBe(false)
   })
 })
 
@@ -188,5 +224,18 @@ describe('sitemap.xml', () => {
       },
     ])
     expect(xml).not.toContain('<lastmod>')
+  })
+
+  it('omits lastmod for null timestamps and does not invent the current time', () => {
+    expect(timestampToLastmod(null)).toBeUndefined()
+    expect(timestampToLastmod(undefined)).toBeUndefined()
+    expect(timestampToLastmod('')).toBeUndefined()
+    expect(timestampToLastmod(new Date('2026-01-02T03:04:05.000Z'))).toBe('2026-01-02T03:04:05.000Z')
+  })
+
+  it('returns 503 with no-store when the sitemap cannot be built', () => {
+    const response = sitemapUnavailableResponse()
+    expect(response.status).toBe(503)
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
   })
 })

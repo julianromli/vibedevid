@@ -167,9 +167,25 @@ export function canonicalizePublicPath(pathname: string): { pathname: string; lo
   return { pathname: path, locale }
 }
 
+/** True when the path change is only the `/en` prefix, with no slash or alias change. */
+function isLocaleOnlyPathChange(pathname: string): boolean {
+  if (!(pathname === '/en' || pathname.startsWith('/en/'))) return false
+
+  const rest = pathname.slice('/en'.length)
+  const path = rest === '' ? '/' : rest
+  if (path.length > 1 && path.endsWith('/')) return false
+  if (PATH_ALIASES[path]) return false
+  return true
+}
+
 export interface IndexableRedirect {
   location: string
   locale: 'en' | null
+  /**
+   * False when the only change is stripping `/en`. That redirect stays 302.
+   * Host aliases, trailing slashes, and path aliases are permanent.
+   */
+  permanent: boolean
 }
 
 /**
@@ -197,9 +213,11 @@ export function getIndexableRedirect(request: Request): IndexableRedirect | null
   if (!hostNeedsRedirect && !pathNeedsRedirect) return null
 
   const origin = hostNeedsRedirect ? CANONICAL_SITE_ORIGIN : requestUrl.origin
+  const localeOnly = nextPath.locale === 'en' && !hostNeedsRedirect && isLocaleOnlyPathChange(requestUrl.pathname)
   return {
     location: `${origin}${nextPath.pathname}${requestUrl.search}`,
     locale: nextPath.locale,
+    permanent: !localeOnly,
   }
 }
 
@@ -213,10 +231,13 @@ export function canonicalHostRedirectResponse(request: Request): Response | null
   if (!target) return null
 
   const method = request.method.toUpperCase()
-  const status = method === 'GET' || method === 'HEAD' ? 301 : 308
+  const isRead = method === 'GET' || method === 'HEAD'
+  const status = target.permanent ? (isRead ? 301 : 308) : 302
+  // A shared cache must not store a response that sets a cookie.
+  const cacheControl = target.locale === 'en' ? 'private, no-store' : 'public, max-age=3600'
   const headers = new Headers({
     Location: target.location,
-    'Cache-Control': 'public, max-age=3600',
+    'Cache-Control': cacheControl,
   })
 
   if (target.locale === 'en') {

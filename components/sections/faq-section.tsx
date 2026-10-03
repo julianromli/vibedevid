@@ -57,6 +57,8 @@ function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAc
 
       <div
         id={contentId}
+        inert={isOpen ? undefined : true}
+        aria-hidden={isOpen ? undefined : true}
         className={cn('grid', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
       >
         <div className="overflow-hidden">
