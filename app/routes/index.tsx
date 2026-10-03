@@ -7,7 +7,7 @@ import { getCategories } from '@/lib/categories'
 import { getDb } from '@/lib/db'
 import { vibeVideos } from '@/lib/db/schema'
 import { getSingleSearchParam, normalizeSortParam } from '@/lib/routes/helpers'
-import { getSiteUrl } from '@/lib/seo/site-url'
+import { publicPageHead } from '@/lib/seo/page-meta'
 import { loadHomeProjects } from '@/lib/server/home-projects'
 import { getCachedJson, SHORT_TTL_CACHE_KEYS, setCachedJson } from '@/lib/server/short-ttl-cache'
 import { getApprovedTestimonials } from '@/lib/server/testimonials-public'
@@ -159,25 +159,32 @@ export const Route = createFileRoute('/')({
   },
   // Consolidate `?filter`/`?sort` variants onto the clean homepage URL so
   // crawlers don't treat each combination as a separate duplicate page.
-  head: () => ({
-    meta: [{ property: 'og:url', content: getSiteUrl() }],
-    links: [
-      { rel: 'canonical', href: getSiteUrl() },
-      // Preload the LCP hero image (desktop AVIF breakpoint) so the browser
-      // fetches it before discovering it in the rendered DOM. Matches the
-      // `sizes` used by the hero <picture>.
-      {
-        rel: 'preload',
-        as: 'image',
-        href: '/optimized/hero-vibedevid-showcase-1200.avif',
-        type: 'image/avif',
-        imageSrcSet:
-          '/optimized/hero-vibedevid-showcase-640.avif 640w, /optimized/hero-vibedevid-showcase-960.avif 960w, /optimized/hero-vibedevid-showcase-1200.avif 1200w, /optimized/hero-vibedevid-showcase-1600.avif 1600w, /optimized/hero-vibedevid-showcase-2400.avif 2400w',
-        imageSizes: '(min-width: 1024px) 1200px, 100vw',
-        fetchPriority: 'high',
-      },
-    ],
-  }),
+  head: () => {
+    const page = publicPageHead({
+      title: 'VibeDev ID — Komunitas Vibe Coding No. 1 di Indonesia',
+      description: 'Komunitas vibe coding Indonesia. Showcase project, event, blog, dan belajar coding dengan AI.',
+      path: '/',
+    })
+    return {
+      meta: page.meta,
+      links: [
+        ...page.links,
+        // Preload the LCP hero image (desktop AVIF breakpoint) so the browser
+        // fetches it before discovering it in the rendered DOM. Matches the
+        // `sizes` used by the hero <picture>.
+        {
+          rel: 'preload',
+          as: 'image',
+          href: '/optimized/hero-vibedevid-showcase-1200.avif',
+          type: 'image/avif',
+          imageSrcSet:
+            '/optimized/hero-vibedevid-showcase-640.avif 640w, /optimized/hero-vibedevid-showcase-960.avif 960w, /optimized/hero-vibedevid-showcase-1200.avif 1200w, /optimized/hero-vibedevid-showcase-1600.avif 1600w, /optimized/hero-vibedevid-showcase-2400.avif 2400w',
+          imageSizes: '(min-width: 1024px) 1200px, 100vw',
+          fetchPriority: 'high',
+        },
+      ],
+    }
+  },
   component: HomeRoute,
 })
 

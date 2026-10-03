@@ -95,7 +95,9 @@ export function shouldSkipRequestMiddleware(pathname: string): boolean {
 }
 
 /**
- * Locale middleware — handles /en → / redirect and sets NEXT_LOCALE cookie.
+ * Locale middleware sets the NEXT_LOCALE cookie.
+ * `/en` and other public path aliases redirect in `applyCanonicalHostRedirect`
+ * so host and path changes stay on one response.
  * Auth middleware (session checks, confirm-email redirects) is also here
  * because it needs to set cookies on redirect responses.
  *
@@ -108,14 +110,6 @@ export async function applyLocaleMiddleware(
   request: Request,
   pathname: string,
 ): Promise<Response | { localeCookies: CookieRecord[]; pathname: string }> {
-  const requestUrl = new URL(request.url)
-
-  if (pathname.startsWith('/en')) {
-    const strippedPath = pathname.replace(/^\/en/, '') || '/'
-    const redirectUrl = new URL(strippedPath + requestUrl.search + requestUrl.hash, requestUrl.origin)
-    return createRedirectResponse(redirectUrl, [localeCookie('en')])
-  }
-
   if (pathname === '/') {
     return { localeCookies: [localeCookie('id')], pathname }
   }

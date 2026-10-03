@@ -1,20 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { TermsOfServiceClient } from '@/app/terms-of-service/terms-of-service-client'
-import { absoluteUrl } from '@/lib/seo/site-url'
+import { publicPageHead } from '@/lib/seo/page-meta'
 
 export const Route = createFileRoute('/terms-of-service')({
-  head: () => ({
-    meta: [
-      { title: 'Terms of Service' },
-      {
-        name: 'description',
-        content:
-          'Syarat Layanan VibeDev ID yang mengatur penggunaan akun, kontribusi konten, moderasi, dan ketentuan hukum platform komunitas.',
-      },
-      { property: 'og:url', content: absoluteUrl('/terms-of-service') },
-    ],
-    links: [{ rel: 'canonical', href: absoluteUrl('/terms-of-service') }],
-  }),
+  head: () =>
+    publicPageHead({
+      title: 'Syarat Layanan | VibeDev ID',
+      description:
+        'Syarat Layanan VibeDev ID yang mengatur penggunaan akun, kontribusi konten, moderasi, dan ketentuan hukum platform komunitas.',
+      path: '/terms-of-service',
+    }),
   component: TermsOfServiceRoute,
 })
 

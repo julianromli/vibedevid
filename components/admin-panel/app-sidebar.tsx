@@ -1,47 +1,48 @@
-"use client";
+'use client'
 
-import { NavGroup } from "@/components/admin-panel/nav-group";
-import { NavUser } from "@/components/admin-panel/nav-user";
-import { TeamSwitcher } from "@/components/admin-panel/team-switcher";
-import { Logo } from "@/components/logo";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from "@/components/ui/sidebar";
-import type { User } from "@/types/homepage";
-import { sidebarData } from "./data/sidebar-data";
+import { NavGroup } from '@/components/admin-panel/nav-group'
+import { NavUser } from '@/components/admin-panel/nav-user'
+import { TeamSwitcher } from '@/components/admin-panel/team-switcher'
+import { Logo } from '@/components/logo'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import type { User } from '@/types/homepage'
+import { sidebarData } from './data/sidebar-data'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user: User;
+  user: User
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const userData = {
-    name: user.displayName || user.name || user.username || "User",
-    email: user.email || "",
-    avatar: user.avatar_url || user.avatar || "",
-  };
+    name: user.displayName || user.name || user.username || 'User',
+    email: user.email || '',
+    avatar: user.avatar_url || user.avatar || '',
+    username: user.username,
+  }
 
   const teams = [
     {
-      name: "VibeDev ID Community",
+      name: 'VibeDev ID Community',
       logo: Logo,
-      plan: "Admin Dashboard",
+      plan: 'Admin Dashboard',
     },
-  ];
+  ]
 
   return (
     <div className="relative">
-      <Sidebar collapsible="icon" {...props}>
+      <Sidebar
+        collapsible="icon"
+        {...props}
+      >
         <SidebarHeader>
           <TeamSwitcher teams={teams} />
         </SidebarHeader>
         <SidebarContent>
           {sidebarData.navGroups.map((props) => (
-            <NavGroup key={props.title} {...props} />
+            <NavGroup
+              key={props.title}
+              {...props}
+            />
           ))}
         </SidebarContent>
         <SidebarFooter>
@@ -50,5 +51,5 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <SidebarRail />
       </Sidebar>
     </div>
-  );
+  )
 }

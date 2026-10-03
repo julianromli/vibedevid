@@ -1,108 +1,73 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { eq, isNotNull } from 'drizzle-orm'
+import { isReservedProfileSlug } from '@/lib/reserved-profile-slugs'
 import { getSiteUrl } from '@/lib/seo/site-url'
-import { buildSitemapXml, type SitemapEntry } from '@/lib/seo/sitemap-xml'
+import {
+  buildSitemapXml,
+  type SitemapEntry,
+  sitemapEntry,
+  sitemapSuccessResponse,
+  sitemapUnavailableResponse,
+  timestampToLastmod,
+} from '@/lib/seo/sitemap-xml'
 
 const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string }> = [
   { path: '', priority: '1.0', changefreq: 'daily' },
   { path: '/project/list', priority: '0.8', changefreq: 'daily' },
   { path: '/blog', priority: '0.8', changefreq: 'daily' },
   { path: '/event/list', priority: '0.7', changefreq: 'daily' },
-  { path: '/terms', priority: '0.3', changefreq: 'yearly' },
   { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly' },
   { path: '/terms-of-service', priority: '0.3', changefreq: 'yearly' },
 ]
 
-function toIso(value: unknown, fallback: string): string {
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-  if (typeof value === 'string' && value) {
-    const date = new Date(value)
-    if (!Number.isNaN(date.getTime())) return date.toISOString()
-  }
-  return fallback
+function staticEntries(base: string): SitemapEntry[] {
+  return STATIC_ROUTES.map((route) => sitemapEntry(`${base}${route.path}`, route.changefreq, route.priority))
 }
 
-function staticEntries(base: string, fallbackIso: string): SitemapEntry[] {
-  return STATIC_ROUTES.map((route) => ({
-    loc: `${base}${route.path}`,
-    lastmod: fallbackIso,
-    changefreq: route.changefreq,
-    priority: route.priority,
-  }))
-}
+/**
+ * Published posts, approved events, public profiles, and projects.
+ * `projects` has no draft, hidden, or published column. Every saved project is public.
+ * `lastmod` is omitted when the row timestamp is null. It is never "now".
+ */
+async function getDynamicEntries(base: string): Promise<SitemapEntry[]> {
+  const { getDb } = await import('@/lib/db')
+  const { events, posts, projects, users } = await import('@/lib/db/schema')
+  const db = getDb()
 
-async function getDynamicEntries(base: string, fallbackIso: string): Promise<SitemapEntry[]> {
-  try {
-    const { getDb } = await import('@/lib/db')
-    const { events, posts, projects, users } = await import('@/lib/db/schema')
-    const db = getDb()
+  const [postRows, projectRows, eventRows, userRows] = await Promise.all([
+    db
+      .select({ slug: posts.slug, updatedAt: posts.updatedAt, publishedAt: posts.publishedAt })
+      .from(posts)
+      .where(eq(posts.status, 'published')),
+    db.select({ slug: projects.slug, updatedAt: projects.updatedAt }).from(projects),
+    db
+      .select({ slug: events.slug, updatedAt: events.updatedAt, createdAt: events.createdAt })
+      .from(events)
+      .where(eq(events.approved, true)),
+    db.select({ username: users.username, updatedAt: users.updatedAt }).from(users).where(isNotNull(users.username)),
+  ])
 
-    const [postRows, projectRows, eventRows, userRows] = await Promise.all([
-      db
-        .select({ slug: posts.slug, updatedAt: posts.updatedAt, publishedAt: posts.publishedAt })
-        .from(posts)
-        .where(eq(posts.status, 'published')),
-      db.select({ slug: projects.slug, updatedAt: projects.updatedAt }).from(projects),
-      db
-        .select({ slug: events.slug, updatedAt: events.updatedAt, createdAt: events.createdAt })
-        .from(events)
-        .where(eq(events.approved, true)),
-      db.select({ username: users.username, updatedAt: users.updatedAt }).from(users).where(isNotNull(users.username)),
-    ])
+  const postEntries = postRows
+    .filter((row) => row.slug)
+    .map((row) =>
+      sitemapEntry(`${base}/blog/${row.slug}`, 'weekly', '0.7', timestampToLastmod(row.updatedAt ?? row.publishedAt)),
+    )
 
-    const postEntries = postRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/blog/${row.slug}`,
-        lastmod: toIso(row.updatedAt ?? row.publishedAt, fallbackIso),
-        changefreq: 'weekly',
-        priority: '0.7',
-      }))
+  const projectEntries = projectRows
+    .filter((row) => row.slug)
+    .map((row) => sitemapEntry(`${base}/project/${row.slug}`, 'weekly', '0.6', timestampToLastmod(row.updatedAt)))
 
-    const projectEntries = projectRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/project/${row.slug}`,
-        lastmod: toIso(row.updatedAt, fallbackIso),
-        changefreq: 'weekly',
-        priority: '0.6',
-      }))
+  const eventEntries = eventRows
+    .filter((row) => row.slug)
+    .map((row) =>
+      sitemapEntry(`${base}/event/${row.slug}`, 'weekly', '0.6', timestampToLastmod(row.updatedAt ?? row.createdAt)),
+    )
 
-    const eventEntries = eventRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        loc: `${base}/event/${row.slug}`,
-        lastmod: toIso(row.updatedAt ?? row.createdAt, fallbackIso),
-        changefreq: 'weekly',
-        priority: '0.6',
-      }))
+  const userEntries = userRows
+    .filter((row) => row.username && !isReservedProfileSlug(row.username))
+    .map((row) => sitemapEntry(`${base}/${row.username}`, 'weekly', '0.4', timestampToLastmod(row.updatedAt)))
 
-    const userEntries = userRows
-      .filter((row) => row.username)
-      .map((row) => ({
-        loc: `${base}/${row.username}`,
-        lastmod: toIso(row.updatedAt, fallbackIso),
-        changefreq: 'weekly',
-        priority: '0.4',
-      }))
-
-    return [...postEntries, ...projectEntries, ...eventEntries, ...userEntries]
-  } catch (error) {
-    console.log('[sitemap] dynamic entries failed:', error)
-    return []
-  }
-}
-
-function sitemapResponse(body: string): Response {
-  return new Response(body, {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-    },
-  })
+  return [...postEntries, ...projectEntries, ...eventEntries, ...userEntries]
 }
 
 export const Route = createFileRoute('/sitemap.xml')({
@@ -110,15 +75,13 @@ export const Route = createFileRoute('/sitemap.xml')({
     handlers: {
       GET: async () => {
         const base = getSiteUrl().replace(/\/$/, '')
-        const fallbackIso = new Date().toISOString()
-        const staticOnly = staticEntries(base, fallbackIso)
 
         try {
-          const dynamicEntries = await getDynamicEntries(base, fallbackIso)
-          return sitemapResponse(buildSitemapXml([...staticOnly, ...dynamicEntries]))
+          const dynamicEntries = await getDynamicEntries(base)
+          return sitemapSuccessResponse(buildSitemapXml([...staticEntries(base), ...dynamicEntries]))
         } catch (error) {
-          console.log('[sitemap] handler failed:', error)
-          return sitemapResponse(buildSitemapXml(staticOnly))
+          console.log('[sitemap] dynamic entries failed:', error)
+          return sitemapUnavailableResponse()
         }
       },
     },

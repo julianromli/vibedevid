@@ -1,33 +1,44 @@
-"use client";
+'use client'
 
-import { Link, type ErrorComponentProps } from "@tanstack/react-router";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { stringifyRouteError } from "@/lib/route-error";
+import { type ErrorComponentProps, Link } from '@tanstack/react-router'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { stringifyRouteError } from '@/lib/route-error'
 
 export function DefaultRouteError({ error, reset }: ErrorComponentProps) {
-  const [showDetails, setShowDetails] = useState(false);
-  const detail = stringifyRouteError(error);
+  const [showDetails, setShowDetails] = useState(false)
+  const detail = stringifyRouteError(error)
 
   function reloadPage() {
-    reset();
-    window.location.reload();
+    reset()
+    window.location.reload()
   }
 
   return (
     <div className="h-svh w-full">
+      <title>Gagal memuat halaman | VibeDev ID</title>
+      <meta
+        name="robots"
+        content="noindex, nofollow"
+      />
       <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2 px-4">
         <h1 className="text-[7rem] leading-tight font-bold">500</h1>
         <span className="font-medium">The page failed to load</span>
         <p className="text-muted-foreground max-w-md text-center text-pretty">
-          Reload the page and try again. If you opened this link in another app, that app&apos;s
-          browser can block storage. Reloading usually fixes it.
+          Reload the page and try again. If you opened this link in another app, that app&apos;s browser can block
+          storage. Reloading usually fixes it.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
-          <Button type="button" onClick={reloadPage}>
+          <Button
+            type="button"
+            onClick={reloadPage}
+          >
             Reload page
           </Button>
-          <Button asChild variant="outline">
+          <Button
+            asChild
+            variant="outline"
+          >
             <Link to="/">Back to home</Link>
           </Button>
         </div>
@@ -37,7 +48,7 @@ export function DefaultRouteError({ error, reset }: ErrorComponentProps) {
           onClick={() => setShowDetails((open) => !open)}
           aria-expanded={showDetails}
         >
-          {showDetails ? "Hide details" : "Show details"}
+          {showDetails ? 'Hide details' : 'Show details'}
         </button>
         {showDetails ? (
           <pre className="bg-muted mt-2 max-w-full overflow-x-auto rounded-md p-3 text-left text-xs">
@@ -46,5 +57,5 @@ export function DefaultRouteError({ error, reset }: ErrorComponentProps) {
         ) : null}
       </div>
     </div>
-  );
+  )
 }

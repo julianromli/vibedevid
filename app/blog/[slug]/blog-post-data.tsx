@@ -1,36 +1,80 @@
-import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { ArrowLeft, Calendar, Clock, Eye } from "lucide-react";
-import { BlogViewTracker } from "@/components/blog/blog-view-tracker";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { CommentSection } from "@/components/ui/comment-section";
-import { Footer } from "@/components/ui/footer";
-import { Navbar } from "@/components/ui/navbar";
-import { UserDisplayName } from "@/components/ui/user-display-name";
-import type { getComments } from "@/lib/actions/comments";
-import { contentToHtml } from "@/lib/blog-utils";
-import type { PublishedPostDetail } from "@/lib/server/blog-public";
-import { slugifyTitle } from "@/lib/slug";
+import { Link } from '@tanstack/react-router'
+import { format } from 'date-fns'
+import { Calendar, Clock, Eye } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { BlogViewTracker } from '@/components/blog/blog-view-tracker'
+import { PageBreadcrumbs } from '@/components/seo/page-breadcrumbs'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { CommentSection } from '@/components/ui/comment-section'
+import { Footer } from '@/components/ui/footer'
+import { Navbar } from '@/components/ui/navbar'
+import { UserDisplayName } from '@/components/ui/user-display-name'
+import type { getComments } from '@/lib/actions/comments'
+import { contentToHtml } from '@/lib/blog-utils'
+import type { PublishedPostDetail } from '@/lib/server/blog-public'
+import { slugifyTitle } from '@/lib/slug'
 
-type InitialComments = Awaited<ReturnType<typeof getComments>>["comments"];
+type InitialComments = Awaited<ReturnType<typeof getComments>>['comments']
 
 interface BlogUserData {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  username: string;
-  role: number | null;
+  id: string
+  name: string
+  email: string
+  avatar: string
+  username: string
+  role: number | null
+}
+
+function BlogAuthorBio({
+  author,
+  authorName,
+  authorSlug,
+  label,
+}: {
+  author: NonNullable<PublishedPostDetail['author']>
+  authorName: string
+  authorSlug: string | null
+  label: string
+}) {
+  return (
+    <aside
+      className="mt-12 flex gap-4 rounded-xl border border-border p-5"
+      aria-label={label}
+    >
+      <Avatar className="h-12 w-12">
+        <AvatarImage
+          src={author.avatar_url ?? undefined}
+          alt=""
+        />
+        <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div>
+        <p className="text-muted-foreground text-sm">{label}</p>
+        {authorSlug ? (
+          <Link
+            to="/$username"
+            params={{ username: authorSlug }}
+            className="font-semibold text-foreground hover:underline"
+          >
+            {authorName}
+          </Link>
+        ) : (
+          <p className="font-semibold text-foreground">{authorName}</p>
+        )}
+        {author.bio ? <p className="mt-2 text-muted-foreground text-sm leading-relaxed">{author.bio}</p> : null}
+      </div>
+    </aside>
+  )
 }
 
 export interface BlogPostDataProps {
-  post: PublishedPostDetail;
-  viewCount: number;
-  initialComments: InitialComments;
-  isLoggedIn: boolean;
-  userData: BlogUserData | null;
-  commentUser: { id: string; name: string; avatar?: string } | null;
+  post: PublishedPostDetail
+  viewCount: number
+  initialComments: InitialComments
+  isLoggedIn: boolean
+  userData: BlogUserData | null
+  commentUser: { id: string; name: string; avatar?: string } | null
 }
 
 export default function BlogPostData({
@@ -42,12 +86,12 @@ export default function BlogPostData({
   commentUser,
 }: BlogPostDataProps) {
   // Flatten tags from nested structure
-  const postTags: string[] = post.tags
-    .map((tag) => tag.post_tags?.name ?? "")
-    .filter((name) => name.length > 0);
-  const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null;
+  const { t } = useTranslation('common')
+  const postTags: string[] = post.tags.map((tag) => tag.post_tags?.name ?? '').filter((name) => name.length > 0)
+  const authorSlug = post.author?.username ? slugifyTitle(post.author.username) : null
+  const authorName = post.author?.display_name ?? 'Anonymous'
   const renderPostContent = () => {
-    if (typeof post.content === "object" && post.content !== null) {
+    if (typeof post.content === 'object' && post.content !== null) {
       return (
         <div
           // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized via DOMPurify in contentToHtml
@@ -55,51 +99,61 @@ export default function BlogPostData({
             __html: contentToHtml(post.content as Record<string, unknown>),
           }}
         />
-      );
+      )
     }
-    return <p>{typeof post.content === "string" ? post.content : ""}</p>;
-  };
+    return <p>{typeof post.content === 'string' ? post.content : ''}</p>
+  }
   const authorContent = (
     <>
       <Avatar className="h-8 w-8">
         <AvatarImage src={post.author?.avatar_url ?? undefined} />
-        <AvatarFallback>{post.author?.display_name?.charAt(0) ?? "A"}</AvatarFallback>
+        <AvatarFallback>{post.author?.display_name?.charAt(0) ?? 'A'}</AvatarFallback>
       </Avatar>
       <UserDisplayName
-        name={post.author?.display_name ?? "Anonymous"}
+        name={authorName}
         role={post.author?.role ?? null}
         className="font-medium text-foreground"
       />
     </>
-  );
+  )
 
   return (
     <article className="min-h-screen bg-background">
       <BlogViewTracker postId={post.id} />
-      <Navbar showNavigation={true} isLoggedIn={isLoggedIn} user={userData ?? undefined} />
+      <Navbar
+        showNavigation={true}
+        isLoggedIn={isLoggedIn}
+        user={userData ?? undefined}
+      />
 
       <header className="relative min-h-[60vh] overflow-hidden pt-16">
         {post.cover_image ? (
           <img
             src={post.cover_image}
             alt={post.title}
+            width={1600}
+            height={900}
             className="absolute inset-0 h-full w-full object-cover"
             loading="eager"
             decoding="async"
+            fetchPriority="high"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
-        <div className="absolute top-20 left-4 md:left-8 lg:left-16">
-          <Link
-            to="/blog"
-            className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to blog
-          </Link>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-8 md:px-8">
+          <div className="inline-flex max-w-full rounded-md bg-background/85 px-3 py-1 backdrop-blur-sm">
+            <PageBreadcrumbs
+              className="mb-0"
+              items={[
+                { name: t('breadcrumbs.home'), href: '/' },
+                { name: t('breadcrumbs.blog'), href: '/blog' },
+                { name: post.title, href: `/blog/${post.slug}` },
+              ]}
+            />
+          </div>
         </div>
 
         <div className="absolute right-0 bottom-0 left-0 pb-12 md:pb-20">
@@ -122,7 +176,7 @@ export default function BlogPostData({
               {post.published_at && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(post.published_at), "MMMM d, yyyy")}
+                  {format(new Date(post.published_at), 'MMMM d, yyyy')}
                 </span>
               )}
 
@@ -159,13 +213,18 @@ export default function BlogPostData({
       </header>
 
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
-        {post.excerpt && (
-          <p className="mb-8 text-muted-foreground text-xl italic">{post.excerpt}</p>
-        )}
+        {post.excerpt && <p className="mb-8 text-muted-foreground text-xl italic">{post.excerpt}</p>}
 
-        <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
-          {renderPostContent()}
-        </div>
+        <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">{renderPostContent()}</div>
+
+        {post.author ? (
+          <BlogAuthorBio
+            author={post.author}
+            authorName={authorName}
+            authorSlug={authorSlug}
+            label={t('author')}
+          />
+        ) : null}
 
         <hr className="my-12 border-border" />
 
@@ -182,5 +241,5 @@ export default function BlogPostData({
 
       <Footer />
     </article>
-  );
+  )
 }

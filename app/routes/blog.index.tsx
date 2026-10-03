@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import BlogPageClient from '@/app/blog/blog-page-client'
-import { absoluteUrl } from '@/lib/seo/site-url'
+import { publicPageHead } from '@/lib/seo/page-meta'
 import { getCurrentUser } from '@/lib/server/auth'
 import { fetchPublishedPosts } from '@/lib/server/blog-public'
 import type { User } from '@/types/homepage'
@@ -31,18 +31,13 @@ export const Route = createFileRoute('/blog/')({
   staleTime: 60_000,
   gcTime: 5 * 60_000,
   loader: async () => loadBlogIndexData(),
-  head: () => ({
-    meta: [
-      { title: 'Blog | VibeDev ID' },
-      {
-        name: 'description',
-        content:
-          'Artikel, tutorial, dan cerita seputar vibe coding, AI, dan pengembangan software dari komunitas VibeDev ID.',
-      },
-      { property: 'og:url', content: absoluteUrl('/blog') },
-    ],
-    links: [{ rel: 'canonical', href: absoluteUrl('/blog') }],
-  }),
+  head: () =>
+    publicPageHead({
+      title: 'Blog | VibeDev ID',
+      description:
+        'Artikel, tutorial, dan cerita seputar vibe coding, AI, dan pengembangan software dari komunitas VibeDev ID.',
+      path: '/blog',
+    }),
   component: BlogIndexRoute,
 })
 

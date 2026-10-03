@@ -4,8 +4,8 @@ import { z } from 'zod'
 import ProjectDetailsPage, { type ProjectDetailsData } from '@/app/project/[slug]/page'
 import { getComments } from '@/lib/actions/comments'
 import { getCategories } from '@/lib/categories'
-import { breadcrumbListSchema, softwareApplicationSchema } from '@/lib/seo/schema-templates'
-import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url'
+import { publicPageHead } from '@/lib/seo/page-meta'
+import { softwareApplicationSchema } from '@/lib/seo/schema-templates'
 import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getOwnedProjectImageKeys, getProjectBySlug } from '@/lib/server/project-public'
 import { getProjectByUUID, isUUID } from '@/lib/server/utils'
@@ -39,8 +39,7 @@ const loadProjectData = createServerFn({ method: 'GET' })
 
     const { comments: initialComments } = await getComments('project', String(project.id))
     const isOwner = currentUser ? await checkProjectOwnership(project.author.username, currentUser.id) : false
-    const ownerImageKeys =
-      isOwner && currentUser ? await getOwnedProjectImageKeys(slug, currentUser.id) : []
+    const ownerImageKeys = isOwner && currentUser ? await getOwnedProjectImageKeys(slug, currentUser.id) : []
 
     return { slug, project, currentUser, categories, initialComments, isOwner, ownerImageKeys }
   })
@@ -56,27 +55,14 @@ export const Route = createFileRoute('/project/$slug')({
     }
 
     const description = (project.tagline || project.description || '').slice(0, 160)
-    const url = absoluteUrl(`/project/${project.slug}`)
     const image = project.image || project.faviconUrl || undefined
 
-    return {
-      meta: [
-        { title: `${project.title} | VibeDev ID` },
-        { name: 'description', content: description },
-        { property: 'og:title', content: project.title },
-        { property: 'og:description', content: description },
-        { property: 'og:url', content: url },
-        { property: 'og:site_name', content: 'VibeDev ID' },
-        { property: 'og:type', content: 'website' },
-        ...(image ? [{ property: 'og:image', content: image }] : []),
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: project.title },
-        { name: 'twitter:description', content: description },
-        ...(image ? [{ name: 'twitter:image', content: image }] : []),
-        { name: 'twitter:site', content: '@vibedevid' },
-      ],
-      links: [{ rel: 'canonical', href: url }],
-    }
+    return publicPageHead({
+      title: `${project.title} | VibeDev ID`,
+      description,
+      path: `/project/${project.slug}`,
+      image,
+    })
   },
   component: ProjectDetailRoute,
 })
@@ -86,18 +72,10 @@ function ProjectDetailRoute() {
   const { project } = data
 
   const appSchema = project ? softwareApplicationSchema(project) : null
-  const breadcrumbs = project
-    ? breadcrumbListSchema([
-        { name: 'Home', url: getSiteUrl() },
-        { name: 'Projects', url: absoluteUrl('/project/list') },
-        { name: project.title, url: absoluteUrl(`/project/${project.slug}`) },
-      ])
-    : null
 
   return (
     <>
       {appSchema && <script type="application/ld+json">{JSON.stringify(appSchema)}</script>}
-      {breadcrumbs && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
       <ProjectDetailsPage data={data} />
     </>
   )

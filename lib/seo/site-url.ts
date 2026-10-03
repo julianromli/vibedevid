@@ -1,3 +1,6 @@
+import { serialize } from 'cookie-es'
+import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from '@/lib/locale'
+
 const DEFAULT_PRODUCTION_SITE_URL = 'https://vibedeveloper.id'
 const DEFAULT_DEVELOPMENT_SITE_URL = 'http://localhost:3000'
 
@@ -126,12 +129,72 @@ export function absoluteUrl(pathname: string): string {
   return `${base}${path}`
 }
 
+const PATH_ALIASES: Record<string, string> = {
+  '/terms': '/terms-of-service',
+  '/calendar': '/event/list',
+}
+
 /**
- * Permanent redirect target when the request Host is a site alias, or the
- * canonical host in DNS trailing-dot form. Returns null for the bare canonical
- * host, localhost, and preview URLs.
+ * Collapse locale prefix, trailing slash, and known path aliases into one path.
+ * Leaves API and asset paths unchanged.
  */
-export function getCanonicalHostRedirect(request: Request): string | null {
+export function canonicalizePublicPath(pathname: string): { pathname: string; locale: 'en' | null } {
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_build') ||
+    pathname.startsWith('/assets') ||
+    pathname.startsWith('/@')
+  ) {
+    return { pathname, locale: null }
+  }
+
+  let path = pathname
+  let locale: 'en' | null = null
+
+  if (path === '/en' || path.startsWith('/en/')) {
+    const rest = path.slice('/en'.length)
+    path = rest === '' ? '/' : rest
+    locale = 'en'
+  }
+
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.replace(/\/+$/, '') || '/'
+  }
+
+  const alias = PATH_ALIASES[path]
+  if (alias) path = alias
+
+  return { pathname: path, locale }
+}
+
+/** True when the path change is only the `/en` prefix, with no slash or alias change. */
+function isLocaleOnlyPathChange(pathname: string): boolean {
+  if (!(pathname === '/en' || pathname.startsWith('/en/'))) return false
+
+  const rest = pathname.slice('/en'.length)
+  const path = rest === '' ? '/' : rest
+  if (path.length > 1 && path.endsWith('/')) return false
+  if (PATH_ALIASES[path]) return false
+  return true
+}
+
+export interface IndexableRedirect {
+  location: string
+  locale: 'en' | null
+  /**
+   * False when the only change is stripping `/en`. That redirect stays 302.
+   * Host aliases, trailing slashes, and path aliases are permanent.
+   */
+  permanent: boolean
+}
+
+/**
+ * One redirect target for alias hosts, DNS trailing-dot hosts, and public path
+ * aliases. Host and path changes happen in the same response so Google does
+ * not have to follow a chain.
+ * Returns null when the request is already canonical.
+ */
+export function getIndexableRedirect(request: Request): IndexableRedirect | null {
   let requestUrl: URL
   try {
     requestUrl = new URL(request.url)
@@ -143,25 +206,52 @@ export function getCanonicalHostRedirect(request: Request): string | null {
   const host = normalizeHostname(rawHost)
   const isAlias = SITE_HOST_ALIASES.has(host)
   const isFqdnCanonical = host === CANONICAL_SITE_HOST && rawHost !== host
-  if (!isAlias && !isFqdnCanonical) return null
+  const hostNeedsRedirect = isAlias || isFqdnCanonical
+  const nextPath = canonicalizePublicPath(requestUrl.pathname)
+  const pathNeedsRedirect = nextPath.pathname !== requestUrl.pathname
 
-  return `${CANONICAL_SITE_ORIGIN}${requestUrl.pathname}${requestUrl.search}`
+  if (!hostNeedsRedirect && !pathNeedsRedirect) return null
+
+  const origin = hostNeedsRedirect ? CANONICAL_SITE_ORIGIN : requestUrl.origin
+  const localeOnly = nextPath.locale === 'en' && !hostNeedsRedirect && isLocaleOnlyPathChange(requestUrl.pathname)
+  return {
+    location: `${origin}${nextPath.pathname}${requestUrl.search}`,
+    locale: nextPath.locale,
+    permanent: !localeOnly,
+  }
+}
+
+/** @see getIndexableRedirect */
+export function getCanonicalHostRedirect(request: Request): string | null {
+  return getIndexableRedirect(request)?.location ?? null
 }
 
 export function canonicalHostRedirectResponse(request: Request): Response | null {
-  const location = getCanonicalHostRedirect(request)
-  if (!location) return null
+  const target = getIndexableRedirect(request)
+  if (!target) return null
 
   const method = request.method.toUpperCase()
-  const status = method === 'GET' || method === 'HEAD' ? 301 : 308
-
-  return new Response(null, {
-    status,
-    headers: {
-      Location: location,
-      'Cache-Control': 'public, max-age=3600',
-    },
+  const isRead = method === 'GET' || method === 'HEAD'
+  const status = target.permanent ? (isRead ? 301 : 308) : 302
+  // A shared cache must not store a response that sets a cookie.
+  const cacheControl = target.locale === 'en' ? 'private, no-store' : 'public, max-age=3600'
+  const headers = new Headers({
+    Location: target.location,
+    'Cache-Control': cacheControl,
   })
+
+  if (target.locale === 'en') {
+    headers.append(
+      'Set-Cookie',
+      serialize(LOCALE_COOKIE_NAME, 'en', {
+        path: '/',
+        maxAge: LOCALE_COOKIE_MAX_AGE,
+        sameSite: 'lax',
+      }),
+    )
+  }
+
+  return new Response(null, { status, headers })
 }
 
 /**
