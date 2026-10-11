@@ -1,32 +1,30 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { asc, eq } from "drizzle-orm";
 import { useTranslation } from "react-i18next";
 import { SubmitProjectForm } from "@/components/ui/submit-project-form";
-import type { Category } from "@/lib/categories";
 import { getCategories } from "@/lib/categories";
+import { resolveProjectSubmitLoaderData } from "@/lib/routes/project-submit-gate";
 import { NOINDEX_META } from "@/lib/seo/site-url";
 import { getCurrentUser } from "@/lib/server/auth";
 
 const loadSubmitData = createServerFn({ method: "GET" }).handler(async () => {
-  const redirectTo = "/project/submit";
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    throw redirect({ to: "/user/auth", search: { redirectTo } });
+    return { status: "unauthenticated" as const };
   }
 
   const categories = await getCategories();
 
   return {
+    status: "ok" as const,
     userId: currentUser.id,
-    categories: categories as Category[],
-    redirectTo,
+    categories,
   };
 });
 
 export const Route = createFileRoute("/project/submit")({
-  loader: async () => loadSubmitData(),
+  loader: async () => resolveProjectSubmitLoaderData(await loadSubmitData()),
   head: () => ({
     meta: [{ title: "Submit Project | VibeDev ID" }, NOINDEX_META],
   }),

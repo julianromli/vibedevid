@@ -447,9 +447,9 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
 
     try {
       const result = await submitProjectFn({ data: formData });
-      if (result.success) {
+      if (result.success && result.slug) {
         toast.success("Mantap! 🚀 Project lo berhasil di-submit!");
-        router.navigate({ to: `/project/${result.slug}` });
+        router.navigate({ to: "/project/$slug", params: { slug: result.slug } });
       } else {
         handleSubmitResultError(result);
       }

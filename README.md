@@ -461,6 +461,7 @@ bisa drift karena keduanya membaca satu sumber.
   baca FormData, flatten zod issues ke wire contract, dan format ke string error.
   Klien memvalidasi per-step saat navigasi plus full-gate saat submit; server
   selalu mengeksekusi schema penuh.
+- Signed-out visits to `/project/submit` redirect from the route loader, not from the server function.
 
 ### Project Filtering & Sorting
 
