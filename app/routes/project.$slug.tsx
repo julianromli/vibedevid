@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import ProjectDetailsPage, { type ProjectDetailsData } from '@/app/project/[slug]/page'
@@ -8,7 +8,6 @@ import { publicPageHead } from '@/lib/seo/page-meta'
 import { softwareApplicationSchema } from '@/lib/seo/schema-templates'
 import { checkProjectOwnership, getCurrentUser } from '@/lib/server/auth'
 import { getOwnedProjectImageKeys, getProjectBySlug } from '@/lib/server/project-public'
-import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 
 /**
  * Server-only data fetching for a project detail page. Wrapped in
@@ -18,15 +17,6 @@ import { getProjectByUUID, isUUID } from '@/lib/server/utils'
 const loadProjectData = createServerFn({ method: 'GET' })
   .validator(z.object({ slug: z.string().min(1) }))
   .handler(async ({ data: { slug } }): Promise<ProjectDetailsData> => {
-    // Legacy UUID redirect
-    if (isUUID(slug)) {
-      const legacyProject = await getProjectByUUID(slug)
-      if (legacyProject?.slug) {
-        throw redirect({ to: '/project/$slug', params: { slug: legacyProject.slug } })
-      }
-      throw notFound()
-    }
-
     const [currentUser, project, categories] = await Promise.all([
       getCurrentUser(),
       getProjectBySlug(slug),
