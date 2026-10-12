@@ -226,8 +226,8 @@ bunx playwright test -g "should track views when visiting project page"
 | `DATABASE_URL`                              | Neon pooled URL (hostname includes `-pooler`)                    | Yes                |
 | `DATABASE_URL_UNPOOLED`                     | Neon direct URL for drizzle-kit, `migrate:schema`, and `db:seed` | For schema/seed    |
 | `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars)                     | Yes                |
-| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks                                | Yes                |
-| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                                     | Yes                |
+| `BETTER_AUTH_URL`                           | Fallback auth URL. Sign-in also trusts known site hosts.         | Yes                |
+| `VITE_BETTER_AUTH_URL`                      | Fallback browser URL. Page origin wins on an allowed host.       | Yes                |
 | `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)                                | Yes                |
 | `VITE_SITE_URL`                             | Same URL, exposed to browser                                     | Yes                |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                                     | Optional           |
@@ -284,6 +284,13 @@ Notes:
 - After deploy, set Worker secrets `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL`
   to `https://vibedeveloper.id`. Point `vibedevid.com` DNS at this Worker (or a
   registrar 301) so the old host is not a separate Apache site.
+- Sign-in trusts `https://vibedeveloper.id` plus `www.vibedeveloper.id`,
+  `vibedevid.com`, and `www.vibedevid.com`. The browser posts to the page
+  origin when that host is one of those names (or `localhost` in development).
+  A stale `BETTER_AUTH_URL` such as `http://localhost:3000` does not make
+  production sign-in return `Invalid origin`. `X-Forwarded-Host` is ignored.
+  OAuth callbacks stay on the request host. Keep the Google and GitHub
+  redirect URLs on `https://vibedeveloper.id`.
 - In Cloudflare, allow verified Googlebot to fetch HTML, `/robots.txt`, and
   `/sitemap.xml`. A curl from a non-Google IP can receive a challenge even
   when the user-agent string says Googlebot. Confirm the real crawler in

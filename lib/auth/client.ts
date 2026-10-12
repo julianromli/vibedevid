@@ -1,17 +1,14 @@
 import { createAuthClient } from "better-auth/react";
+import { resolveAuthClientBaseUrl } from "@/lib/auth/origins";
 
 function getAuthBaseUrl(): string {
+  const configuredUrls: Array<string | undefined> = [];
   if (typeof import.meta !== "undefined" && import.meta.env) {
-    const viteUrl = import.meta.env.VITE_BETTER_AUTH_URL;
-    if (typeof viteUrl === "string" && viteUrl.length > 0) {
-      return viteUrl;
-    }
-    const siteUrl = import.meta.env.VITE_SITE_URL;
-    if (typeof siteUrl === "string" && siteUrl.length > 0) {
-      return siteUrl;
-    }
+    configuredUrls.push(import.meta.env.VITE_BETTER_AUTH_URL, import.meta.env.VITE_SITE_URL);
   }
-  return "";
+
+  const pageOrigin = typeof window !== "undefined" ? window.location.origin : undefined;
+  return resolveAuthClientBaseUrl({ pageOrigin, configuredUrls });
 }
 
 export const authClient = createAuthClient({

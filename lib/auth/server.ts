@@ -4,6 +4,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { escapeHtml } from "@/lib/auth/html";
+import { buildAuthBaseURLConfig } from "@/lib/auth/origins";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
@@ -102,7 +103,15 @@ export function createAuth() {
       },
     }),
     secret: config.secret,
-    baseURL: config.baseURL,
+    // Trust the canonical host and its aliases, not only BETTER_AUTH_URL.
+    // A stale secret (localhost or the old domain) was rejecting sign-in
+    // with "Invalid origin".
+    baseURL: buildAuthBaseURLConfig(config.baseURL),
+    advanced: {
+      // The Worker Host header is the public host. Ignore X-Forwarded-Host
+      // so a caller cannot pick a different base URL.
+      trustedProxyHeaders: false,
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
