@@ -1,13 +1,10 @@
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { users, authUser } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
 import { requireAdmin } from "@/lib/auth/permissions";
 import { ROLES, RoleSchema, UserIdSchema } from "./schemas";
 import { eq, and, asc, inArray, or, ilike, count, sql } from "drizzle-orm";
-
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
 
 type UserProfileRow = {
   id: string;
@@ -145,10 +142,10 @@ export async function getPrivilegedUsers(): Promise<PrivilegedUsersResult> {
 }
 
 async function searchUsersByProfile(
-  sanitized: string,
+  query: string,
   limit: number,
 ): Promise<{ users: UserProfileRow[]; error?: string }> {
-  const pattern = `%${sanitized}%`;
+  const pattern = containsPattern(query);
   const db = getDb();
 
   try {
@@ -186,7 +183,7 @@ async function searchUsersByEmail(query: string, limit: number): Promise<UserPro
   const authRows = await db
     .select({ id: authUser.id })
     .from(authUser)
-    .where(sql`${authUser.email} ilike ${"%" + query + "%"}`)
+    .where(sql`${authUser.email} ilike ${containsPattern(query)}`)
     .limit(limit);
 
   const matchingIds = authRows.map((row) => row.id);
@@ -223,11 +220,10 @@ export async function searchUsersForAdminGrant(query: string): Promise<UserSearc
       return { success: true, users: [] };
     }
 
-    const sanitized = sanitizeSearchInput(trimmed);
     const limit = 20;
 
     const [profileResult, emailUsers] = await Promise.all([
-      searchUsersByProfile(sanitized, limit),
+      searchUsersByProfile(trimmed, limit),
       searchUsersByEmail(trimmed, limit),
     ]);
 

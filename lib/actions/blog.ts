@@ -1,5 +1,6 @@
 import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
 import { USER_ROLE } from "@/lib/auth/permissions";
@@ -238,7 +239,7 @@ export async function getTags(query = "") {
     ? await db
         .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })
         .from(postTags)
-        .where(ilike(postTags.name, `%${query}%`))
+        .where(ilike(postTags.name, containsPattern(query)))
         .limit(20)
     : await db
         .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })

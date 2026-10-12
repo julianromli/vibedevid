@@ -1,5 +1,6 @@
 import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
 import { toProjectDto } from "@/lib/db/mappers";
 import { requireUser } from "@/lib/server/auth";
@@ -52,10 +53,6 @@ async function checkAdminAccess() {
   return user;
 }
 
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
-
 export async function getAllProjects(
   filters: ProjectFilters = {},
   page: number = 1,
@@ -86,8 +83,7 @@ export async function getAllProjects(
     }
 
     if (filters.search) {
-      const sanitized = sanitizeSearchInput(filters.search);
-      const pattern = `%${sanitized}%`;
+      const pattern = containsPattern(filters.search);
       conditions.push(or(ilike(projects.title, pattern), ilike(projects.description, pattern)));
     }
 

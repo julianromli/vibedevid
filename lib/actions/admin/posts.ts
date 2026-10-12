@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { posts, users, postTags, blogPostTags, comments, likes, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
 import { requireUser } from "@/lib/server/auth";
@@ -58,10 +59,6 @@ async function checkAdminAccess() {
   return user;
 }
 
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
-
 export async function getAllPosts(
   filters: PostFilters = {},
   page: number = 1,
@@ -89,8 +86,7 @@ export async function getAllPosts(
       conditions.push(lte(posts.createdAt, new Date(filters.dateTo)));
     }
     if (filters.search) {
-      const sanitized = sanitizeSearchInput(filters.search);
-      const pattern = `%${sanitized}%`;
+      const pattern = containsPattern(filters.search);
       conditions.push(or(ilike(posts.title, pattern), ilike(posts.excerpt, pattern)));
     }
 

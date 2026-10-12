@@ -41,57 +41,6 @@ export const RoleSchema = z
   .min(0)
   .max(2, "Role must be 0 (admin), 1 (moderator), or 2 (user)");
 
-// Search string validation - sanitize SQL special characters
-export const SearchSchema = z
-  .string()
-  .max(100, "Search query too long")
-  .transform((val) => val.replace(/[%_]/g, "\\$&"));
-
-// Date string validation - ISO format
-export const DateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
-  .optional();
-
-// Pagination validation
-export const PaginationSchema = z.object({
-  page: z.number().int().positive().default(1),
-  pageSize: z.number().int().positive().max(100).default(DEFAULT_PAGE_SIZE),
-});
-
-// Project filters validation
-export const ProjectFiltersSchema = z.object({
-  status: z.enum(["all", "featured", "regular"]).optional(),
-  category: z.string().optional(),
-  dateFrom: DateSchema,
-  dateTo: DateSchema,
-  search: SearchSchema.optional(),
-});
-
-// Post filters validation
-export const PostFiltersSchema = z.object({
-  status: z.enum(["all", "draft", "published", "archived"]).optional(),
-  authorId: UserIdSchema.optional(),
-  dateFrom: DateSchema,
-  dateTo: DateSchema,
-  search: SearchSchema.optional(),
-  featured: z.boolean().optional(),
-});
-
-// User filters validation
-export const UserFiltersSchema = z.object({
-  search: SearchSchema.optional(),
-  role: z.enum(["all", "admin", "moderator", "user"]).optional(),
-  status: z.enum(["all", "active", "suspended"]).optional(),
-});
-
-// Report filters validation
-export const ReportFiltersSchema = z.object({
-  status: z.enum(["all", "pending", "reviewed", "dismissed"]).optional(),
-  dateFrom: DateSchema,
-  dateTo: DateSchema,
-});
-
 // Project update validation
 function normalizeOptionalWebsiteUrl(
   value: string | null | undefined,
