@@ -11,7 +11,6 @@ import {
   parseProjectFormData,
   parseResultToFieldErrors,
 } from "@/lib/project-submission";
-import { revalidatePath } from "@/lib/revalidation";
 import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession, requireUser } from "@/lib/server/auth";
 import {
@@ -41,7 +40,6 @@ interface ProvisionalUploadCleanupResult {
 }
 
 const DEFAULT_FAVICON = "/default-favicon.svg";
-const PROJECT_LIST_PATH = "/project/list";
 const UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred";
 const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields and try again";
 
@@ -131,11 +129,6 @@ const cleanupProvisionalUploadByKey = async (
       deletedCount: 0,
     };
   }
-};
-
-const revalidateProjectCreationPaths = (slug: string) => {
-  revalidatePath(PROJECT_LIST_PATH);
-  revalidatePath(`/project/${slug}`);
 };
 
 const getActiveCategoryNames = async (): Promise<{ data: string[]; error: string | null }> => {
@@ -424,9 +417,6 @@ export async function editProject(projectSlug: string, formData: FormData) {
       }
     }
 
-    revalidatePath(`/project/${projectSlug}`);
-    revalidatePath("/project/list");
-
     return { success: true, slug: projectSlug };
   } catch (error) {
     console.error("Edit project error:", error);
@@ -494,9 +484,6 @@ export async function deleteProject(projectSlug: string) {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }
     }
-
-    revalidatePath("/project/list");
-    revalidatePath(`/project/${projectSlug}`);
 
     console.log("[Delete Project] Successfully deleted project with slug:", projectSlug);
     return { success: true };
@@ -572,7 +559,6 @@ export async function submitProject(
     }
 
     await syncProjectUploadAttachments(actorId, result.id, aligned.imageKeys);
-    revalidateProjectCreationPaths(result.slug);
     return { success: true, slug: result.slug };
   } catch {
     await cleanupOwnedProvisionalKeys(actorId, provisionalImageKeys);

@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from "@/lib/profile-social-links";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -129,11 +128,6 @@ export async function updateUserProfile(
         updatedAt: new Date(),
       })
       .where(eq(users.username, currentUsername));
-
-    revalidatePath(`/${currentUsername}`);
-    if (usernameChanged) {
-      revalidatePath(`/${profileData.username}`);
-    }
 
     return {
       success: true,

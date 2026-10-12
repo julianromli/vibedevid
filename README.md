@@ -56,7 +56,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **File Uploads**: UploadThing + Better Upload
 - **Command Palette**: cmdk
 - **Charts**: Recharts
-- **Dates**: date-fns + date-fns-tz
+- **Dates**: date-fns
 - **Testing**: Playwright (E2E) + Vitest (unit)
 - **Code Quality**: Biome (linter + formatter)
 - **Hosting**: Cloudflare Workers (Nitro `cloudflare_module` preset)

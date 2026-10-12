@@ -1,5 +1,5 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { users, projects, posts, comments, likes, authUser } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
 import { requireUser } from "@/lib/server/auth";
@@ -50,10 +50,6 @@ async function checkAdminAccess() {
   return user;
 }
 
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
-
 export async function getAllUsers(
   filters: UserFilters = {},
   page: number = 1,
@@ -81,8 +77,7 @@ export async function getAllUsers(
     }
 
     if (filters.search) {
-      const sanitized = sanitizeSearchInput(filters.search);
-      const pattern = `%${sanitized}%`;
+      const pattern = containsPattern(filters.search);
       conditions.push(or(ilike(users.username, pattern), ilike(users.displayName, pattern)));
     }
 
@@ -212,8 +207,6 @@ export async function updateUserRole(
     const db = getDb();
     await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
 
-    revalidatePath("/dashboard");
-
     return { success: true };
   } catch (error) {
     console.error("Update user role error:", error);
@@ -242,8 +235,6 @@ export async function suspendUser(
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
-
-    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {

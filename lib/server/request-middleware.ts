@@ -1,5 +1,5 @@
 import { type CookieSerializeOptions, serialize } from 'cookie-es'
-import { type Locale, routing } from '@/i18n/routing'
+import { type Locale, routing } from '@/i18n'
 import { getSafeRedirectPath } from '@/lib/auth/redirect-path'
 import { getAuth } from '@/lib/auth/server'
 import { CONFIRM_EMAIL_COOKIE, CONFIRM_EMAIL_COOKIE_MAX_AGE_SECONDS } from '@/lib/constants/auth'

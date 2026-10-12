@@ -4,11 +4,12 @@ import { useTranslation } from "react-i18next";
 import { TestimonialForm } from "@/components/testimonial/testimonial-form";
 import { Footer } from "@/components/ui/footer";
 import { Navbar } from "@/components/ui/navbar";
-import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function TestimonialPageClient() {
   const { t } = useTranslation("testimonialSubmit");
-  const { isLoggedIn, user } = useAuth();
+  const user = useCurrentUser();
+  const isLoggedIn = Boolean(user);
 
   return (
     <div className="bg-background min-h-screen">

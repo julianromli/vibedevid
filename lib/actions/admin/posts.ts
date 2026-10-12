@@ -1,5 +1,5 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { posts, users, postTags, blogPostTags, comments, likes, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
 import { requireUser } from "@/lib/server/auth";
@@ -59,10 +59,6 @@ async function checkAdminAccess() {
   return user;
 }
 
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
-
 export async function getAllPosts(
   filters: PostFilters = {},
   page: number = 1,
@@ -90,8 +86,7 @@ export async function getAllPosts(
       conditions.push(lte(posts.createdAt, new Date(filters.dateTo)));
     }
     if (filters.search) {
-      const sanitized = sanitizeSearchInput(filters.search);
-      const pattern = `%${sanitized}%`;
+      const pattern = containsPattern(filters.search);
       conditions.push(or(ilike(posts.title, pattern), ilike(posts.excerpt, pattern)));
     }
 
@@ -230,10 +225,6 @@ export async function adminUpdatePost(
       await updatePostTags(postId, updates.tags);
     }
 
-    revalidatePath("/blog/[slug]");
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
-
     return { success: true };
   } catch (error) {
     console.error("Admin update post error:", error);
@@ -305,9 +296,6 @@ export async function adminDeletePost(
       db.delete(blogPostTags).where(eq(blogPostTags.postId, postId)),
     ]);
 
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
-
     return { success: true };
   } catch (error) {
     console.error("Admin delete post error:", error);
@@ -335,9 +323,6 @@ export async function togglePostFeatured(
     if (!updatedRows.length) {
       return { success: false, error: "Post not found" };
     }
-
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
 
     return { success: true };
   } catch (error) {

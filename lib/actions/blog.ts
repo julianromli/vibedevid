@@ -1,6 +1,6 @@
-import { revalidatePath, revalidateTag } from "@/lib/revalidation";
 import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
 import { USER_ROLE } from "@/lib/auth/permissions";
@@ -94,9 +94,6 @@ export async function createBlogPost(data: {
       await syncPostTags(post.id, data.tags);
     }
 
-    revalidatePath("/blog");
-    revalidatePath("/dashboard/posts");
-    revalidateTag("blog-list-posts", "max");
     return { success: true, slug };
   } catch (error) {
     console.error("Create post error:", error);
@@ -210,10 +207,6 @@ export async function updateBlogPost(
 
   const finalSlug = updateData.slug || post.slug;
 
-  revalidatePath("/blog");
-  revalidatePath(`/blog/${finalSlug}`);
-  revalidatePath("/dashboard/posts");
-  revalidateTag("blog-list-posts", "max");
   return { success: true, slug: finalSlug };
 }
 
@@ -246,7 +239,7 @@ export async function getTags(query = "") {
     ? await db
         .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })
         .from(postTags)
-        .where(ilike(postTags.name, `%${query}%`))
+        .where(ilike(postTags.name, containsPattern(query)))
         .limit(20)
     : await db
         .select({ id: postTags.id, name: postTags.name, slug: postTags.slug })
@@ -402,8 +395,6 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: "Failed to delete post" };
   }
 
-  revalidatePath("/blog");
-  revalidateTag("blog-list-posts", "max");
   return { success: true };
 }
 

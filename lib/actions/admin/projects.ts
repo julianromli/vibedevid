@@ -1,6 +1,6 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
 import { getDb } from "@/lib/db";
+import { containsPattern } from "@/lib/db/like-pattern";
 import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
 import { toProjectDto } from "@/lib/db/mappers";
 import { requireUser } from "@/lib/server/auth";
@@ -53,10 +53,6 @@ async function checkAdminAccess() {
   return user;
 }
 
-function sanitizeSearchInput(search: string): string {
-  return search.replace(/[%_]/g, "\\$&");
-}
-
 export async function getAllProjects(
   filters: ProjectFilters = {},
   page: number = 1,
@@ -87,8 +83,7 @@ export async function getAllProjects(
     }
 
     if (filters.search) {
-      const sanitized = sanitizeSearchInput(filters.search);
-      const pattern = `%${sanitized}%`;
+      const pattern = containsPattern(filters.search);
       conditions.push(or(ilike(projects.title, pattern), ilike(projects.description, pattern)));
     }
 
@@ -240,9 +235,6 @@ export async function adminUpdateProject(
       };
     }
 
-    revalidatePath("/project/[slug]");
-    revalidatePath("/admin/dashboard/boards/projects");
-
     return { success: true };
   } catch (error) {
     console.error("Admin update project error:", error);
@@ -287,9 +279,6 @@ export async function adminDeleteProject(
       }
     }
 
-    revalidatePath("/project/list");
-    revalidatePath("/admin/dashboard/boards/projects");
-
     return { success: true };
   } catch (error) {
     console.error("Admin delete project error:", error);
@@ -317,9 +306,6 @@ export async function toggleProjectFeatured(
     if (!updatedRows.length) {
       return { success: false, error: "Project not found" };
     }
-
-    revalidatePath("/");
-    revalidatePath("/admin/dashboard/boards/projects");
 
     return { success: true };
   } catch (error) {

@@ -9,7 +9,7 @@ import { PageBreadcrumbs } from '@/components/seo/page-breadcrumbs'
 import { Footer } from '@/components/ui/footer'
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper'
 import { Navbar } from '@/components/ui/navbar'
-import { useAuth } from '@/hooks/useAuth'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { applyFilters } from '@/lib/events-utils'
 import type { AIEvent, EventCategory, EventLocationType } from '@/types/events'
 
@@ -48,7 +48,8 @@ interface EventListClientProps {
 }
 
 export default function EventListClient({ initialEvents }: EventListClientProps) {
-  const { isLoggedIn, user } = useAuth()
+  const user = useCurrentUser()
+  const isLoggedIn = Boolean(user)
   const { t } = useTranslation('common')
 
   // Filter and sort state

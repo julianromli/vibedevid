@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { PageBreadcrumbs } from '@/components/seo/page-breadcrumbs'
 import { Footer } from '@/components/ui/footer'
 import { Navbar } from '@/components/ui/navbar'
-import { useAuth } from '@/hooks/useAuth'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 const UPDATED_AT = '20 February 2026'
 const EFFECTIVE_AT = '20 February 2026'
@@ -131,7 +131,8 @@ const SECTIONS = [
 ]
 
 export function TermsOfServiceClient() {
-  const { isLoggedIn, user } = useAuth()
+  const user = useCurrentUser()
+  const isLoggedIn = Boolean(user)
   const { t } = useTranslation('common')
 
   return (
