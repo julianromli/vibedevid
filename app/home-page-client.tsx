@@ -20,11 +20,7 @@ const YouTubeVideoShowcase = lazy(() =>
     default: m.YouTubeVideoShowcase,
   })),
 )
-const CommunityFeaturesSection = lazy(() =>
-  import('@/components/sections/community-features-section').then((m) => ({
-    default: m.CommunityFeaturesSection,
-  })),
-)
+const CommunityFeaturesSection = lazy(() => import('@/components/features-8'))
 const AIToolsSection = lazy(() =>
   import('@/components/sections/ai-tools-section').then((m) => ({
     default: m.AIToolsSection,

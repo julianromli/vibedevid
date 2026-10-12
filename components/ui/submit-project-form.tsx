@@ -10,7 +10,6 @@ import type { Option } from "@/components/ui/multiselect";
 import { Stepper } from "@/components/ui/stepper";
 import { BasicsStep } from "@/components/ui/submit-project-form/steps/basics-step";
 import { LinksMediaStep } from "@/components/ui/submit-project-form/steps/links-media-step";
-import { ReviewStep } from "@/components/ui/submit-project-form/steps/review-step";
 import { SourceStep } from "@/components/ui/submit-project-form/steps/source-step";
 import type { UploadResult } from "@/components/ui/submit-project-form/types";
 import {
@@ -653,7 +652,7 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
           </Stepper.Step>
 
           <Stepper.Step index={3}>
-            <ReviewStep />
+            <div className="space-y-6" />
           </Stepper.Step>
         </CardContent>
 

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Locale, routing } from "@/i18n/routing";
+import { type Locale, routing } from "@/i18n";
 
 const localeLabels: Record<Locale, { label: string; flag: string }> = {
   id: { label: "Bahasa Indonesia", flag: "🇮🇩" },

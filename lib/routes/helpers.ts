@@ -10,8 +10,6 @@ export function normalizeSortParam(value: string | undefined): SortBy {
   return value === "top" || value === "newest" || value === "trending" ? value : "newest";
 }
 
-export { getServerLocale };
-
 export async function getServerT(namespace: string) {
   return i18n.getFixedT(await getServerLocale(), namespace);
 }
