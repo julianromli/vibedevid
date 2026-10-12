@@ -1,4 +1,3 @@
-import { revalidatePath, revalidateTag } from "@/lib/revalidation";
 import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 import { getDb } from "@/lib/db";
 import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
@@ -94,9 +93,6 @@ export async function createBlogPost(data: {
       await syncPostTags(post.id, data.tags);
     }
 
-    revalidatePath("/blog");
-    revalidatePath("/dashboard/posts");
-    revalidateTag("blog-list-posts", "max");
     return { success: true, slug };
   } catch (error) {
     console.error("Create post error:", error);
@@ -210,10 +206,6 @@ export async function updateBlogPost(
 
   const finalSlug = updateData.slug || post.slug;
 
-  revalidatePath("/blog");
-  revalidatePath(`/blog/${finalSlug}`);
-  revalidatePath("/dashboard/posts");
-  revalidateTag("blog-list-posts", "max");
   return { success: true, slug: finalSlug };
 }
 
@@ -402,8 +394,6 @@ export async function deleteBlogPost(id: string) {
     return { success: false, error: "Failed to delete post" };
   }
 
-  revalidatePath("/blog");
-  revalidateTag("blog-list-posts", "max");
   return { success: true };
 }
 

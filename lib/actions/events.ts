@@ -3,7 +3,6 @@ import { getDb } from "@/lib/db";
 import { toEventDto } from "@/lib/db/mappers";
 import { events } from "@/lib/db/schema";
 import { validateEventForm } from "@/lib/event-form-utils";
-import { revalidatePath, revalidateTag } from "@/lib/revalidation";
 import { requireAdminOrModeratorUser, requireUser } from "@/lib/server/auth";
 import { insertWithUniqueSlug, slugifyTitle } from "@/lib/slug";
 import type { EventFormData } from "@/types/events";
@@ -49,8 +48,6 @@ export async function submitEvent(formData: EventFormData) {
       }),
     );
 
-    revalidatePath("/event/list");
-    revalidateTag("event-list-events", "max");
     return { success: true, slug };
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
@@ -108,9 +105,6 @@ export async function approveEvent(eventId: string) {
       return { success: false, error: "Event could not be approved" };
     }
 
-    revalidatePath("/dashboard");
-    revalidatePath("/event/list");
-    revalidateTag("event-list-events", "max");
     return { success: true };
   } catch (error) {
     console.error("Unexpected error approving event:", error);
@@ -139,9 +133,6 @@ export async function rejectEvent(eventId: string) {
       return { success: false, error: "Event could not be rejected" };
     }
 
-    revalidatePath("/dashboard");
-    revalidatePath("/event/list");
-    revalidateTag("event-list-events", "max");
     return { success: true };
   } catch (error) {
     console.error("Unexpected error rejecting event:", error);

@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
 import { users, authUser } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
@@ -319,8 +318,6 @@ export async function setPrivilegedUserRole(
       .update(users)
       .set({ role: parsedRole, updatedAt: new Date() })
       .where(eq(users.id, parsedUserId));
-
-    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {

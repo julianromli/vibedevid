@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
 import { blogReports, comments, users, posts, projects } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
@@ -242,12 +241,6 @@ export async function adminDeleteComment(
 
     const db = getDb();
 
-    const [comment] = await db
-      .select({ postId: comments.postId, projectId: comments.projectId })
-      .from(comments)
-      .where(eq(comments.id, commentId))
-      .limit(1);
-
     await db.delete(blogReports).where(eq(blogReports.commentId, commentId));
 
     const deletedRows = await db
@@ -258,16 +251,6 @@ export async function adminDeleteComment(
     if (!deletedRows.length) {
       return { success: false, error: "Comment could not be deleted" };
     }
-
-    if (comment?.postId) {
-      revalidatePath("/blog/[slug]");
-      revalidatePath("/blog");
-    }
-    if (comment?.projectId) {
-      revalidatePath("/project/[slug]");
-      revalidatePath("/project/list");
-    }
-    revalidatePath("/admin/dashboard/boards/comments");
 
     return { success: true };
   } catch (error) {
@@ -295,8 +278,6 @@ export async function dismissReport(
     if (!updatedRows.length) {
       return { success: false, error: "Report not found" };
     }
-
-    revalidatePath("/admin/dashboard/boards/comments");
 
     return { success: true };
   } catch (error) {
@@ -355,8 +336,6 @@ export async function takeActionOnReport(
         return { success: false, error: "Report not found" };
       }
     }
-
-    revalidatePath("/admin/dashboard/boards/comments");
 
     return { success: true };
   } catch (error) {

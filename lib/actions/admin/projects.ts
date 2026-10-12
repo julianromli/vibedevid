@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
 import { getDb } from "@/lib/db";
 import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
@@ -240,9 +239,6 @@ export async function adminUpdateProject(
       };
     }
 
-    revalidatePath("/project/[slug]");
-    revalidatePath("/admin/dashboard/boards/projects");
-
     return { success: true };
   } catch (error) {
     console.error("Admin update project error:", error);
@@ -287,9 +283,6 @@ export async function adminDeleteProject(
       }
     }
 
-    revalidatePath("/project/list");
-    revalidatePath("/admin/dashboard/boards/projects");
-
     return { success: true };
   } catch (error) {
     console.error("Admin delete project error:", error);
@@ -317,9 +310,6 @@ export async function toggleProjectFeatured(
     if (!updatedRows.length) {
       return { success: false, error: "Project not found" };
     }
-
-    revalidatePath("/");
-    revalidatePath("/admin/dashboard/boards/projects");
 
     return { success: true };
   } catch (error) {

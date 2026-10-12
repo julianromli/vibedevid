@@ -3,7 +3,7 @@ import { submitEvent } from "@/lib/actions/events";
 import type { EventFormData } from "@/types/events";
 
 /**
- * Contract tests for the Event submission seam. Mock the db/auth/revalidation
+ * Contract tests for the Event submission seam. Mock the db/auth
  * modules and pin what submitEvent guarantees:
  *   - validation failure -> no insert
  *   - valid payload -> insert with approved=false, status="upcoming", submittedBy
@@ -71,11 +71,6 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/server/auth", () => ({
   requireUser: vi.fn(async () => ({ id: USER_ID })),
   requireAdminOrModeratorUser: vi.fn(async () => ({ id: USER_ID, role: 0 })),
-}));
-
-vi.mock("@/lib/revalidation", () => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
 }));
 
 beforeEach(() => {

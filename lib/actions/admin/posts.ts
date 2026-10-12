@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
 import { posts, users, postTags, blogPostTags, comments, likes, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
@@ -230,10 +229,6 @@ export async function adminUpdatePost(
       await updatePostTags(postId, updates.tags);
     }
 
-    revalidatePath("/blog/[slug]");
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
-
     return { success: true };
   } catch (error) {
     console.error("Admin update post error:", error);
@@ -305,9 +300,6 @@ export async function adminDeletePost(
       db.delete(blogPostTags).where(eq(blogPostTags.postId, postId)),
     ]);
 
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
-
     return { success: true };
   } catch (error) {
     console.error("Admin delete post error:", error);
@@ -335,9 +327,6 @@ export async function togglePostFeatured(
     if (!updatedRows.length) {
       return { success: false, error: "Post not found" };
     }
-
-    revalidatePath("/blog");
-    revalidatePath("/admin/dashboard/boards/blog");
 
     return { success: true };
   } catch (error) {

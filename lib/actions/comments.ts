@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getRequest } from "@tanstack/react-start/server";
 import { guestCommentNameError } from "@/lib/comment-policy";
 import { getDb } from "@/lib/db";
@@ -14,9 +13,6 @@ import type {
   CreateCommentInput,
   GetCommentsResult,
 } from "@/types/comments";
-
-const getRevalidatePath = (entityType: CommentEntityType): string =>
-  entityType === "post" ? "/blog" : "/project";
 
 export async function createComment(input: CreateCommentInput): Promise<CommentResult> {
   const { entityType, entityId, content, guestName } = input;
@@ -84,7 +80,6 @@ export async function createComment(input: CreateCommentInput): Promise<CommentR
     return { success: false, error: "Failed to add comment" };
   }
 
-  revalidatePath(getRevalidatePath(entityType));
   return { success: true };
 }
 

@@ -1,4 +1,3 @@
-import { revalidatePath } from "@/lib/revalidation";
 import { getDb } from "@/lib/db";
 import { users, projects, posts, comments, likes, authUser } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
@@ -212,8 +211,6 @@ export async function updateUserRole(
     const db = getDb();
     await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
 
-    revalidatePath("/dashboard");
-
     return { success: true };
   } catch (error) {
     console.error("Update user role error:", error);
@@ -242,8 +239,6 @@ export async function suspendUser(
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
-
-    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
