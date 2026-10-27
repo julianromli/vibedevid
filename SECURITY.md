@@ -16,7 +16,6 @@
 3. **Sensitive variables (keep secret)**
    - `DATABASE_URL` — Neon pooled connection string
    - `BETTER_AUTH_SECRET` — Better Auth signing secret
-   - `GOOGLE_CLIENT_SECRET` / `GITHUB_CLIENT_SECRET` — OAuth secrets
    - `UPLOADTHING_TOKEN` — file upload API access
    - `OPENROUTER_API_KEY` / `RESEND_API_KEY` — optional provider keys
 

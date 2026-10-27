@@ -20,6 +20,7 @@ import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as AdminRouteRouteImport } from './routes/_admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as UserOnboardingRouteImport } from './routes/user.onboarding'
 import { Route as UserAuthRouteImport } from './routes/user.auth'
 import { Route as ProjectSubmitRouteImport } from './routes/project.submit'
 import { Route as ProjectListRouteImport } from './routes/project.list'
@@ -98,6 +99,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BlogRoute,
+} as any)
+const UserOnboardingRoute = UserOnboardingRouteImport.update({
+  id: '/user/onboarding',
+  path: '/user/onboarding',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const UserAuthRoute = UserAuthRouteImport.update({
   id: '/user/auth',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/user/onboarding': typeof UserOnboardingRoute
   '/blog/': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/user/onboarding': typeof UserOnboardingRoute
   '/blog': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/project/list': typeof ProjectListRoute
   '/project/submit': typeof ProjectSubmitRoute
   '/user/auth': typeof UserAuthRouteWithChildren
+  '/user/onboarding': typeof UserOnboardingRoute
   '/blog/': typeof BlogIndexRoute
   '/api/ai/completion': typeof ApiAiCompletionRoute
   '/api/ai/enhance-description': typeof ApiAiEnhanceDescriptionRoute
@@ -356,6 +365,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/user/onboarding'
     | '/blog/'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/user/onboarding'
     | '/blog'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/project/list'
     | '/project/submit'
     | '/user/auth'
+    | '/user/onboarding'
     | '/blog/'
     | '/api/ai/completion'
     | '/api/ai/enhance-description'
@@ -462,6 +474,7 @@ export interface RootRouteChildren {
   ProjectListRoute: typeof ProjectListRoute
   ProjectSubmitRoute: typeof ProjectSubmitRoute
   UserAuthRoute: typeof UserAuthRouteWithChildren
+  UserOnboardingRoute: typeof UserOnboardingRoute
   ApiAiCompletionRoute: typeof ApiAiCompletionRoute
   ApiAiEnhanceDescriptionRoute: typeof ApiAiEnhanceDescriptionRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -545,6 +558,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/user/onboarding': {
+      id: '/user/onboarding'
+      path: '/user/onboarding'
+      fullPath: '/user/onboarding'
+      preLoaderRoute: typeof UserOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/user/auth': {
       id: '/user/auth'
@@ -807,6 +827,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectListRoute: ProjectListRoute,
   ProjectSubmitRoute: ProjectSubmitRoute,
   UserAuthRoute: UserAuthRouteWithChildren,
+  UserOnboardingRoute: UserOnboardingRoute,
   ApiAiCompletionRoute: ApiAiCompletionRoute,
   ApiAiEnhanceDescriptionRoute: ApiAiEnhanceDescriptionRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

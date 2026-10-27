@@ -1,4 +1,3 @@
-export const SEED_PASSWORD = "VibeDevLocal1!";
 export const SEED_AVATAR = "/optimized/professional-woman-dark-hair-512.avif";
 export const SEED_COVER = "/optimized/professional-woman-dark-hair-512.avif";
 
@@ -501,7 +500,7 @@ export const SEED_FAQS: SeedFaq[] = [
   {
     id: seedUuid(81),
     question: "How do I log in locally?",
-    answer: "Use the seed Gmail accounts and the shared password printed by bun run db:seed.",
+    answer: "Sign in with a seed Gmail address. The OTP code prints in the dev server log.",
     sortOrder: 2,
   },
 ];

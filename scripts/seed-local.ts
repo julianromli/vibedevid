@@ -16,7 +16,6 @@ import {
   SEED_EVENTS,
   SEED_FAQS,
   SEED_LIKES,
-  SEED_PASSWORD,
   SEED_POST_TAGS,
   SEED_POSTS,
   SEED_PROJECTS,
@@ -28,7 +27,6 @@ import {
   seedOwnedIds,
 } from "./seed/fixtures";
 import { assertNoRealUsersBeforeSeed, assertSafeSeedTarget } from "./seed/guards";
-import { hashSeedPassword } from "./seed/hash";
 
 type SeedSql = postgres.TransactionSql;
 
@@ -56,7 +54,7 @@ async function resetSeedRows(sql: SeedSql, owned: ReturnType<typeof seedOwnedIds
   await sql`DELETE FROM "user" WHERE id = ANY(${owned.userIds})`;
 }
 
-async function seedUsers(sql: SeedSql, passwordHash: string) {
+async function seedUsers(sql: SeedSql) {
   for (const user of SEED_USERS) {
     await sql`
       INSERT INTO "user" (id, name, email, email_verified, image, created_at, updated_at)
@@ -71,11 +69,12 @@ async function seedUsers(sql: SeedSql, passwordHash: string) {
 
     await sql`
       INSERT INTO users (
-        id, username, display_name, bio, avatar_url, location, website, github_url, role, updated_at
+        id, username, display_name, bio, avatar_url, location, website, github_url, role,
+        username_claimed_at, updated_at
       )
       VALUES (
         ${user.id}, ${user.username}, ${user.displayName}, ${user.bio}, ${SEED_AVATAR},
-        ${user.location}, ${user.website}, ${user.githubUrl}, ${user.role}, NOW()
+        ${user.location}, ${user.website}, ${user.githubUrl}, ${user.role}, NOW(), NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
         username = EXCLUDED.username,
@@ -86,19 +85,7 @@ async function seedUsers(sql: SeedSql, passwordHash: string) {
         website = EXCLUDED.website,
         github_url = EXCLUDED.github_url,
         role = EXCLUDED.role,
-        updated_at = NOW()
-    `;
-
-    const accountId = `seed-account-${user.id}`;
-    await sql`
-      INSERT INTO account (
-        id, account_id, provider_id, user_id, password, created_at, updated_at
-      )
-      VALUES (
-        ${accountId}, ${user.id}, 'credential', ${user.id}, ${passwordHash}, NOW(), NOW()
-      )
-      ON CONFLICT (user_id, provider_id) DO UPDATE SET
-        password = EXCLUDED.password,
+        username_claimed_at = coalesce(users.username_claimed_at, NOW()),
         updated_at = NOW()
     `;
   }
@@ -351,15 +338,14 @@ async function seedCommunity(sql: SeedSql) {
 
 function printSummary() {
   console.log("\nLocal seed complete.\n");
-  console.log("Accounts (shared password):");
+  console.log("Accounts (sign in with email OTP; the code prints in the dev server log):");
   for (const user of SEED_USERS) {
     const role = user.role === 0 ? "admin" : user.role === 1 ? "moderator" : "member";
     console.log(`  ${user.email}  (${role}, /${user.username})`);
   }
-  console.log(`  password: ${SEED_PASSWORD}`);
   console.log("\nAdmin: http://localhost:3000/dashboard");
   console.log(
-    "OAuth, UploadThing, Resend, and OpenRouter are optional for browse + email login.\n",
+    "UploadThing, Resend, and OpenRouter are optional for local browsing and OTP sign-in.\n",
   );
 }
 
@@ -378,7 +364,6 @@ async function main() {
   }
 
   const sql = postgres(url, { max: 1 });
-  const passwordHash = await hashSeedPassword(SEED_PASSWORD);
   const owned = seedOwnedIds();
 
   try {
@@ -397,7 +382,7 @@ async function main() {
         await resetSeedRows(tx, owned);
       }
       console.log("Seeding users...");
-      await seedUsers(tx, passwordHash);
+      await seedUsers(tx);
       console.log("Seeding categories and tags...");
       await seedLookupRows(tx);
       console.log("Seeding projects...");

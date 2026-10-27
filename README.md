@@ -8,7 +8,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ## Features
 
-- 🔐 **User Authentication** - Secure login with Better Auth (email + Google/GitHub OAuth)
+- 🔐 **User Authentication** - Passwordless sign-in with Better Auth email OTP (one flow for sign-in and sign-up)
 - 👤 **Developer Profiles** - Customizable profiles with bio, skills, and social links
 - 📝 **Project Showcase** - Share dan showcase project keren lo
 - 💬 **Community Interaction** - Comments, likes, dan diskusi project
@@ -44,7 +44,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Build/Dev**: Vite 8 + Nitro server output
 - **Language**: TypeScript 5.x
 - **Database**: Neon Postgres in `aws-ap-southeast-1` (Drizzle ORM). See [Neon Postgres](#neon-postgres).
-- **Authentication**: Better Auth (`/api/auth/*`) with email/password + Google/GitHub OAuth
+- **Authentication**: Better Auth (`/api/auth/*`) with email OTP only. New accounts claim a username at `/user/onboarding`
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Radix UI + shadcn/ui (50+ components)
 - **Animations**: Motion (Framer Motion) — shared scroll-reveal primitives in `components/ui/motion-wrapper.tsx` (`ScrollReveal`, `StaggerContainer`/`StaggerItem`, `ScaleIn`) applied across the landing page and the `/project/list`, `/blog`, `/event/list`, and `/[username]` profile pages (header/stats entrance reveal, staggered project/blog card grids, scaled tab-content reveals); Radix dropdown menus (e.g. avatar menu) and the FAQ accordion animate open/close via Framer Motion, all with `prefers-reduced-motion` support
@@ -66,13 +66,13 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 
 ### Leftovers we keep on purpose
 
-| Leftover | Why it stays |
-| --- | --- |
-| `NEXT_LOCALE` cookie | Live locale source. Public pages and tests still read this name. |
-| `NEXT_PUBLIC_SITE_URL` | Live server/SEO site URL. Also a Worker secret. `VITE_SITE_URL` is the browser twin. |
-| `next-themes` | Theme library. It is not the Next.js framework. |
-| `public/sw.js` + root unregister script | Uninstall shim for the old Next.js service worker. Already-installed clients still need it. |
-| Next-named folders under `app/` (except `app/routes/`) | Live view modules. Routes import them. |
+| Leftover                                               | Why it stays                                                                                |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `NEXT_LOCALE` cookie                                   | Live locale source. Public pages and tests still read this name.                            |
+| `NEXT_PUBLIC_SITE_URL`                                 | Live server/SEO site URL. Also a Worker secret. `VITE_SITE_URL` is the browser twin.        |
+| `next-themes`                                          | Theme library. It is not the Next.js framework.                                             |
+| `public/sw.js` + root unregister script                | Uninstall shim for the old Next.js service worker. Already-installed clients still need it. |
+| Next-named folders under `app/` (except `app/routes/`) | Live view modules. Routes import them.                                                      |
 
 ## Getting Started
 
@@ -84,7 +84,7 @@ This path is for a local clone. You apply the schema to **your** Neon project, t
 - [Vite+](https://viteplus.dev/) (`vp` CLI) — this project uses the Vite+ unified toolchain
 - A free [Neon](https://neon.tech) Postgres project (not the production database)
 
-OAuth, UploadThing, Resend, and OpenRouter are optional. You can browse the app and log in with seed email accounts without those keys.
+UploadThing, Resend, and OpenRouter are optional locally. Without Resend, the sign-in code prints in the server log, so you can log in with seed email accounts without any email keys.
 
 ### Installation
 
@@ -150,11 +150,17 @@ One-time Supabase → Neon import is not part of this path. See [docs/migrations
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Log in with a seed account below. New sign-up still needs email verification. Without Resend, the verification link prints in the server log.
+Open [http://localhost:3000](http://localhost:3000) and go to `/user/auth`. Sign-in and sign-up are one flow:
+
+1. Enter an email. A 6-digit code is sent (valid 10 minutes, 5 attempts, 60s resend cooldown).
+2. Enter the code. Without Resend, the code prints in the server log on a line that starts with `[auth]`.
+3. A new account picks a username at `/user/onboarding` before it can use the site.
+
+New accounts must use an allowed email domain (Gmail, Yahoo, Outlook/Hotmail/Live; see `lib/auth/email-domain.ts`). Existing accounts can sign in with any domain.
 
 ### Local seed accounts
 
-Shared password: `VibeDevLocal1!`
+Seed accounts have no password. Sign in with the email and the code from the server log.
 
 | Role      | Email                      | Profile            |
 | --------- | -------------------------- | ------------------ |
@@ -221,21 +227,19 @@ bunx playwright test -g "should track views when visiting project page"
 
 ## Environment Variables
 
-| Variable                                    | Description                                                      | Required for local |
-| ------------------------------------------- | ---------------------------------------------------------------- | ------------------ |
-| `DATABASE_URL`                              | Neon pooled URL (hostname includes `-pooler`)                    | Yes                |
-| `DATABASE_URL_UNPOOLED`                     | Neon direct URL for drizzle-kit, `migrate:schema`, and `db:seed` | For schema/seed    |
-| `BETTER_AUTH_SECRET`                        | Random secret for Better Auth (min 32 chars)                     | Yes                |
-| `BETTER_AUTH_URL`                           | Public app URL for auth callbacks                                | Yes                |
-| `VITE_BETTER_AUTH_URL`                      | Same URL, exposed to browser                                     | Yes                |
-| `NEXT_PUBLIC_SITE_URL`                      | Canonical site URL (server + SEO)                                | Yes                |
-| `VITE_SITE_URL`                             | Same URL, exposed to browser                                     | Yes                |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth                                                     | Optional           |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth                                                     | Optional           |
-| `UPLOADTHING_TOKEN`                         | UploadThing API token (uploads only)                             | Optional           |
-| `OPENROUTER_API_KEY`                        | AI blog features                                                 | Optional           |
-| `RESEND_API_KEY`                            | Resend API key for auth verification/reset                       | Optional           |
-| `EMAIL_FROM`                                | Verified sender address for Resend                               | Optional           |
+| Variable                | Description                                                      | Required for local |
+| ----------------------- | ---------------------------------------------------------------- | ------------------ |
+| `DATABASE_URL`          | Neon pooled URL (hostname includes `-pooler`)                    | Yes                |
+| `DATABASE_URL_UNPOOLED` | Neon direct URL for drizzle-kit, `migrate:schema`, and `db:seed` | For schema/seed    |
+| `BETTER_AUTH_SECRET`    | Random secret for Better Auth (min 32 chars)                     | Yes                |
+| `BETTER_AUTH_URL`       | Public app URL for auth callbacks                                | Yes                |
+| `VITE_BETTER_AUTH_URL`  | Same URL, exposed to browser                                     | Yes                |
+| `NEXT_PUBLIC_SITE_URL`  | Canonical site URL (server + SEO)                                | Yes                |
+| `VITE_SITE_URL`         | Same URL, exposed to browser                                     | Yes                |
+| `UPLOADTHING_TOKEN`     | UploadThing API token (uploads only)                             | Optional           |
+| `OPENROUTER_API_KEY`    | AI blog features                                                 | Optional           |
+| `RESEND_API_KEY`        | Resend API key for sign-in codes (required in production)        | Optional           |
+| `EMAIL_FROM`            | Verified Resend sender (required in production)                  | Optional           |
 
 ## Deployment (Cloudflare Workers)
 
@@ -272,15 +276,16 @@ Notes:
 - **`VITE_*` values are inlined at build time** — rebuild before deploy whenever
   `VITE_BETTER_AUTH_URL` or `VITE_SITE_URL` changes.
 - Worker secrets (runtime): pooled `DATABASE_URL` (Singapore `-pooler` host),
-  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`,
-  `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`,
-  `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`, `OPENROUTER_API_KEY`,
-  `RESEND_API_KEY`, and `EMAIL_FROM`. Do not put `DATABASE_URL_UNPOOLED` on the
+  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`, `OPENROUTER_API_KEY`,
+  `RESEND_API_KEY`, and `EMAIL_FROM` (sign-in fails with 503 without the last
+  two; the `EMAIL_FROM` domain must be verified in Resend). Do not put `DATABASE_URL_UNPOOLED` on the
   Worker. Keep it in local `.env.local` for schema tools.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
-- Add OAuth redirect URLs in Google/GitHub developer consoles:
-  - `https://vibedeveloper.id/api/auth/callback/google`
-  - `https://vibedeveloper.id/api/auth/callback/github`
+- Apply `scripts/migrations/neon/09_email_otp_onboarding.sql` (`bun run migrate:schema`)
+  before deploying the email OTP code. It adds `users.username_claimed_at` and
+  backfills it for existing users.
+- `scripts/cleanup-legacy-auth-accounts.ts` reports leftover password/OAuth
+  `account` rows (dry run by default). See the script header before using `--apply`.
 - After deploy, set Worker secrets `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL`
   to `https://vibedeveloper.id`. Point `vibedevid.com` DNS at this Worker (or a
   registrar 301) so the old host is not a separate Apache site.

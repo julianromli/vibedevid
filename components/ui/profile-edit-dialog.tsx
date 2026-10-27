@@ -12,6 +12,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth/client";
 import { useUploadThing } from "@/lib/uploadthing-client";
+import { USERNAME_MAX_LENGTH, validateUsername } from "@/lib/username";
+
+/** Same rule the server applies. Unchanged legacy usernames stay valid. */
+function usernameErrorMessage(username: string, original: string): string | null {
+  if (username === original) return null;
+  const validation = validateUsername(username);
+  if (validation.ok) return null;
+  if (validation.error === "reserved") return "This username is reserved. Try another one.";
+  return "Use 3-30 lowercase letters, numbers, or underscores.";
+}
 
 interface ProfileEditFormData {
   displayName: string;
@@ -67,6 +77,8 @@ export default function ProfileEditDialog({
     threads_url: defaultValues?.threads_url || "",
   });
 
+  const originalUsername = defaultValues?.username || "";
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(false);
   const [loadingBio, setLoadingBio] = useState(false);
 
@@ -117,6 +129,13 @@ export default function ProfileEditDialog({
   };
 
   const handleSave = async () => {
+    const error = usernameErrorMessage(formData.username, originalUsername);
+    setUsernameError(error);
+    if (error) {
+      document.getElementById("username")?.focus();
+      return;
+    }
+
     console.log("[v0] Saving profile with avatar:", formData.avatar);
     console.log("[v0] Full formData:", formData);
 
@@ -222,9 +241,25 @@ export default function ProfileEditDialog({
               <Input
                 id="username"
                 placeholder="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={USERNAME_MAX_LENGTH}
                 value={formData.username}
-                onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+                aria-invalid={usernameError ? true : undefined}
+                aria-describedby={usernameError ? "username-error" : undefined}
+                onChange={(e) => {
+                  const username = e.target.value.toLowerCase();
+                  setFormData((prev) => ({ ...prev, username }));
+                  if (usernameError)
+                    setUsernameError(usernameErrorMessage(username, originalUsername));
+                }}
               />
+              {usernameError ? (
+                <p id="username-error" role="alert" className="mt-1 text-sm text-destructive">
+                  {usernameError}
+                </p>
+              ) : null}
             </div>
             <div>
               <Label htmlFor="location" className="text-sm text-zinc-700 dark:text-zinc-300">
