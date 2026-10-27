@@ -15,6 +15,37 @@ interface VariantMeta {
   source: string;
 }
 
+export const ROUND2_VARIANTS: VariantMeta[] = [
+  {
+    id: "refined",
+    letter: "F",
+    name: "Rapi",
+    idea: "Hero sekarang, cuma dirapikan: judul lebih rapat, subjudul lebih sempit, tombol utama jelas, badge diam, jarak lebih lega. Mockup dan logo tetap.",
+    source: "components/sections/hero-variants/hero-refined.tsx",
+  },
+  {
+    id: "member-row",
+    letter: "G",
+    name: "Karya member",
+    idea: "Teks dan tombol sama, mockup diganti satu baris diam berisi lima proyek member terbaru (empat di mobile).",
+    source: "components/sections/hero-variants/hero-member-row.tsx",
+  },
+  {
+    id: "gold-glow",
+    letter: "H",
+    name: "Cahaya emas",
+    idea: "Hero sekarang di atas cahaya emas lembut berbutir yang diam, menggantikan grid titik. Tidak ada tambahan lain.",
+    source: "components/sections/hero-variants/hero-gold-glow.tsx",
+  },
+  {
+    id: "minimal",
+    letter: "I",
+    name: "Minimal",
+    idea: "Judul, subjudul dan satu tombol di tengah ruang kosong. Di bawahnya satu baris pelan: jumlah member dan link showcase.",
+    source: "components/sections/hero-variants/hero-minimal.tsx",
+  },
+];
+
 export const VARIANTS: VariantMeta[] = [
   {
     id: "wall",
@@ -90,7 +121,16 @@ const refs = (...ids: string[]) =>
     return referenceEntry(reference);
   });
 
-const REFERENCE_GROUPS: CanvasGroup[] = [
+const ROUND2_REFERENCE_GROUPS: CanvasGroup[] = [
+  {
+    id: "calm",
+    title: "Hero tenang · F, G, H, I",
+    direction: "row",
+    entries: refs("onepassword", "bento", "webflow-community", "retool"),
+  },
+];
+
+const ROUND1_REFERENCE_GROUPS: CanvasGroup[] = [
   {
     id: "prompt",
     title: "Prompt sebagai hero · B",
@@ -100,7 +140,15 @@ const REFERENCE_GROUPS: CanvasGroup[] = [
   { id: "editorial", title: "Editorial · D", entries: refs("intercom", "grok", "dropbox") },
   { id: "terminal", title: "Proses · C", entries: refs("content-architecture") },
   { id: "orbit", title: "Komunitas · E", entries: refs("framer") },
-];
+].map((group) => ({ ...group, id: `r1-${group.id}`, title: `Referensi ${group.title}` }));
+
+const variantGroup = (variant: VariantMeta): CanvasGroup => ({
+  id: variant.id,
+  title: `${variant.letter} · ${variant.name}`,
+  description: variant.idea,
+  direction: "row",
+  entries: frames(variant.id, `${variant.letter} ${variant.name}`, variant.source),
+});
 
 export const SECTIONS: CanvasSection[] = [
   {
@@ -118,23 +166,24 @@ export const SECTIONS: CanvasSection[] = [
     ],
   },
   {
-    id: "variants",
-    title: "Varian hero",
+    id: "round2",
+    title: "Ronde 2",
     description:
-      "Lima arah, semuanya komponen React asli dengan token, font dan i18n situs. Data proyek diambil dari showcase publik 27 Okt 2026. Pakai toolbar buat ganti tema, bahasa, atau putar ulang intro.",
-    groups: VARIANTS.map((variant) => ({
-      id: variant.id,
-      title: `${variant.letter} · ${variant.name}`,
-      description: variant.idea,
-      direction: "row" as const,
-      entries: frames(variant.id, `${variant.letter} ${variant.name}`, variant.source),
-    })),
+      "Empat evolusi dari hero sekarang. Judul, subjudul, tombol, token dan font sama. Elemen lebih sedikit, gerak cuma fade pendek sekali per sesi, mati total kalau reduced motion.",
+    groups: ROUND2_VARIANTS.map(variantGroup),
   },
   {
     id: "references",
     title: "Referensi Mobbin",
     description:
-      "Hero dari produk lain yang jadi bahan. Gambar milik masing-masing app, diambil lewat Mobbin.",
-    groups: REFERENCE_GROUPS,
+      "Hero tenang dari produk lain yang jadi bahan ronde 2. Gambar milik masing-masing app, diambil lewat Mobbin.",
+    groups: ROUND2_REFERENCE_GROUPS,
+  },
+  {
+    id: "round1",
+    title: "Ronde 1 (ditolak)",
+    description:
+      "Lima arah pertama. Ditolak: terlalu ramai, terlalu jauh dari gaya situs, geraknya nggak cocok. Disimpan buat catatan.",
+    groups: [...VARIANTS.map(variantGroup), ...ROUND1_REFERENCE_GROUPS],
   },
 ];

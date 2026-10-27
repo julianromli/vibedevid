@@ -1,3 +1,4 @@
+import bento from "../assets/refs/bento.webp";
 import contentArchitecture from "../assets/refs/content-architecture.webp";
 import dropbox from "../assets/refs/dropbox.webp";
 import framer from "../assets/refs/framer.webp";
@@ -5,8 +6,11 @@ import grok from "../assets/refs/grok.webp";
 import intercom from "../assets/refs/intercom.webp";
 import lovableCommunity from "../assets/refs/lovable-community.webp";
 import lovablePrompt from "../assets/refs/lovable-prompt.webp";
+import onepassword from "../assets/refs/onepassword.webp";
 import replit from "../assets/refs/replit.webp";
+import retool from "../assets/refs/retool.webp";
 import tasteLabs from "../assets/refs/taste-labs.webp";
+import webflowCommunity from "../assets/refs/webflow-community.webp";
 import zaro from "../assets/refs/zaro.webp";
 
 export interface Reference {
@@ -23,6 +27,40 @@ const mobbin = (id: string) => `https://mobbin.com/sites/sections/${id}`;
 
 /** Screenshots via Mobbin. Each image belongs to the app named on its card. */
 export const REFERENCES: Reference[] = [
+  {
+    id: "onepassword",
+    app: "1Password",
+    image: onepassword,
+    mobbinUrl: mobbin("330752c2-0212-49ba-a09a-ea977cbab9b7"),
+    takeaway:
+      "Struktur sama persis kayak hero kita: judul, subjudul, dua tombol, lalu satu gambar produk. Tenang karena jaraknya lega.",
+    usedBy: ["F", "H"],
+  },
+  {
+    id: "bento",
+    app: "Bento",
+    image: bento,
+    mobbinUrl: mobbin("ff063c57-bc38-4014-8711-fed21b88a9fd"),
+    takeaway: "Satu baris karya member yang diam, satu kalimat, satu link. Bukti tanpa ramai.",
+    usedBy: ["G", "I"],
+  },
+  {
+    id: "webflow-community",
+    app: "Webflow Community",
+    image: webflowCommunity,
+    mobbinUrl: mobbin("f9f38022-02b0-44b3-95e0-fb1e80e07056"),
+    takeaway:
+      "Hero komunitas gelap dengan satu cahaya lembut di pojok. Visualnya cuma latar, teks tetap pegang panggung.",
+    usedBy: ["H"],
+  },
+  {
+    id: "retool",
+    app: "Retool",
+    image: retool,
+    mobbinUrl: mobbin("80087541-90b6-42ae-90c0-3d04fd33da29"),
+    takeaway: "Judul, satu kalimat, satu tombol, di tengah ruang kosong. Paling sepi, tetap jelas.",
+    usedBy: ["I"],
+  },
   {
     id: "lovable-prompt",
     app: "Lovable",

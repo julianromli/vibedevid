@@ -1,4 +1,4 @@
-import { RotateCcw } from "lucide-react";
+import { History, Play } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,8 +28,17 @@ function parseThemeId(id: string | null): { theme: PreviewTheme; lang: PreviewLa
 }
 
 export function App() {
-  const layout = useMemo(() => layoutSections(SECTIONS), []);
-  const validIds = useMemo(() => new Set(layout.entries.map((entry) => entry.id)), [layout]);
+  // Round 1 was turned down; it stays on the canvas but is hidden until asked for.
+  const [showRound1, setShowRound1] = useState(false);
+  const sections = useMemo(
+    () => (showRound1 ? SECTIONS : SECTIONS.filter((section) => section.id !== "round1")),
+    [showRound1],
+  );
+  const layout = useMemo(() => layoutSections(sections), [sections]);
+  const validIds = useMemo(
+    () => new Set(layoutSections(SECTIONS).entries.map((entry) => entry.id)),
+    [],
+  );
   const [initial] = useState<SavedLayout>(() =>
     loadLayout(validIds, (id) => parseThemeId(id) !== null),
   );
@@ -102,9 +111,12 @@ export function App() {
   const settings = useMemo<PreviewSettings>(() => ({ theme, lang, replay }), [theme, lang, replay]);
 
   const themeControl = (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2">
       <Select value={theme} onValueChange={(value) => setTheme(value as PreviewTheme)}>
-        <SelectTrigger aria-label="Tema" className="h-8 w-24 cursor-default text-xs">
+        <SelectTrigger
+          aria-label="Tema"
+          className="h-8 w-[4.75rem] cursor-default px-2.5 text-xs sm:w-24 sm:px-3"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent position="popper" align="end">
@@ -113,7 +125,10 @@ export function App() {
         </SelectContent>
       </Select>
       <Select value={lang} onValueChange={(value) => setLang(value as PreviewLang)}>
-        <SelectTrigger aria-label="Bahasa" className="h-8 w-20 cursor-default text-xs">
+        <SelectTrigger
+          aria-label="Bahasa"
+          className="h-8 w-16 cursor-default px-2.5 text-xs sm:w-20 sm:px-3"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent position="popper" align="end">
@@ -124,12 +139,25 @@ export function App() {
       <Button
         variant="ghost"
         size="sm"
-        className="cursor-default hover:text-foreground"
+        aria-pressed={showRound1}
+        aria-label={showRound1 ? "Sembunyikan ronde 1" : "Tampilkan ronde 1"}
+        className="cursor-default hover:text-foreground aria-pressed:bg-accent max-sm:size-11 max-sm:px-0"
+        onClick={() => setShowRound1((shown) => !shown)}
+      >
+        <History size={14} aria-hidden />
+        <span className="hidden sm:inline">
+          {showRound1 ? "Sembunyikan ronde 1" : "Tampilkan ronde 1"}
+        </span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-label="Putar ulang intro"
+        className="cursor-default hover:text-foreground max-sm:size-11 max-sm:px-0"
         onClick={() => setReplay((count) => count + 1)}
       >
-        <RotateCcw size={14} aria-hidden />
+        <Play size={14} aria-hidden />
         <span className="hidden sm:inline">Putar ulang intro</span>
-        <span className="sm:hidden">Ulang</span>
       </Button>
     </div>
   );
@@ -137,11 +165,11 @@ export function App() {
   return (
     <PreviewSettingsContext.Provider value={settings}>
       <Canvas
-        key={canvasKey}
+        key={`${canvasKey}.${showRound1}`}
         layout={layout}
-        sections={SECTIONS.map(({ id, title }) => ({ id, title }))}
+        sections={sections.map(({ id, title }) => ({ id, title }))}
         positions={positions}
-        initialCamera={canvasKey === 0 ? initial.camera : null}
+        initialCamera={snapshot.current.camera}
         themeControl={themeControl}
         onMove={onMove}
         onCameraChange={onCameraChange}

@@ -440,6 +440,9 @@
       "title": "An orbit for Indonesia's vibe coders.",
       "subtitle": "Every dot here is a real project from the showcase. Hover one to see its name.",
       "orbitLabel": "Projects from the community showcase"
+    },
+    "calm": {
+      "recent": "Recently shipped by members"
     }
   }
 }

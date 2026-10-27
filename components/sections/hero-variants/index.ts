@@ -1,6 +1,10 @@
 export { HeroEditorial } from "./hero-editorial";
+export { HeroGoldGlow } from "./hero-gold-glow";
+export { HeroMemberRow } from "./hero-member-row";
+export { HeroMinimal } from "./hero-minimal";
 export { HeroOrbit } from "./hero-orbit";
 export { HeroPrompt } from "./hero-prompt";
+export { HeroRefined } from "./hero-refined";
 export { HeroShowcaseWall } from "./hero-showcase-wall";
 export { HeroTerminal } from "./hero-terminal";
 export type { HeroProject, HeroVariantProps } from "./types";

@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 import { HeroSection } from "@/components/sections/hero-section";
 import {
   HeroEditorial,
+  HeroGoldGlow,
+  HeroMemberRow,
+  HeroMinimal,
   HeroOrbit,
   HeroPrompt,
+  HeroRefined,
   HeroShowcaseWall,
   HeroTerminal,
   type HeroVariantProps,
@@ -19,6 +23,10 @@ const VARIANTS: Record<
   Exclude<VariantId, "current">,
   (props: HeroVariantProps) => React.ReactNode
 > = {
+  refined: HeroRefined,
+  "member-row": HeroMemberRow,
+  "gold-glow": HeroGoldGlow,
+  minimal: HeroMinimal,
   wall: HeroShowcaseWall,
   prompt: HeroPrompt,
   terminal: HeroTerminal,

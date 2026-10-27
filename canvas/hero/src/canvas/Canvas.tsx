@@ -680,7 +680,7 @@ export function Canvas({
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="flex min-w-0 shrink-0 items-baseline gap-2">
-          <h1 className="whitespace-nowrap text-sm font-semibold">
+          <h1 className="whitespace-nowrap text-sm font-semibold max-[419px]:sr-only">
             VibeDev ID<span className="hidden md:inline"> · Eksplorasi hero</span>
           </h1>
         </div>
@@ -763,8 +763,8 @@ export function Canvas({
         id="canvas-move-hint"
         className="pointer-events-none absolute bottom-3 left-4 z-10 hidden items-center gap-1.5 rounded-md bg-background/90 px-2 py-1 text-xs text-muted-foreground backdrop-blur lg:flex"
       >
-        Drag empty space or hold <Kbd>Space</Kbd> to pan. <Kbd>Ctrl</Kbd> + scroll to zoom. Drag or
-        arrow-key a grip to move an item.
+        Seret area kosong atau tahan <Kbd>Space</Kbd> untuk geser. <Kbd>Ctrl</Kbd> + scroll untuk
+        zoom. Seret pegangan, atau pakai tombol panah, untuk memindah item.
       </p>
     </div>
   );

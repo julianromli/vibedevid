@@ -23,7 +23,18 @@ export type PreviewMessage =
       y: number;
     };
 
-export const VARIANT_IDS = ["current", "wall", "prompt", "terminal", "editorial", "orbit"] as const;
+export const VARIANT_IDS = [
+  "current",
+  "refined",
+  "member-row",
+  "gold-glow",
+  "minimal",
+  "wall",
+  "prompt",
+  "terminal",
+  "editorial",
+  "orbit",
+] as const;
 export type VariantId = (typeof VARIANT_IDS)[number];
 
 export function isVariantId(value: string | null): value is VariantId {

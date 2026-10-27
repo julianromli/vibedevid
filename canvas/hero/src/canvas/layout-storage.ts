@@ -4,7 +4,7 @@ import { type Camera, clampCamera, clampPoint, isFiniteNumber, type Point } from
  * Saved layout: camera, theme id and item positions keyed by registry id.
  * Nothing else is stored. Membership, names and sizes always come from source.
  */
-export const LAYOUT_STORAGE_KEY = "vibedevid.hero-canvas.layout";
+export const LAYOUT_STORAGE_KEY = "vibedevid.hero-canvas.layout.v2";
 export const LAYOUT_VERSION = 1;
 const MAX_DOCUMENT_BYTES = 200_000;
 const ID_PATTERN = /^[a-z0-9][a-z0-9.-]{0,80}$/;

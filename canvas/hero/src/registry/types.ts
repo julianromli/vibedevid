@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-export type SectionId = "current" | "variants" | "references";
+export type SectionId = "current" | "round2" | "references" | "round1";
 
 /** One preview on the canvas. `id` is stable and keys saved positions. */
 export interface CanvasEntry {
