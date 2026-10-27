@@ -33,7 +33,7 @@ Keep the current page shell: `bg-grid-pattern`, overlay gradient, centered card.
 
 **Buttons are never `disabled` except while loading.** A disabled gold button turns muddy olive and reads like "loading". If the input is not ready, pressing the button shows the field error and focuses the field.
 
-Loading state: `aria-busy="true"`, `disabled`, `Loader2 size-4 animate-spin` + loading label, `opacity-70`. Width does not change (`w-full`).
+Loading state: `aria-busy="true"`, `disabled`, `Loader2 size-4 animate-spin` + loading label, full primary fill (a dimmed gold reads as olive, not as busy). Width does not change (`w-full`).
 
 Tokens only. No `red-500`, `green-700`, `zinc-*`. There is no success token. Use `text-primary` for the check icon and `text-foreground` for the success text. Gold text on dark bg passes; gold text on white does not, so in light mode the check icon uses `text-foreground`.
 
@@ -95,19 +95,19 @@ Allowed domains for new accounts (`lib/auth/email-domain.ts`): gmail.com, google
 - Arrow keys move between slots. Enter submits.
 - **Auto-submit** on the 6th digit (`onComplete`). Guard: no double submit while a request is in flight. If auto-submit fails, the user can still press the button.
 
-| State                                   | UI                                                                                                                                                                                                                 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Idle                                    | empty slots, slot 1 active                                                                                                                                                                                         |
-| Partial + submit pressed                | field error `auth.errors.codeIncomplete`, focus first empty slot                                                                                                                                                   |
-| Verifying                               | button loading `auth.code.verifying`, field `disabled` (input-otp has no readOnly)                                                                                                                                 |
-| Wrong code (`INVALID_OTP`)              | clear all 6 slots, focus slot 1, slots `border-destructive`, active ring `ring-destructive` until the next keystroke. Field error `auth.errors.codeWrong` with `{{count}}` attempts left (plural). Optional shake. |
-| Last attempt                            | `auth.errors.codeWrong_one` ("Sisa 1 percobaan.")                                                                                                                                                                  |
-| Verify cap (`OTP_VERIFY_LIMIT`, per IP) | keep code, field error `auth.errors.verifyLimit`                                                                                                                                                                   |
-| Too many attempts (`TOO_MANY_ATTEMPTS`) | slots disabled, Alert `auth.errors.codeLockedTitle` / `codeLockedBody`. Button label → `auth.code.newCode`, which calls resend. Resend row hidden.                                                                 |
-| Expired (`OTP_EXPIRED`)                 | slots disabled, Alert `auth.errors.codeExpiredTitle` / `codeExpiredBody`. Button → `auth.code.newCode`. Resend row hidden.                                                                                         |
-| Network error                           | **keep the typed code**, field error `auth.errors.network`, button label `auth.common.retry`                                                                                                                       |
-| Generic error                           | keep code, field error `auth.errors.generic`                                                                                                                                                                       |
-| New code sent                           | toast-free: message line `auth.code.resent` (polite), slots cleared, focus slot 1                                                                                                                                  |
+| State                                   | UI                                                                                                                                                                                                                                             |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Idle                                    | empty slots, slot 1 active                                                                                                                                                                                                                     |
+| Partial + submit pressed                | field error `auth.errors.codeIncomplete`, focus first empty slot                                                                                                                                                                               |
+| Verifying                               | button loading `auth.code.verifying`, field `disabled` (input-otp has no readOnly)                                                                                                                                                             |
+| Wrong code (`INVALID_OTP`)              | clear all 6 slots, focus slot 1, slots `border-destructive`, active ring `ring-destructive` until the next keystroke. Field error `auth.errors.codeWrong` with `{{count}}` attempts left (plural). Optional shake.                             |
+| Last attempt                            | `auth.errors.codeWrong_one` ("Sisa 1 percobaan.")                                                                                                                                                                                              |
+| Verify cap (`OTP_VERIFY_LIMIT`, per IP) | keep code, field error `auth.errors.verifyLimit`                                                                                                                                                                                               |
+| Too many attempts (`TOO_MANY_ATTEMPTS`) | slots disabled, Alert `auth.errors.codeLockedTitle` / `codeLockedBody`. Button label → `auth.code.newCode`, which calls resend. Resend row hidden. While the cooldown runs the button shows `auth.code.resendIn`, `aria-disabled`, muted fill. |
+| Expired (`OTP_EXPIRED`)                 | slots disabled, Alert `auth.errors.codeExpiredTitle` / `codeExpiredBody`. Button → `auth.code.newCode`. Resend row hidden.                                                                                                                     |
+| Network error                           | **keep the typed code**, field error `auth.errors.network`, button label `auth.common.retry`                                                                                                                                                   |
+| Generic error                           | keep code, field error `auth.errors.generic`                                                                                                                                                                                                   |
+| New code sent                           | toast-free: message line `auth.code.resent` (polite), slots cleared, focus slot 1                                                                                                                                                              |
 
 **Expiry:** static line in the sub ("Kode berlaku 10 menit."). No visible countdown for expiry; it adds pressure for no gain. If the server says expired, show the expired state.
 
@@ -124,7 +124,7 @@ Allowed domains for new accounts (`lib/auth/email-domain.ts`): gmail.com, google
 - Field message: `role="alert"` for errors (assertive), `aria-live="polite"` for info.
 - Cooldown: a separate `sr-only` `aria-live="polite"` region that speaks **only** at start ("Kirim ulang tersedia dalam 60 detik.") and at the end ("Kamu bisa kirim ulang kode sekarang."). The visible ticking label sits outside any live region, so it is not read every second.
 
-**Back / change email:** top-bar Back (`aria-label` `auth.code.changeEmail`) + the email in the sub is not a link. Back returns to step 1 with the email prefilled, focus on the input, caret at end. The pending code stays valid on the server; if the user submits the same email again within the cooldown, show the cooldown error instead of sending.
+**Back / change email:** top-bar Back (`aria-label` `auth.code.changeEmail`) + the email in the sub is not a link. Back returns to step 1 with the email prefilled, focus on the input. Never set the caret or selection on the email field (`setSelectionRange` on `type="email"` throws). The pending code stays valid on the server; if the user submits the same email again within the cooldown, show the cooldown error instead of sending.
 
 ---
 
@@ -184,15 +184,15 @@ When to show format errors: on blur, on submit, or after 400ms idle once the use
 
 All transform/opacity only. Easing `cubic-bezier(0.23, 1, 0.32, 1)` (strong ease-out).
 
-| What                        | Spec                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------- |
-| Step enter                  | opacity 0→1, `translateY(8px)`→0, 200ms                                                     |
-| Step exit                   | opacity 1→0, 120ms, no movement. No height animation on the card.                           |
-| Field message appear        | opacity + `translateY(-2px)`→0, 150ms                                                       |
-| Button press                | `scale(0.97)`, 160ms ease-out                                                               |
-| Wrong code shake (optional) | `translateX` 0 → -4 → 4 → -2 → 0px, 240ms, once                                             |
-| Spinner                     | `animate-spin`, kept under reduced motion (it is status, not decoration) but slowed is fine |
-| Countdown                   | no animation, digits just change (tabular-nums)                                             |
+| What                        | Spec                                                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Step enter                  | opacity 0→1, `translateY(8px)`→0, 200ms                                                                                     |
+| Step exit                   | opacity 1→0, 120ms, no movement. No height animation on the card.                                                           |
+| Field message appear        | opacity + `translateY(-2px)`→0, 150ms                                                                                       |
+| Button press                | `scale(0.97)`, 160ms ease-out                                                                                               |
+| Wrong code shake (optional) | `translateX` 0 → -4 → 4 → -2 → 0px, 240ms, once. Web Animations API on a wrapper; never remount the input (it drops focus). |
+| Spinner                     | `animate-spin`, kept under reduced motion (it is status, not decoration) but slowed is fine                                 |
+| Countdown                   | no animation, digits just change (tabular-nums)                                                                             |
 
 `prefers-reduced-motion: reduce`: step change = opacity only (150ms), no shake, no translate, OTP caret does not blink.
 
@@ -208,7 +208,7 @@ All transform/opacity only. Easing `cubic-bezier(0.23, 1, 0.32, 1)` (strong ease
 | Network error on verify | stays on OTP (code kept)                 |
 | Locked / expired        | primary button ("Kirim kode baru")       |
 | New code sent           | OTP slot 1                               |
-| Back to step 1          | email input, caret at end                |
+| Back to step 1          | email input (focus only, no caret move)  |
 | Step 2 → 3              | username input                           |
 | Submit with error       | the invalid input                        |
 
