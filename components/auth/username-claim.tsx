@@ -79,7 +79,6 @@ export function UsernameClaim({
     const input = inputRef.current;
     if (!input) return;
     input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
   }, []);
 
   return (
@@ -124,15 +123,7 @@ export function UsernameClaim({
               enterKeyHint="done"
               value={claim.username}
               readOnly={claim.saving}
-              onChange={(event) => {
-                const { selectionStart } = event.target;
-                claim.change(event.target.value);
-                // Keep the caret where it was after lowercasing.
-                requestAnimationFrame(() => {
-                  if (selectionStart !== null)
-                    inputRef.current?.setSelectionRange(selectionStart, selectionStart);
-                });
-              }}
+              onChange={(event) => claim.change(event.target.value)}
               onBlur={claim.blur}
               aria-invalid={isError || undefined}
               aria-describedby={MESSAGE_ID}

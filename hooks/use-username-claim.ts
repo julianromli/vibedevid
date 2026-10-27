@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { checkUsernameAvailabilityFn, claimUsernameFn } from "@/lib/actions/onboarding.functions";
-import { type UsernameError, USERNAME_MAX_LENGTH, validateUsername } from "@/lib/username";
+import {
+  normalizeUsername,
+  type UsernameError,
+  USERNAME_MAX_LENGTH,
+  validateUsername,
+} from "@/lib/username";
 
 export type UsernameState =
   | { kind: "hint" }
@@ -20,6 +25,25 @@ export function lowerUsernameInput(value: string): string {
   return value.toLowerCase().slice(0, USERNAME_MAX_LENGTH);
 }
 
+export type UsernameCheckPlan =
+  | { kind: "local"; state: UsernameState }
+  | { kind: "remote"; username: string };
+
+/**
+ * What the live check does with a value. Reserved names go to the server like
+ * taken ones so the answer comes back with free suggestions.
+ */
+export function planUsernameCheck(value: string, revealErrors: boolean): UsernameCheckPlan {
+  const validation = validateUsername(value);
+  if (validation.ok) return { kind: "remote", username: validation.username };
+  if (validation.error === "reserved")
+    return { kind: "remote", username: normalizeUsername(value) };
+  return {
+    kind: "local",
+    state: revealErrors ? { kind: "invalid", error: validation.error } : { kind: "hint" },
+  };
+}
+
 export function useUsernameClaim(input: { initialUsername: string; onClaimed: () => void }) {
   const [username, setUsername] = useState(input.initialUsername);
   const [state, setState] = useState<UsernameState>({ kind: "hint" });
@@ -31,13 +55,9 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
 
   const check = useCallback(async (value: string, revealErrors: boolean) => {
     abortRef.current?.abort();
-    const validation = validateUsername(value);
-    if (!validation.ok) {
-      if (validation.error === "reserved") {
-        setState({ kind: "reserved", username: value, suggestions: [] });
-      } else {
-        setState(revealErrors ? { kind: "invalid", error: validation.error } : { kind: "hint" });
-      }
+    const plan = planUsernameCheck(value, revealErrors);
+    if (plan.kind === "local") {
+      setState(plan.state);
       return;
     }
 
@@ -46,21 +66,21 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
     setState({ kind: "checking" });
     try {
       const result = await checkUsernameAvailabilityFn({
-        data: { username: validation.username },
+        data: { username: plan.username },
         signal: controller.signal,
       });
       if (controller.signal.aborted || latest.current !== value) return; // stale
-      if (result.available) setState({ kind: "available", username: validation.username });
+      if (result.available) setState({ kind: "available", username: plan.username });
       else if (result.reason === "taken")
         setState({
           kind: "taken",
-          username: validation.username,
+          username: plan.username,
           suggestions: result.suggestions ?? [],
         });
       else if (result.reason === "reserved")
         setState({
           kind: "reserved",
-          username: validation.username,
+          username: plan.username,
           suggestions: result.suggestions ?? [],
         });
       else setState({ kind: "invalid", error: "invalid_chars" });
@@ -99,11 +119,12 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
     setShowErrors(true);
     const validation = validateUsername(username);
     if (!validation.ok) {
-      setState(
-        validation.error === "reserved"
-          ? { kind: "reserved", username, suggestions: [] }
-          : { kind: "invalid", error: validation.error },
-      );
+      if (validation.error === "reserved") {
+        // Keep suggestions already shown; otherwise fetch them like a taken name.
+        if (state.kind !== "reserved") void check(username, true);
+      } else {
+        setState({ kind: "invalid", error: validation.error });
+      }
       return false;
     }
     if (state.kind === "taken" || state.kind === "reserved" || state.kind === "invalid")
@@ -124,6 +145,7 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
       }
       if (result.error === "reserved") {
         setState({ kind: "reserved", username: validation.username, suggestions: [] });
+        void check(validation.username, true); // fetch suggestions
         return false;
       }
       if (result.error === "unauthorized") {
