@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { rateLimitBuckets } from "@/lib/db/schema";
 
@@ -34,31 +34,24 @@ async function consumeDatabase(
 ): Promise<boolean> {
   const windowStartMs = now - (now % windowMs);
   const windowStart = new Date(windowStartMs);
-  const db = getDb();
-  const [row] = await db
-    .select({ count: rateLimitBuckets.count, windowStart: rateLimitBuckets.windowStart })
-    .from(rateLimitBuckets)
-    .where(eq(rateLimitBuckets.bucket, bucket))
-    .limit(1);
+  const expired = sql`${rateLimitBuckets.windowStart} < ${windowStart}`;
+  // The conflict handler locks the bucket row. Check the allowance and update
+  // the count together, so concurrent callers cannot spend the same slot.
+  const [row] = await getDb()
+    .insert(rateLimitBuckets)
+    .values({ bucket, count: 1, windowStart })
+    .onConflictDoUpdate({
+      target: rateLimitBuckets.bucket,
+      set: {
+        count: sql`CASE WHEN ${expired} THEN 1 ELSE ${rateLimitBuckets.count} + 1 END`,
+        windowStart: sql`CASE WHEN ${expired} THEN ${windowStart} ELSE ${rateLimitBuckets.windowStart} END`,
+      },
+      setWhere: sql`${expired} OR ${rateLimitBuckets.count} < ${limit}`,
+    })
+    .returning({ count: rateLimitBuckets.count });
 
-  if (!row || row.windowStart.getTime() !== windowStartMs) {
-    await db
-      .insert(rateLimitBuckets)
-      .values({ bucket, count: 1, windowStart })
-      .onConflictDoUpdate({
-        target: rateLimitBuckets.bucket,
-        set: { count: 1, windowStart },
-      });
-    return true;
-  }
-
-  if (row.count >= limit) return false;
-
-  await db
-    .update(rateLimitBuckets)
-    .set({ count: row.count + 1 })
-    .where(eq(rateLimitBuckets.bucket, bucket));
-  return true;
+  // A full bucket is excluded by setWhere and returns no row.
+  return row !== undefined;
 }
 
 /**

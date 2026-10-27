@@ -106,6 +106,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
+    "@electric-sql/pglite": "^0.5.12",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource/instrument-serif": "^5.2.8",
     "@playwright/test": "^1.55.0",
