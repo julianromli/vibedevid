@@ -17,11 +17,23 @@ import type { CodeMessage, CodeStatus } from "@/hooks/use-email-otp-flow";
 import { OTP_CONFIG } from "@/lib/auth/otp-config";
 import { formatCountdown } from "@/lib/auth/otp-flow";
 import { cn } from "@/lib/utils";
-import { AuthHeading, AuthSubtitle, authPrimaryButtonClassName } from "./auth-card";
+import {
+  AuthHeading,
+  AuthSubtitle,
+  authPrimaryButtonClassName,
+  authWaitingButtonClassName,
+} from "./auth-card";
 import { FieldMessage } from "./field-message";
 
 const MESSAGE_ID = "code-message";
 const MINUTES = OTP_CONFIG.expiresInSeconds / 60;
+const SHAKE_KEYFRAMES: Keyframe[] = [
+  { transform: "translateX(0)" },
+  { transform: "translateX(-4px)" },
+  { transform: "translateX(4px)" },
+  { transform: "translateX(-2px)" },
+  { transform: "translateX(0)" },
+];
 
 export function OtpStep({
   email,
@@ -52,18 +64,22 @@ export function OtpStep({
   const blocked = status === "locked" || status === "expired";
   const verifying = status === "verifying";
   const wrong = status === "wrong";
-  const [shakeKey, setShakeKey] = useState(0);
+  const waiting = blocked && secondsLeft > 0;
+  const shakeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   // Wrong code or a fresh code: focus slot 1. Blocked: focus the primary button.
+  // The shake runs on the wrapper through the Web Animations API so the input is
+  // never remounted (a remount drops the focus we just set).
   useEffect(() => {
-    if (wrong) {
-      setShakeKey((key) => key + 1);
-      inputRef.current?.focus();
-    }
+    if (!wrong) return;
+    inputRef.current?.focus();
+    const node = shakeRef.current;
+    if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    node.animate(SHAKE_KEYFRAMES, { duration: 240, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
   }, [wrong]);
   useEffect(() => {
     if (blocked) primaryRef.current?.focus();
@@ -153,7 +169,7 @@ export function OtpStep({
           <Label htmlFor="code" className="sr-only">
             {t("code.label")}
           </Label>
-          <div key={shakeKey} className={cn(shakeKey > 0 && "animate-auth-shake")}>
+          <div ref={shakeRef}>
             <InputOTP
               ref={inputRef}
               id="code"
@@ -170,7 +186,8 @@ export function OtpStep({
               aria-label={t("code.label")}
               aria-describedby={messageText ? MESSAGE_ID : undefined}
               aria-invalid={wrong || undefined}
-              containerClassName="justify-center"
+              // Digits stay readable while the code is being checked.
+              containerClassName={cn("justify-center", verifying && "has-disabled:opacity-100")}
             >
               <InputOTPGroup>
                 {[0, 1, 2].map((index) => (
@@ -197,7 +214,8 @@ export function OtpStep({
           type="submit"
           disabled={primaryLoading}
           aria-busy={primaryLoading || undefined}
-          className={cn(authPrimaryButtonClassName, blocked && secondsLeft > 0 && "tabular-nums")}
+          aria-disabled={waiting || undefined}
+          className={cn(authPrimaryButtonClassName, waiting && authWaitingButtonClassName)}
         >
           {primaryLoading ? (
             <>
