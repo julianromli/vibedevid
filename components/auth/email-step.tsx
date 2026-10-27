@@ -125,7 +125,13 @@ export function EmailStep({
           t={t}
           i18nKey="email.terms"
           components={{
-            link: <Link to="/terms-of-service" className="underline underline-offset-2" />,
+            link: (
+              // py-3.5 grows the hit area to 44px without moving the line.
+              <Link
+                to="/terms-of-service"
+                className="rounded-sm py-3.5 underline underline-offset-2 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              />
+            ),
           }}
         />
       </p>
