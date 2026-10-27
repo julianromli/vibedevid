@@ -56,7 +56,7 @@ export function renderOtpEmailHtml(v: OtpEmailTemplateValues): string {
                 <td style="padding:24px 32px 8px 32px;">
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
-                      <td align="center" style="background-color:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:20px 12px 20px 20px;font-family:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono','Courier New',monospace;font-size:36px;line-height:44px;font-weight:600;letter-spacing:8px;color:#0a0a0a;mso-line-height-rule:exactly;">
+                      <td align="center" style="background-color:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:20px 12px 20px 20px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono','Courier New',monospace;font-size:36px;line-height:44px;font-weight:600;letter-spacing:8px;color:#0a0a0a;mso-line-height-rule:exactly;">
                         ${v.code}
                       </td>
                     </tr>
