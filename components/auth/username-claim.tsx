@@ -111,7 +111,10 @@ export function UsernameClaim({
               ref={inputRef}
               id="username"
               name="username"
-              autoComplete="username"
+              // A new handle, not a saved login: keep autofill and password managers out.
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
