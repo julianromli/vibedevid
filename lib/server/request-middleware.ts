@@ -90,7 +90,10 @@ export function applyCanonicalHostRedirect(request: Request): Response | null {
 }
 
 export function shouldSkipRequestMiddleware(pathname: string): boolean {
+  // Better Auth owns /api/auth/* cookies. Rebuilding its response to add the
+  // locale cookie dropped the session cookie under the Node dev server.
   if (
+    pathname.startsWith("/api/auth/") ||
     pathname.startsWith("/_build") ||
     pathname.startsWith("/assets") ||
     pathname.startsWith("/node_modules")
