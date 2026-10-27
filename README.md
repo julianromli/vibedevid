@@ -281,9 +281,12 @@ Notes:
   two; the `EMAIL_FROM` domain must be verified in Resend). Do not put `DATABASE_URL_UNPOOLED` on the
   Worker. Keep it in local `.env.local` for schema tools.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
-- Apply `scripts/migrations/neon/09_email_otp_onboarding.sql` (`bun run migrate:schema`)
-  before deploying the email OTP code. It adds `users.username_claimed_at` and
-  backfills it for existing users.
+- Email OTP rollout uses two migrations. Apply
+  `scripts/migrations/neon/09_email_otp_onboarding.sql` before deploying: it adds
+  `users.username_claimed_at` and backfills existing users, and is safe with the old
+  app running. Apply `10_email_otp_signup_trigger.sql` right after the deploy (or run
+  `bun run migrate:schema`, which applies every file): it gives new accounts a
+  temporary `u_…` username, which the old signup form would not expect.
 - `scripts/cleanup-legacy-auth-accounts.ts` reports leftover password/OAuth
   `account` rows (dry run by default). See the script header before using `--apply`.
 - After deploy, set Worker secrets `NEXT_PUBLIC_SITE_URL` and `BETTER_AUTH_URL`

@@ -55,8 +55,8 @@ Email + password, Google and GitHub sign-in are removed.
 ## Rollout
 
 1. Set env vars: `RESEND_API_KEY`, `EMAIL_FROM` (verified Resend domain), `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `VITE_BETTER_AUTH_URL`.
-2. Apply migration 09 (`bun run migrate:schema`) before deploying the code. The new Drizzle column is selected by profile queries.
-3. Deploy. Smoke sign-in with an existing account and a new Gmail account.
+2. Apply migration 09 before deploying the code. The new Drizzle column is selected by profile queries. 09 only adds a nullable column and backfills it, so the old app keeps working.
+3. Deploy, then apply migration 10 (temporary `u_…` username for new accounts). The old signup form sends the chosen username as `name`, so 10 waits until the old form is gone. Smoke sign-in with an existing account and a new Gmail account.
 4. Remove `GOOGLE_*` and `GITHUB_CLIENT_*` secrets from Cloudflare.
 5. Run the cleanup script dry-run, then `--apply`.
 
@@ -73,7 +73,7 @@ Email + password, Google and GitHub sign-in are removed.
 - [x] T4 OTP email template (ID/EN) and locale resolver with tests
 - [x] T5 OTP send and verify rate limits on `rate_limit_buckets` with tests
 - [x] T6 Better Auth server config: emailOTP only, drop password, OAuth, email links
-- [x] T7 Migration 09: `username_claimed_at`, backfill, trigger temp username
+- [x] T7 Migrations 09 (`username_claimed_at`, backfill) and 10 (trigger temp username)
 - [x] T8 Username validation module with tests
 - [x] T9 Onboarding gate pure function with tests, wired into middleware; drop unverified-user branch
 - [x] T10 Username claim and availability server functions
