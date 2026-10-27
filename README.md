@@ -355,7 +355,7 @@ Project list indexes: `scripts/migrations/neon/08_project_list_indexes.sql` (`cr
 
 **views** - Session-based views tracking. A project page records one row per browser session per calendar day (`scripts/migrations/neon/06_project_view_dedupe.sql`, apply with `bun run migrate:schema`). Crawler user agents are skipped. XOR check: exactly one parent.
 
-**posts** - Blog posts with rich text content (JSON), featured flag, read time, unique `slug`
+**posts** - Blog posts with rich text content (JSON), featured flag, read time, unique `slug`. Saving content or publishing with an unchanged title preserves the existing slug (including collision suffixes), keeping shared URLs stable. Actual title changes retain slug regeneration and collision handling. Regression tests: `bun run test tests/unit/lib/blog-slug-update.spec.ts`.
 
 **post_tags** - Blog tag categorization
 
