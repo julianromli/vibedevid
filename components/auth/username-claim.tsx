@@ -19,6 +19,7 @@ import {
 import { FieldMessage, type FieldMessageTone } from "./field-message";
 
 const MESSAGE_ID = "username-message";
+const SUGGESTIONS_ID = "username-suggestions";
 
 const ERROR_KEY: Record<UsernameError, string> = {
   required: "errors.usernameLength",
@@ -160,23 +161,27 @@ export function UsernameClaim({
         </div>
 
         {suggestions.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">{t("username.suggestions")}</span>
-            {suggestions.map((suggestion) => (
-              <Button
-                key={suggestion}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="relative h-9 rounded-full after:absolute after:-inset-1"
-                onClick={() => {
-                  claim.pickSuggestion(suggestion);
-                  inputRef.current?.focus();
-                }}
-              >
-                @{suggestion}
-              </Button>
-            ))}
+          <div className="space-y-2">
+            <p id={SUGGESTIONS_ID} className="text-sm text-muted-foreground">
+              {t("username.suggestions")}
+            </p>
+            <div role="group" aria-labelledby={SUGGESTIONS_ID} className="flex flex-wrap gap-2">
+              {suggestions.map((suggestion) => (
+                <Button
+                  key={suggestion}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="relative h-9 rounded-full after:absolute after:-inset-1"
+                  onClick={() => {
+                    claim.pickSuggestion(suggestion);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  @{suggestion}
+                </Button>
+              ))}
+            </div>
           </div>
         ) : null}
 
