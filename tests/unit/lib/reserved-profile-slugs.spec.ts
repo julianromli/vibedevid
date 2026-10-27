@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vite-plus/test";
-import { isReservedProfileSlug, parseProfileUsernameParam } from "@/lib/reserved-profile-slugs";
+import {
+  isReservedProfileSlug,
+  isReservedUsername,
+  parseProfileUsernameParam,
+} from "@/lib/reserved-profile-slugs";
 
 describe("isReservedProfileSlug", () => {
   it("treats testimonial as reserved in any case", () => {
@@ -30,5 +34,37 @@ describe("parseProfileUsernameParam", () => {
 
   it("returns the username for a profile slug", () => {
     expect(parseProfileUsernameParam("jane")).toEqual({ username: "jane" });
+  });
+});
+
+describe("isReservedUsername", () => {
+  it("covers route slugs and system names", () => {
+    for (const name of [
+      "admin",
+      "dashboard",
+      "user",
+      "settings",
+      "login",
+      "signup",
+      "onboarding",
+      "www",
+      "vibedevid",
+      "support",
+      "help",
+      "administrator",
+      "moderator",
+      "mod",
+      "staff",
+      "system",
+      "root",
+    ]) {
+      expect(isReservedUsername(name)).toBe(true);
+    }
+    expect(isReservedUsername(" Moderator ")).toBe(true);
+    expect(isReservedUsername("jane")).toBe(false);
+  });
+
+  it("does not hide existing profiles that use a system name", () => {
+    expect(parseProfileUsernameParam("support")).toEqual({ username: "support" });
   });
 });

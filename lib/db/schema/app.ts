@@ -38,6 +38,8 @@ export const users = pgTable("users", {
   suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  // NULL until the user claims a username in onboarding (migration 09).
+  usernameClaimedAt: timestamp("username_claimed_at", { withTimezone: true }),
 });
 
 export const projects = pgTable(

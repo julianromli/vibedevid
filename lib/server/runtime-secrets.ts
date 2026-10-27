@@ -12,10 +12,6 @@ interface ServerRuntimeSecrets {
   databaseUrl: string;
   betterAuthSecret: string;
   betterAuthUrl: string;
-  googleClientId: string;
-  googleClientSecret: string;
-  githubClientId: string;
-  githubClientSecret: string;
   resendApiKey: string;
   emailFrom: string;
   openrouterApiKey: string;
@@ -41,10 +37,6 @@ export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
     databaseUrl: readEnv("DATABASE_URL"),
     betterAuthSecret: readEnv("BETTER_AUTH_SECRET"),
     betterAuthUrl: readEnv("BETTER_AUTH_URL") || readEnv("NEXT_PUBLIC_SITE_URL"),
-    googleClientId: readEnv("GOOGLE_CLIENT_ID"),
-    googleClientSecret: readEnv("GOOGLE_CLIENT_SECRET"),
-    githubClientId: readEnv("GITHUB_CLIENT_ID"),
-    githubClientSecret: readEnv("GITHUB_CLIENT_SECRET"),
     resendApiKey: readEnv("RESEND_API_KEY"),
     emailFrom: readEnv("EMAIL_FROM"),
     openrouterApiKey: readEnv("OPENROUTER_API_KEY"),

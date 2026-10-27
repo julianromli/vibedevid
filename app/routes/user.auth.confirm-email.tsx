@@ -1,14 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import ConfirmEmailPage from "@/app/user/auth/confirm-email/page";
-import { NOINDEX_META } from "@/lib/seo/site-url";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Email OTP replaced password sign-in. Old links land on the sign-in page. */
 export const Route = createFileRoute("/user/auth/confirm-email")({
-  head: () => ({
-    meta: [{ title: "Konfirmasi Email | VibeDev ID" }, NOINDEX_META],
-  }),
-  component: ConfirmEmailRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/user/auth", replace: true });
+  },
 });
-
-function ConfirmEmailRoute() {
-  return <ConfirmEmailPage />;
-}

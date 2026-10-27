@@ -1,14 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import ResetPasswordPage from "@/app/user/auth/reset-password/page";
-import { NOINDEX_META } from "@/lib/seo/site-url";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** Email OTP replaced password sign-in. Old links land on the sign-in page. */
 export const Route = createFileRoute("/user/auth/reset-password")({
-  head: () => ({
-    meta: [{ title: "Reset Password | VibeDev ID" }, NOINDEX_META],
-  }),
-  component: ResetPasswordRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/user/auth", replace: true });
+  },
 });
-
-function ResetPasswordRoute() {
-  return <ResetPasswordPage />;
-}

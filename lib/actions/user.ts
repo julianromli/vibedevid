@@ -2,7 +2,7 @@ import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from "@/lib/pro
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
-import { isReservedProfileSlug } from "@/lib/reserved-profile-slugs";
+import { validateUsername } from "@/lib/username";
 import { getServerSession, requireUser } from "@/lib/server/auth";
 import { eq, and, ne } from "drizzle-orm";
 import type { User } from "@/types/homepage";
@@ -87,10 +87,22 @@ export async function updateUserProfile(
     }
 
     const usernameChanged = profileData.username !== currentUsername;
-    if (usernameChanged && isReservedProfileSlug(profileData.username)) {
-      return { success: false, error: "This username is reserved" };
-    }
     if (usernameChanged) {
+      // Existing usernames that predate the rule stay valid until changed.
+      const validation = validateUsername(profileData.username);
+      if (!validation.ok) {
+        return {
+          success: false,
+          error:
+            validation.error === "reserved"
+              ? "This username is reserved"
+              : "Username must be 3-30 lowercase letters, numbers, or underscores",
+        };
+      }
+      if (validation.username !== profileData.username) {
+        return { success: false, error: "Username must be lowercase" };
+      }
+
       const [existingUser] = await db
         .select({ id: users.id })
         .from(users)

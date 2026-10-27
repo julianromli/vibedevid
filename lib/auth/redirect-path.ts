@@ -5,9 +5,7 @@
  * Paths starting with "/user/auth" are also rejected to prevent
  * redirect loops after login.
  */
-export function getSafeRedirectPath(
-  value: FormDataEntryValue | null | string | undefined,
-): string {
+export function getSafeRedirectPath(value: FormDataEntryValue | null | string | undefined): string {
   if (typeof value !== "string" || !value.trim()) return "/";
 
   const trimmed = value.trim();
@@ -15,7 +13,8 @@ export function getSafeRedirectPath(
     !trimmed.startsWith("/") ||
     trimmed.startsWith("//") ||
     trimmed.startsWith("/\\") ||
-    trimmed.startsWith("/user/auth")
+    trimmed.startsWith("/user/auth") ||
+    trimmed.startsWith("/user/onboarding")
   ) {
     return "/";
   }

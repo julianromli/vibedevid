@@ -1,39 +1,16 @@
-import { compare, hash } from "bcryptjs";
-import { APIError } from "better-auth/api";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware } from "better-auth/api";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { escapeHtml } from "@/lib/auth/html";
+import { getEmailDomain, newAccountEmailError } from "@/lib/auth/email-domain";
+import { buildEmailOtpOptions, OTP_CONFIG, OTP_SEND_PATH } from "@/lib/auth/otp-config";
+import { buildOtpEmail, resolveEmailLocale } from "@/lib/auth/otp-email";
+import { guardOtpRequest } from "@/lib/auth/otp-request-guard";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
+import { clientIpFromHeaders, consumeWindowedRateLimit } from "@/lib/server/rate-limit";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
-
-const allowedEmailDomains = new Set([
-  "gmail.com",
-  "googlemail.com",
-  "yahoo.com",
-  "yahoo.co.id",
-  "outlook.com",
-  "outlook.co.id",
-  "hotmail.com",
-  "live.com",
-]);
-
-function getEmailDomain(value: string): string | null {
-  const at = value.lastIndexOf("@");
-  if (at === -1) return null;
-  const domain = value
-    .slice(at + 1)
-    .toLowerCase()
-    .trim();
-  return domain || null;
-}
-
-function isEmailDomainAllowed(value: string): boolean {
-  const domain = getEmailDomain(value);
-  if (!domain) return false;
-  return allowedEmailDomains.has(domain);
-}
 
 function getAuthConfig() {
   const secrets = getServerRuntimeSecrets();
@@ -44,21 +21,25 @@ function getAuthConfig() {
       from: secrets.emailFrom,
       resendApiKey: secrets.resendApiKey,
     },
-    google: {
-      clientId: secrets.googleClientId,
-      clientSecret: secrets.googleClientSecret,
-    },
-    github: {
-      clientId: secrets.githubClientId,
-      clientSecret: secrets.githubClientSecret,
-    },
   };
 }
 
-async function sendAuthEmail(input: { to: string; subject: string; html: string; text: string }) {
-  const config = getAuthConfig();
+type AuthConfig = ReturnType<typeof getAuthConfig>;
 
-  if (!config.email.resendApiKey || !config.email.from) {
+function hasEmailDelivery(config: AuthConfig): boolean {
+  return Boolean(config.email.resendApiKey && config.email.from);
+}
+
+/** Local dev without Resend prints the email to the console instead. */
+function canSendEmail(config: AuthConfig): boolean {
+  return hasEmailDelivery(config) || process.env.NODE_ENV !== "production";
+}
+
+async function sendAuthEmail(
+  config: AuthConfig,
+  input: { to: string; subject: string; html: string; text: string },
+) {
+  if (!hasEmailDelivery(config)) {
     if (process.env.NODE_ENV !== "production") {
       console.log(`[auth] ${input.subject} for ${input.to}: ${input.text}`);
       return;
@@ -83,7 +64,9 @@ async function sendAuthEmail(input: { to: string; subject: string; html: string;
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(`Resend email failed (${response.status}): ${body}`);
+    // Better Auth swallows errors thrown from sendVerificationOTP, so log here.
+    console.error(`[auth] Resend email failed (${response.status}): ${body.slice(0, 300)}`);
+    throw new Error(`Resend email failed (${response.status})`);
   }
 }
 
@@ -103,76 +86,67 @@ export function createAuth() {
     }),
     secret: config.secret,
     baseURL: config.baseURL,
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: true,
-      sendResetPassword: async ({ user, url }) => {
-        const safeName = escapeHtml(user.name || "there");
-        const safeUrl = escapeHtml(url);
-        await sendAuthEmail({
-          to: user.email,
-          subject: "Reset your VibeDev ID password",
-          text: `Reset your VibeDev ID password: ${url}`,
-          html: `
-            <p>Hi ${safeName},</p>
-            <p>Click the link below to reset your VibeDev ID password.</p>
-            <p><a href="${safeUrl}">Reset password</a></p>
-            <p>If you did not request this, you can ignore this email.</p>
-          `,
+    // Email OTP is the only sign-in method. No passwords, no OAuth.
+    emailAndPassword: { enabled: false },
+    plugins: [
+      emailOTP(
+        buildEmailOtpOptions(async ({ email, otp }, ctx) => {
+          const locale = resolveEmailLocale(ctx?.request?.headers ?? ctx?.headers);
+          const message = buildOtpEmail({
+            otp,
+            email,
+            locale,
+            expiresInMinutes: Math.round(OTP_CONFIG.expiresInSeconds / 60),
+          });
+          await sendAuthEmail(config, { to: email, ...message });
+        }),
+      ),
+      tanstackStartCookies(),
+    ],
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        const headers = ctx.request?.headers ?? ctx.headers ?? new Headers();
+        const error = await guardOtpRequest({
+          path: ctx.path,
+          body: ctx.body,
+          ip: clientIpFromHeaders(headers),
+          emailConfigured: canSendEmail(config),
+          userExists: async (email) =>
+            Boolean(await ctx.context.internalAdapter.findUserByEmail(email)),
+          consume: (bucket, limit, windowMs) => consumeWindowedRateLimit(bucket, limit, windowMs),
         });
-      },
-      password: {
-        hash: async (password) => hash(password, 10),
-        verify: async ({ hash: passwordHash, password }) => compare(password, passwordHash),
-      },
+        if (!error) return;
+
+        throw new APIError(
+          error.status,
+          {
+            message: error.message,
+            code: error.code,
+            domain: error.domain,
+            retryAfterSeconds: error.retryAfterSeconds,
+          },
+          error.retryAfterSeconds ? { "Retry-After": String(error.retryAfterSeconds) } : undefined,
+        );
+      }),
+      // The UI runs its resend countdown from the server's send time.
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== OTP_SEND_PATH) return;
+        const returned = ctx.context.returned;
+        if (!returned || returned instanceof APIError || returned instanceof Response) return;
+        return ctx.json({ success: true, sentAt: new Date().toISOString() });
+      }),
     },
-    emailVerification: {
-      sendOnSignUp: true,
-      autoSignInAfterVerification: false,
-      sendVerificationEmail: async ({ user, url }) => {
-        const safeName = escapeHtml(user.name || "there");
-        const safeUrl = escapeHtml(url);
-        await sendAuthEmail({
-          to: user.email,
-          subject: "Verify your VibeDev ID email",
-          text: `Verify your VibeDev ID email: ${url}`,
-          html: `
-            <p>Hi ${safeName},</p>
-            <p>Click the link below to verify your VibeDev ID email address.</p>
-            <p><a href="${safeUrl}">Verify email</a></p>
-            <p>If you did not create an account, you can ignore this email.</p>
-          `,
-        });
-      },
-    },
-    socialProviders: {
-      ...(config.google.clientId && config.google.clientSecret
-        ? {
-            google: {
-              clientId: config.google.clientId,
-              clientSecret: config.google.clientSecret,
-            },
-          }
-        : {}),
-      ...(config.github.clientId && config.github.clientSecret
-        ? {
-            github: {
-              clientId: config.github.clientId,
-              clientSecret: config.github.clientSecret,
-            },
-          }
-        : {}),
-    },
-    plugins: [tanstackStartCookies()],
     databaseHooks: {
       user: {
         create: {
+          // Backstop: the send hook already blocks new accounts outside the allowlist.
           before: async (user) => {
-            if (!isEmailDomainAllowed(user.email)) {
-              const domain = getEmailDomain(user.email);
+            const error = newAccountEmailError(user.email, { existingUser: false });
+            if (error) {
               throw new APIError("BAD_REQUEST", {
-                message: domain
-                  ? `Domain ${domain} is not allowed. Use Gmail, Yahoo, or Outlook.`
+                code: error.code,
+                message: error.domain
+                  ? `Domain ${getEmailDomain(user.email)} is not allowed for new accounts.`
                   : "Invalid email format.",
               });
             }

@@ -28,6 +28,37 @@ export function isReservedProfileSlug(value: string): boolean {
   return RESERVED_PROFILE_SLUGS.has(value.trim().toLowerCase());
 }
 
+/**
+ * Names nobody can claim or switch to, on top of the route slugs. Kept out of
+ * RESERVED_PROFILE_SLUGS so an existing profile that already uses one of them
+ * still resolves at `/$username`.
+ */
+const RESERVED_USERNAMES = new Set([
+  "settings",
+  "login",
+  "logout",
+  "signin",
+  "signup",
+  "onboarding",
+  "www",
+  "vibedev",
+  "vibedevid",
+  "root",
+  "support",
+  "help",
+  "administrator",
+  "admins",
+  "mod",
+  "moderator",
+  "staff",
+  "system",
+]);
+
+export function isReservedUsername(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return RESERVED_PROFILE_SLUGS.has(normalized) || RESERVED_USERNAMES.has(normalized);
+}
+
 /** Return typed params, or `false` so TanStack Router skips `/$username`. */
 export function parseProfileUsernameParam(username: string): { username: string } | false {
   if (!username || isReservedProfileSlug(username)) {

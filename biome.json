@@ -13,8 +13,8 @@
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 120,
-    "attributePosition": "multiline"
+    "lineWidth": 100,
+    "attributePosition": "auto"
   },
   "linter": {
     "enabled": true,
@@ -29,7 +29,12 @@
       },
       "suspicious": {
         "noArrayIndexKey": "error",
-        "noConsole": { "level": "warn", "options": { "allow": ["log"] } },
+        "noConsole": {
+          "level": "warn",
+          "options": {
+            "allow": ["log"]
+          }
+        },
         "noDocumentCookie": "off",
         "noExplicitAny": "warn",
         "noImplicitAnyLet": "warn"
@@ -39,7 +44,9 @@
         "useConst": "error",
         "useConsistentArrayType": {
           "level": "warn",
-          "options": { "syntax": "shorthand" }
+          "options": {
+            "syntax": "shorthand"
+          }
         }
       },
       "nursery": {
@@ -49,9 +56,9 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single",
+      "quoteStyle": "double",
       "trailingCommas": "all",
-      "semicolons": "asNeeded"
+      "semicolons": "always"
     }
   },
   "json": {

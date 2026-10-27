@@ -5,7 +5,7 @@
 - Neon project with `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (direct, for `migrate:schema`)
 - Supabase direct DB URL for one-time data copy: `SUPABASE_DB_URL`
 - Better Auth secrets: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
-- OAuth: `GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`
+- Email OTP delivery: `RESEND_API_KEY`, `EMAIL_FROM` (sign-in is email OTP only; OAuth was removed)
 
 ## Steps
 

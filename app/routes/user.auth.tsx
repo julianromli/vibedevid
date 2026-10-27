@@ -2,28 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import AuthPage from "@/app/user/auth/page";
 import { NOINDEX_META } from "@/lib/seo/site-url";
 
-type AuthMode = "signin" | "signup" | "reset";
-
-function parseAuthMode(value: unknown): AuthMode | undefined {
-  if (value === "signup" || value === "reset" || value === "signin") return value;
-  return undefined;
-}
+export type AuthSearch = { redirectTo?: string; step?: "code" };
 
 export const Route = createFileRoute("/user/auth")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { redirectTo?: string; success?: string; error?: string; mode?: AuthMode } => ({
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
-    success: typeof search.success === "string" ? search.success : undefined,
-    error: typeof search.error === "string" ? search.error : undefined,
-    mode: parseAuthMode(search.mode),
+    step: search.step === "code" ? "code" : undefined,
   }),
   head: () => ({
-    meta: [{ title: "Masuk / Daftar | VibeDev ID" }, NOINDEX_META],
+    meta: [{ title: "Masuk | VibeDev ID" }, NOINDEX_META],
   }),
   component: UserAuthRoute,
 });
 
 function UserAuthRoute() {
-  return <AuthPage />;
+  const { step, redirectTo } = Route.useSearch();
+  return <AuthPage step={step} redirectTo={redirectTo} />;
 }
