@@ -43,3 +43,6 @@ nul
 
 # Cloudflare Wrangler local cache
 .wrangler/
+
+# Hero exploration canvas build
+canvas/hero/dist/

@@ -369,5 +369,77 @@
         "answer": "Member di sini kerja dengan React, Next.js, Python, framework AI/ML, dan tool coding AI seperti GitHub Copilot, ChatGPT, dan Claude."
       }
     }
+  },
+  "heroVariants": {
+    "common": {
+      "join": "Gabung komunitas",
+      "showcase": "Lihat showcase",
+      "views": "dilihat",
+      "likes": "suka",
+      "placeholder": "placeholder"
+    },
+    "wall": {
+      "kicker": "Showcase komunitas",
+      "title": "Yang lo bikin pake AI, dipamerin di sini.",
+      "subtitle": "Proyek beneran dari member VibeDev ID. Dari tools keuangan sampai kalender event wibu, semuanya dibikin sambil vibe coding.",
+      "railLabel": "Proyek terbaru dari showcase",
+      "swipeHint": "Geser buat lihat proyek lain",
+      "count": "{{count}} proyek terbaru"
+    },
+    "prompt": {
+      "title": "Ide lo tinggal satu prompt lagi.",
+      "subtitle": "Pilih contoh di bawah. Kemungkinan besar udah ada member yang bikin versinya.",
+      "inputLabel": "Tulis ide aplikasi lo",
+      "inputPlaceholder": "Bikin aplikasi yang...",
+      "submit": "Mulai",
+      "examplesLabel": "Contoh prompt",
+      "resultLabel": "Udah dibikin member:",
+      "emptyResult": "Belum ada yang bikin ini. Bawa idenya ke komunitas.",
+      "communityLabel": "Dari komunitas",
+      "examples": {
+        "poll": "Polling real-time buat webinar",
+        "rab": "Hitung RAB proyek konstruksi otomatis",
+        "receipt": "Catat pengeluaran dari foto struk",
+        "quiz": "Bikin soal ujian dari PDF"
+      },
+      "idleHint": "Pilih salah satu contoh prompt. Proyek member yang paling mirip bakal muncul di sini."
+    },
+    "terminal": {
+      "kicker": "~/vibedevid",
+      "title": "Dari prompt ke production, bareng komunitas.",
+      "subtitle": "Belajar workflow AI coding yang dipake member buat ngirim proyek beneran, terus pamerin hasilnya di showcase.",
+      "terminalLabel": "Contoh sesi vibe coding",
+      "replay": "Putar ulang",
+      "steps": {
+        "plan": "rencana",
+        "build": "bikin",
+        "ship": "rilis"
+      },
+      "done": "dipamerin di showcase",
+      "illustration": "ilustrasi",
+      "sessions": {
+        "poll": "bikin app polling real-time buat webinar",
+        "rab": "hitung RAB sama kurva S proyek otomatis",
+        "money": "bikin pencatat keuangan pribadi pake AI"
+      },
+      "planDetail": "pecah ide jadi halaman + komponen",
+      "shipDetail": "deploy, terus submit ke showcase"
+    },
+    "editorial": {
+      "titleLead": "Bikin pake AI,",
+      "titleAccent": "rilis beneran.",
+      "subtitle": "Komunitas vibe coding Indonesia. Belajar bareng, kolaborasi proyek open source, dan sharing session tiap minggu.",
+      "statMembers": "member aktif",
+      "statSessions": "sharing session",
+      "statSessionsValue": "Mingguan",
+      "statOpenSource": "kode situs ini",
+      "statOpenSourceValue": "Open source"
+    },
+    "orbit": {
+      "kicker": "1500+ member, satu tempat",
+      "title": "Orbit buat para vibe coder Indonesia.",
+      "subtitle": "Tiap titik di sini proyek beneran dari showcase. Arahkan kursor ke salah satunya buat lihat namanya.",
+      "orbitLabel": "Proyek dari showcase komunitas"
+    }
   }
 }

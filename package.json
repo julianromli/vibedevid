@@ -9,6 +9,8 @@
     "backfill:images": "bun run scripts/backfill-image-compression.ts",
     "build": "node scripts/optimize-images.mjs && vp build",
     "start": "node .output/server/index.mjs",
+    "canvas:hero:dev": "vp dev -c canvas/hero/vite.config.ts",
+    "canvas:hero:build": "vp build -c canvas/hero/vite.config.ts",
     "lint": "node scripts/lint-changed.mjs",
     "lint:fast": "node scripts/lint-changed.mjs",
     "lint:all": "biome check .",

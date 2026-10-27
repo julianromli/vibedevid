@@ -369,5 +369,77 @@
         "answer": "Members here use React, Next.js, Python, AI/ML frameworks, and AI coding tools such as GitHub Copilot, ChatGPT, and Claude."
       }
     }
+  },
+  "heroVariants": {
+    "common": {
+      "join": "Join the community",
+      "showcase": "See the showcase",
+      "views": "views",
+      "likes": "likes",
+      "placeholder": "placeholder"
+    },
+    "wall": {
+      "kicker": "Community showcase",
+      "title": "What you build with AI, shown right here.",
+      "subtitle": "Real projects from VibeDev ID members. From finance tools to an anime event calendar, all built while vibe coding.",
+      "railLabel": "Latest projects from the showcase",
+      "swipeHint": "Swipe to see more projects",
+      "count": "{{count}} latest projects"
+    },
+    "prompt": {
+      "title": "Your idea is one prompt away.",
+      "subtitle": "Pick an example below. Chances are a member already built their take on it.",
+      "inputLabel": "Describe your app idea",
+      "inputPlaceholder": "Build an app that...",
+      "submit": "Start",
+      "examplesLabel": "Example prompts",
+      "resultLabel": "Already built by a member:",
+      "emptyResult": "Nobody has built this yet. Bring the idea to the community.",
+      "communityLabel": "From the community",
+      "examples": {
+        "poll": "Real-time polls for webinars",
+        "rab": "Automatic construction cost estimates",
+        "receipt": "Track spending from receipt photos",
+        "quiz": "Generate exam questions from a PDF"
+      },
+      "idleHint": "Pick an example prompt. The closest member project shows up here."
+    },
+    "terminal": {
+      "kicker": "~/vibedevid",
+      "title": "From prompt to production, with the community.",
+      "subtitle": "Learn the AI coding workflow members use to ship real projects, then show the result in the showcase.",
+      "terminalLabel": "Sample vibe coding session",
+      "replay": "Replay",
+      "steps": {
+        "plan": "plan",
+        "build": "build",
+        "ship": "ship"
+      },
+      "done": "listed in the showcase",
+      "illustration": "illustration",
+      "sessions": {
+        "poll": "build a real-time polling app for webinars",
+        "rab": "automate construction cost and S-curve estimates",
+        "money": "build an AI personal finance tracker"
+      },
+      "planDetail": "split the idea into pages + components",
+      "shipDetail": "deploy, then submit to the showcase"
+    },
+    "editorial": {
+      "titleLead": "Build with AI,",
+      "titleAccent": "ship for real.",
+      "subtitle": "Indonesia's vibe coding community. Learn together, collaborate on open source projects, and join weekly sharing sessions.",
+      "statMembers": "active members",
+      "statSessions": "sharing sessions",
+      "statSessionsValue": "Weekly",
+      "statOpenSource": "this site's code",
+      "statOpenSourceValue": "Open source"
+    },
+    "orbit": {
+      "kicker": "1500+ members, one place",
+      "title": "An orbit for Indonesia's vibe coders.",
+      "subtitle": "Every dot here is a real project from the showcase. Hover one to see its name.",
+      "orbitLabel": "Projects from the community showcase"
+    }
   }
 }

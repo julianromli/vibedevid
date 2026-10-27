@@ -1,0 +1,7 @@
+/* Production stylesheet: tokens, fonts, dark variant. */
+@import "../../../app/globals.css";
+
+/* The canvas root is canvas/hero, so point Tailwind at the real sources. */
+@source "../../../components";
+@source "../../../app";
+@source "./";
