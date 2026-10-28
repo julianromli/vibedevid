@@ -66,6 +66,20 @@ export function isAllowedProjectImageUrl(url: string): boolean {
   }
 }
 
+/** True when `url` is an UploadThing file URL for `key` (`https://<host>/f/<key>`). */
+function isUploadthingUrlForKey(url: string, key: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      isUploadthingHost(parsed.hostname) &&
+      parsed.pathname === `/f/${encodeURIComponent(key)}`
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Keep only screenshots the server can explain.
  *
@@ -87,7 +101,7 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
 
     const upload = input.knownUploads.find(
       (row) =>
-        row.url === url &&
+        (row.url === url || isUploadthingUrlForKey(url, row.key)) &&
         row.userId === input.actorUserId &&
         submittedKeys.has(row.key) &&
         (row.projectId == null || row.projectId === input.projectId),

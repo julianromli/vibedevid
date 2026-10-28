@@ -392,12 +392,23 @@ export function buildProjectFieldErrors(error: z.ZodError): ProjectFieldErrors {
   return fieldErrors;
 }
 
+const FIELD_LABELS: Record<ProjectFormFieldName, string> = {
+  title: "Title",
+  tagline: "Tagline",
+  description: "Description",
+  category: "Category",
+  website_url: "Website URL",
+  image_urls: "Screenshots",
+  image_keys: "Screenshots",
+  tags: "Tags",
+};
+
 /** Join fieldErrors into a single human-readable error string. */
 export function formatProjectFieldErrors(fieldErrors: ProjectFieldErrors): string {
   const messages = Object.entries(fieldErrors)
     .filter(([, errors]) => errors && errors.length > 0)
     .map(([field, errors]) => {
-      const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
+      const fieldName = FIELD_LABELS[field as ProjectFormFieldName] ?? field;
       return `${fieldName}: ${errors?.join(", ")}`;
     });
 

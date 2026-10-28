@@ -227,7 +227,7 @@ describe("buildProjectFieldErrors + formatProjectFieldErrors — wire contract",
 
     const formatted = formatProjectFieldErrors(buildProjectFieldErrors(result.error!));
     expect(formatted).toContain("Title: Title must be at least 3 characters");
-    expect(formatted).toContain("Image urls: At least one project screenshot is required");
+    expect(formatted).toContain("Screenshots: At least one project screenshot is required");
   });
 });
 

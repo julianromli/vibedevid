@@ -38,6 +38,36 @@ describe("isAllowedProjectImageUrl", () => {
 });
 
 describe("alignProjectImages", () => {
+  it("matches an owned file by key when the URL host differs from the ledger", () => {
+    // UploadThing serves one file from utfs.io and <app>.ufs.sh. The ledger keeps ufsUrl.
+    const ledgerUrl = `https://app123.ufs.sh/f/${OWN_KEY}`;
+    const result = alignProjectImages({
+      submittedUrls: [`https://utfs.io/f/${OWN_KEY}`],
+      submittedKeys: [OWN_KEY],
+      knownUploads: [upload({ url: ledgerUrl })],
+      actorUserId: OWNER,
+      projectId: null,
+      existingUrls: [],
+      existingKeys: [],
+    });
+
+    expect(result).toEqual({ ok: true, imageUrls: [ledgerUrl], imageKeys: [OWN_KEY] });
+  });
+
+  it("does not match by key on a host that is not UploadThing", () => {
+    const result = alignProjectImages({
+      submittedUrls: [`https://evil.example.com/f/${OWN_KEY}`],
+      submittedKeys: [OWN_KEY],
+      knownUploads: [upload({ url: `https://app123.ufs.sh/f/${OWN_KEY}` })],
+      actorUserId: OWNER,
+      projectId: null,
+      existingUrls: [],
+      existingKeys: [],
+    });
+
+    expect(result).toEqual({ ok: false, error: INVALID_PROJECT_IMAGE_MESSAGE });
+  });
+
   it("stores the ledger URL and key for a file this user uploaded", () => {
     const result = alignProjectImages({
       submittedUrls: [OWN_URL],

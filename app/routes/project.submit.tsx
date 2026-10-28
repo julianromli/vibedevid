@@ -32,7 +32,7 @@ export const Route = createFileRoute("/project/submit")({
 });
 
 function ProjectSubmitRoute() {
-  const { userId, categories, redirectTo } = Route.useLoaderData();
+  const { userId, categories } = Route.useLoaderData();
   const { t } = useTranslation("projectSubmit");
 
   return (
@@ -46,7 +46,7 @@ function ProjectSubmitRoute() {
             <p className="text-muted-foreground">{t("description")}</p>
           </div>
 
-          <SubmitProjectForm userId={userId} categories={categories} redirectTo={redirectTo} />
+          <SubmitProjectForm userId={userId} categories={categories} />
         </div>
       </div>
     </div>

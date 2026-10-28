@@ -7,6 +7,7 @@ import { isUploadthingTokenShape } from "@/lib/uploadthing-token";
 import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
 
 const ANONYMOUS_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const PROJECT_IMAGE_LIMITS = { maxFileSize: "4MB", maxFileCount: 10 } as const;
 
 export type { OurFileRouter } from "./uploadthing-router";
 
@@ -113,7 +114,13 @@ export async function deleteUploadthingFiles(
 }
 
 export const ourFileRouter = {
-  projectImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
+  // Only types the server sniffer accepts. With a generic `image` route a GIF or
+  // HEIC uploads fine, onUploadComplete rejects it, and UploadThing hides that error.
+  projectImageUploader: f({
+    "image/jpeg": PROJECT_IMAGE_LIMITS,
+    "image/png": PROJECT_IMAGE_LIMITS,
+    "image/webp": PROJECT_IMAGE_LIMITS,
+  })
     .middleware(async () => {
       const userId = await requireAuthenticatedUserId();
       return { userId };

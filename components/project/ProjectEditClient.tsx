@@ -31,6 +31,11 @@ import {
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
 } from "@/lib/project-submission";
+import {
+  getConfirmedUpload,
+  type ProjectUploadResult,
+  UNCONFIRMED_UPLOAD_MESSAGE,
+} from "@/lib/project-upload-result";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
 
@@ -73,15 +78,6 @@ interface ProjectEditClientProps {
   categories: Category[];
   projectSlug: string;
   isOwner: boolean;
-}
-
-interface UploadResult {
-  serverData?: {
-    key?: string;
-    url?: string;
-  };
-  url?: string;
-  key?: string;
 }
 
 export function ProjectEditClient({
@@ -209,7 +205,7 @@ export function ProjectEditClient({
     setEditImageKeys([]);
   };
 
-  const handleUploadComplete = (res: UploadResult[] | undefined) => {
+  const handleUploadComplete = (res: ProjectUploadResult[] | undefined) => {
     setIsUploading(false);
 
     if (!res || res.length === 0) {
@@ -217,17 +213,12 @@ export function ProjectEditClient({
       return;
     }
 
-    const newUrls: string[] = [];
-    const newKeys: string[] = [];
+    const confirmed = res.map(getConfirmedUpload).filter((upload) => upload !== null);
+    const newUrls = confirmed.map((upload) => upload.url);
+    const newKeys = confirmed.map((upload) => upload.key);
 
-    for (const uploadResult of res) {
-      const url = uploadResult?.serverData?.url || uploadResult?.url;
-      const key = uploadResult?.serverData?.key || uploadResult?.key;
-
-      if (url && key) {
-        newUrls.push(url);
-        newKeys.push(key);
-      }
+    if (confirmed.length < res.length) {
+      toast.error(UNCONFIRMED_UPLOAD_MESSAGE);
     }
 
     if (newUrls.length > 0) {

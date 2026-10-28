@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MultipleSelector, { type Option } from "@/components/ui/multiselect";
-import type { UploadResult } from "@/components/ui/submit-project-form/types";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { compressImageFiles } from "@/lib/image-compression";
 import { PROJECT_LIMITS } from "@/lib/project-submission";
+import type { ProjectUploadResult } from "@/lib/project-upload-result";
 import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
 
@@ -81,15 +81,13 @@ export interface LinksMediaStepProps {
   selectedTags: Option[];
   setSelectedTags: (value: Option[]) => void;
   uploadedImageUrls: string[];
-  setUploadedImageUrls: (value: string[] | ((prev: string[]) => string[])) => void;
-  uploadedImageKeys: string[];
-  setUploadedImageKeys: (value: string[] | ((prev: string[]) => string[])) => void;
+  onRemoveUploadedImage: (index: number) => void;
   importedImageUrl: string;
   setImportedImageUrl: (value: string) => void;
   isLoading: boolean;
   isUploading: boolean;
   onUploadBegin: (name: string) => void;
-  onUploadComplete: (res: UploadResult[] | undefined) => void;
+  onUploadComplete: (res: ProjectUploadResult[] | undefined) => void;
   onUploadError: (error: Error) => void;
 }
 
@@ -101,9 +99,7 @@ export function LinksMediaStep({
   selectedTags,
   setSelectedTags,
   uploadedImageUrls,
-  setUploadedImageUrls,
-  uploadedImageKeys,
-  setUploadedImageKeys,
+  onRemoveUploadedImage,
   importedImageUrl,
   setImportedImageUrl,
   isLoading,
@@ -119,8 +115,10 @@ export function LinksMediaStep({
       ? normalizedWebsiteUrl
       : null;
 
-  const activeImageUrls =
-    uploadedImageUrls.length > 0 ? uploadedImageUrls : importedImageUrl ? [importedImageUrl] : [];
+  const importedImageCount =
+    importedImageUrl && !uploadedImageUrls.includes(importedImageUrl) ? 1 : 0;
+  const remainingImageCount =
+    PROJECT_LIMITS.MAX_IMAGE_COUNT - uploadedImageUrls.length - importedImageCount;
 
   return (
     <div className="space-y-6">
@@ -235,10 +233,8 @@ export function LinksMediaStep({
                       size="icon"
                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
                       data-testid={`remove-uploaded-image-${index}`}
-                      onClick={() => {
-                        setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
-                        setUploadedImageKeys((prev) => prev.filter((_, i) => i !== index));
-                      }}
+                      aria-label={`Remove screenshot ${index + 1}`}
+                      onClick={() => onRemoveUploadedImage(index)}
                       disabled={isLoading}
                     >
                       <X className="h-3 w-3" />
@@ -271,16 +267,16 @@ export function LinksMediaStep({
                     height={169}
                   />
                 </AspectRatio>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setImportedImageUrl("")}
-                  >
-                    Remove Imported Preview
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => setImportedImageUrl("")}
+                  disabled={isLoading}
+                >
+                  Remove
+                </Button>
               </div>
               <div className="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
                 <div className="flex items-center gap-2">
@@ -309,16 +305,10 @@ export function LinksMediaStep({
                   <UploadButton<OurFileRouter, "projectImageUploader">
                     endpoint="projectImageUploader"
                     onBeforeUploadBegin={(files) => {
-                      const importedImageCount =
-                        importedImageUrl && !uploadedImageUrls.includes(importedImageUrl) ? 1 : 0;
-                      const remaining =
-                        PROJECT_LIMITS.MAX_IMAGE_COUNT -
-                        uploadedImageUrls.length -
-                        importedImageCount;
-                      if (remaining <= 0) {
+                      if (remainingImageCount <= 0) {
                         throw new Error(`Maximum ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images reached`);
                       }
-                      return compressImageFiles(files.slice(0, remaining));
+                      return compressImageFiles(files.slice(0, remainingImageCount));
                     }}
                     onUploadBegin={onUploadBegin}
                     onClientUploadComplete={onUploadComplete}
@@ -328,24 +318,20 @@ export function LinksMediaStep({
                     content={{
                       button({ ready }: { ready: boolean }) {
                         if (ready) {
-                          const remaining =
-                            PROJECT_LIMITS.MAX_IMAGE_COUNT - uploadedImageUrls.length;
-                          return <div>Add More Images ({remaining} left)</div>;
+                          return <div>Add Images ({remainingImageCount} left)</div>;
                         }
                         return "Getting ready...";
                       },
                       allowedContent({
                         ready,
-                        fileTypes,
                         isUploading: uploadingFlag,
                       }: {
                         ready: boolean;
-                        fileTypes: string[];
                         isUploading: boolean;
                       }) {
                         if (!ready) return "Checking what you allow";
                         if (uploadingFlag) return "Uploading...";
-                        return `${fileTypes.join(", ")} (max ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images)`;
+                        return `JPG, PNG, or WebP, up to 4MB each (max ${PROJECT_LIMITS.MAX_IMAGE_COUNT} images)`;
                       },
                     }}
                     appearance={{
