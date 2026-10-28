@@ -19,6 +19,8 @@ interface ServerRuntimeSecrets {
   siteUrl: string;
   /** Not secret: comma-separated exact emails allowed to sign up outside the domain list. */
   newAccountAllowedEmails: string;
+  /** Not secret: host suffix of this worker's Cloudflare preview URLs, e.g. "-vibedevid.<account>.workers.dev". */
+  authPreviewHostSuffix: string;
 }
 
 type EnvRecord = Record<string, string | undefined>;
@@ -45,5 +47,6 @@ export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
     uploadthingToken: readEnv("UPLOADTHING_TOKEN"),
     siteUrl: readEnv("NEXT_PUBLIC_SITE_URL") || readEnv("VITE_SITE_URL"),
     newAccountAllowedEmails: readEnv("NEW_ACCOUNT_ALLOWED_EMAILS"),
+    authPreviewHostSuffix: readEnv("AUTH_PREVIEW_HOST_SUFFIX"),
   };
 }

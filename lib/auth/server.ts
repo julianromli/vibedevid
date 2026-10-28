@@ -7,6 +7,7 @@ import { getEmailDomain, newAccountEmailError, parseAllowedEmails } from "@/lib/
 import { buildEmailOtpOptions, OTP_CONFIG, OTP_SEND_PATH } from "@/lib/auth/otp-config";
 import { buildOtpEmail, resolveEmailLocale } from "@/lib/auth/otp-email";
 import { guardOtpRequest } from "@/lib/auth/otp-request-guard";
+import { previewTrustedOrigins } from "@/lib/auth/trusted-origins";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { clientIpFromHeaders, consumeWindowedRateLimit } from "@/lib/server/rate-limit";
@@ -22,6 +23,7 @@ function getAuthConfig() {
       resendApiKey: secrets.resendApiKey,
     },
     allowedEmails: parseAllowedEmails(secrets.newAccountAllowedEmails),
+    previewHostSuffix: secrets.authPreviewHostSuffix,
   };
 }
 
@@ -87,6 +89,8 @@ export function createAuth() {
     }),
     secret: config.secret,
     baseURL: config.baseURL,
+    // Production trusts only baseURL. A Cloudflare preview of this worker also trusts its own origin.
+    trustedOrigins: (request) => previewTrustedOrigins(request, config.previewHostSuffix),
     // Email OTP is the only sign-in method. No passwords, no OAuth.
     emailAndPassword: { enabled: false },
     plugins: [
