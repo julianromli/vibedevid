@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { getEmailDomain, newAccountEmailError } from "@/lib/auth/email-domain";
+import { getEmailDomain, newAccountEmailError, parseAllowedEmails } from "@/lib/auth/email-domain";
 
 describe("email domain allowlist", () => {
   it("reads the lowercased domain", () => {
@@ -36,5 +36,30 @@ describe("email domain allowlist", () => {
       code: "INVALID_EMAIL",
       domain: null,
     });
+  });
+
+  it("lets one exact address outside the domain list create an account", () => {
+    const allowedEmails = parseAllowedEmails("faiz@mail.grokbot.com");
+    expect(
+      newAccountEmailError(" Faiz@Mail.Grokbot.com", { existingUser: false, allowedEmails }),
+    ).toBeNull();
+  });
+
+  it("does not open the whole domain of an allowed address", () => {
+    const allowedEmails = parseAllowedEmails("faiz@mail.grokbot.com");
+    expect(
+      newAccountEmailError("other@mail.grokbot.com", { existingUser: false, allowedEmails }),
+    ).toEqual({ code: "EMAIL_DOMAIN_NOT_ALLOWED", domain: "mail.grokbot.com" });
+  });
+});
+
+describe("parseAllowedEmails", () => {
+  it("reads a comma-separated list, trimmed and lowercased", () => {
+    expect([...parseAllowedEmails(" A@x.io, b@Y.io ,,")]).toEqual(["a@x.io", "b@y.io"]);
+  });
+
+  it("is empty when unset or when an entry is not an address", () => {
+    expect(parseAllowedEmails(undefined).size).toBe(0);
+    expect([...parseAllowedEmails("mail.grokbot.com,@x.io,ok@x.io")]).toEqual(["ok@x.io"]);
   });
 });

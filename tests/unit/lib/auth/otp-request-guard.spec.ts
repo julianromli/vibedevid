@@ -29,6 +29,14 @@ describe("guardOtpRequest on send", () => {
     });
   });
 
+  it("lets an exact allowed address on another domain get a code", async () => {
+    const allowedEmails = new Set(["faiz@mail.grokbot.com"]);
+    await expect(send("faiz@mail.grokbot.com", { allowedEmails })).resolves.toBeNull();
+    await expect(send("qa@mail.grokbot.com", { allowedEmails })).resolves.toMatchObject({
+      code: "EMAIL_DOMAIN_NOT_ALLOWED",
+    });
+  });
+
   it("lets an existing user on any domain get a code", async () => {
     await expect(send("old@company.co", { userExists: async () => true })).resolves.toBeNull();
   });

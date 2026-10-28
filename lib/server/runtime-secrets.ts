@@ -17,6 +17,8 @@ interface ServerRuntimeSecrets {
   openrouterApiKey: string;
   uploadthingToken: string;
   siteUrl: string;
+  /** Not secret: comma-separated exact emails allowed to sign up outside the domain list. */
+  newAccountAllowedEmails: string;
 }
 
 type EnvRecord = Record<string, string | undefined>;
@@ -42,5 +44,6 @@ export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
     openrouterApiKey: readEnv("OPENROUTER_API_KEY"),
     uploadthingToken: readEnv("UPLOADTHING_TOKEN"),
     siteUrl: readEnv("NEXT_PUBLIC_SITE_URL") || readEnv("VITE_SITE_URL"),
+    newAccountAllowedEmails: readEnv("NEW_ACCOUNT_ALLOWED_EMAILS"),
   };
 }

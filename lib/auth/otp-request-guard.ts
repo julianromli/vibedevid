@@ -21,6 +21,8 @@ type GuardInput = {
   emailConfigured: boolean;
   userExists: (email: string) => Promise<boolean>;
   consume: ConsumeRateLimit;
+  /** Exact addresses allowed to create an account outside the domain list. */
+  allowedEmails?: ReadonlySet<string>;
 };
 
 function readString(body: unknown, key: string): string | undefined {
@@ -56,6 +58,7 @@ export async function guardOtpRequest(input: GuardInput): Promise<OtpGuardError 
     const email = readString(input.body, "email")?.trim().toLowerCase() ?? "";
     const domainError = newAccountEmailError(email, {
       existingUser: await input.userExists(email),
+      allowedEmails: input.allowedEmails,
     });
     if (domainError?.code === "INVALID_EMAIL") {
       return { status: "BAD_REQUEST", code: "INVALID_EMAIL", message: "Invalid email." };
