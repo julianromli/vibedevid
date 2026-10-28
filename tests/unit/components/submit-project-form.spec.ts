@@ -85,6 +85,14 @@ vi.mock("@/components/ui/submit-project-form/steps/links-media-step", () => ({
         },
         "upload unverified",
       ),
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => props.setFaviconUrl("https://vibeboard.app/icon.png"),
+        },
+        "set favicon",
+      ),
       React.createElement("span", null, `images:${props.uploadedImageUrls.length}`),
     ),
 }));
@@ -218,5 +226,22 @@ describe("SubmitProjectForm submit", () => {
     });
 
     expect(h.submitProjectFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the favicon URL the user entered", async () => {
+    h.submitProjectFn.mockResolvedValue({ success: true, slug: "vibe-board" });
+    renderForm();
+    next();
+    fireEvent.click(screen.getByText("fill basics"));
+    next();
+    fireEvent.click(screen.getByText("upload verified"));
+    fireEvent.click(screen.getByText("set favicon"));
+    next();
+    await act(async () => {
+      fireEvent.click(await screen.findByTestId("submit-project-button"));
+    });
+
+    const sent = h.submitProjectFn.mock.calls[0]?.[0]?.data as FormData;
+    expect(sent.get("favicon_url")).toBe("https://vibeboard.app/icon.png");
   });
 });

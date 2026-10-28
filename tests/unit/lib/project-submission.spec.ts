@@ -240,3 +240,32 @@ describe("PROJECT_FORM_FIELDS — seam contract names", () => {
     expect(PROJECT_FORM_FIELDS.tags).toBe("tags");
   });
 });
+
+describe("favicon_url", () => {
+  it("is optional", () => {
+    const result = parseAndValidate(formDataOf({}));
+    expect(result.success).toBe(true);
+    expect(result.data?.faviconUrl).toBeNull();
+  });
+
+  it("keeps an https URL", () => {
+    const result = parseAndValidate(
+      formDataOf({ favicon_url: " https://vibeboard.app/icon.png " }),
+    );
+    expect(result.success).toBe(true);
+    expect(result.data?.faviconUrl).toBe("https://vibeboard.app/icon.png");
+  });
+
+  it.each([
+    "http://vibeboard.app/icon.png",
+    "vibeboard.app/icon.png",
+    "javascript:alert(1)",
+    "https://user:pass@vibeboard.app/icon.png",
+  ])("rejects %s with a labelled error", (value) => {
+    const result = parseAndValidate(formDataOf({ favicon_url: value }));
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    const formatted = formatProjectFieldErrors(buildProjectFieldErrors(result.error));
+    expect(formatted).toContain("Favicon URL: Enter an https URL for the favicon");
+  });
+});

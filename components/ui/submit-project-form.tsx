@@ -161,6 +161,10 @@ function buildSubmitFormData(state: SubmitFormState): FormData {
     formData.set(PROJECT_FORM_FIELDS.websiteUrl, state.websiteUrl);
   }
 
+  if (state.faviconUrl.trim()) {
+    formData.set(PROJECT_FORM_FIELDS.faviconUrl, state.faviconUrl.trim());
+  }
+
   if (state.category) {
     formData.set(PROJECT_FORM_FIELDS.category, state.category);
   }
@@ -258,6 +262,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
     if (currentStep === 2) {
       const partial = z.object({
         websiteUrl: PROJECT_FIELD_SCHEMAS.websiteUrl,
+        faviconUrl: PROJECT_FIELD_SCHEMAS.faviconUrl,
         imageUrls: PROJECT_FIELD_SCHEMAS.imageUrls,
         tags: PROJECT_FIELD_SCHEMAS.tags,
       });
