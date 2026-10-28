@@ -40,7 +40,7 @@ function ProjectSubmitRoute() {
       <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
       <div className="container relative mx-auto px-4 py-8">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-2xl">
           <div className="mb-8">
             <h1 className="mb-2 font-bold text-3xl">{t("title")}</h1>
             <p className="text-muted-foreground">{t("description")}</p>

@@ -1,0 +1,105 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
+import i18n from "@/i18n";
+
+const h = vi.hoisted(() => ({ uploadFiles: vi.fn(), cleanup: vi.fn() }));
+
+vi.mock("@/lib/uploadthing-client", () => ({ uploadFiles: h.uploadFiles }));
+vi.mock("@/lib/actions/projects.functions", () => ({
+  cleanupProjectProvisionalUploadFn: h.cleanup,
+}));
+
+const png = (name: string) => new File([new Uint8Array(10)], name, { type: "image/png" });
+
+function confirmed(key: string) {
+  const url = `https://app.ufs.sh/f/${key}`;
+  return [{ key, url, serverData: { key, url } }];
+}
+
+beforeAll(async () => {
+  await i18n.changeLanguage("en");
+  URL.createObjectURL = vi.fn((file: Blob) => `blob:${(file as File).name}`);
+  URL.revokeObjectURL = vi.fn();
+});
+
+beforeEach(() => {
+  h.uploadFiles.mockReset();
+  h.cleanup.mockReset();
+  h.cleanup.mockResolvedValue({ success: true });
+});
+
+describe("useScreenshotUploads", () => {
+  it("marks a failed file for retry while the other files finish", async () => {
+    h.uploadFiles.mockImplementation(async (_endpoint, { files }: { files: File[] }) => {
+      if (files[0]?.name === "bad.png") throw new Error("network");
+      return confirmed(files[0]?.name ?? "x");
+    });
+    const { result } = renderHook(() => useScreenshotUploads());
+
+    await act(async () => {
+      await result.current.addFiles([png("good.png"), png("bad.png")]);
+    });
+
+    await waitFor(() =>
+      expect(result.current.shots.map((shot) => shot.status)).toEqual(["done", "error"]),
+    );
+    expect(result.current.isUploading).toBe(false);
+
+    h.uploadFiles.mockResolvedValueOnce(confirmed("bad-retry"));
+    act(() => result.current.retry(result.current.shots[1]?.id ?? ""));
+
+    await waitFor(() => expect(result.current.shots[1]?.status).toBe("done"));
+    expect(result.current.shots[1]?.key).toBe("bad-retry");
+  });
+
+  it("treats an upload the server never confirmed as failed", async () => {
+    h.uploadFiles.mockResolvedValue([{ key: "orphan", url: "https://utfs.io/f/orphan" }]);
+    const { result } = renderHook(() => useScreenshotUploads());
+
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("error"));
+    expect(result.current.shots[0]?.error).toMatch(/could not be saved/i);
+  });
+
+  it("rejects the wrong file type before uploading it", async () => {
+    const { result } = renderHook(() => useScreenshotUploads());
+
+    await act(async () => {
+      await result.current.addFiles([new File(["x"], "a.gif", { type: "image/gif" })]);
+    });
+
+    expect(h.uploadFiles).not.toHaveBeenCalled();
+    expect(result.current.shots).toEqual([]);
+    expect(result.current.notice).toMatch(/a\.gif/);
+  });
+
+  it("deletes the stored file when a finished upload is removed", async () => {
+    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("done"));
+
+    act(() => result.current.remove(result.current.shots[0]?.id ?? ""));
+
+    expect(result.current.shots).toEqual([]);
+    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "k1" } });
+  });
+
+  it("keeps the GitHub preview as the cover after uploads", async () => {
+    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+    act(() => result.current.setImported("https://opengraph.githubassets.com/repo"));
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(result.current.shots[1]?.status).toBe("done"));
+
+    expect(result.current.images.imageUrls[0]).toBe("https://opengraph.githubassets.com/repo");
+  });
+});

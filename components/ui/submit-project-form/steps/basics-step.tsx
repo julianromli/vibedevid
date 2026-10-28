@@ -1,6 +1,6 @@
-import type { Category } from "@/lib/categories";
+import { useTranslation } from "react-i18next";
+import { authInputClassName } from "@/components/ui/form-classes";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -8,19 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  CharCounter,
+  FieldFooter,
+  FieldLabel,
+  type FieldStepProps,
+  fieldAria,
+} from "@/components/ui/submit-project-form/field-parts";
 import { Textarea } from "@/components/ui/textarea";
+import type { Category } from "@/lib/categories";
 import { PROJECT_LIMITS } from "@/lib/project-submission";
+import { cn } from "@/lib/utils";
 
-const {
-  MAX_TITLE_LENGTH,
-  MIN_TITLE_LENGTH,
-  MAX_TAGLINE_LENGTH,
-  MIN_TAGLINE_LENGTH,
-  MAX_DESCRIPTION_LENGTH,
-  MIN_DESCRIPTION_LENGTH,
-} = PROJECT_LIMITS;
+const { MAX_TITLE_LENGTH, MAX_TAGLINE_LENGTH, MAX_DESCRIPTION_LENGTH } = PROJECT_LIMITS;
 
-export interface BasicsStepProps {
+export interface BasicsStepProps extends FieldStepProps {
   title: string;
   setTitle: (value: string) => void;
   tagline: string;
@@ -30,8 +32,6 @@ export interface BasicsStepProps {
   category: string;
   setCategory: (value: string) => void;
   categories: Category[];
-  isLoading: boolean;
-  isUploading: boolean;
 }
 
 export function BasicsStep({
@@ -44,143 +44,111 @@ export function BasicsStep({
   category,
   setCategory,
   categories,
-  isLoading,
-  isUploading,
+  errors,
+  onFieldBlur,
+  disabled,
 }: BasicsStepProps) {
+  const { t } = useTranslation("projectSubmit");
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title" className="form-label-enhanced">
-          Project Title *
-        </Label>
+      <div>
+        <FieldLabel htmlFor="title">{t("form.projectTitle")}</FieldLabel>
         <Input
           id="title"
           name="title"
-          placeholder="Enter your project title"
+          placeholder={t("form.projectTitlePlaceholder")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="form-input-enhanced"
-          required
-          disabled={isLoading || isUploading}
-          maxLength={MAX_TITLE_LENGTH}
+          onBlur={() => onFieldBlur("title")}
+          autoComplete="off"
+          className={cn(authInputClassName, "mt-2")}
+          aria-required="true"
+          enterKeyHint="next"
+          disabled={disabled}
+          {...fieldAria("title", errors)}
         />
-        <div className="flex items-center justify-between text-sm">
-          <p className="form-helper-text mt-1 text-xs">
-            {title.trim().length === 0
-              ? `Required. Minimum ${MIN_TITLE_LENGTH} characters.`
-              : title.trim().length < MIN_TITLE_LENGTH
-                ? `Needs ${MIN_TITLE_LENGTH - title.trim().length} more characters.`
-                : title.length > MAX_TITLE_LENGTH
-                  ? `Exceeds maximum ${MAX_TITLE_LENGTH} characters.`
-                  : "Looking good! ✨"}
-          </p>
-          <span
-            className={`font-medium text-xs ${title.length > MAX_TITLE_LENGTH || (title.length > 0 && title.trim().length < MIN_TITLE_LENGTH) ? "text-red-500" : "text-muted-foreground"}`}
-          >
-            {title.length}/{MAX_TITLE_LENGTH}
-          </span>
-        </div>
+        <FieldFooter
+          field="title"
+          hint={t("form.titleHint")}
+          error={errors.title}
+          counter={<CharCounter value={title} max={MAX_TITLE_LENGTH} />}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tagline" className="form-label-enhanced">
-          Tagline
-        </Label>
+      <div>
+        <FieldLabel htmlFor="tagline" optional>
+          {t("form.tagline")}
+        </FieldLabel>
         <Input
           id="tagline"
           name="tagline"
-          placeholder="A short tagline that describes your project in one sentence"
+          placeholder={t("form.taglinePlaceholder")}
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
-          className="form-input-enhanced"
-          disabled={isLoading || isUploading}
-          maxLength={MAX_TAGLINE_LENGTH}
+          onBlur={() => onFieldBlur("tagline")}
+          className={cn(authInputClassName, "mt-2")}
+          enterKeyHint="next"
+          disabled={disabled}
+          {...fieldAria("tagline", errors)}
         />
-        <div className="flex items-center justify-between text-sm">
-          <p className="form-helper-text mt-1 text-xs">
-            {tagline.trim().length === 0
-              ? `Optional. At least ${MIN_TAGLINE_LENGTH} characters if provided.`
-              : tagline.trim().length < MIN_TAGLINE_LENGTH
-                ? `Needs ${MIN_TAGLINE_LENGTH - tagline.trim().length} more characters.`
-                : tagline.length > MAX_TAGLINE_LENGTH
-                  ? `Exceeds maximum ${MAX_TAGLINE_LENGTH} characters.`
-                  : "Looking good! ✨"}
-          </p>
-          <span
-            className={`font-medium text-xs ${tagline.length > MAX_TAGLINE_LENGTH || (tagline.length > 0 && tagline.trim().length < MIN_TAGLINE_LENGTH) ? "text-amber-500" : "text-muted-foreground"}`}
-          >
-            {tagline.length}/{MAX_TAGLINE_LENGTH}
-          </span>
-        </div>
+        <FieldFooter
+          field="tagline"
+          hint={t("form.taglineHint")}
+          error={errors.tagline}
+          counter={<CharCounter value={tagline} max={MAX_TAGLINE_LENGTH} />}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description" className="form-label-enhanced">
-          Description *
-        </Label>
+      <div>
+        <FieldLabel htmlFor="description">{t("form.description")}</FieldLabel>
         <Textarea
           id="description"
           name="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe your project, its features, and what makes it special"
-          className="form-input-enhanced"
-          rows={4}
-          required
-          disabled={isLoading || isUploading}
-          maxLength={MAX_DESCRIPTION_LENGTH}
+          onBlur={() => onFieldBlur("description")}
+          placeholder={t("form.descriptionPlaceholder")}
+          className={cn(authInputClassName, "mt-2 h-auto min-h-32 py-3")}
+          rows={5}
+          aria-required="true"
+          disabled={disabled}
+          {...fieldAria("description", errors)}
         />
-        <div className="flex items-center justify-between text-sm">
-          <p className="form-helper-text mt-1 text-xs">
-            {description.trim().length === 0
-              ? `Required. Explain your project (min ${MIN_DESCRIPTION_LENGTH} chars, max ${MAX_DESCRIPTION_LENGTH} chars).`
-              : description.trim().length < MIN_DESCRIPTION_LENGTH
-                ? `Needs ${MIN_DESCRIPTION_LENGTH - description.trim().length} more characters to reach the ${MIN_DESCRIPTION_LENGTH} minimum.`
-                : description.length > MAX_DESCRIPTION_LENGTH
-                  ? `Exceeds maximum ${MAX_DESCRIPTION_LENGTH} characters.`
-                  : "Looking good! ✨"}
-          </p>
-          <span
-            className={`font-medium text-xs ${description.length > MAX_DESCRIPTION_LENGTH || (description.length > 0 && description.trim().length < MIN_DESCRIPTION_LENGTH) ? "text-amber-500" : description.length > 1500 ? "text-amber-500" : "text-muted-foreground"}`}
-          >
-            {description.length}/{MAX_DESCRIPTION_LENGTH}
-          </span>
-        </div>
+        <FieldFooter
+          field="description"
+          hint={t("form.descriptionHint")}
+          error={errors.description}
+          counter={<CharCounter value={description} max={MAX_DESCRIPTION_LENGTH} />}
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category" className="form-label-enhanced">
-          Category *
-        </Label>
-        <Select
-          name="category"
-          required
-          disabled={isLoading || isUploading}
-          value={category}
-          onValueChange={setCategory}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Select a category" />
+      <div>
+        <FieldLabel htmlFor="category">{t("form.category")}</FieldLabel>
+        <Select name="category" disabled={disabled} value={category} onValueChange={setCategory}>
+          <SelectTrigger
+            id="category"
+            className={cn(authInputClassName, "mt-2 w-full data-[size=default]:h-12")}
+            aria-required="true"
+            {...fieldAria("category", errors, false)}
+          >
+            <SelectValue placeholder={t("form.selectCategory")} />
           </SelectTrigger>
           <SelectContent>
             {categories.length > 0 ? (
               categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.name}>
+                <SelectItem key={cat.id} value={cat.name} className="min-h-11 sm:min-h-8">
                   {cat.display_name}
                 </SelectItem>
               ))
             ) : (
               <SelectItem value="no-categories" disabled>
-                No categories available
+                {t("form.noCategories")}
               </SelectItem>
             )}
           </SelectContent>
         </Select>
-        <p className="form-helper-text mt-1 text-xs text-muted-foreground">
-          {!category
-            ? "Required. Select a category that best fits your project."
-            : categories.find((c) => c.name === category)?.description || "Looking good! ✨"}
-        </p>
+        <FieldFooter field="category" error={errors.category} />
       </div>
     </div>
   );
