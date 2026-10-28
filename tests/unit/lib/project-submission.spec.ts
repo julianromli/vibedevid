@@ -269,3 +269,14 @@ describe("favicon_url", () => {
     expect(formatted).toContain("Favicon URL: Enter an https URL for the favicon");
   });
 });
+
+describe("favicon_url on the edit flow", () => {
+  it("accepts a typed input that leaves faviconUrl out (the edit form never sends it)", () => {
+    const parsed = parseProjectFormData(formDataOf({}));
+    if (!parsed.ok) throw new Error("fixture parse failed");
+    const { faviconUrl: _omitted, ...withoutFavicon } = parsed.input;
+    const result = buildProjectSubmissionSchema().safeParse(withoutFavicon);
+    expect(result.success).toBe(true);
+    expect(result.data?.faviconUrl).toBeNull();
+  });
+});

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   alignProjectImages,
   INVALID_PROJECT_IMAGE_MESSAGE,
+  imageKeyForUrl,
   isAllowedProjectImageUrl,
   type KnownProjectUpload,
 } from "@/lib/project-images";
@@ -157,5 +158,46 @@ describe("alignProjectImages", () => {
     });
 
     expect(result.ok).toBe(false);
+  });
+});
+
+describe("screenshot keys follow their URL, not the array index", () => {
+  const preview = "https://opengraph.githubassets.com/1/acme/app";
+  const urlA = "https://utfs.io/f/key-a";
+  const urlB = "https://utfs.io/f/key-b";
+
+  it("finds the key for an UploadThing URL even when a keyless preview comes first", () => {
+    expect(imageKeyForUrl(urlB, ["key-a", "key-b"])).toBe("key-b");
+    expect(imageKeyForUrl(preview, ["key-a", "key-b"])).toBeNull();
+  });
+
+  it("keeps the right key for an existing screenshot after the cover preview", () => {
+    // Stored with the GitHub preview first: keys are shorter than URLs.
+    const result = alignProjectImages({
+      submittedUrls: [preview, urlB],
+      submittedKeys: ["key-b"],
+      knownUploads: [],
+      actorUserId: OWNER,
+      projectId: 7,
+      existingUrls: [preview, urlA, urlB],
+      existingKeys: ["key-a", "key-b"],
+    });
+
+    expect(result).toEqual({ ok: true, imageUrls: [preview, urlB], imageKeys: ["key-b"] });
+  });
+
+  it("stores one UploadThing file once even when two host aliases are submitted", () => {
+    const ledgerUrl = `https://app123.ufs.sh/f/${OWN_KEY}`;
+    const result = alignProjectImages({
+      submittedUrls: [`https://utfs.io/f/${OWN_KEY}`, ledgerUrl],
+      submittedKeys: [OWN_KEY],
+      knownUploads: [upload({ url: ledgerUrl })],
+      actorUserId: OWNER,
+      projectId: null,
+      existingUrls: [],
+      existingKeys: [],
+    });
+
+    expect(result).toEqual({ ok: true, imageUrls: [ledgerUrl], imageKeys: [OWN_KEY] });
   });
 });

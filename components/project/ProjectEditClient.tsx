@@ -24,6 +24,7 @@ import { editProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { compressImageFiles } from "@/lib/image-compression";
+import { imageKeyForUrl } from "@/lib/project-images";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
@@ -238,8 +239,15 @@ export function ProjectEditClient({
   };
 
   const removeImage = (index: number) => {
+    const url = editImageUrls[index];
+    if (!url) return;
+    // Keys are only stored for uploads, so a GitHub preview shifts the indexes:
+    // find the key by URL, and use the index only when nothing shifted it.
+    const key =
+      imageKeyForUrl(url, editImageKeys) ??
+      (editImageKeys.length === editImageUrls.length ? editImageKeys[index] : null);
     setEditImageUrls((prev) => prev.filter((_, i) => i !== index));
-    setEditImageKeys((prev) => prev.filter((_, i) => i !== index));
+    if (key) setEditImageKeys((prev) => prev.filter((item) => item !== key));
   };
 
   return (

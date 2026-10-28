@@ -40,7 +40,7 @@ export function FieldLabel({
   return (
     <Label htmlFor={htmlFor} className="text-sm font-medium">
       {children}
-      {optional && <span className="font-normal text-muted-foreground">{t("form.optional")}</span>}
+      {optional && <span className="font-normal text-muted-foreground"> {t("form.optional")}</span>}
     </Label>
   );
 }

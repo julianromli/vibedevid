@@ -84,7 +84,7 @@ export function SourceStep({
       <button
         type="button"
         onClick={onSkip}
-        disabled={disabled}
+        disabled={disabled || isImporting}
         className="min-h-11 text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
       >
         {t("form.skipImport")}

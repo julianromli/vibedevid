@@ -53,11 +53,15 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
   const { t } = useTranslation("projectSubmit");
   const [shots, setShots] = useState<Shot[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  // Files picked but still being compressed: not shots yet, but not done either.
+  const [preparing, setPreparing] = useState(0);
   const shotsRef = useRef<Shot[]>([]);
   const files = useRef(new Map<string, File>());
   const inFlight = useRef(new Map<string, InFlight>());
   const queue = useRef<string[]>([]);
   const nextId = useRef(0);
+  // Set once the uploads are discarded or handed to a project: start nothing new.
+  const stopped = useRef(false);
   const announceRef = useRef(options.announce);
   announceRef.current = options.announce;
 
@@ -67,7 +71,11 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
   }, []);
 
   const pump = useCallback(() => {
-    while (inFlight.current.size < MAX_PARALLEL_UPLOADS && queue.current.length > 0) {
+    while (
+      !stopped.current &&
+      inFlight.current.size < MAX_PARALLEL_UPLOADS &&
+      queue.current.length > 0
+    ) {
       const id = queue.current.shift() as string;
       const file = files.current.get(id);
       if (!file || !shotsRef.current.some((shot) => shot.id === id)) continue;
@@ -138,7 +146,15 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
 
   const addFiles = useCallback(
     async (incoming: File[]) => {
-      const compressed = await Promise.all(incoming.map((file) => compressImageFile(file)));
+      if (stopped.current || incoming.length === 0) return;
+      setPreparing((count) => count + 1);
+      let compressed: File[];
+      try {
+        compressed = await Promise.all(incoming.map((file) => compressImageFile(file)));
+      } finally {
+        setPreparing((count) => count - 1);
+      }
+      if (stopped.current) return;
       const picked = pickScreenshotFiles(compressed, MAX_SCREENSHOTS - shotsRef.current.length);
       const messages = picked.rejected.map((item) =>
         t(item.reason === "type" ? "form.upload.rejectedType" : "form.upload.rejectedSize", {
@@ -217,25 +233,41 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
     [update],
   );
 
+  /** Stop all work. Files that finish later are deleted by the upload callback. */
+  const stop = useCallback(() => {
+    stopped.current = true;
+    queue.current = [];
+    for (const flight of inFlight.current.values()) {
+      clearTimeout(flight.timer);
+      flight.controller.abort();
+    }
+    inFlight.current.clear();
+  }, []);
+
   /** Delete every stored upload, for example when the user cancels the form. */
   const discardAll = useCallback(() => {
+    if (stopped.current) return;
+    stop();
     for (const shot of shotsRef.current) {
       if (shot.key) void cleanupKey(shot.key);
     }
-  }, []);
+  }, [stop]);
+
+  /** The uploads now belong to a project: keep them when the form unmounts. */
+  const release = useCallback(() => {
+    stop();
+  }, [stop]);
 
   useEffect(() => {
-    const flights = inFlight.current;
+    // StrictMode runs cleanup then setup again: start fresh each time.
+    stopped.current = false;
     return () => {
-      for (const flight of flights.values()) {
-        clearTimeout(flight.timer);
-        flight.controller.abort();
-      }
+      discardAll();
       for (const shot of shotsRef.current) {
         if (shot.source === "upload") revoke(shot.previewUrl);
       }
     };
-  }, []);
+  }, [discardAll]);
 
   const images = useMemo(() => submittedImages(shots), [shots]);
 
@@ -243,7 +275,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
     shots,
     images,
     notice,
-    isUploading: isAnyShotUploading(shots),
+    isUploading: preparing > 0 || isAnyShotUploading(shots),
     addFiles,
     retry,
     remove,
@@ -251,6 +283,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
     move,
     setImported,
     discardAll,
+    release,
   };
 }
 

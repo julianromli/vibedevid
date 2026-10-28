@@ -162,9 +162,10 @@ function isHttpsUrl(value: string): boolean {
   }
 }
 
+// Optional: the edit form does not send it, and null means "keep / derive".
 const faviconUrlSchema = z
   .string()
-  .or(z.null())
+  .nullish()
   .transform((value, ctx) => {
     const trimmed = value?.trim() ?? "";
     if (!trimmed) return null;

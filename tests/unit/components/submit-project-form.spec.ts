@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { SubmitProjectForm } from "@/components/ui/submit-project-form";
@@ -367,5 +367,57 @@ describe("SubmitProjectForm submit", () => {
     });
 
     expect(sentFormData().get("favicon_url")).toBe("https://vibeboard.app/icon.png");
+  });
+});
+
+describe("SubmitProjectForm review fixes", () => {
+  it("does not leave the source step while an import is still running", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+    renderForm();
+    await importRepo();
+
+    expect(screen.getByRole("button", { name: "Skip, I will fill it in myself" })).toBeDisabled();
+    next();
+
+    expect(screen.getByLabelText("GitHub repository")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Project title")).not.toBeInTheDocument();
+  });
+
+  it("asks before discarding typed details even with no screenshots", () => {
+    renderForm();
+    next();
+    fireEvent.click(screen.getByText("fill basics"));
+    fireEvent.click(screen.getByTestId("prev-step-button"));
+
+    fireEvent.click(screen.getByTestId("cancel-button"));
+
+    expect(screen.getByText("Discard this project?")).toBeInTheDocument();
+    expect(h.navigate).not.toHaveBeenCalled();
+  });
+
+  it("shows the website on Review the way it will be saved", async () => {
+    mockImport({ website_url: "vibeboard.app" });
+    renderForm();
+    await importRepo();
+    fireEvent.click(screen.getByText("fill basics"));
+    next();
+    await addScreenshot();
+    next();
+    await screen.findByTestId("submit-project-button");
+
+    expect(screen.getByText(/^https:\/\/vibeboard\.app/)).toBeInTheDocument();
+  });
+
+  it("keeps the submitted screenshots when the page unmounts after success", async () => {
+    h.submitProjectFn.mockResolvedValue({ success: true, slug: "vibe-board" });
+    await goToReview();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-project-button"));
+    });
+    await waitFor(() => expect(h.navigate).toHaveBeenCalled());
+
+    cleanup();
+
+    expect(h.cleanupProjectProvisionalUploadFn).not.toHaveBeenCalled();
   });
 });

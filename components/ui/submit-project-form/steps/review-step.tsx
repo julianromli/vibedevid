@@ -2,6 +2,7 @@ import { Image } from "@unpic/react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import type { Option } from "@/components/ui/multiselect";
+import { normalizeProjectWebsiteUrl } from "@/lib/project-url";
 
 export interface ReviewStepProps {
   title: string;
@@ -89,7 +90,9 @@ export function ReviewStep({
 
       <Section heading={t("steps.linksMedia")} onEdit={() => onEdit(2)} disabled={disabled}>
         <dl className="space-y-3">
-          <Row label={t("form.websiteUrl")}>{websiteUrl.trim() || notSet}</Row>
+          <Row label={t("form.websiteUrl")}>
+            {normalizeProjectWebsiteUrl(websiteUrl) ?? (websiteUrl.trim() || notSet)}
+          </Row>
           <Row label={t("form.faviconUrl")}>{faviconUrl.trim() || notSet}</Row>
           <Row label={t("form.techStack")}>
             {tags.length > 0 ? (

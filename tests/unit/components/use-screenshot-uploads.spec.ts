@@ -3,7 +3,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test"
 import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
 import i18n from "@/i18n";
 
-const h = vi.hoisted(() => ({ uploadFiles: vi.fn(), cleanup: vi.fn() }));
+const h = vi.hoisted(() => ({ uploadFiles: vi.fn(), cleanup: vi.fn(), compress: vi.fn() }));
+
+vi.mock("@/lib/image-compression", () => ({ compressImageFile: h.compress }));
 
 vi.mock("@/lib/uploadthing-client", () => ({ uploadFiles: h.uploadFiles }));
 vi.mock("@/lib/actions/projects.functions", () => ({
@@ -27,7 +29,17 @@ beforeEach(() => {
   h.uploadFiles.mockReset();
   h.cleanup.mockReset();
   h.cleanup.mockResolvedValue({ success: true });
+  h.compress.mockReset();
+  h.compress.mockImplementation(async (file: File) => file);
 });
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
 
 describe("useScreenshotUploads", () => {
   it("marks a failed file for retry while the other files finish", async () => {
@@ -101,5 +113,68 @@ describe("useScreenshotUploads", () => {
     await waitFor(() => expect(result.current.shots[1]?.status).toBe("done"));
 
     expect(result.current.images.imageUrls[0]).toBe("https://opengraph.githubassets.com/repo");
+  });
+
+  it("counts files that are still being compressed as uploading", async () => {
+    const compressing = deferred<File>();
+    h.compress.mockReturnValueOnce(compressing.promise);
+    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+
+    let adding: Promise<void> = Promise.resolve();
+    act(() => {
+      adding = result.current.addFiles([png("a.png")]);
+    });
+    expect(result.current.isUploading).toBe(true);
+
+    await act(async () => {
+      compressing.resolve(png("a.png"));
+      await adding;
+    });
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("done"));
+    expect(result.current.isUploading).toBe(false);
+  });
+
+  it("discardAll stops queued uploads and deletes files that finish later", async () => {
+    const pending = new Map<string, (value: unknown) => void>();
+    h.uploadFiles.mockImplementation(
+      (_endpoint, { files }: { files: File[] }) =>
+        new Promise((resolve) => pending.set(files[0]?.name ?? "", resolve)),
+    );
+    const { result } = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await result.current.addFiles(["a", "b", "c", "d"].map((n) => png(`${n}.png`)));
+    });
+    expect(h.uploadFiles).toHaveBeenCalledTimes(3);
+
+    act(() => result.current.discardAll());
+    await act(async () => {
+      pending.get("a.png")?.(confirmed("late-a"));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "late-a" } }));
+    expect(h.uploadFiles).toHaveBeenCalledTimes(3);
+  });
+
+  it("deletes finished uploads on unmount unless they were released to a project", async () => {
+    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    const first = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await first.result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(first.result.current.shots[0]?.status).toBe("done"));
+    first.unmount();
+    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "k1" } });
+
+    h.cleanup.mockClear();
+    const second = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await second.result.current.addFiles([png("b.png")]);
+    });
+    await waitFor(() => expect(second.result.current.shots[0]?.status).toBe("done"));
+    act(() => second.result.current.release());
+    second.unmount();
+    expect(h.cleanup).not.toHaveBeenCalled();
   });
 });

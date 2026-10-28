@@ -1,4 +1,4 @@
-import { createUploadthing, type FileRouter, UTApi } from "uploadthing/server";
+import { createUploadthing, type FileRouter, UploadThingError, UTApi } from "uploadthing/server";
 import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
 import { requireUser } from "@/lib/server/auth";
 import { recordProjectUpload } from "@/lib/server/project-uploads";
@@ -121,7 +121,13 @@ export const ourFileRouter = {
     "image/png": PROJECT_IMAGE_LIMITS,
     "image/webp": PROJECT_IMAGE_LIMITS,
   })
-    .middleware(async () => {
+    .middleware(async ({ files }) => {
+      // maxFileCount applies per MIME type above, so cap the request as a whole.
+      if (files.length > PROJECT_IMAGE_LIMITS.maxFileCount) {
+        throw new UploadThingError(
+          `Upload at most ${PROJECT_IMAGE_LIMITS.maxFileCount} screenshots at once`,
+        );
+      }
       const userId = await requireAuthenticatedUserId();
       return { userId };
     })

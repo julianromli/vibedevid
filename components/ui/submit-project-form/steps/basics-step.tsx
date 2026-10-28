@@ -62,6 +62,7 @@ export function BasicsStep({
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => onFieldBlur("title")}
           autoComplete="off"
+          maxLength={MAX_TITLE_LENGTH}
           className={cn(authInputClassName, "mt-2")}
           aria-required="true"
           enterKeyHint="next"
@@ -87,6 +88,7 @@ export function BasicsStep({
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
           onBlur={() => onFieldBlur("tagline")}
+          maxLength={MAX_TAGLINE_LENGTH}
           className={cn(authInputClassName, "mt-2")}
           enterKeyHint="next"
           disabled={disabled}
@@ -108,6 +110,7 @@ export function BasicsStep({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => onFieldBlur("description")}
+          maxLength={MAX_DESCRIPTION_LENGTH}
           placeholder={t("form.descriptionPlaceholder")}
           className={cn(authInputClassName, "mt-2 h-auto min-h-32 py-3")}
           rows={5}

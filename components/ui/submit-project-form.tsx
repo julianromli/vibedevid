@@ -314,6 +314,8 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
 
   const handleNext = () => {
     if (currentStep === 0) {
+      // A late import response would pull the user back to Basics.
+      if (isImporting) return;
       goToStep(1);
       return;
     }
@@ -389,6 +391,8 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
       const result = await submitProjectFn({ data: toFormData(input, userId) });
       if (result.success && result.slug) {
         toast.success(t("toast.success"));
+        // The screenshots belong to the project now: do not delete them on unmount.
+        uploads.release();
         // Stay locked while the project page loads. A second submit would reuse
         // screenshots that now belong to the new project and fail.
         router.navigate({ to: "/project/$slug", params: { slug: result.slug } });
@@ -458,7 +462,11 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
   };
 
   const handleCancel = () => {
-    if (uploads.shots.length > 0) {
+    const hasWork =
+      uploads.shots.length > 0 ||
+      selectedTags.length > 0 ||
+      [title, tagline, description, category, websiteUrl, faviconUrl].some((value) => value.trim());
+    if (hasWork) {
       setConfirmCancel(true);
       return;
     }

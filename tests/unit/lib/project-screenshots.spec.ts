@@ -89,8 +89,10 @@ describe("pickScreenshotFiles", () => {
     new File([new Uint8Array(size)], name, { type: "image/png" });
 
   it("accepts JPG, PNG and WebP under 4 MB", () => {
-    const result = pickScreenshotFiles([png("a.png")], MAX_SCREENSHOTS);
-    expect(result.accepted).toHaveLength(1);
+    const jpg = new File([new Uint8Array(10)], "a.jpg", { type: "image/jpeg" });
+    const webp = new File([new Uint8Array(10)], "a.webp", { type: "image/webp" });
+    const result = pickScreenshotFiles([png("a.png"), jpg, webp], MAX_SCREENSHOTS);
+    expect(result.accepted.map((file) => file.name)).toEqual(["a.png", "a.jpg", "a.webp"]);
     expect(result.rejected).toEqual([]);
   });
 
