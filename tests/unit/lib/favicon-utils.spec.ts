@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { extractDomain, isBlockedHostname } from "@/lib/favicon-utils";
+import { extractDomain, isBlockedHostname, resolveProjectFavicon } from "@/lib/favicon-utils";
 
 describe("isBlockedHostname", () => {
   it("blocks loopback and localhost hosts", () => {
@@ -43,5 +43,36 @@ describe("extractDomain", () => {
 
   it("returns the origin for a public website", () => {
     expect(extractDomain("https://github.com/org/repo")).toBe("https://github.com");
+  });
+});
+
+describe("resolveProjectFavicon", () => {
+  const fetcher = async (websiteUrl: string) => `${websiteUrl}/favicon.ico`;
+
+  it("uses the favicon the user entered without fetching", async () => {
+    let fetched = false;
+    const result = await resolveProjectFavicon(
+      { faviconUrl: "https://cdn.app/icon.png", websiteUrl: "https://app.io" },
+      async (url) => {
+        fetched = true;
+        return fetcher(url);
+      },
+    );
+    expect(result).toBe("https://cdn.app/icon.png");
+    expect(fetched).toBe(false);
+  });
+
+  it("falls back to the website favicon, then the default", async () => {
+    await expect(
+      resolveProjectFavicon({ faviconUrl: null, websiteUrl: "https://app.io" }, fetcher),
+    ).resolves.toBe("https://app.io/favicon.ico");
+    await expect(
+      resolveProjectFavicon({ faviconUrl: null, websiteUrl: null }, fetcher),
+    ).resolves.toBe("/default-favicon.svg");
+    await expect(
+      resolveProjectFavicon({ faviconUrl: null, websiteUrl: "https://app.io" }, async () => {
+        throw new Error("offline");
+      }),
+    ).resolves.toBe("/default-favicon.svg");
   });
 });

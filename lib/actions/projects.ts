@@ -19,7 +19,7 @@ import {
   listOwnedProjectUploads,
   syncProjectUploadAttachments,
 } from "@/lib/server/project-uploads";
-import { fetchFavicon } from "../favicon-utils";
+import { fetchFavicon, resolveProjectFavicon } from "../favicon-utils";
 import { getProjectIdBySlug, insertWithUniqueSlug, slugifyTitle } from "../slug";
 
 type SubmitProjectFieldErrors = ProjectFieldErrors;
@@ -39,7 +39,6 @@ interface ProvisionalUploadCleanupResult {
   deletedCount: number;
 }
 
-const DEFAULT_FAVICON = "/default-favicon.svg";
 const UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred";
 const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields and try again";
 
@@ -95,18 +94,6 @@ export async function validateAndNormalizeSubmitProjectInput(
     data: parsedInput.data,
   };
 }
-
-const getFaviconOrDefault = async (websiteUrl: string): Promise<string> => {
-  if (!websiteUrl) {
-    return DEFAULT_FAVICON;
-  }
-
-  try {
-    return await fetchFavicon(websiteUrl);
-  } catch {
-    return DEFAULT_FAVICON;
-  }
-};
 
 const cleanupProvisionalUploadByKey = async (
   imageKey: string | null | undefined,
@@ -376,8 +363,9 @@ export async function editProject(projectSlug: string, formData: FormData) {
     // Preserve the existing favicon unless the website URL actually changed —
     // avoids a network fetch + surprise favicon swap on unrelated edits.
     const websiteChanged = (input.websiteUrl ?? null) !== (project.websiteUrl ?? null);
-    let faviconUrl: string | undefined;
-    if (websiteChanged && input.websiteUrl) {
+    // A favicon the user entered always wins.
+    let faviconUrl: string | undefined = input.faviconUrl ?? undefined;
+    if (!faviconUrl && websiteChanged && input.websiteUrl) {
       try {
         faviconUrl = await fetchFavicon(input.websiteUrl);
       } catch (e) {
@@ -548,7 +536,7 @@ export async function submitProject(
     };
 
     const [faviconUrl, authorId] = await Promise.all([
-      getFaviconOrDefault(input.websiteUrl ?? ""),
+      resolveProjectFavicon(input),
       resolveAuthorId(session.user.id, userId),
     ]);
 

@@ -14,5 +14,9 @@
   },
   "vars": {
     "EMAIL_FROM": "noreply@vibedeveloper.id",
+    // Exact addresses (comma-separated) that may sign up outside the email domain list.
+    "NEW_ACCOUNT_ALLOWED_EMAILS": "faiz@mail.grokbot.com",
+    // Preview URLs of this worker (<branch>-vibedevid...) trust their own origin for auth.
+    "AUTH_PREVIEW_HOST_SUFFIX": "-vibedevid.faizintifada.workers.dev",
   },
 }

@@ -24,6 +24,7 @@ import { editProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
 import { compressImageFiles } from "@/lib/image-compression";
+import { imageKeyForUrl } from "@/lib/project-images";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
@@ -31,6 +32,11 @@ import {
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
 } from "@/lib/project-submission";
+import {
+  getConfirmedUpload,
+  type ProjectUploadResult,
+  UNCONFIRMED_UPLOAD_MESSAGE,
+} from "@/lib/project-upload-result";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 import type { OurFileRouter } from "@/lib/uploadthing-router";
 
@@ -73,15 +79,6 @@ interface ProjectEditClientProps {
   categories: Category[];
   projectSlug: string;
   isOwner: boolean;
-}
-
-interface UploadResult {
-  serverData?: {
-    key?: string;
-    url?: string;
-  };
-  url?: string;
-  key?: string;
 }
 
 export function ProjectEditClient({
@@ -209,7 +206,7 @@ export function ProjectEditClient({
     setEditImageKeys([]);
   };
 
-  const handleUploadComplete = (res: UploadResult[] | undefined) => {
+  const handleUploadComplete = (res: ProjectUploadResult[] | undefined) => {
     setIsUploading(false);
 
     if (!res || res.length === 0) {
@@ -217,17 +214,12 @@ export function ProjectEditClient({
       return;
     }
 
-    const newUrls: string[] = [];
-    const newKeys: string[] = [];
+    const confirmed = res.map(getConfirmedUpload).filter((upload) => upload !== null);
+    const newUrls = confirmed.map((upload) => upload.url);
+    const newKeys = confirmed.map((upload) => upload.key);
 
-    for (const uploadResult of res) {
-      const url = uploadResult?.serverData?.url || uploadResult?.url;
-      const key = uploadResult?.serverData?.key || uploadResult?.key;
-
-      if (url && key) {
-        newUrls.push(url);
-        newKeys.push(key);
-      }
+    if (confirmed.length < res.length) {
+      toast.error(UNCONFIRMED_UPLOAD_MESSAGE);
     }
 
     if (newUrls.length > 0) {
@@ -247,8 +239,15 @@ export function ProjectEditClient({
   };
 
   const removeImage = (index: number) => {
+    const url = editImageUrls[index];
+    if (!url) return;
+    // Keys are only stored for uploads, so a GitHub preview shifts the indexes:
+    // find the key by URL, and use the index only when nothing shifted it.
+    const key =
+      imageKeyForUrl(url, editImageKeys) ??
+      (editImageKeys.length === editImageUrls.length ? editImageKeys[index] : null);
     setEditImageUrls((prev) => prev.filter((_, i) => i !== index));
-    setEditImageKeys((prev) => prev.filter((_, i) => i !== index));
+    if (key) setEditImageKeys((prev) => prev.filter((item) => item !== key));
   };
 
   return (

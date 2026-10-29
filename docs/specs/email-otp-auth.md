@@ -31,6 +31,7 @@ Email + password, Google and GitHub sign-in are removed.
 | New account email domains | gmail.com, googlemail.com, yahoo.com, yahoo.co.id, outlook.com, outlook.co.id, hotmail.com, live.com |
 
 - The domain allowlist applies to new accounts only. An existing user with any domain can still sign in.
+- `NEW_ACCOUNT_ALLOWED_EMAILS` (wrangler var, comma-separated) lets exact addresses sign up outside the domain list. It never opens a whole domain.
 - Existing usernames that break the new rule stay. The rule applies when a username is claimed or changed.
 - The OTP email language follows the `NEXT_LOCALE` cookie (`id` or `en`), default `id`. It is sent with the existing Resend `sendAuthEmail`.
 - In production, sending an OTP fails with HTTP 503 when `RESEND_API_KEY` or `EMAIL_FROM` is missing, instead of pretending to send.

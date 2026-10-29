@@ -470,6 +470,15 @@ bisa drift karena keduanya membaca satu sumber.
   Klien memvalidasi per-step saat navigasi plus full-gate saat submit; server
   selalu mengeksekusi schema penuh.
 - Signed-out visits to `/project/submit` redirect from the route loader, not from the server function.
+- `formatProjectFieldErrors` uses readable labels (`image_urls` shows as "Screenshots").
+- Screenshot uploads count only when UploadThing returns `serverData` (`lib/project-upload-result.ts`).
+  No `serverData` means `onUploadComplete` failed and no ledger row exists, so the form drops the
+  file and shows an error at upload time instead of at Submit.
+- `projectImageUploader` accepts only JPG, PNG, and WebP, the same types the server sniffer allows.
+- `alignProjectImages` matches a screenshot by exact ledger URL, or by key when the URL is an
+  UploadThing `https://<host>/f/<key>` URL (`utfs.io` and `<app>.ufs.sh` serve the same file).
+- Submit locks after one click and stays locked after success while the project page loads.
+  A second submit would send screenshots already attached to the new project and fail.
 
 ### Project Filtering & Sorting
 

@@ -58,7 +58,10 @@ function isBlockedIpv6(host: string): boolean {
  * do not offer a stable resolver.
  */
 export function isBlockedHostname(hostname: string): boolean {
-  const host = hostname.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  const host = hostname
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "");
   if (!host) return true;
   if (BLOCKED_HOST_NAMES.has(host)) return true;
   if (host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
@@ -199,4 +202,21 @@ export function getFaviconUrl(websiteUrl: string): string {
 
   // Use Google's favicon service for reliable client-side fetching
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
+}
+
+/**
+ * The favicon to store for a new project: the one the user entered, else the
+ * website's favicon, else the default. Never throws.
+ */
+export async function resolveProjectFavicon(
+  input: { faviconUrl: string | null; websiteUrl: string | null },
+  fetcher: (websiteUrl: string) => Promise<string> = fetchFavicon,
+): Promise<string> {
+  if (input.faviconUrl) return input.faviconUrl;
+  if (!input.websiteUrl) return DEFAULT_FAVICON;
+  try {
+    return await fetcher(input.websiteUrl);
+  } catch {
+    return DEFAULT_FAVICON;
+  }
 }

@@ -3,10 +3,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { getEmailDomain, newAccountEmailError } from "@/lib/auth/email-domain";
+import { getEmailDomain, newAccountEmailError, parseAllowedEmails } from "@/lib/auth/email-domain";
 import { buildEmailOtpOptions, OTP_CONFIG, OTP_SEND_PATH } from "@/lib/auth/otp-config";
 import { buildOtpEmail, resolveEmailLocale } from "@/lib/auth/otp-email";
 import { guardOtpRequest } from "@/lib/auth/otp-request-guard";
+import { previewTrustedOrigins } from "@/lib/auth/trusted-origins";
 import { getDb } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { clientIpFromHeaders, consumeWindowedRateLimit } from "@/lib/server/rate-limit";
@@ -21,6 +22,8 @@ function getAuthConfig() {
       from: secrets.emailFrom,
       resendApiKey: secrets.resendApiKey,
     },
+    allowedEmails: parseAllowedEmails(secrets.newAccountAllowedEmails),
+    previewHostSuffix: secrets.authPreviewHostSuffix,
   };
 }
 
@@ -86,6 +89,8 @@ export function createAuth() {
     }),
     secret: config.secret,
     baseURL: config.baseURL,
+    // Production trusts only baseURL. A Cloudflare preview of this worker also trusts its own origin.
+    trustedOrigins: (request) => previewTrustedOrigins(request, config.previewHostSuffix),
     // Email OTP is the only sign-in method. No passwords, no OAuth.
     emailAndPassword: { enabled: false },
     plugins: [
@@ -114,6 +119,7 @@ export function createAuth() {
           userExists: async (email) =>
             Boolean(await ctx.context.internalAdapter.findUserByEmail(email)),
           consume: (bucket, limit, windowMs) => consumeWindowedRateLimit(bucket, limit, windowMs),
+          allowedEmails: config.allowedEmails,
         });
         if (!error) return;
 
@@ -141,7 +147,10 @@ export function createAuth() {
         create: {
           // Backstop: the send hook already blocks new accounts outside the allowlist.
           before: async (user) => {
-            const error = newAccountEmailError(user.email, { existingUser: false });
+            const error = newAccountEmailError(user.email, {
+              existingUser: false,
+              allowedEmails: config.allowedEmails,
+            });
             if (error) {
               throw new APIError("BAD_REQUEST", {
                 code: error.code,

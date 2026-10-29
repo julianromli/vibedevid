@@ -1,41 +1,61 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from "react";
+import {
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { z } from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { authPrimaryButtonClassName } from "@/components/ui/form-classes";
 import type { Option } from "@/components/ui/multiselect";
 import { Stepper } from "@/components/ui/stepper";
+import type { FieldErrors } from "@/components/ui/submit-project-form/field-parts";
 import { BasicsStep } from "@/components/ui/submit-project-form/steps/basics-step";
-import { LinksMediaStep } from "@/components/ui/submit-project-form/steps/links-media-step";
-import { SourceStep } from "@/components/ui/submit-project-form/steps/source-step";
-import type { UploadResult } from "@/components/ui/submit-project-form/types";
 import {
-  cleanupProjectProvisionalUploadFn,
-  submitProjectFn,
-} from "@/lib/actions/projects.functions";
+  LinksMediaStep,
+  SCREENSHOTS_DROPZONE_ID,
+  TAGS_FIELD_ID,
+} from "@/components/ui/submit-project-form/steps/links-media-step";
+import { ReviewStep } from "@/components/ui/submit-project-form/steps/review-step";
+import { SourceStep } from "@/components/ui/submit-project-form/steps/source-step";
+import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
+import { submitProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
-import { getFaviconUrl } from "@/lib/favicon-utils";
+import type { GitHubImportErrorCode } from "@/lib/github-import";
 import { useRouter } from "@/lib/navigation";
 import {
   buildProjectFieldErrors,
   buildProjectSubmissionSchema,
-  formatProjectFieldErrors,
-  PROJECT_FIELD_SCHEMAS,
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
-  parseProjectFormData,
-  parseResultToFieldErrors,
+  type ProjectFieldErrors,
+  type ProjectFormFieldName,
+  type ProjectSubmissionInput,
 } from "@/lib/project-submission";
-
-// --- Types ---
+import { cn } from "@/lib/utils";
 
 interface SubmitProjectFormProps {
   userId: string;
   categories: Category[];
-  redirectTo: string;
 }
 
 interface GitHubImportData {
@@ -55,49 +75,44 @@ interface GitHubImportData {
   };
 }
 
-interface SubmitFormState {
-  title: string;
-  tagline: string;
-  description: string;
-  uploadedImageUrls: string[];
-  importedImageUrl: string;
-  uploadedImageKeys: string[];
-  selectedTags: Option[];
-  websiteUrl: string;
-  faviconUrl: string;
-  githubRepoUrl: string;
-  category: string;
-  currentStep: number;
+type StepIndex = 0 | 1 | 2 | 3;
+
+const STEP_IDS = ["source", "basics", "linksMedia", "review"] as const;
+const LAST_STEP: StepIndex = 3;
+
+/** The fields each step owns. Next validates only these (bug B3). */
+const STEP_FIELDS: Record<1 | 2, ProjectFormFieldName[]> = {
+  1: ["title", "tagline", "description", "category"],
+  2: ["website_url", "favicon_url", "tags", "image_urls"],
+};
+
+/** The element that takes focus for a field. */
+const FIELD_FOCUS_ID: Partial<Record<ProjectFormFieldName, string>> = {
+  image_urls: SCREENSHOTS_DROPZONE_ID,
+  tags: TAGS_FIELD_ID,
+};
+
+const FIRST_FIELD_ID: Record<StepIndex, string | null> = {
+  0: "github_repo",
+  1: "title",
+  2: "website_url",
+  3: null,
+};
+
+function stepOfField(field: ProjectFormFieldName): 1 | 2 {
+  return STEP_FIELDS[1].includes(field) ? 1 : 2;
 }
 
-interface StoredSubmitProjectDraft {
-  version: number;
-  savedAt: number;
-  state: SubmitFormState;
+function firstErrorField(errors: FieldErrors): ProjectFormFieldName | undefined {
+  return [...STEP_FIELDS[1], ...STEP_FIELDS[2]].find((field) => errors[field]);
 }
 
-interface DraftNoticeState {
-  kind: "available" | "restored";
-  savedAt?: number;
-}
-
-// --- Constants ---
-
-const DRAFT_STORAGE_VERSION = 1;
-const DRAFT_STORAGE_KEY_PREFIX = "submit-project-draft";
-const AUTH_REQUIRED_ERROR_MESSAGE = "You must be logged in to submit projects";
-
-const STEPS = [
-  { id: "source", title: "Source" },
-  { id: "basics", title: "Basics" },
-  { id: "links-media", title: "Links & Media" },
-  { id: "review", title: "Review & Submit" },
-];
-
-// --- Helpers ---
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+function focusField(field: ProjectFormFieldName) {
+  const element = document.getElementById(FIELD_FOCUS_ID[field] ?? field);
+  if (!element) return;
+  const target = element instanceof HTMLDivElement ? element.querySelector("input") : element;
+  (target ?? element).focus();
+  element.scrollIntoView?.({ block: "center" });
 }
 
 function formatImportedTagLabel(value: string): string {
@@ -136,337 +151,290 @@ function mergeImportedTags(selectedTags: Option[], importedTags: string[] | unde
   return next.slice(0, PROJECT_LIMITS.MAX_TAG_COUNT);
 }
 
-function getDraftStorageKey(redirectTo: string): string {
-  return `${DRAFT_STORAGE_KEY_PREFIX}:${redirectTo}`;
-}
-
-function clampStepIndex(value: unknown): number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return 0;
-  }
-  return Math.min(Math.max(Math.round(value), 0), 3);
-}
-
-function normalizeDraftTags(value: unknown): Option[] {
-  if (!Array.isArray(value)) return [];
-
-  const normalized: Option[] = [];
-  const seen = new Set<string>();
-
-  for (const tag of value) {
-    if (!tag || typeof tag !== "object") continue;
-    const rawValue = "value" in tag && typeof tag.value === "string" ? tag.value.trim() : "";
-    if (!rawValue) continue;
-
-    const normalizedValue = rawValue.toLowerCase();
-    if (seen.has(normalizedValue)) continue;
-
-    const label =
-      "label" in tag && typeof tag.label === "string" && tag.label.trim()
-        ? tag.label.trim()
-        : formatImportedTagLabel(normalizedValue);
-
-    normalized.push({ value: normalizedValue, label });
-    seen.add(normalizedValue);
-  }
-
-  return normalized.slice(0, 10);
-}
-
-function hasMeaningfulDraft(state: SubmitFormState): boolean {
-  return Boolean(
-    state.currentStep > 0 ||
-    state.title.trim() ||
-    state.tagline.trim() ||
-    state.description.trim() ||
-    state.uploadedImageUrls.length > 0 ||
-    state.importedImageUrl.trim() ||
-    state.uploadedImageKeys.length > 0 ||
-    state.selectedTags.length > 0 ||
-    state.websiteUrl.trim() ||
-    state.faviconUrl.trim() ||
-    state.githubRepoUrl.trim() ||
-    state.category.trim(),
-  );
-}
-
-function parseStoredDraft(rawValue: string | null): StoredSubmitProjectDraft | null {
-  if (!rawValue) return null;
-
-  try {
-    const parsed = JSON.parse(rawValue) as Partial<StoredSubmitProjectDraft>;
-    if (
-      parsed.version !== DRAFT_STORAGE_VERSION ||
-      !parsed.state ||
-      typeof parsed.state !== "object"
-    ) {
-      return null;
-    }
-
-    const state = parsed.state as Partial<SubmitFormState>;
-    const normalizedState: SubmitFormState = {
-      title: typeof state.title === "string" ? state.title : "",
-      tagline: typeof state.tagline === "string" ? state.tagline : "",
-      description: typeof state.description === "string" ? state.description : "",
-      uploadedImageUrls: Array.isArray(state.uploadedImageUrls) ? state.uploadedImageUrls : [],
-      importedImageUrl: typeof state.importedImageUrl === "string" ? state.importedImageUrl : "",
-      uploadedImageKeys: Array.isArray(state.uploadedImageKeys) ? state.uploadedImageKeys : [],
-      selectedTags: normalizeDraftTags(state.selectedTags),
-      websiteUrl: typeof state.websiteUrl === "string" ? state.websiteUrl : "",
-      faviconUrl: typeof state.faviconUrl === "string" ? state.faviconUrl : "",
-      githubRepoUrl: typeof state.githubRepoUrl === "string" ? state.githubRepoUrl : "",
-      category: typeof state.category === "string" ? state.category : "",
-      currentStep: clampStepIndex(state.currentStep),
-    };
-
-    if (!hasMeaningfulDraft(normalizedState)) return null;
-
-    return {
-      version: DRAFT_STORAGE_VERSION,
-      savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : Date.now(),
-      state: normalizedState,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function getUploadImageUrl(uploadResult: UploadResult | undefined): string | null {
-  return uploadResult?.serverData?.url || uploadResult?.url || null;
-}
-
-function getUploadImageKey(uploadResult: UploadResult | undefined): string | null {
-  return uploadResult?.serverData?.key || uploadResult?.key || null;
-}
-
-function buildSubmitFormData(state: SubmitFormState): FormData {
+function toFormData(input: ProjectSubmissionInput, userId: string): FormData {
   const formData = new FormData();
-
-  if (state.title) formData.set(PROJECT_FORM_FIELDS.title, state.title);
-  if (state.tagline) formData.set(PROJECT_FORM_FIELDS.tagline, state.tagline);
-  if (state.description) formData.set(PROJECT_FORM_FIELDS.description, state.description);
-
-  const allImageUrls = [...state.uploadedImageUrls];
-  if (state.importedImageUrl && !allImageUrls.includes(state.importedImageUrl)) {
-    allImageUrls.push(state.importedImageUrl);
+  formData.set("userId", userId);
+  formData.set(PROJECT_FORM_FIELDS.title, input.title);
+  if (input.tagline) formData.set(PROJECT_FORM_FIELDS.tagline, input.tagline);
+  formData.set(PROJECT_FORM_FIELDS.description, input.description);
+  formData.set(PROJECT_FORM_FIELDS.category, input.category);
+  if (input.websiteUrl) formData.set(PROJECT_FORM_FIELDS.websiteUrl, input.websiteUrl);
+  if (input.faviconUrl) formData.set(PROJECT_FORM_FIELDS.faviconUrl, input.faviconUrl);
+  formData.set(PROJECT_FORM_FIELDS.imageUrls, JSON.stringify(input.imageUrls));
+  if (input.imageKeys.length > 0) {
+    formData.set(PROJECT_FORM_FIELDS.imageKeys, JSON.stringify(input.imageKeys));
   }
-
-  if (allImageUrls.length > 0) {
-    formData.set(PROJECT_FORM_FIELDS.imageUrls, JSON.stringify(allImageUrls));
-  }
-
-  if (state.uploadedImageKeys.length > 0) {
-    formData.set(PROJECT_FORM_FIELDS.imageKeys, JSON.stringify(state.uploadedImageKeys));
-  }
-
-  formData.set(
-    PROJECT_FORM_FIELDS.tags,
-    JSON.stringify(state.selectedTags.map((tag) => tag.value)),
-  );
-
-  if (state.websiteUrl) {
-    formData.set(PROJECT_FORM_FIELDS.websiteUrl, state.websiteUrl);
-  }
-
-  if (state.category) {
-    formData.set(PROJECT_FORM_FIELDS.category, state.category);
-  }
-
+  formData.set(PROJECT_FORM_FIELDS.tags, JSON.stringify(input.tags));
   return formData;
 }
 
-// --- Main Component ---
+/** image_keys errors belong to the screenshots field the user can see. */
+function visibleField(field: string): ProjectFormFieldName {
+  return field === PROJECT_FORM_FIELDS.imageKeys
+    ? PROJECT_FORM_FIELDS.imageUrls
+    : (field as ProjectFormFieldName);
+}
 
-export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProjectFormProps) {
-  const [mounted, setMounted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
-  const [importedImageUrl, setImportedImageUrl] = useState<string>("");
-  const [uploadedImageKeys, setUploadedImageKeys] = useState<string[]>([]);
-  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [selectedTags, setSelectedTags] = useState<Option[]>([]);
-  const [title, setTitle] = useState<string>("");
-  const [tagline, setTagline] = useState<string>("");
-  const [websiteUrl, setWebsiteUrl] = useState<string>("");
-  const [faviconUrl, setFaviconUrl] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [githubRepoUrl, setGithubRepoUrl] = useState<string>("");
-  const [category, setCategory] = useState<string>("");
-  const [pendingDraft, setPendingDraft] = useState<StoredSubmitProjectDraft | null>(null);
-  const [draftNotice, setDraftNotice] = useState<DraftNoticeState | null>(null);
-
+export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps) {
+  const { t } = useTranslation("projectSubmit");
   const router = useRouter();
 
-  const getCurrentDraftState = useCallback(
-    (): SubmitFormState => ({
-      title,
-      tagline,
-      description,
-      uploadedImageUrls,
-      importedImageUrl,
-      uploadedImageKeys,
-      selectedTags,
-      websiteUrl,
-      faviconUrl,
-      githubRepoUrl,
-      category,
-      currentStep,
+  const [currentStep, setCurrentStep] = useState<StepIndex>(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [uploadsBusy, setUploadsBusy] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const [announcement, setAnnouncement] = useState("");
+
+  const [selectedTags, setSelectedTags] = useState<Option[]>([]);
+  const [title, setTitle] = useState("");
+  const [tagline, setTagline] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [description, setDescription] = useState("");
+  const [githubRepoUrl, setGithubRepoUrl] = useState("");
+  const [category, setCategory] = useState("");
+  // A ref, not state: two clicks in one frame both see the old `isLoading`.
+  const submitLockRef = useRef(false);
+  // Where focus goes after the next step change. Null means the default.
+  const pendingFocusRef = useRef<string | null>(null);
+  const isFirstRenderRef = useRef(true);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const uploads = useScreenshotUploads({ announce: setAnnouncement });
+
+  const categoryNames = useMemo(() => categories.map((item) => item.name), [categories]);
+
+  const input = useMemo<ProjectSubmissionInput>(
+    () => ({
+      title: title.trim(),
+      tagline: tagline.trim(),
+      description: description.trim(),
+      category: category.trim(),
+      websiteUrl: websiteUrl.trim(),
+      faviconUrl: faviconUrl.trim(),
+      imageUrls: uploads.images.imageUrls,
+      imageKeys: uploads.images.imageKeys,
+      tags: selectedTags.map((tag) => tag.value),
     }),
-    [
-      category,
-      currentStep,
-      description,
-      faviconUrl,
-      githubRepoUrl,
-      importedImageUrl,
-      selectedTags,
-      tagline,
-      title,
-      uploadedImageKeys,
-      uploadedImageUrls,
-      websiteUrl,
-    ],
+    [title, tagline, description, category, websiteUrl, faviconUrl, uploads.images, selectedTags],
   );
 
+  /** Client-side errors for every field, in the user's language. */
+  const validateAll = useCallback((): FieldErrors => {
+    const result = buildProjectSubmissionSchema(categoryNames).safeParse(input);
+    if (result.success) return {};
+    const found: FieldErrors = {};
+    for (const field of Object.keys(buildProjectFieldErrors(result.error))) {
+      const name = visibleField(field);
+      found[name] = t(`form.errors.${name}`);
+    }
+    return found;
+  }, [categoryNames, input, t]);
+
+  // Once a field shows an error, re-check it on every change so it clears when fixed.
   useEffect(() => {
-    setMounted(true);
-    const restoredDraft = parseStoredDraft(sessionStorage.getItem(getDraftStorageKey(redirectTo)));
-    if (restoredDraft) {
-      setPendingDraft(restoredDraft);
-      setDraftNotice({ kind: "available", savedAt: restoredDraft.savedAt });
-    }
-  }, [redirectTo]);
+    setErrors((previous) => {
+      const shown = Object.keys(previous) as ProjectFormFieldName[];
+      if (shown.length === 0) return previous;
+      const current = validateAll();
+      const next: FieldErrors = {};
+      for (const field of shown) {
+        if (current[field]) next[field] = previous[field];
+      }
+      return Object.keys(next).length === shown.length ? previous : next;
+    });
+  }, [validateAll]);
 
-  // Draft persistence
   useEffect(() => {
-    const key = getDraftStorageKey(redirectTo);
-    const handleBeforeUnload = () => {
-      const draft = getCurrentDraftState();
-      if (hasMeaningfulDraft(draft)) {
-        sessionStorage.setItem(
-          key,
-          JSON.stringify({
-            version: DRAFT_STORAGE_VERSION,
-            savedAt: Date.now(),
-            state: draft,
-          }),
-        );
-      }
-    };
+    if (!uploads.isUploading) setUploadsBusy(false);
+  }, [uploads.isUploading]);
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [redirectTo, getCurrentDraftState]);
-
-  const validateCurrentStep = (): boolean => {
-    setError(null);
-
-    const parsed = parseProjectFormData(buildSubmitFormData(getCurrentDraftState()));
-    if (!parsed.ok) {
-      setError(formatProjectFieldErrors(parseResultToFieldErrors(parsed.issues)));
-      return false;
+  // Move focus after a step change: the first field with a fine pointer, else the heading.
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
     }
-    const input = parsed.input;
-
-    if (currentStep === 1) {
-      const partial = z.object({
-        title: PROJECT_FIELD_SCHEMAS.title,
-        tagline: PROJECT_FIELD_SCHEMAS.tagline,
-        description: PROJECT_FIELD_SCHEMAS.description,
-        category: PROJECT_FIELD_SCHEMAS.category,
-      });
-
-      const result = partial.safeParse(input);
-      if (!result.success) {
-        setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
-        return false;
-      }
+    const pending = pendingFocusRef.current;
+    pendingFocusRef.current = null;
+    if (pending) {
+      focusField(pending as ProjectFormFieldName);
+      return;
     }
-
-    if (currentStep === 2) {
-      const partial = z.object({
-        websiteUrl: PROJECT_FIELD_SCHEMAS.websiteUrl,
-        imageUrls: PROJECT_FIELD_SCHEMAS.imageUrls,
-        tags: PROJECT_FIELD_SCHEMAS.tags,
-      });
-
-      const result = partial.safeParse(input);
-      if (!result.success) {
-        setError(formatProjectFieldErrors(buildProjectFieldErrors(result.error)));
-        return false;
-      }
+    const firstField = FIRST_FIELD_ID[currentStep];
+    const finePointer =
+      typeof window !== "undefined" && window.matchMedia?.("(pointer: fine)").matches;
+    if (firstField && finePointer) {
+      document.getElementById(firstField)?.focus();
+    } else {
+      headingRef.current?.focus();
     }
+  }, [currentStep]);
 
-    return true;
+  const goToStep = (step: StepIndex, focusId: string | null = null) => {
+    pendingFocusRef.current = focusId;
+    setFormError(null);
+    setCurrentStep(step);
+  };
+
+  const fieldHasValue = (field: ProjectFormFieldName): boolean => {
+    switch (field) {
+      case "title":
+        return Boolean(input.title);
+      case "tagline":
+        return Boolean(input.tagline);
+      case "description":
+        return Boolean(input.description);
+      case "category":
+        return Boolean(input.category);
+      case "website_url":
+        return Boolean(input.websiteUrl);
+      case "favicon_url":
+        return Boolean(input.faviconUrl);
+      case "tags":
+        return input.tags.length > 0;
+      default:
+        return input.imageUrls.length > 0;
+    }
+  };
+
+  const handleFieldBlur = (field: ProjectFormFieldName) => {
+    // No judgement on a field the user has not filled in yet.
+    if (!fieldHasValue(field)) return;
+    const message = validateAll()[field];
+    setErrors((previous) => {
+      if (previous[field] === message) return previous;
+      const next = { ...previous };
+      if (message) next[field] = message;
+      else delete next[field];
+      return next;
+    });
+  };
+
+  const handleNext = () => {
+    if (currentStep === 0) {
+      // A late import response would pull the user back to Basics.
+      if (isImporting) return;
+      goToStep(1);
+      return;
+    }
+    if (currentStep === 2 && uploads.isUploading) {
+      setUploadsBusy(true);
+      return;
+    }
+    const step = currentStep as 1 | 2;
+    const all = validateAll();
+    const stepErrors: FieldErrors = {};
+    for (const field of STEP_FIELDS[step]) {
+      if (all[field]) stepErrors[field] = all[field];
+    }
+    const first = firstErrorField(stepErrors);
+    setErrors((previous) => {
+      const next = { ...previous };
+      for (const field of STEP_FIELDS[step]) delete next[field];
+      return { ...next, ...stepErrors };
+    });
+    if (first) {
+      focusField(first);
+      return;
+    }
+    goToStep((step + 1) as StepIndex);
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) goToStep((currentStep - 1) as StepIndex);
+  };
+
+  const showFieldErrors = (fieldErrors: FieldErrors) => {
+    setErrors(fieldErrors);
+    const first = firstErrorField(fieldErrors);
+    if (!first) return;
+    const step = stepOfField(first);
+    if (step === currentStep) {
+      focusField(first);
+    } else {
+      goToStep(step, FIELD_FOCUS_ID[first] ?? first);
+    }
   };
 
   const handleSubmitResultError = (result: Awaited<ReturnType<typeof submitProjectFn>>) => {
-    if (!result) {
-      setError("An unexpected error occurred. Please try again.");
+    const serverErrors: ProjectFieldErrors = result?.fieldErrors ?? {};
+    const mapped: FieldErrors = {};
+    for (const [field, messages] of Object.entries(serverErrors)) {
+      const message = messages?.[0];
+      if (message) mapped[visibleField(field)] = message;
+    }
+    if (firstErrorField(mapped)) {
+      showFieldErrors(mapped);
       return;
     }
-
-    if (result.fieldErrors) {
-      const messages = formatProjectFieldErrors(result.fieldErrors);
-      if (messages.length > 0) {
-        setError(messages);
-        return;
-      }
-    }
-
-    setError(result.error || "Something went wrong. Please try again.");
+    setFormError(result?.error || t("toast.error"));
   };
 
   const handleSubmit = async () => {
-    if (!validateCurrentStep()) return;
+    if (submitLockRef.current) return;
 
-    // Final gate: validate ALL fields, not just the active step, before talking to the server.
-    const parsed = parseProjectFormData(buildSubmitFormData(getCurrentDraftState()));
-    if (!parsed.ok) {
-      setError(formatProjectFieldErrors(parseResultToFieldErrors(parsed.issues)));
+    // Final gate: every field, not just this step.
+    const all = validateAll();
+    if (firstErrorField(all)) {
+      showFieldErrors(all);
       return;
     }
-    const fullValidation = buildProjectSubmissionSchema(
-      categories.map((category) => category.name),
-    ).safeParse(parsed.input);
-    if (!fullValidation.success) {
-      setError(formatProjectFieldErrors(buildProjectFieldErrors(fullValidation.error)));
-      return;
-    }
-    const formData = buildSubmitFormData(getCurrentDraftState());
-    formData.set("userId", userId);
 
+    submitLockRef.current = true;
     setIsLoading(true);
-    setError(null);
+    setFormError(null);
+    setAnnouncement(t("form.announceSubmitting"));
+    // Keep the screenshots while the server attaches them: no cleanup on reload or unmount.
+    uploads.release();
 
     try {
-      const result = await submitProjectFn({ data: formData });
+      const result = await submitProjectFn({ data: toFormData(input, userId) });
       if (result.success && result.slug) {
-        toast.success("Mantap! 🚀 Project lo berhasil di-submit!");
+        toast.success(t("toast.success"));
+        // Stay locked while the project page loads. A second submit would reuse
+        // screenshots that now belong to the new project and fail.
         router.navigate({ to: "/project/$slug", params: { slug: result.slug } });
-      } else {
-        handleSubmitResultError(result);
+        return;
       }
+      handleSubmitResultError(result);
     } catch (err) {
-      setError(getErrorMessage(err, "An unexpected error occurred"));
-    } finally {
-      setIsLoading(false);
+      setFormError(err instanceof Error && err.message ? err.message : t("toast.error"));
+    }
+    uploads.resume();
+    submitLockRef.current = false;
+    setIsLoading(false);
+  };
+
+  const importErrorMessage = (code: GitHubImportErrorCode | undefined): string | undefined => {
+    switch (code) {
+      case "notFound":
+        return t("form.importError.notFound");
+      case "rateLimited":
+        return t("form.importError.rateLimited");
+      case "invalidUrl":
+        return t("form.importError.invalidUrl");
+      case "failed":
+        return t("form.importFailed");
+      default:
+        return undefined;
     }
   };
 
-  const handleGitHubImportClick = async () => {
+  const handleGitHubImport = async () => {
     if (!githubRepoUrl.trim()) {
-      setError("Please enter a GitHub repository URL");
+      setImportError(t("form.importEmpty"));
       return;
     }
 
     setIsImporting(true);
-    setError(null);
+    setImportError(null);
+    setAnnouncement(t("form.announceImporting"));
 
     try {
       const response = await fetch("/api/github-import", {
@@ -475,9 +443,12 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
         body: JSON.stringify({ repoUrl: githubRepoUrl.trim() }),
       });
 
-      const data = (await response.json()) as GitHubImportData & { error?: string };
+      const data = (await response.json()) as GitHubImportData & {
+        error?: string;
+        code?: GitHubImportErrorCode;
+      };
       if (!response.ok) {
-        throw new Error(data.error || "Failed to import repo");
+        throw new Error(importErrorMessage(data.code) ?? data.error ?? t("form.importFailed"));
       }
 
       mergeImportedTextState(setTitle, data.title);
@@ -485,226 +456,231 @@ export function SubmitProjectForm({ userId, categories, redirectTo }: SubmitProj
       mergeImportedTextState(setDescription, data.description);
       mergeImportedTextState(setWebsiteUrl, data.website_url);
 
-      if (data.favicon_url) {
-        setFaviconUrl(data.favicon_url);
-      } else if (data.website_url) {
-        setFaviconUrl(getFaviconUrl(data.website_url));
-      }
+      // Leave the favicon field empty: the server fetches the icon for the submitted website.
 
-      if (data.preview_image_url || data.image_url) {
-        setImportedImageUrl(data.preview_image_url || data.image_url || "");
-      }
+      const previewUrl = data.preview_image_url || data.image_url;
+      if (previewUrl) uploads.setImported(previewUrl);
 
       if (data.tags && data.tags.length > 0) {
         setSelectedTags((prev) => mergeImportedTags(prev, data.tags));
       }
 
-      toast.success("Repository imported successfully!");
+      toast.success(t("form.importSuccess"));
+      setAnnouncement(t("form.announceImported"));
+      goToStep(1);
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to import GitHub repository"));
+      setAnnouncement("");
+      setImportError(err instanceof Error && err.message ? err.message : t("form.importFailed"));
     } finally {
       setIsImporting(false);
     }
   };
 
-  const handleUploadBegin = (_name: string) => {
-    setIsUploading(true);
-    setError(null);
-    if (uploadTimeout) {
-      clearTimeout(uploadTimeout);
-    }
-    const timeoutId = setTimeout(() => {
-      setIsUploading(false);
-      setError("Upload timed out. Please try again.");
-    }, 120000);
-    setUploadTimeout(timeoutId);
+  const leave = () => {
+    uploads.discardAll();
+    router.navigate({ to: "/project/list" });
   };
 
-  const handleUploadComplete = (res: UploadResult[] | undefined) => {
-    if (uploadTimeout) {
-      clearTimeout(uploadTimeout);
-      setUploadTimeout(null);
-    }
-    setIsUploading(false);
-    setError(null);
-    if (!res || res.length === 0) {
-      setError("Upload completed but no files were received. Please try again.");
+  const handleCancel = () => {
+    const hasWork =
+      uploads.shots.length > 0 ||
+      selectedTags.length > 0 ||
+      [title, tagline, description, category, websiteUrl, faviconUrl].some((value) => value.trim());
+    if (hasWork) {
+      setConfirmCancel(true);
       return;
     }
-    const newImageUrls: string[] = [];
-    const newImageKeys: string[] = [];
-    for (const uploadResult of res) {
-      const imageUrl = getUploadImageUrl(uploadResult);
-      const imageKey = getUploadImageKey(uploadResult);
-      if (imageUrl && imageKey) {
-        newImageUrls.push(imageUrl);
-        newImageKeys.push(imageKey);
-      }
-    }
-    if (newImageUrls.length > 0) {
-      setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
-      setUploadedImageKeys((prev) => [...prev, ...newImageKeys]);
-      return;
-    }
-    setError("Upload completed but response format is invalid. Please try again.");
+    leave();
   };
 
-  const cleanupActiveUpload = async () => {
-    if (uploadedImageKeys.length === 0) {
-      return true;
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isLoading) return;
+    if (currentStep === LAST_STEP) {
+      void handleSubmit();
+    } else {
+      handleNext();
     }
-    try {
-      const results = await Promise.all(
-        uploadedImageKeys.map((imageKey) =>
-          cleanupProjectProvisionalUploadFn({ data: { imageKey } }),
-        ),
-      );
-      if (results.every((result) => result.success)) {
-        setUploadedImageUrls([]);
-        setUploadedImageKeys([]);
-        return true;
-      }
-    } catch {
-      // Ignore cleanup error
-    }
-    setError("Failed to clean up the uploaded screenshot. Please try again.");
-    toast.error("Failed to clean up the uploaded screenshot");
-    return false;
   };
 
-  const handleUploadError = (error: Error) => {
-    if (uploadTimeout) {
-      clearTimeout(uploadTimeout);
-      setUploadTimeout(null);
-    }
-    setIsUploading(false);
-    setError(`Upload failed: ${error.message}`);
-  };
+  const steps = STEP_IDS.map((id) => ({ id, title: t(`steps.${id}`) }));
+  const stepId = STEP_IDS[currentStep];
+  const fieldProps = { errors, onFieldBlur: handleFieldBlur, disabled: isLoading };
+  const isLastStep = currentStep === LAST_STEP;
 
   return (
-    <Stepper
-      steps={STEPS}
-      initialStep={currentStep}
-      onStepChange={setCurrentStep}
-      canProceed={!isLoading && !isUploading}
-    >
-      <Card className="w-full max-w-3xl mx-auto flex flex-col relative overflow-visible">
-        <CardHeader className="bg-muted/50 border-b pb-6">
-          <CardTitle className="text-2xl">Project Details</CardTitle>
-          <Stepper.Indicator />
-        </CardHeader>
-
-        <CardContent className="pt-10 pb-24">
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-950/20 mb-6">
-              {error}
-            </div>
-          )}
-
-          <Stepper.Step index={0}>
-            <SourceStep
-              mounted={mounted}
-              githubRepoUrl={githubRepoUrl}
-              setGithubRepoUrl={setGithubRepoUrl}
-              isLoading={isLoading}
-              isUploading={isUploading}
-              isImporting={isImporting}
-              onImport={handleGitHubImportClick}
+    <>
+      <form noValidate onSubmit={handleFormSubmit} className="w-full">
+        <Card className="mx-auto w-full max-w-2xl gap-0 py-0">
+          <CardHeader className="border-b pt-6 pb-6">
+            <Stepper
+              steps={steps}
+              currentStep={currentStep}
+              onSelect={(index) => goToStep(index as StepIndex)}
+              locked={isLoading}
             />
-          </Stepper.Step>
+          </CardHeader>
 
-          <Stepper.Step index={1}>
-            <BasicsStep
-              title={title}
-              setTitle={setTitle}
-              tagline={tagline}
-              setTagline={setTagline}
-              description={description}
-              setDescription={setDescription}
-              category={category}
-              setCategory={setCategory}
-              categories={categories}
-              isLoading={isLoading}
-              isUploading={isUploading}
-            />
-          </Stepper.Step>
+          <CardContent className="pt-8 pb-8">
+            {formError && (
+              <div
+                role="alert"
+                className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+              >
+                {formError}
+              </div>
+            )}
 
-          <Stepper.Step index={2}>
-            <LinksMediaStep
-              websiteUrl={websiteUrl}
-              setWebsiteUrl={setWebsiteUrl}
-              faviconUrl={faviconUrl}
-              setFaviconUrl={setFaviconUrl}
-              selectedTags={selectedTags}
-              setSelectedTags={setSelectedTags}
-              uploadedImageUrls={uploadedImageUrls}
-              setUploadedImageUrls={setUploadedImageUrls}
-              uploadedImageKeys={uploadedImageKeys}
-              setUploadedImageKeys={setUploadedImageKeys}
-              importedImageUrl={importedImageUrl}
-              setImportedImageUrl={setImportedImageUrl}
-              isLoading={isLoading}
-              isUploading={isUploading}
-              onUploadBegin={handleUploadBegin}
-              onUploadComplete={handleUploadComplete}
-              onUploadError={handleUploadError}
-            />
-          </Stepper.Step>
+            <section
+              key={stepId}
+              aria-labelledby="step-heading"
+              className="animate-auth-step-in space-y-6"
+            >
+              <h2
+                id="step-heading"
+                ref={headingRef}
+                tabIndex={-1}
+                className="text-lg font-semibold outline-none"
+              >
+                {t(`steps.headings.${stepId}`)}
+              </h2>
 
-          <Stepper.Step index={3}>
-            <div className="space-y-6" />
-          </Stepper.Step>
-        </CardContent>
+              {currentStep === 0 && (
+                <SourceStep
+                  githubRepoUrl={githubRepoUrl}
+                  setGithubRepoUrl={setGithubRepoUrl}
+                  disabled={isLoading}
+                  isImporting={isImporting}
+                  importError={importError}
+                  onImport={handleGitHubImport}
+                  onSkip={() => goToStep(1)}
+                />
+              )}
 
-        <CardFooter className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t p-4 sm:absolute sm:border-t-0 sm:bg-transparent sm:backdrop-blur-none flex justify-between">
-          <Stepper.Actions
-            renderBack={({ onClick, label }) => (
+              {currentStep === 1 && (
+                <BasicsStep
+                  title={title}
+                  setTitle={setTitle}
+                  tagline={tagline}
+                  setTagline={setTagline}
+                  description={description}
+                  setDescription={setDescription}
+                  category={category}
+                  setCategory={setCategory}
+                  categories={categories}
+                  {...fieldProps}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <LinksMediaStep
+                  websiteUrl={websiteUrl}
+                  setWebsiteUrl={setWebsiteUrl}
+                  faviconUrl={faviconUrl}
+                  setFaviconUrl={setFaviconUrl}
+                  selectedTags={selectedTags}
+                  setSelectedTags={setSelectedTags}
+                  shots={uploads.shots}
+                  uploadNotice={uploads.notice}
+                  uploadsBusyMessage={uploadsBusy ? t("form.uploadsBusy") : null}
+                  onAddFiles={uploads.addFiles}
+                  onRetryShot={uploads.retry}
+                  onRemoveShot={uploads.remove}
+                  onMakeCover={uploads.makeCover}
+                  onMoveShot={uploads.move}
+                  {...fieldProps}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <ReviewStep
+                  title={title}
+                  tagline={tagline}
+                  description={description}
+                  categoryLabel={
+                    categories.find((item) => item.name === category)?.display_name ?? category
+                  }
+                  websiteUrl={websiteUrl}
+                  faviconUrl={faviconUrl}
+                  tags={selectedTags}
+                  imageUrls={uploads.images.imageUrls}
+                  onEdit={(step) => goToStep(step, FIRST_FIELD_ID[step])}
+                  disabled={isLoading}
+                />
+              )}
+            </section>
+          </CardContent>
+
+          <CardFooter className="sticky bottom-0 flex justify-between gap-3 border-t bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:static sm:bg-transparent sm:px-6 sm:pt-6 sm:pb-6 sm:backdrop-blur-none">
+            {currentStep === 0 ? (
               <Button
+                type="button"
+                variant="ghost"
+                data-testid="cancel-button"
+                ref={cancelButtonRef}
+                onClick={handleCancel}
+                disabled={isLoading}
+                className="h-11 px-5 text-base sm:h-10 sm:text-sm"
+              >
+                {t("form.cancel")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
                 variant="outline"
                 data-testid="prev-step-button"
-                onClick={async () => {
-                  if (currentStep === 0) {
-                    const cleanedUp = await cleanupActiveUpload();
-                    if (!cleanedUp) return;
-                    router.back();
-                  } else {
-                    onClick();
-                  }
-                }}
-                disabled={isLoading || isUploading}
+                onClick={handleBack}
+                disabled={isLoading}
+                className="h-11 px-5 text-base sm:h-10 sm:text-sm"
               >
-                {label}
+                {t("form.back")}
               </Button>
             )}
-            renderNext={({ onClick, label, isLastStep }) => (
-              <Button
-                data-testid={isLastStep ? "submit-project-button" : "next-step-button"}
-                onClick={() => {
-                  if (isLastStep) {
-                    handleSubmit();
-                  } else {
-                    if (validateCurrentStep()) {
-                      onClick();
-                    }
-                  }
-                }}
-                disabled={isLoading || isUploading}
-                className={isLastStep ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-              >
-                {isLoading && isLastStep ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  label
+            <Button
+              type="submit"
+              data-testid={isLastStep ? "submit-project-button" : "next-step-button"}
+              aria-busy={isLoading || undefined}
+              aria-disabled={isLoading || undefined}
+              className={cn(
+                authPrimaryButtonClassName,
+                "h-11 w-auto px-5 text-base sm:h-10 sm:text-sm motion-reduce:active:scale-100",
+              )}
+            >
+              <span className="grid place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
+                <span className={cn(isLoading && isLastStep && "opacity-0")}>
+                  {isLastStep ? t("form.submit") : t("form.next")}
+                </span>
+                {isLoading && isLastStep && (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 )}
-              </Button>
-            )}
-          />
-        </CardFooter>
-        <div className="h-20 sm:hidden" />
-      </Card>
-    </Stepper>
+              </span>
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
+
+      <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            // Opened without a Trigger, so tell Radix where focus goes back to.
+            event.preventDefault();
+            cancelButtonRef.current?.focus();
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("form.confirmCancelTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("form.confirmCancelBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("form.confirmCancelKeep")}</AlertDialogCancel>
+            <AlertDialogAction onClick={leave}>{t("form.confirmCancelDiscard")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

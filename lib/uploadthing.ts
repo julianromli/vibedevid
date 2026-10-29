@@ -1,4 +1,4 @@
-import { createUploadthing, type FileRouter, UTApi } from "uploadthing/server";
+import { createUploadthing, type FileRouter, UploadThingError, UTApi } from "uploadthing/server";
 import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
 import { requireUser } from "@/lib/server/auth";
 import { recordProjectUpload } from "@/lib/server/project-uploads";
@@ -7,6 +7,7 @@ import { isUploadthingTokenShape } from "@/lib/uploadthing-token";
 import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
 
 const ANONYMOUS_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const PROJECT_IMAGE_LIMITS = { maxFileSize: "4MB", maxFileCount: 10 } as const;
 
 export type { OurFileRouter } from "./uploadthing-router";
 
@@ -109,12 +110,26 @@ export async function deleteUploadthingFiles(
     };
   }
 
-  return getUtApi().deleteFiles(normalizedKeys);
+  // UTApi returns a class instance; server functions can only serialize plain objects.
+  const result = await getUtApi().deleteFiles(normalizedKeys);
+  return { success: Boolean(result.success), deletedCount: Number(result.deletedCount) || 0 };
 }
 
 export const ourFileRouter = {
-  projectImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 10 } })
-    .middleware(async () => {
+  // Only types the server sniffer accepts. With a generic `image` route a GIF or
+  // HEIC uploads fine, onUploadComplete rejects it, and UploadThing hides that error.
+  projectImageUploader: f({
+    "image/jpeg": PROJECT_IMAGE_LIMITS,
+    "image/png": PROJECT_IMAGE_LIMITS,
+    "image/webp": PROJECT_IMAGE_LIMITS,
+  })
+    .middleware(async ({ files }) => {
+      // maxFileCount applies per MIME type above, so cap the request as a whole.
+      if (files.length > PROJECT_IMAGE_LIMITS.maxFileCount) {
+        throw new UploadThingError(
+          `Upload at most ${PROJECT_IMAGE_LIMITS.maxFileCount} screenshots at once`,
+        );
+      }
       const userId = await requireAuthenticatedUserId();
       return { userId };
     })

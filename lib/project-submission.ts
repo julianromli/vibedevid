@@ -25,6 +25,7 @@ export const PROJECT_FORM_FIELDS = {
   description: "description",
   category: "category",
   websiteUrl: "website_url",
+  faviconUrl: "favicon_url",
   imageUrls: "image_urls",
   imageKeys: "image_keys",
   tags: "tags",
@@ -54,6 +55,8 @@ export interface ProjectSubmissionInput {
   description: string;
   category: string;
   websiteUrl: string | null;
+  /** Optional https URL the user picked. Null means fetch it from the website. */
+  faviconUrl: string | null;
   imageUrls: string[];
   imageKeys: string[];
   tags: string[];
@@ -66,6 +69,7 @@ export interface ProjectSubmissionRaw {
   description: string;
   category: string;
   websiteUrl: string;
+  faviconUrl: string;
   imageUrls: string;
   imageKeys: string;
   tags: string;
@@ -149,6 +153,29 @@ const websiteUrlSchema = z
     return normalized;
   });
 
+function isHttpsUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+// Optional: the edit form does not send it, and null means "keep / derive".
+const faviconUrlSchema = z
+  .string()
+  .nullish()
+  .transform((value, ctx) => {
+    const trimmed = value?.trim() ?? "";
+    if (!trimmed) return null;
+    if (trimmed.length > 2048 || !isHttpsUrl(trimmed)) {
+      addFieldIssue(ctx, "Enter an https URL for the favicon", PROJECT_FORM_FIELDS.faviconUrl);
+      return z.NEVER;
+    }
+    return trimmed;
+  });
+
 const imageUrlItemSchema = z
   .string()
   .trim()
@@ -187,6 +214,7 @@ const TYPED_SCHEMA = {
   description: descriptionSchema,
   category: categorySchema,
   websiteUrl: websiteUrlSchema,
+  faviconUrl: faviconUrlSchema,
   imageUrls: imageUrlsSchema,
   imageKeys: imageKeysSchema,
   tags: tagsSchema,
@@ -262,6 +290,7 @@ export function readProjectFormDataRaw(formData: FormData): ProjectSubmissionRaw
     description: getValue(PROJECT_FORM_FIELDS.description),
     category: getValue(PROJECT_FORM_FIELDS.category),
     websiteUrl: getValue(PROJECT_FORM_FIELDS.websiteUrl),
+    faviconUrl: getValue(PROJECT_FORM_FIELDS.faviconUrl),
     imageUrls: getValue(PROJECT_FORM_FIELDS.imageUrls),
     imageKeys: getValue(PROJECT_FORM_FIELDS.imageKeys),
     tags: getValue(PROJECT_FORM_FIELDS.tags),
@@ -294,6 +323,7 @@ const LIST_FIELD_PARSE_MESSAGES: Record<ProjectFormFieldName, string> = {
   description: "Invalid description format",
   category: "Invalid category format",
   website_url: "Enter a valid website URL",
+  favicon_url: "Enter an https URL for the favicon",
   image_urls: "Invalid image URLs format",
   image_keys: "Invalid image keys format",
   tags: "Tags must be a valid list",
@@ -343,6 +373,7 @@ export function parseProjectFormData(formData: FormData): ProjectFormParseResult
       description: raw.description,
       category: raw.category,
       websiteUrl: raw.websiteUrl, // raw string; schema normalizes + validates
+      faviconUrl: raw.faviconUrl,
       imageUrls: imageUrls ?? [],
       imageKeys: imageKeys ?? [],
       tags: tags ?? [],
@@ -366,6 +397,7 @@ const WIRE_FIELD_NAME_BY_SCHEMA_KEY: Record<string, ProjectFormFieldName> = {
   description: PROJECT_FORM_FIELDS.description,
   category: PROJECT_FORM_FIELDS.category,
   websiteUrl: PROJECT_FORM_FIELDS.websiteUrl,
+  faviconUrl: PROJECT_FORM_FIELDS.faviconUrl,
   imageUrls: PROJECT_FORM_FIELDS.imageUrls,
   imageKeys: PROJECT_FORM_FIELDS.imageKeys,
   tags: PROJECT_FORM_FIELDS.tags,
@@ -392,12 +424,24 @@ export function buildProjectFieldErrors(error: z.ZodError): ProjectFieldErrors {
   return fieldErrors;
 }
 
+const FIELD_LABELS: Record<ProjectFormFieldName, string> = {
+  title: "Title",
+  tagline: "Tagline",
+  description: "Description",
+  category: "Category",
+  website_url: "Website URL",
+  favicon_url: "Favicon URL",
+  image_urls: "Screenshots",
+  image_keys: "Screenshots",
+  tags: "Tags",
+};
+
 /** Join fieldErrors into a single human-readable error string. */
 export function formatProjectFieldErrors(fieldErrors: ProjectFieldErrors): string {
   const messages = Object.entries(fieldErrors)
     .filter(([, errors]) => errors && errors.length > 0)
     .map(([field, errors]) => {
-      const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
+      const fieldName = FIELD_LABELS[field as ProjectFormFieldName] ?? field;
       return `${fieldName}: ${errors?.join(", ")}`;
     });
 

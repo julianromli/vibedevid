@@ -66,6 +66,36 @@ export function isAllowedProjectImageUrl(url: string): boolean {
   }
 }
 
+/** True when `url` is an UploadThing file URL for `key` (`https://<host>/f/<key>`). */
+function isUploadthingUrlForKey(url: string, key: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      isUploadthingHost(parsed.hostname) &&
+      parsed.pathname === `/f/${encodeURIComponent(key)}`
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The stored key for an UploadThing URL. Keys are kept only for uploads, so a
+ * keyless GitHub preview shifts the indexes: match by URL, never by position.
+ */
+export function imageKeyForUrl(url: string, keys: readonly string[]): string | null {
+  return keys.find((key) => key.trim() && isUploadthingUrlForKey(url, key.trim()))?.trim() ?? null;
+}
+
+/** The key stored for an existing screenshot, or "" when it has none. */
+function existingKeyFor(url: string, index: number, urls: string[], keys: string[]): string {
+  const byUrl = imageKeyForUrl(url, keys);
+  if (byUrl) return byUrl;
+  // Older rows with non-UploadThing URLs: only trust the index when nothing shifted it.
+  return urls.length === keys.length ? (keys[index] ?? "").trim() : "";
+}
+
 /**
  * Keep only screenshots the server can explain.
  *
@@ -79,6 +109,7 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
   const imageUrls: string[] = [];
   const imageKeys: string[] = [];
   const seen = new Set<string>();
+  const seenKeys = new Set<string>();
 
   for (const rawUrl of input.submittedUrls) {
     const url = rawUrl.trim();
@@ -87,12 +118,15 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
 
     const upload = input.knownUploads.find(
       (row) =>
-        row.url === url &&
+        (row.url === url || isUploadthingUrlForKey(url, row.key)) &&
         row.userId === input.actorUserId &&
         submittedKeys.has(row.key) &&
         (row.projectId == null || row.projectId === input.projectId),
     );
     if (upload) {
+      // utfs.io and <app>.ufs.sh are the same file: store it once.
+      if (seenKeys.has(upload.key)) continue;
+      seenKeys.add(upload.key);
       imageUrls.push(upload.url);
       imageKeys.push(upload.key);
       continue;
@@ -100,11 +134,18 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
 
     const existingIndex = input.existingUrls.indexOf(url);
     if (existingIndex >= 0) {
-      const existingKey = (input.existingKeys[existingIndex] ?? "").trim();
+      const existingKey = existingKeyFor(
+        url,
+        existingIndex,
+        input.existingUrls,
+        input.existingKeys,
+      );
       if (existingKey) {
         if (!submittedKeys.has(existingKey)) {
           return { ok: false, error: INVALID_PROJECT_IMAGE_MESSAGE };
         }
+        if (seenKeys.has(existingKey)) continue;
+        seenKeys.add(existingKey);
         imageUrls.push(url);
         imageKeys.push(existingKey);
         continue;
