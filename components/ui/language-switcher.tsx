@@ -1,8 +1,7 @@
 "use client";
 
 import { Globe } from "lucide-react";
-import { usePathname, useRouter } from "@/lib/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { type Locale, routing } from "@/i18n";
+import { usePathname } from "@/lib/navigation";
 
 const localeLabels: Record<Locale, { label: string; flag: string }> = {
   id: { label: "Bahasa Indonesia", flag: "🇮🇩" },
@@ -27,9 +27,7 @@ function getLocaleFromPathname(pathname: string): Locale {
 }
 
 export function LanguageSwitcher() {
-  const router = useRouter();
   const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -74,7 +72,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={isPending}>
+        <Button variant="ghost" size="icon" className="h-9 w-9">
           <Globe className="h-4 w-4" />
           <span className="sr-only">Switch language</span>
         </Button>

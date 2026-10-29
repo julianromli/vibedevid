@@ -25,8 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { adminUpdatePostFn } from "@/lib/actions/admin/posts.functions";
 import type { AdminPost } from "@/lib/actions/admin/posts";
+import { adminUpdatePostFn } from "@/lib/actions/admin/posts.functions";
 
 interface PostEditDialogProps {
   post: AdminPost;
@@ -62,7 +62,7 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
       } else {
         toast.error(result.error || "Failed to update post");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);
@@ -154,7 +154,7 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
                 min={1}
                 value={formData.read_time_minutes}
                 onChange={(e) =>
-                  setFormData({ ...formData, read_time_minutes: parseInt(e.target.value) || 0 })
+                  setFormData({ ...formData, read_time_minutes: parseInt(e.target.value, 10) || 0 })
                 }
               />
             </div>
@@ -166,7 +166,12 @@ export function PostEditDialog({ post, open, onOpenChange }: PostEditDialogProps
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
                 placeholder="Add a tag..."
               />
               <Button type="button" variant="secondary" onClick={addTag}>

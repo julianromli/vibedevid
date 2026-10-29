@@ -3,8 +3,9 @@ import { and, count, desc, eq, gte } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { testimonials } from "@/lib/db/schema";
-import { requireUser } from "@/lib/server/auth";
 import { readFileBytes, sniffImageMime } from "@/lib/image-sniff";
+import { requireUser } from "@/lib/server/auth";
+import { deleteStoredFiles, storeAnonymousAvatar } from "@/lib/server/stored-uploads";
 import { invalidateApprovedTestimonialsCache } from "@/lib/server/testimonials-public";
 import {
   isHoneypotFilled,
@@ -15,7 +16,6 @@ import {
   validateTestimonialAvatar,
   validateTestimonialFields,
 } from "@/lib/testimonial-form-utils";
-import { deleteUploadthingFiles, uploadAnonymousImage } from "@/lib/uploadthing";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -129,7 +129,7 @@ export async function submitTestimonial(
 
     let uploadedKey: string | undefined;
     try {
-      const uploaded = await uploadAnonymousImage(input.avatar as File);
+      const uploaded = await storeAnonymousAvatar(avatarBytes);
       uploadedKey = uploaded.key;
 
       await db.insert(testimonials).values({
@@ -145,10 +145,9 @@ export async function submitTestimonial(
       return { success: true };
     } catch (error) {
       if (uploadedKey) {
-        try {
-          await deleteUploadthingFiles(uploadedKey);
-        } catch (cleanupError) {
-          console.error("Failed to delete orphaned testimonial upload:", cleanupError);
+        const cleanup = await deleteStoredFiles(uploadedKey);
+        if (!cleanup.success) {
+          console.error("Failed to delete orphaned testimonial upload:", uploadedKey);
         }
       }
       console.error("Unexpected error submitting testimonial:", error);

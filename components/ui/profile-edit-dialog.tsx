@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth/client";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { USERNAME_MAX_LENGTH, validateUsername } from "@/lib/username";
 
 /** Same rule the server applies. Unchanged legacy usernames stay valid. */
@@ -56,6 +56,7 @@ interface ProfileEditDialogProps {
   saving?: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export default function ProfileEditDialog({
   open,
   onOpenChange,
@@ -82,21 +83,6 @@ export default function ProfileEditDialog({
   const [loadingAvatar, setLoadingAvatar] = useState(false);
   const [loadingBio, setLoadingBio] = useState(false);
 
-  const { startUpload, isUploading } = useUploadThing("avatarUploader", {
-    onClientUploadComplete: (res) => {
-      const url = res[0]?.url;
-      if (url) {
-        setFormData((prev) => ({ ...prev, avatar: url }));
-        toast.success("Avatar uploaded");
-      }
-      setLoadingAvatar(false);
-    },
-    onUploadError: (error) => {
-      toast.error(error.message);
-      setLoadingAvatar(false);
-    },
-  });
-
   const handleAvatarUpload = async (file: File): Promise<{ success: boolean }> => {
     if (!session?.user) {
       toast.error("You must be signed in to upload an avatar");
@@ -104,8 +90,17 @@ export default function ProfileEditDialog({
     }
 
     setLoadingAvatar(true);
-    await startUpload([file]);
-    return { success: true };
+    try {
+      const { url } = await uploadImageOfKind("avatars", file);
+      setFormData((prev) => ({ ...prev, avatar: url }));
+      toast.success("Avatar uploaded");
+      return { success: true };
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+      return { success: false };
+    } finally {
+      setLoadingAvatar(false);
+    }
   };
 
   const handleGenerateAvatar = () => {
@@ -181,7 +176,7 @@ export default function ProfileEditDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={loadingAvatar || isUploading}
+                  disabled={loadingAvatar}
                   className="flex items-center gap-2 bg-transparent"
                 >
                   <Upload className="h-4 w-4" />

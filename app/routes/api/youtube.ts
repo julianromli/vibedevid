@@ -33,6 +33,7 @@ interface VideoMetadata {
   url: string;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function fetchYouTubeMetadata(url: string): Promise<Response> {
   if (!url) {
     return Response.json({ error: "URL YouTube diperlukan cuy!" }, { status: 400 });
@@ -102,7 +103,7 @@ async function fetchYouTubeMetadata(url: string): Promise<Response> {
         const match = html.match(pattern);
         if (match?.[1]) {
           const viewsStr = match[1].replace(/[,\s]/g, "");
-          const parsedViews = Number.parseInt(viewsStr);
+          const parsedViews = Number.parseInt(viewsStr, 10);
           if (!Number.isNaN(parsedViews) && parsedViews > 0) {
             views = parsedViews;
             viewsFound = true;

@@ -156,7 +156,7 @@ export function UsernameClaim({
             <p id={SUGGESTIONS_ID} className="text-sm text-muted-foreground">
               {t("username.suggestions")}
             </p>
-            <div role="group" aria-labelledby={SUGGESTIONS_ID} className="flex flex-wrap gap-2">
+            <fieldset aria-labelledby={SUGGESTIONS_ID} className="flex min-w-0 flex-wrap gap-2">
               {suggestions.map((suggestion) => (
                 <Button
                   key={suggestion}
@@ -172,7 +172,7 @@ export function UsernameClaim({
                   @{suggestion}
                 </Button>
               ))}
-            </div>
+            </fieldset>
           </div>
         ) : null}
 

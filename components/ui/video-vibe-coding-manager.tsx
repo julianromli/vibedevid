@@ -1,5 +1,6 @@
 "use client";
 
+import { Image } from "@unpic/react";
 import {
   AlertCircle,
   Calendar,
@@ -11,7 +12,6 @@ import {
   Trash2,
   Youtube,
 } from "lucide-react";
-import { Image } from "@unpic/react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -56,6 +56,8 @@ interface VibeVideoData {
   createdAt: string;
   updatedAt: string;
 }
+
+const SKELETON_KEYS = ["skeleton-1", "skeleton-2", "skeleton-3"];
 
 export function VideoVibeCodingManager() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -141,6 +143,7 @@ export function VideoVibeCodingManager() {
   };
 
   // Load videos on component mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only load; fetchCurrentVideos is recreated every render
   useEffect(() => {
     fetchCurrentVideos();
   }, []);
@@ -535,9 +538,9 @@ export function VideoVibeCodingManager() {
 
           {videosLoading ? (
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, index) => (
+              {SKELETON_KEYS.map((key) => (
                 <div
-                  key={index}
+                  key={key}
                   className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:gap-4 sm:p-4"
                 >
                   <Skeleton className="mx-auto h-20 w-full max-w-[160px] rounded sm:mx-0 sm:h-16 sm:w-24 sm:max-w-none" />
@@ -555,6 +558,7 @@ export function VideoVibeCodingManager() {
             </div>
           ) : currentVideos.length > 0 ? (
             <div className="space-y-4">
+              {/** biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor */}
               {currentVideos.map((video) => (
                 <div
                   key={video.id}

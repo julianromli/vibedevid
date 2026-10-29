@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CoverImageUploader } from "@/components/event/cover-image-uploader";
@@ -25,6 +24,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useEventForm } from "@/hooks/useEventForm";
 import { submitEventFn } from "@/lib/actions/events.functions";
+import { useRouter } from "@/lib/navigation";
 import type { EventFormData } from "@/types/events";
 
 interface SubmitEventModalProps {
@@ -33,6 +33,7 @@ interface SubmitEventModalProps {
   userId: string;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,7 +140,9 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
             </Label>
             <Select
               value={formData.locationType || ""}
-              onValueChange={(value) => setField("locationType", value)}
+              onValueChange={(value) =>
+                setField("locationType", value as EventFormData["locationType"])
+              }
               disabled={isLoading}
             >
               <SelectTrigger>
@@ -179,7 +182,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
             </Label>
             <Select
               value={formData.category || ""}
-              onValueChange={(value) => setField("category", value)}
+              onValueChange={(value) => setField("category", value as EventFormData["category"])}
               disabled={isLoading}
             >
               <SelectTrigger>

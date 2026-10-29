@@ -78,6 +78,7 @@ function rel(file: string): string {
   return file.startsWith(ROOT) ? file.slice(ROOT.length + 1) : file;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 function findAlsLeak(entry = ENTRY): { spec: string; file: string; chain: string } | null {
   const queue = [entry];
   const parent = new Map<string, string | null>([[entry, null]]);

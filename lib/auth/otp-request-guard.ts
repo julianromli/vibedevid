@@ -1,5 +1,5 @@
-import { OTP_SEND_PATH, OTP_SIGN_IN_PATH } from "@/lib/auth/otp-config";
 import { newAccountEmailError } from "@/lib/auth/email-domain";
+import { OTP_SEND_PATH, OTP_SIGN_IN_PATH } from "@/lib/auth/otp-config";
 import {
   type ConsumeRateLimit,
   checkOtpSendAllowed,

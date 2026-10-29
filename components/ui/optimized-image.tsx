@@ -15,10 +15,8 @@ import { cn } from "@/lib/utils";
 
 type ImageFormat = "avif" | "webp";
 
-export interface OptimizedImageProps extends Omit<
-  React.ImgHTMLAttributes<HTMLImageElement>,
-  "src" | "srcSet"
-> {
+export interface OptimizedImageProps
+  extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet"> {
   /** Public path of the original image, e.g. "/hero-vibedevid-showcase.png". */
   src: string;
   alt: string;
@@ -74,7 +72,6 @@ export function OptimizedImage({
           sizes={sizes}
         />
       ))}
-      {/** biome-ignore lint/a11y/useAltText: alt is forwarded explicitly below. */}
       <img
         src={`/optimized/${name}-${fallbackWidth}.webp`}
         alt={alt}

@@ -1,13 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import BlogPageClient from '@/app/blog/blog-page-client'
-import { publicPageHead } from '@/lib/seo/page-meta'
-import { getCurrentUser } from '@/lib/server/auth'
-import { fetchPublishedPosts } from '@/lib/server/blog-public'
-import type { User } from '@/types/homepage'
+import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import BlogPageClient from "@/app/blog/blog-page-client";
+import { publicPageHead } from "@/lib/seo/page-meta";
+import { getCurrentUser } from "@/lib/server/auth";
+import { fetchPublishedPosts } from "@/lib/server/blog-public";
+import type { User } from "@/types/homepage";
 
-const loadBlogIndexData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [currentUser, postsData] = await Promise.all([getCurrentUser(), fetchPublishedPosts()])
+const loadBlogIndexData = createServerFn({ method: "GET" }).handler(async () => {
+  const [currentUser, postsData] = await Promise.all([getCurrentUser(), fetchPublishedPosts()]);
 
   const userData: User | null = currentUser
     ? {
@@ -18,37 +18,31 @@ const loadBlogIndexData = createServerFn({ method: 'GET' }).handler(async () => 
         username: currentUser.username,
         role: currentUser.role ?? null,
       }
-    : null
+    : null;
 
   return {
     isLoggedIn: !!currentUser,
     user: userData,
     posts: postsData || [],
-  }
-})
+  };
+});
 
-export const Route = createFileRoute('/blog/')({
+export const Route = createFileRoute("/blog/")({
   staleTime: 60_000,
   gcTime: 5 * 60_000,
   loader: async () => loadBlogIndexData(),
   head: () =>
     publicPageHead({
-      title: 'Blog | VibeDev ID',
+      title: "Blog | VibeDev ID",
       description:
-        'Artikel, tutorial, dan cerita seputar vibe coding, AI, dan pengembangan software dari komunitas VibeDev ID.',
-      path: '/blog',
+        "Artikel, tutorial, dan cerita seputar vibe coding, AI, dan pengembangan software dari komunitas VibeDev ID.",
+      path: "/blog",
     }),
   component: BlogIndexRoute,
-})
+});
 
 function BlogIndexRoute() {
-  const data = Route.useLoaderData()
+  const data = Route.useLoaderData();
 
-  return (
-    <BlogPageClient
-      isLoggedIn={data.isLoggedIn}
-      user={data.user}
-      posts={data.posts}
-    />
-  )
+  return <BlogPageClient isLoggedIn={data.isLoggedIn} user={data.user} posts={data.posts} />;
 }

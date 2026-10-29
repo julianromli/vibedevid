@@ -201,3 +201,41 @@ describe("screenshot keys follow their URL, not the array index", () => {
     expect(result).toEqual({ ok: true, imageUrls: [ledgerUrl], imageKeys: [OWN_KEY] });
   });
 });
+
+describe("R2 project uploads", () => {
+  const R2_KEY = "projects/user-1/abc.png";
+  const R2_URL = `https://cdn.vibedeveloper.id/${R2_KEY}`;
+
+  it("allows the R2 CDN host", () => {
+    expect(isAllowedProjectImageUrl(R2_URL)).toBe(true);
+    expect(isAllowedProjectImageUrl(`http://cdn.vibedeveloper.id/${R2_KEY}`)).toBe(false);
+  });
+
+  it("finds the key for an R2 URL", () => {
+    expect(imageKeyForUrl(R2_URL, ["other", R2_KEY])).toBe(R2_KEY);
+  });
+
+  it("accepts an R2 upload only with its ledger row and key", () => {
+    const base = {
+      submittedUrls: [R2_URL],
+      knownUploads: [upload({ key: R2_KEY, url: R2_URL })],
+      actorUserId: OWNER,
+      projectId: null,
+      existingUrls: [],
+      existingKeys: [],
+    };
+    expect(alignProjectImages({ ...base, submittedKeys: [R2_KEY] })).toEqual({
+      ok: true,
+      imageUrls: [R2_URL],
+      imageKeys: [R2_KEY],
+    });
+    expect(alignProjectImages({ ...base, submittedKeys: [] })).toEqual({
+      ok: false,
+      error: INVALID_PROJECT_IMAGE_MESSAGE,
+    });
+    expect(alignProjectImages({ ...base, knownUploads: [], submittedKeys: [R2_KEY] })).toEqual({
+      ok: false,
+      error: INVALID_PROJECT_IMAGE_MESSAGE,
+    });
+  });
+});

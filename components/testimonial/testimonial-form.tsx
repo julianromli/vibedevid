@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTestimonialForm } from "@/hooks/useTestimonialForm";
 import { submitTestimonialFn } from "@/lib/actions/testimonials.functions";
-import { compressImageFile } from "@/lib/image-compression";
+import { compressForUpload } from "@/lib/image-compression";
 import { TESTIMONIAL_BODY_MAX } from "@/lib/testimonial-form-utils";
 import { cn } from "@/lib/utils";
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function TestimonialForm() {
   const { t } = useTranslation("testimonialSubmit");
   const { formData, avatar, errors, setField, setAvatarFile, validateForm } = useTestimonialForm();
@@ -38,7 +39,7 @@ export function TestimonialForm() {
       setAvatarFile(null);
       return;
     }
-    const compressed = await compressImageFile(file, { maxDimension: 512 });
+    const compressed = await compressForUpload(file, "testimonials");
     setAvatarFile(compressed);
   }
 
@@ -75,6 +76,7 @@ export function TestimonialForm() {
 
   if (submitted) {
     return (
+      // biome-ignore lint/a11y/useSemanticElements: <output> only allows phrasing content, and this status card has a heading
       <div className="rounded-2xl border bg-background p-8 text-center" role="status">
         <h2 className="text-2xl font-semibold tracking-tight text-balance">{t("thanksTitle")}</h2>
         <p className="text-muted-foreground mt-2 text-pretty">{t("thanksBody")}</p>

@@ -40,6 +40,7 @@ function setStoredGuidePreference(): void {
 const TypingAnimation = () => (
   <div className="flex justify-center items-center py-6">
     <svg
+      aria-hidden="true"
       width="120"
       height="120"
       viewBox="0 0 100 100"

@@ -29,11 +29,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { AdminProject } from "@/lib/actions/admin/projects";
 import {
   adminDeleteProjectFn,
   toggleProjectFeaturedFn,
 } from "@/lib/actions/admin/projects.functions";
-import type { AdminProject } from "@/lib/actions/admin/projects";
 
 interface ProjectActionsProps {
   project: AdminProject;
@@ -57,7 +57,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
       } else {
         toast.error(result.error || "Failed to update project");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);
@@ -74,7 +74,7 @@ export function ProjectActions({ project, onEdit }: ProjectActionsProps) {
       } else {
         toast.error(result.error || "Failed to delete project");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

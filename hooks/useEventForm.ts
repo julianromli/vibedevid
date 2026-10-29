@@ -6,7 +6,7 @@ export interface UseEventFormReturn {
   formData: Partial<EventFormData>;
   errors: Record<string, string>;
   isValid: boolean;
-  setField: (field: keyof EventFormData, value: any) => void;
+  setField: <K extends keyof EventFormData>(field: K, value: EventFormData[K]) => void;
   validateForm: () => boolean;
   resetForm: () => void;
 }
@@ -23,7 +23,7 @@ export function useEventForm({ userId }: UseEventFormProps): UseEventFormReturn 
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const setField = (field: keyof EventFormData, value: any) => {
+  const setField = <K extends keyof EventFormData>(field: K, value: EventFormData[K]) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
 

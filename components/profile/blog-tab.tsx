@@ -1,8 +1,8 @@
 "use client";
 
+import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, Clock } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
 

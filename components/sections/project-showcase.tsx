@@ -18,10 +18,10 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { FilterControls } from "@/components/ui/filter-controls";
 import { HeartButtonDisplay } from "@/components/ui/heart-button-display";
-import { ViewCountDisplay } from "@/components/ui/view-count-display";
 import { ScrollReveal } from "@/components/ui/motion-wrapper";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
 import { UserDisplayName } from "@/components/ui/user-display-name";
+import { ViewCountDisplay } from "@/components/ui/view-count-display";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import type { Project, SortBy } from "@/types/homepage";
@@ -210,7 +210,16 @@ export function ProjectShowcase() {
   const { t } = useTranslation("projectShowcase");
   const { t: tCommon } = useTranslation("common");
   const {
-    state: { projects, loading, loadingMore, hasMore, error, selectedFilter, selectedTrending, filterOptions },
+    state: {
+      projects,
+      loading,
+      loadingMore,
+      hasMore,
+      error,
+      selectedFilter,
+      selectedTrending,
+      filterOptions,
+    },
     actions: { setSelectedFilter, setSelectedTrending, loadMore },
   } = useProjectShowcase();
 
@@ -327,13 +336,13 @@ export function ProjectShowcase() {
                 </div>
               ))
             : projects.map((project, index) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    index={index}
-                    prefersReducedMotion={prefersReducedMotion}
-                  />
-                ))}
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  index={index}
+                  prefersReducedMotion={prefersReducedMotion}
+                />
+              ))}
         </div>
 
         {/* Load More button */}

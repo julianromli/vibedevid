@@ -3,35 +3,35 @@
  * Displays frequently asked questions with an animated accordion (Framer Motion)
  */
 
-'use client'
+"use client";
 
-import { Plus } from 'lucide-react'
-import { motion, useReducedMotion } from 'motion/react'
-import { useId, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
+import { Plus } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface FAQItem {
-  question: string
-  answer: string
+  question: string;
+  answer: string;
 }
 
 interface FAQAccordionItemProps {
-  faq: FAQItem
-  isOpen: boolean
-  onToggle: () => void
-  prefersReducedMotion: boolean
+  faq: FAQItem;
+  isOpen: boolean;
+  onToggle: () => void;
+  prefersReducedMotion: boolean;
 }
 
 function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAccordionItemProps) {
-  const contentId = useId()
+  const contentId = useId();
 
   return (
     <div
       className={cn(
-        'bg-card text-card-foreground rounded-xl border shadow-sm',
-        !prefersReducedMotion && 'transition-shadow duration-300',
-        isOpen && 'shadow-md',
+        "bg-card text-card-foreground rounded-xl border shadow-sm",
+        !prefersReducedMotion && "transition-shadow duration-300",
+        isOpen && "shadow-md",
       )}
     >
       <button
@@ -40,8 +40,8 @@ function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAc
         aria-expanded={isOpen}
         aria-controls={contentId}
         className={cn(
-          'flex w-full cursor-pointer items-center justify-between p-6 text-left font-semibold',
-          !prefersReducedMotion && 'transition-colors duration-200',
+          "flex w-full cursor-pointer items-center justify-between p-6 text-left font-semibold",
+          !prefersReducedMotion && "transition-colors duration-200",
         )}
       >
         <span className="pr-4">{faq.question}</span>
@@ -59,39 +59,36 @@ function FAQAccordionItem({ faq, isOpen, onToggle, prefersReducedMotion }: FAQAc
         id={contentId}
         inert={isOpen ? undefined : true}
         aria-hidden={isOpen ? undefined : true}
-        className={cn('grid', isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}
+        className={cn("grid", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}
       >
         <div className="overflow-hidden">
           <p className="text-muted-foreground px-6 pb-6 text-left leading-relaxed">{faq.answer}</p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function FAQSection() {
-  const { t } = useTranslation('faq')
-  const prefersReducedMotion = useReducedMotion() ?? false
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+  const { t } = useTranslation("faq");
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
-  const faqItems = t('items', { returnObjects: true }) as Record<string, FAQItem>
+  const faqItems = t("items", { returnObjects: true }) as Record<string, FAQItem>;
   const faqArray = Object.values(faqItems).filter((item): item is FAQItem =>
-    Boolean(item && typeof item.question === 'string' && item.answer),
-  )
+    Boolean(item && typeof item.question === "string" && item.answer),
+  );
 
   const toggleItem = (question: string) => {
-    setOpenItems((prev) => ({ ...prev, [question]: !prev[question] }))
-  }
+    setOpenItems((prev) => ({ ...prev, [question]: !prev[question] }));
+  };
 
   return (
-    <section
-      id="faq"
-      className="py-20"
-    >
+    <section id="faq" className="py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t('title')}</h2>
-          <p className="text-muted-foreground text-xl">{t('subtitle')}</p>
+          <h2 className="mb-4 text-4xl font-bold tracking-tight lg:text-5xl">{t("title")}</h2>
+          <p className="text-muted-foreground text-xl">{t("subtitle")}</p>
         </div>
 
         <div className="space-y-4">
@@ -107,5 +104,5 @@ export function FAQSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

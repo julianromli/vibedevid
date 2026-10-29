@@ -4,7 +4,6 @@ import {
   IconBan,
   IconChartBar,
   IconDotsVertical,
-  IconEdit,
   IconShield,
   IconUserCheck,
 } from "@tabler/icons-react";

@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { adminUpdateProjectFn } from "@/lib/actions/admin/projects.functions";
 import type { AdminProject } from "@/lib/actions/admin/projects";
+import { adminUpdateProjectFn } from "@/lib/actions/admin/projects.functions";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
 
 interface ProjectEditDialogProps {
@@ -54,7 +54,7 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
       } else {
         toast.error(result.error || "Failed to update project");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

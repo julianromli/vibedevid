@@ -8,8 +8,8 @@ import {
   isNotNull,
   lt,
   or,
-  sql,
   type SQL,
+  sql,
 } from "drizzle-orm";
 import { getCategories, getCategoryDisplayName } from "@/lib/categories";
 import { getDb } from "@/lib/db";
@@ -19,8 +19,8 @@ import {
   decodeProjectCursor,
   encodeProjectCursor,
   PROJECT_PAGE_SIZE,
-  trendingScore,
   type ProjectPageCursor,
+  trendingScore,
 } from "@/lib/project-page-cursor";
 import { getServerSession } from "@/lib/server/auth";
 
@@ -78,6 +78,7 @@ export interface ProjectDetail {
  *     "not found" for a genuine absence)
  */
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function getProjectBySlug(slug: string): Promise<ProjectDetail | null> {
   if (!slug || slug.trim() === "") {
     return null;
@@ -158,7 +159,7 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
 
 /**
  * Screenshot keys for the signed-in owner only. Public detail reads do not
- * include keys, because a key is enough to ask UploadThing to delete the file.
+ * include keys, because a key is enough to ask storage to delete the file.
  */
 export async function getOwnedProjectImageKeys(slug: string, userId: string): Promise<string[]> {
   if (!slug.trim() || !userId) return [];
@@ -334,9 +335,7 @@ export async function fetchProjectPage(options: {
     categoryCondition,
     authorCondition,
     cursor ? projectCursorCondition(sortBy, cursor) : undefined,
-  ].filter(
-    (filter): filter is SQL => Boolean(filter),
-  );
+  ].filter((filter): filter is SQL => Boolean(filter));
 
   const projectRows = await db
     .select({

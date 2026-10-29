@@ -119,6 +119,7 @@ function CommandEmpty({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 function MultipleSelector({
   ref,
   value,
@@ -178,6 +179,7 @@ function MultipleSelector({
   );
 
   const handleKeyDown = React.useCallback(
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const input = inputRef.current;
       if (input) {
@@ -211,7 +213,7 @@ function MultipleSelector({
     if (JSON.stringify(newOption) !== JSON.stringify(options)) {
       setOptions(newOption);
     }
-  }, [arrayDefaultOptions, arrayOptions, groupBy, onSearch, options]);
+  }, [arrayOptions, groupBy, onSearch, options]);
 
   React.useEffect(() => {
     const doSearchSync = () => {
@@ -318,6 +320,8 @@ function MultipleSelector({
       }
       filter={commandFilter}
     >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer shortcut that focuses the inner input, which keyboard users reach directly */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: pointer shortcut that focuses the inner input, which keyboard users reach directly */}
       <div
         className={cn(
           "border-input focus-within:border-ring focus-within:ring-ring/20 relative min-h-[38px] rounded-lg border text-sm transition-shadow focus-within:ring-[3px] focus-within:outline-none has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50",
@@ -346,6 +350,7 @@ function MultipleSelector({
             >
               {option.label}
               <button
+                type="button"
                 className="text-muted-foreground/80 hover:text-foreground focus-visible:outline-ring/70 absolute -inset-y-px -end-px flex size-7 items-center justify-center rounded-e-lg border border-transparent p-0 outline-0 transition-colors focus-visible:outline focus-visible:outline-2"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -433,7 +438,7 @@ function MultipleSelector({
               onMouseUp={() => inputRef?.current?.focus()}
             >
               {isLoading ? (
-                <>{loadingIndicator}</>
+                loadingIndicator
               ) : (
                 <>
                   {EmptyItem()}
@@ -441,39 +446,37 @@ function MultipleSelector({
                   {!selectFirstItem && <CommandItem value="-" className="hidden" />}
                   {Object.entries(selectables).map(([key, dropdowns]) => (
                     <CommandGroup key={key} heading={key} className="h-full overflow-auto">
-                      <>
-                        {dropdowns.map((option) => {
-                          return (
-                            <CommandItem
-                              key={option.value}
-                              value={option.value}
-                              disabled={option.disable}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              onSelect={() => {
-                                if (selected.length >= maxSelected) {
-                                  onMaxSelected?.(selected.length);
-                                  return;
-                                }
-                                setInputValue("");
-                                const newOptions = [...selected, option];
-                                setSelected(newOptions);
-                                onChange?.(newOptions);
-                                setOpen(false);
-                                inputRef?.current?.blur();
-                              }}
-                              className={cn(
-                                "cursor-pointer",
-                                option.disable && "cursor-not-allowed opacity-50",
-                              )}
-                            >
-                              {option.label}
-                            </CommandItem>
-                          );
-                        })}
-                      </>
+                      {dropdowns.map((option) => {
+                        return (
+                          <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            disabled={option.disable}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onSelect={() => {
+                              if (selected.length >= maxSelected) {
+                                onMaxSelected?.(selected.length);
+                                return;
+                              }
+                              setInputValue("");
+                              const newOptions = [...selected, option];
+                              setSelected(newOptions);
+                              onChange?.(newOptions);
+                              setOpen(false);
+                              inputRef?.current?.blur();
+                            }}
+                            className={cn(
+                              "cursor-pointer",
+                              option.disable && "cursor-not-allowed opacity-50",
+                            )}
+                          >
+                            {option.label}
+                          </CommandItem>
+                        );
+                      })}
                     </CommandGroup>
                   ))}
                 </>

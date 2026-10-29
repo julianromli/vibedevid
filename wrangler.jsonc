@@ -8,6 +8,13 @@
     "binding": "ASSETS",
     "directory": ".output/public",
   },
+  // Uploaded images (projects, events, blog, avatars, testimonials). Public at https://cdn.vibedeveloper.id (bucket custom domain).
+  "r2_buckets": [
+    {
+      "binding": "PROJECT_UPLOADS",
+      "bucket_name": "vibedevid-uploads",
+    },
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,

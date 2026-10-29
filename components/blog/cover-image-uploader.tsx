@@ -1,12 +1,11 @@
 "use client";
 
 import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { cn } from "@/lib/utils";
 
 interface CoverImageUploaderProps {
@@ -17,18 +16,6 @@ interface CoverImageUploaderProps {
   onUploadComplete: (url: string) => void;
   onUploadError: (error: Error) => void;
   disabled?: boolean;
-}
-
-function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
-  try {
-    const parsed = new URL(rawUrl);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return null;
-    }
-    return { url: parsed.toString(), isHttp: parsed.protocol === "http:" };
-  } catch {
-    return null;
-  }
 }
 
 function UrlInputSection({
@@ -210,32 +197,17 @@ export function CoverImageUploader({
   onUploadError,
   disabled = false,
 }: CoverImageUploaderProps) {
-  const { startUpload } = useUploadThing("blogImageUploader", {
-    onUploadBegin: () => {
-      onUploadStart();
-    },
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
-      if (url) {
-        onUploadComplete(url);
-      } else {
-        onUploadError(new Error("No URL returned from upload"));
-      }
-    },
-    onUploadError: (error) => {
-      onUploadError(error);
-    },
-  });
-
   const handleFileSelect = useCallback(
     async (file: File) => {
+      onUploadStart();
       try {
-        await startUpload([file]);
+        const { url } = await uploadImageOfKind("blog", file);
+        onUploadComplete(url);
       } catch (err) {
         onUploadError(err instanceof Error ? err : new Error("Upload failed"));
       }
     },
-    [startUpload, onUploadError],
+    [onUploadStart, onUploadComplete, onUploadError],
   );
 
   const hasImage = value.trim() !== "";

@@ -54,10 +54,7 @@ export const projects = pgTable(
     imageUrl: text("image_url"),
     imageUrls: text("image_urls").array(),
     imageKeys: text("image_keys").array(),
-    tags: text("tags")
-      .array()
-      .notNull()
-      .default(sql`'{}'::text[]`),
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
     tagline: text("tagline"),
     faviconUrl: text("favicon_url"),
     authorId: text("author_id")

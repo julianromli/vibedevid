@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { SubmitEventModal } from "@/components/event/submit-event-modal";
 import { Button } from "@/components/ui/button";

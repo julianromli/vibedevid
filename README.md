@@ -53,7 +53,7 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - **Internationalization**: react-i18next
 - **Forms**: React Hook Form + Zod
 - **AI Integration**: AI SDK + OpenRouter Provider
-- **File Uploads**: UploadThing + Better Upload
+- **File Uploads**: Cloudflare R2 (Worker route + `PROJECT_UPLOADS` binding); UploadThing only for deleting legacy files
 - **Command Palette**: cmdk
 - **Charts**: Recharts
 - **Dates**: date-fns
@@ -84,7 +84,7 @@ This path is for a local clone. You apply the schema to **your** Neon project, t
 - [Vite+](https://viteplus.dev/) (`vp` CLI) — this project uses the Vite+ unified toolchain
 - A free [Neon](https://neon.tech) Postgres project (not the production database)
 
-UploadThing, Resend, and OpenRouter are optional locally. Without Resend, the sign-in code prints in the server log, so you can log in with seed email accounts without any email keys.
+UploadThing (legacy deletes only), Resend, and OpenRouter are optional locally. Image uploads need the `PROJECT_UPLOADS` R2 binding; without it the upload routes answer 503. Without Resend, the sign-in code prints in the server log, so you can log in with seed email accounts without any email keys.
 
 ### Installation
 
@@ -236,7 +236,7 @@ bunx playwright test -g "should track views when visiting project page"
 | `VITE_BETTER_AUTH_URL`  | Same URL, exposed to browser                                     | Yes                |
 | `NEXT_PUBLIC_SITE_URL`  | Canonical site URL (server + SEO)                                | Yes                |
 | `VITE_SITE_URL`         | Same URL, exposed to browser                                     | Yes                |
-| `UPLOADTHING_TOKEN`     | UploadThing API token (uploads only)                             | Optional           |
+| `UPLOADTHING_TOKEN`     | UploadThing API token (legacy file deletes + backfill script)    | Optional           |
 | `OPENROUTER_API_KEY`    | AI blog features                                                 | Optional           |
 | `RESEND_API_KEY`        | Resend API key for sign-in codes (required in production)        | Optional           |
 | `EMAIL_FROM`            | Verified Resend sender (required in production)                  | Optional           |
@@ -428,9 +428,8 @@ Project list indexes: `scripts/migrations/neon/08_project_list_indexes.sql` (`cr
 │   │                       #   blog-public.ts (list + detail reads)
 │   ├── routes/             # Route helpers (server locale/translations)
 │   │                       #   locale: lib/locale.ts owns registry + cookie
-│   ├── uploadthing.ts      # UploadThing server router
-│   ├── uploadthing-client.ts   # Client upload helpers
-│   ├── uploadthing-router.ts   # Client-safe router types
+│   ├── image-upload-client.ts  # Browser helper: POST an image to the R2 upload routes
+│   ├── uploadthing.ts      # Legacy UploadThing deletes (UTApi) only
 │   └── ai/                 # AI integration (OpenRouter)
 ├── i18n/                   # react-i18next config (index.ts, routing.ts)
 ├── types/                  # TypeScript type definitions
@@ -471,14 +470,50 @@ bisa drift karena keduanya membaca satu sumber.
   selalu mengeksekusi schema penuh.
 - Signed-out visits to `/project/submit` redirect from the route loader, not from the server function.
 - `formatProjectFieldErrors` uses readable labels (`image_urls` shows as "Screenshots").
-- Screenshot uploads count only when UploadThing returns `serverData` (`lib/project-upload-result.ts`).
-  No `serverData` means `onUploadComplete` failed and no ledger row exists, so the form drops the
-  file and shows an error at upload time instead of at Submit.
-- `projectImageUploader` accepts only JPG, PNG, and WebP, the same types the server sniffer allows.
+- New project screenshots (submit and edit) go to Cloudflare R2, not UploadThing.
+  The browser POSTs each file as the raw body to `/api/project-uploads/image`
+  (`lib/server/project-image-upload.ts`). The Worker checks the session, the Origin, the size
+  (4MB), and the magic bytes (JPG, PNG, WebP), picks the key `projects/<userId>/<uuid>.<ext>`,
+  writes it to the `PROJECT_UPLOADS` R2 binding, then writes the `project_upload_files` row.
+  If the row write fails, the object is deleted. No third-party callback is involved.
+- Files are public at `https://cdn.vibedeveloper.id/<key>` (custom domain on bucket
+  `vibedevid-uploads`). No R2 access keys are needed: the Worker uses only the binding.
+- Old UploadThing screenshots keep working: their `utfs.io` / `*.ufs.sh` URLs stay in the DB and
+  are still allowed. `deleteStoredFiles` (`lib/server/stored-uploads.ts`) deletes R2 keys
+  from the bucket and older keys from UploadThing.
+- Screenshot uploads count only when the server response has a `key` and a `url` that is the CDN
+  URL for its key (`lib/project-upload-result.ts`). Otherwise the form drops the file and shows
+  an error at upload time instead of at Submit.
 - `alignProjectImages` matches a screenshot by exact ledger URL, or by key when the URL is an
-  UploadThing `https://<host>/f/<key>` URL (`utfs.io` and `<app>.ufs.sh` serve the same file).
+  UploadThing `https://<host>/f/<key>` URL (`utfs.io` and `<app>.ufs.sh` serve the same file)
+  or the R2 CDN URL for the key.
 - Submit locks after one click and stays locked after success while the project page loads.
   A second submit would send screenshots already attached to the new project and fail.
+
+### Image uploads (R2)
+
+Every upload goes to the `vibedevid-uploads` R2 bucket through the Worker. There is
+no UploadThing upload route any more (`/api/uploadthing` was removed).
+
+| Upload                                          | Route                                            | Key                                   | Limit |
+| ----------------------------------------------- | ------------------------------------------------ | ------------------------------------- | ----- |
+| Project screenshots                             | `POST /api/project-uploads/image` (+ ledger row) | `projects/<userId>/<uuid>.<ext>`      | 4MB   |
+| Event cover                                     | `POST /api/uploads/image?kind=events`            | `events/<userId>/<uuid>.<ext>`        | 4MB   |
+| Blog cover, inline images (picker, drop, paste) | `POST /api/uploads/image?kind=blog`              | `blog/<userId>/<uuid>.<ext>`          | 4MB   |
+| Profile avatar                                  | `POST /api/uploads/image?kind=avatars`           | `avatars/<userId>/<uuid>.<ext>`       | 2MB   |
+| Testimonial photo (anonymous)                   | server action, no route                          | `testimonials/anonymous/<uuid>.<ext>` | 2MB   |
+
+- Both routes share `handleImageUpload` (`lib/server/image-upload.ts`): same-origin check,
+  signed-in session, claimed type JPG/PNG/WebP, size limit, magic-byte sniff (the extension
+  comes from the sniffed type), then `put` with a one-year immutable cache header.
+  Unknown `kind` values get 400.
+- The browser sends the raw file body with XHR (`lib/image-upload-client.ts`), so no bucket
+  CORS rules are needed: the request is same-origin to the Worker.
+- Files are served from `https://cdn.vibedeveloper.id/<key>`. Old `utfs.io` / `*.ufs.sh`
+  URLs already in the DB keep rendering.
+- `uploadthing` stays as a dependency only for `UTApi` deletes of legacy files
+  (`lib/uploadthing.ts`) and the `backfill:images` maintenance script. `UPLOADTHING_TOKEN`
+  is needed only for those.
 
 ### Project Filtering & Sorting
 
@@ -529,13 +564,9 @@ The form is not in the navbar, footer, or sitemap. `robots.txt` disallows the
 path and the route emits `noindex`. Anyone with the URL can submit (no login).
 Fields: full name, role, testimonial text, required photo. The server accepts
 `FormData`, checks JPEG/PNG/WebP magic bytes (not the client MIME string),
-uploads the photo with UploadThing `UTApi`, and inserts a `pending` row. If
-the insert fails, the uploaded file is deleted. Server-side `UTApi` must
-receive `UPLOADTHING_TOKEN` from `getServerRuntimeSecrets()` (same source as
-`/api/uploadthing`). Cloudflare Workers do not expose that secret on
-`process.env`, so `new UTApi()` with no options fails the submit. The value
-must be the UploadThing dashboard token (base64 JSON with `apiKey`, `appId`,
-and `regions`), not a placeholder and not a raw `sk_live_` API key.
+stores the photo in R2 under `testimonials/anonymous/` (`storeAnonymousAvatar` in
+`lib/server/stored-uploads.ts`, 2MB max), and inserts a `pending` row. If
+the insert fails, the stored file is deleted.
 
 Admin dashboard tab `testimonials` (`/dashboard?tab=testimonials`) lets role-0
 admins approve, reject, or unpublish. Reject and unpublish set `status=rejected`
@@ -605,7 +636,7 @@ Homepage performance is tuned for Core Web Vitals (LCP/TBT):
 - **Faster server response (TTFB)** - The homepage previously made several redundant per-request DB/auth roundtrips. `getServerSession()` (`lib/server/auth.ts`) is now memoized per request (keyed on the request object via a `WeakMap`), so the session resolves once instead of being re-fetched by the root `beforeLoad`, route loaders, and `getBatchLikeStatus`. The home route loader also reuses the user already resolved in the root `beforeLoad` instead of re-querying it, and verbose per-request `console.log` calls in the hot data path were removed.
 - **Short-TTL homepage cache** - Active categories, home vibe videos, and approved testimonials are cached for 5 minutes (`lib/server/short-ttl-cache.ts`) so list pages do not scan those tables on every request.
 - **SQL aggregates** - `getBatchLikeStatus` and category project counts use `GROUP BY` / `count()` in Postgres instead of loading full like or project rows into the Worker.
-- **Client-side upload compression** - User-uploaded project images go through `lib/image-compression.ts` (`onBeforeUploadBegin` on the UploadThing buttons), which downscales to 1600px and re-encodes to WebP in the browser before upload. UploadThing (`ufs.sh`) has no on-the-fly resizing and `sharp` cannot run on Cloudflare Workers, so compressing client-side is the only no-cost option — it typically turns a 380KB+ upload into ~80-120KB. Falls back to the original file if compression fails or does not reduce size.
+- **Client-side upload compression** - Every upload (projects, events, blog, avatars, testimonials) goes through `compressForUpload` in `lib/image-compression.ts` before the request: it decodes with `createImageBitmap`, scales the long edge down to 512px (avatars, testimonials) or 1920px (projects, events, blog), and re-encodes as WebP at quality 0.82. The R2 public bucket does no resizing and `sharp` cannot run on Cloudflare Workers, so the browser is the only no-cost place to do it. The original file is uploaded instead when the browser cannot encode WebP, the WebP is not smaller, the image is animated, or decoding fails. A WebP that already fits is not re-encoded. The server still accepts JPEG, PNG and WebP and stores the type it sniffs.
 - **Backfill for existing images** - `scripts/backfill-image-compression.ts` (run with `bun run backfill:images`, or `--apply` to write) recompresses already-uploaded project/video images: download → WebP via sharp → re-upload to UploadThing → update the DB row → delete the old file. Runs on Node/Bun (needs `DATABASE_URL` + `UPLOADTHING_TOKEN`), defaults to a dry run. Use this once to fix images uploaded before client-side compression was added.
 
 ### SEO

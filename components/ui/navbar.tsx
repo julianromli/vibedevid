@@ -1,12 +1,11 @@
 "use client";
 
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { Link } from "@tanstack/react-router";
-import { useRouter } from "@/lib/navigation";
-import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { MenuToggleIcon } from "@/components/menu-toggle-icon";
 import { AdaptiveLogo } from "@/components/ui/adaptive-logo";
@@ -24,6 +23,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { UserDisplayName } from "@/components/ui/user-display-name";
 import { useScroll } from "@/hooks/use-scroll";
 import { signOut } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 const springTransition = {

@@ -1,8 +1,8 @@
-import { getDb } from "@/lib/db";
-import { blogReports, comments, users, posts, projects } from "@/lib/db/schema";
-import { requireUser } from "@/lib/server/auth";
+import { and, count, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/permissions";
-import { eq, and, gte, lte, desc, count, inArray } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { blogReports, comments, posts, projects, users } from "@/lib/db/schema";
+import { requireUser } from "@/lib/server/auth";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -126,10 +126,8 @@ export async function getReportedComments(
       }
     });
 
-    const postIds = [...new Set(allComments.filter((c) => c.postId).map((c) => c.postId!))];
-    const projectIds = [
-      ...new Set(allComments.filter((c) => c.projectId).map((c) => c.projectId!)),
-    ];
+    const postIds = [...new Set(allComments.flatMap((c) => (c.postId ? [c.postId] : [])))];
+    const projectIds = [...new Set(allComments.flatMap((c) => (c.projectId ? [c.projectId] : [])))];
 
     const [postRows, projectRows, reporterRows] = await Promise.all([
       postIds.length > 0
@@ -169,6 +167,7 @@ export async function getReportedComments(
       ]),
     );
 
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
     const formattedReports: ReportedComment[] = reportRows.map((report) => {
       const entityInfo = report.commentId ? commentEntityMap.get(report.commentId) : undefined;
       let entity_type: "post" | "project" = "post";
@@ -309,7 +308,10 @@ export async function takeActionOnReport(
     }
 
     if (action === "delete") {
-      const result = await adminDeleteComment(report.commentId!);
+      if (!report.commentId) {
+        return { success: false, error: "Report has no comment to delete" };
+      }
+      const result = await adminDeleteComment(report.commentId);
       if (!result.success) {
         return result;
       }

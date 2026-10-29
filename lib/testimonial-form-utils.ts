@@ -1,10 +1,12 @@
+import { UPLOAD_MAX_BYTES } from "@/lib/r2-uploads";
+
 export const TESTIMONIAL_NAME_MIN = 2;
 export const TESTIMONIAL_NAME_MAX = 80;
 export const TESTIMONIAL_ROLE_MIN = 2;
 export const TESTIMONIAL_ROLE_MAX = 80;
 export const TESTIMONIAL_BODY_MIN = 20;
 export const TESTIMONIAL_BODY_MAX = 400;
-export const TESTIMONIAL_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+export const TESTIMONIAL_AVATAR_MAX_BYTES = UPLOAD_MAX_BYTES.testimonials;
 export const TESTIMONIAL_AVATAR_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 export const TESTIMONIAL_RATE_LIMIT = 3;
 export const TESTIMONIAL_RATE_WINDOW_MS = 24 * 60 * 60 * 1000;

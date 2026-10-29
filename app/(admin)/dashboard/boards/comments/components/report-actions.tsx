@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCheck, IconDotsVertical, IconEye, IconTrash, IconX } from "@tabler/icons-react";
+import { IconDotsVertical, IconEye, IconTrash, IconX } from "@tabler/icons-react";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
 import type { ReportedComment } from "@/lib/actions/admin/comments";
+import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
 
 interface ReportActionsProps {
   report: ReportedComment;
@@ -36,7 +36,7 @@ export function ReportActions({ report, onView }: ReportActionsProps) {
       } else {
         toast.error(result.error || "Failed to process report");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

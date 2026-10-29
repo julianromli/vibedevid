@@ -7,20 +7,20 @@
  *   bun run db:purge-seed
  */
 
-import { purgeSeedRows } from '@/lib/server/purge-seed-content'
-import { loadSeedEnv } from './seed/env'
+import { purgeSeedRows } from "@/lib/server/purge-seed-content";
+import { loadSeedEnv } from "./seed/env";
 
 async function main() {
-  loadSeedEnv()
-  const result = await purgeSeedRows()
+  loadSeedEnv();
+  const result = await purgeSeedRows();
   if (result.removed) {
-    console.log('Demo seed rows deleted.')
-    return
+    console.log("Demo seed rows deleted.");
+    return;
   }
-  console.log('No demo seed rows found.')
+  console.log("No demo seed rows found.");
 }
 
 main().catch((error: unknown) => {
-  console.log(error instanceof Error ? error.message : error)
-  process.exit(1)
-})
+  console.log(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

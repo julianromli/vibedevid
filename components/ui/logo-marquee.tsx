@@ -75,8 +75,8 @@ export function LogoMarquee() {
   return (
     <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black,transparent)] py-12">
       <InfiniteSlider gap={40} speed={30} speedOnHover={10}>
-        {logos.map((logo, idx) => (
-          <div key={idx} className="flex items-center gap-2 px-4 transition-all duration-300">
+        {logos.map((logo) => (
+          <div key={logo.name} className="flex items-center gap-2 px-4 transition-all duration-300">
             {logo.url ? (
               <img
                 src={logo.url}

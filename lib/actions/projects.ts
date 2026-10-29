@@ -108,8 +108,8 @@ const cleanupProvisionalUploadByKey = async (
   }
 
   try {
-    const { deleteUploadthingFiles } = await import("../uploadthing");
-    return await deleteUploadthingFiles(normalizedKey);
+    const { deleteStoredFiles } = await import("../server/stored-uploads");
+    return await deleteStoredFiles(normalizedKey);
   } catch {
     return {
       success: false,
@@ -269,6 +269,7 @@ export async function cleanupReplacedProjectProvisionalUpload(
 
   return cleanupProjectProvisionalUpload(normalizedPreviousKey);
 }
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function editProject(projectSlug: string, formData: FormData) {
   if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
     return { success: false, error: "Project slug is required" };
@@ -284,7 +285,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
     return { success: false, error: "Project not found" };
   }
 
-  let user;
+  let user: Awaited<ReturnType<typeof requireUser>>;
   try {
     user = await requireUser();
   } catch {
@@ -397,9 +398,8 @@ export async function editProject(projectSlug: string, formData: FormData) {
     );
     if (removedKeys.length > 0) {
       try {
-        const { deleteUploadthingFiles } = await import("../uploadthing");
-        await deleteUploadthingFiles(removedKeys);
-        await Promise.all(removedKeys.map((key) => forgetProjectUpload(key)));
+        const { deleteStoredFilesThenForget } = await import("../server/stored-uploads");
+        await deleteStoredFilesThenForget(removedKeys, forgetProjectUpload);
       } catch (cleanupError) {
         console.warn("Failed to delete removed project images:", cleanupError);
       }
@@ -427,7 +427,7 @@ export async function deleteProject(projectSlug: string) {
     return { success: false, error: "Project not found" };
   }
 
-  let user;
+  let user: Awaited<ReturnType<typeof requireUser>>;
   try {
     user = await requireUser();
   } catch {
@@ -465,9 +465,8 @@ export async function deleteProject(projectSlug: string) {
     // the project row surviving with broken images if the DB deletes failed.
     if (project.imageKeys?.length) {
       try {
-        const { deleteUploadthingFiles } = await import("../uploadthing");
-        await deleteUploadthingFiles(project.imageKeys);
-        await Promise.all(project.imageKeys.map((key) => forgetProjectUpload(key)));
+        const { deleteStoredFilesThenForget } = await import("../server/stored-uploads");
+        await deleteStoredFilesThenForget(project.imageKeys, forgetProjectUpload);
       } catch {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);
       }

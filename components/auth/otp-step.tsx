@@ -35,6 +35,7 @@ const SHAKE_KEYFRAMES: Keyframe[] = [
   { transform: "translateX(0)" },
 ];
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function OtpStep({
   email,
   code,
@@ -92,6 +93,7 @@ export function OtpStep({
   const [cooldownAnnouncement, setCooldownAnnouncement] = useState("");
   const coolingDown = secondsLeft > 0;
   const wasCooling = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: announce only on the cooldown edge, not every tick
   useEffect(() => {
     if (coolingDown && !wasCooling.current) {
       setCooldownAnnouncement(t("code.cooldownStart", { seconds: secondsLeft }));
@@ -99,7 +101,6 @@ export function OtpStep({
       setCooldownAnnouncement(t("code.cooldownEnd"));
     }
     wasCooling.current = coolingDown;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on the edge
   }, [coolingDown]);
 
   const submit = async (value?: string) => {

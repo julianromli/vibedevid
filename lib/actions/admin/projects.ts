@@ -1,11 +1,11 @@
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { containsPattern } from "@/lib/db/like-pattern";
-import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
 import { toProjectDto } from "@/lib/db/mappers";
+import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
-import { requireAdmin } from "@/lib/auth/permissions";
-import { eq, and, gte, lte, desc, count, or, ilike, inArray, asc } from "drizzle-orm";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -53,6 +53,7 @@ async function checkAdminAccess() {
   return user;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function getAllProjects(
   filters: ProjectFilters = {},
   page: number = 1,
@@ -270,10 +271,9 @@ export async function adminDeleteProject(
 
     if (existing?.imageKeys?.length) {
       try {
-        const { deleteUploadthingFiles } = await import("@/lib/uploadthing");
+        const { deleteStoredFilesThenForget } = await import("@/lib/server/stored-uploads");
         const { forgetProjectUpload } = await import("@/lib/server/project-uploads");
-        await deleteUploadthingFiles(existing.imageKeys);
-        await Promise.all(existing.imageKeys.map((key) => forgetProjectUpload(key)));
+        await deleteStoredFilesThenForget(existing.imageKeys, forgetProjectUpload);
       } catch (cleanupError) {
         console.warn("Failed to delete admin project images:", cleanupError);
       }

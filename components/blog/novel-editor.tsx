@@ -19,13 +19,15 @@ import {
   EditorCommandItem,
   EditorCommandList,
   EditorContent,
+  type EditorInstance,
   EditorRoot,
   type JSONContent,
 } from "novel";
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { cn } from "@/lib/utils";
+import { insertUploadedImage } from "./insert-uploaded-image";
 import { NovelAISelector } from "./novel-ai-selector";
 import {
   Command,
@@ -177,41 +179,31 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
 ) {
   const [editorContent, setEditorContent] = useState<JSONContent | null>(null);
   // Store editor instance reference for setContent and image uploads
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editorInstanceRef = useRef<any>(null);
+  const editorInstanceRef = useRef<EditorInstance | null>(null);
   // Hidden file input ref for image upload via slash command
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // UploadThing for drag-drop/paste image handling
-  const { startUpload } = useUploadThing("blogImageUploader", {
-    onUploadBegin: () => {
-      toast.info("Uploading image...");
-    },
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
-      if (url && editorInstanceRef.current) {
-        editorInstanceRef.current
-          .chain()
-          .focus()
-          .insertContent({
-            type: "image",
-            attrs: { src: url },
-          })
-          .run();
+  // Upload a picked, dropped, or pasted image to R2 and insert it at the cursor.
+  const startUpload = useCallback(async (file: File) => {
+    toast.info("Uploading image...");
+    try {
+      const { url } = await uploadImageOfKind("blog", file);
+      if (insertUploadedImage(editorInstanceRef.current, url)) {
         toast.success("Image uploaded");
+      } else {
+        toast.error("Image uploaded, but the editor was closed before it could be inserted");
       }
-    },
-    onUploadError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
-    },
-  });
+    } catch (error) {
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }, []);
 
   // Handle file selection from hidden input
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file && file.type.startsWith("image/")) {
-        startUpload([file]);
+      if (file?.type.startsWith("image/")) {
+        void startUpload(file);
       }
       // Reset input so same file can be selected again
       e.target.value = "";
@@ -242,9 +234,8 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   }, [content]);
 
   // Store editor content reference for getContent
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = useCallback(
-    ({ editor }: { editor: any }) => {
+    ({ editor }: { editor: EditorInstance }) => {
       const json = editor.getJSON();
       setEditorContent(json);
       // Store editor instance for setContent and image insertion
@@ -295,7 +286,6 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
         accept="image/*"
         onChange={handleFileInputChange}
         className="hidden"
-        aria-hidden="true"
       />
       <EditorRoot>
         <EditorContent
@@ -314,8 +304,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
                 const file = event.dataTransfer.files[0];
                 if (file.type.startsWith("image/")) {
                   event.preventDefault();
-                  toast.info("Uploading image...");
-                  startUpload([file]);
+                  void startUpload(file);
                   return true;
                 }
               }
@@ -325,8 +314,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
               const file = event.clipboardData?.files?.[0];
               if (file?.type.startsWith("image/")) {
                 event.preventDefault();
-                toast.info("Uploading image...");
-                startUpload([file]);
+                void startUpload(file);
                 return true;
               }
               return false;

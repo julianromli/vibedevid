@@ -1,17 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { deleteUploadthingFiles, ourFileRouter, uploadAnonymousImage } from "@/lib/uploadthing";
-
-const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
-
-function makeFile(bytes: Uint8Array, type: string, name: string): File {
-  const copy = bytes.slice();
-  return {
-    type,
-    size: copy.byteLength,
-    name,
-    arrayBuffer: async () => copy.buffer.slice(copy.byteOffset, copy.byteOffset + copy.byteLength),
-  } as File;
-}
+import { deleteUploadthingFiles } from "@/lib/uploadthing";
 
 const VALID_TOKEN = globalThis.btoa(
   JSON.stringify({ apiKey: "sk_test", appId: "app_test", regions: ["sea1"] }),
@@ -34,13 +22,6 @@ const h = vi.hoisted(() => {
       deleteFiles = vi.fn(async () =>
         Object.assign(Object.create({ toJSON() {} }), { success: true, deletedCount: 1 }),
       );
-      uploadFiles = vi.fn(async () => ({
-        data: {
-          url: "https://utfs.io/avatar.webp",
-          key: "avatar-key",
-          ufsUrl: "https://utfs.io/avatar.webp",
-        },
-      }));
     },
   };
 });
@@ -64,9 +45,9 @@ beforeEach(() => {
   h.state.constructedWith = [];
 });
 
-describe("uploadAnonymousImage", () => {
+describe("legacy UTApi client", () => {
   it("constructs UTApi with the Worker runtime token, not process.env", async () => {
-    await uploadAnonymousImage(makeFile(PNG_BYTES, "image/png", "avatar.png"));
+    await deleteUploadthingFiles("k1");
 
     expect(h.state.constructedWith).toHaveLength(1);
     expect(h.state.constructedWith[0]?.token).toBe(VALID_TOKEN);
@@ -75,17 +56,7 @@ describe("uploadAnonymousImage", () => {
   it("rejects a placeholder token before it calls UploadThing", async () => {
     h.state.token = "REPLACE_UPLOADTHING_TOKEN";
 
-    await expect(
-      uploadAnonymousImage(makeFile(PNG_BYTES, "image/png", "avatar.png")),
-    ).rejects.toThrow(/UPLOADTHING_TOKEN is invalid/);
-    expect(h.state.constructedWith).toHaveLength(0);
-  });
-});
-
-describe("projectImageUploader", () => {
-  it("accepts only JPG, PNG, and WebP so other types fail before upload", () => {
-    const config = ourFileRouter.projectImageUploader.routerConfig;
-    expect(Object.keys(config).sort()).toEqual(["image/jpeg", "image/png", "image/webp"]);
+    await expect(deleteUploadthingFiles("k2")).rejects.toThrow(/UPLOADTHING_TOKEN is invalid/);
   });
 });
 

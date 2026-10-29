@@ -6,6 +6,8 @@
  * user; this function decides which URLs and keys may be stored.
  */
 
+import { isR2Host, isR2UrlForKey } from "@/lib/r2-uploads";
+
 const MAX_IMAGE_URL_LENGTH = 2048;
 const GITHUB_PREVIEW_HOST = "opengraph.githubassets.com";
 
@@ -50,7 +52,7 @@ export function isGithubPreviewImageUrl(url: string): boolean {
   }
 }
 
-/** HTTPS UploadThing file URL, or a GitHub Open Graph preview. */
+/** HTTPS UploadThing or R2 CDN file URL, or a GitHub Open Graph preview. */
 export function isAllowedProjectImageUrl(url: string): boolean {
   if (typeof url !== "string") return false;
   const trimmed = url.trim();
@@ -60,14 +62,19 @@ export function isAllowedProjectImageUrl(url: string): boolean {
     const parsed = new URL(trimmed);
     if (parsed.protocol !== "https:") return false;
     if (parsed.username || parsed.password) return false;
-    return isUploadthingHost(parsed.hostname) || isGithubPreviewImageUrl(trimmed);
+    return (
+      isUploadthingHost(parsed.hostname) ||
+      isR2Host(parsed.hostname) ||
+      isGithubPreviewImageUrl(trimmed)
+    );
   } catch {
     return false;
   }
 }
 
-/** True when `url` is an UploadThing file URL for `key` (`https://<host>/f/<key>`). */
-function isUploadthingUrlForKey(url: string, key: string): boolean {
+/** True when `url` is the stored file URL for `key`: UploadThing `/f/<key>` or the R2 CDN. */
+function isStoredUrlForKey(url: string, key: string): boolean {
+  if (isR2UrlForKey(url, key)) return true;
   try {
     const parsed = new URL(url);
     return (
@@ -85,7 +92,7 @@ function isUploadthingUrlForKey(url: string, key: string): boolean {
  * keyless GitHub preview shifts the indexes: match by URL, never by position.
  */
 export function imageKeyForUrl(url: string, keys: readonly string[]): string | null {
-  return keys.find((key) => key.trim() && isUploadthingUrlForKey(url, key.trim()))?.trim() ?? null;
+  return keys.find((key) => key.trim() && isStoredUrlForKey(url, key.trim()))?.trim() ?? null;
 }
 
 /** The key stored for an existing screenshot, or "" when it has none. */
@@ -104,6 +111,8 @@ function existingKeyFor(url: string, index: number, urls: string[], keys: string
  * preview may be stored with no key. Any other URL or key is rejected, and
  * rejected keys are not returned.
  */
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function alignProjectImages(input: AlignProjectImagesInput): AlignProjectImagesResult {
   const submittedKeys = new Set(input.submittedKeys.map((key) => key.trim()).filter(Boolean));
   const imageUrls: string[] = [];
@@ -118,7 +127,7 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
 
     const upload = input.knownUploads.find(
       (row) =>
-        (row.url === url || isUploadthingUrlForKey(url, row.key)) &&
+        (row.url === url || isStoredUrlForKey(url, row.key)) &&
         row.userId === input.actorUserId &&
         submittedKeys.has(row.key) &&
         (row.projectId == null || row.projectId === input.projectId),

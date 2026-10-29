@@ -32,7 +32,6 @@ import { Route as BlogEditorRouteImport } from "./routes/blog.editor";
 import { Route as BlogSlugRouteImport } from "./routes/blog.$slug";
 import { Route as ApiYoutubeRouteImport } from "./routes/api/youtube";
 import { Route as ApiVibeVideosRouteImport } from "./routes/api/vibe-videos";
-import { Route as ApiUploadthingRouteImport } from "./routes/api/uploadthing";
 import { Route as ApiOgRouteImport } from "./routes/api/og";
 import { Route as ApiGithubImportRouteImport } from "./routes/api/github-import";
 import { Route as ApiAuthCheckRouteImport } from "./routes/api/auth-check";
@@ -42,6 +41,8 @@ import { Route as UserAuthResetPasswordRouteImport } from "./routes/user.auth.re
 import { Route as UserAuthConfirmEmailRouteImport } from "./routes/user.auth.confirm-email";
 import { Route as BlogEditorSlugRouteImport } from "./routes/blog.editor.$slug";
 import { Route as ApiVibeVideosIdRouteImport } from "./routes/api/vibe-videos.$id";
+import { Route as ApiUploadsImageRouteImport } from "./routes/api/uploads.image";
+import { Route as ApiProjectUploadsImageRouteImport } from "./routes/api/project-uploads.image";
 import { Route as ApiProjectUploadsCleanupRouteImport } from "./routes/api/project-uploads.cleanup";
 import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth.$";
 import { Route as ApiAiEnhanceDescriptionRouteImport } from "./routes/api/ai.enhance-description";
@@ -161,11 +162,6 @@ const ApiVibeVideosRoute = ApiVibeVideosRouteImport.update({
   path: "/api/vibe-videos",
   getParentRoute: () => rootRouteImport,
 } as any);
-const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
-  id: "/api/uploadthing",
-  path: "/api/uploadthing",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const ApiOgRoute = ApiOgRouteImport.update({
   id: "/api/og",
   path: "/api/og",
@@ -211,6 +207,16 @@ const ApiVibeVideosIdRoute = ApiVibeVideosIdRouteImport.update({
   path: "/$id",
   getParentRoute: () => ApiVibeVideosRoute,
 } as any);
+const ApiUploadsImageRoute = ApiUploadsImageRouteImport.update({
+  id: "/api/uploads/image",
+  path: "/api/uploads/image",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ApiProjectUploadsImageRoute = ApiProjectUploadsImageRouteImport.update({
+  id: "/api/project-uploads/image",
+  path: "/api/project-uploads/image",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const ApiProjectUploadsCleanupRoute = ApiProjectUploadsCleanupRouteImport.update({
   id: "/api/project-uploads/cleanup",
   path: "/api/project-uploads/cleanup",
@@ -246,7 +252,6 @@ export interface FileRoutesByFullPath {
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
   "/api/og": typeof ApiOgRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
   "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
   "/api/youtube": typeof ApiYoutubeRoute;
   "/blog/$slug": typeof BlogSlugRoute;
@@ -264,6 +269,8 @@ export interface FileRoutesByFullPath {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
+  "/api/uploads/image": typeof ApiUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -283,7 +290,6 @@ export interface FileRoutesByTo {
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
   "/api/og": typeof ApiOgRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
   "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
   "/api/youtube": typeof ApiYoutubeRoute;
   "/blog/$slug": typeof BlogSlugRoute;
@@ -300,6 +306,8 @@ export interface FileRoutesByTo {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
+  "/api/uploads/image": typeof ApiUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -322,7 +330,6 @@ export interface FileRoutesById {
   "/api/auth-check": typeof ApiAuthCheckRoute;
   "/api/github-import": typeof ApiGithubImportRoute;
   "/api/og": typeof ApiOgRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
   "/api/vibe-videos": typeof ApiVibeVideosRouteWithChildren;
   "/api/youtube": typeof ApiYoutubeRoute;
   "/blog/$slug": typeof BlogSlugRoute;
@@ -340,6 +347,8 @@ export interface FileRoutesById {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
+  "/api/uploads/image": typeof ApiUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -362,7 +371,6 @@ export interface FileRouteTypes {
     | "/api/auth-check"
     | "/api/github-import"
     | "/api/og"
-    | "/api/uploadthing"
     | "/api/vibe-videos"
     | "/api/youtube"
     | "/blog/$slug"
@@ -380,6 +388,8 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
+    | "/api/uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -399,7 +409,6 @@ export interface FileRouteTypes {
     | "/api/auth-check"
     | "/api/github-import"
     | "/api/og"
-    | "/api/uploadthing"
     | "/api/vibe-videos"
     | "/api/youtube"
     | "/blog/$slug"
@@ -416,6 +425,8 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
+    | "/api/uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -437,7 +448,6 @@ export interface FileRouteTypes {
     | "/api/auth-check"
     | "/api/github-import"
     | "/api/og"
-    | "/api/uploadthing"
     | "/api/vibe-videos"
     | "/api/youtube"
     | "/blog/$slug"
@@ -455,6 +465,8 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
+    | "/api/uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -476,7 +488,6 @@ export interface RootRouteChildren {
   ApiAuthCheckRoute: typeof ApiAuthCheckRoute;
   ApiGithubImportRoute: typeof ApiGithubImportRoute;
   ApiOgRoute: typeof ApiOgRoute;
-  ApiUploadthingRoute: typeof ApiUploadthingRoute;
   ApiVibeVideosRoute: typeof ApiVibeVideosRouteWithChildren;
   ApiYoutubeRoute: typeof ApiYoutubeRoute;
   DashboardPostsRoute: typeof DashboardPostsRoute;
@@ -491,6 +502,8 @@ export interface RootRouteChildren {
   ApiAiEnhanceDescriptionRoute: typeof ApiAiEnhanceDescriptionRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
   ApiProjectUploadsCleanupRoute: typeof ApiProjectUploadsCleanupRoute;
+  ApiProjectUploadsImageRoute: typeof ApiProjectUploadsImageRoute;
+  ApiUploadsImageRoute: typeof ApiUploadsImageRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -656,13 +669,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ApiVibeVideosRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/api/uploadthing": {
-      id: "/api/uploadthing";
-      path: "/api/uploadthing";
-      fullPath: "/api/uploadthing";
-      preLoaderRoute: typeof ApiUploadthingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/api/og": {
       id: "/api/og";
       path: "/api/og";
@@ -725,6 +731,20 @@ declare module "@tanstack/react-router" {
       fullPath: "/api/vibe-videos/$id";
       preLoaderRoute: typeof ApiVibeVideosIdRouteImport;
       parentRoute: typeof ApiVibeVideosRoute;
+    };
+    "/api/uploads/image": {
+      id: "/api/uploads/image";
+      path: "/api/uploads/image";
+      fullPath: "/api/uploads/image";
+      preLoaderRoute: typeof ApiUploadsImageRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/project-uploads/image": {
+      id: "/api/project-uploads/image";
+      path: "/api/project-uploads/image";
+      fullPath: "/api/project-uploads/image";
+      preLoaderRoute: typeof ApiProjectUploadsImageRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     "/api/project-uploads/cleanup": {
       id: "/api/project-uploads/cleanup";
@@ -831,7 +851,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthCheckRoute: ApiAuthCheckRoute,
   ApiGithubImportRoute: ApiGithubImportRoute,
   ApiOgRoute: ApiOgRoute,
-  ApiUploadthingRoute: ApiUploadthingRoute,
   ApiVibeVideosRoute: ApiVibeVideosRouteWithChildren,
   ApiYoutubeRoute: ApiYoutubeRoute,
   DashboardPostsRoute: DashboardPostsRoute,
@@ -846,6 +865,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiEnhanceDescriptionRoute: ApiAiEnhanceDescriptionRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiProjectUploadsCleanupRoute: ApiProjectUploadsCleanupRoute,
+  ApiProjectUploadsImageRoute: ApiProjectUploadsImageRoute,
+  ApiUploadsImageRoute: ApiUploadsImageRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

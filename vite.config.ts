@@ -6,7 +6,12 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   staged: {
-    "*": "vp check --fix",
+    // vp's formatter and biome disagree on a few constructs. CI gates on biome,
+    // so biome gets the last word on staged files.
+    "*": [
+      "vp check --fix",
+      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
+    ],
   },
   fmt: {
     options: {

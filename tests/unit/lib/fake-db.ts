@@ -1,5 +1,3 @@
-import { vi } from "vite-plus/test";
-
 /**
  * Shared thenable query-chain stub for the read-module contract tests.
  * Each spec supplies its own resolver (selection keys -> rows) with a
@@ -24,6 +22,7 @@ export function makeQueryChain(
   q.limit = () => q;
   q.values = () => q;
   q.set = () => q;
+  // biome-ignore lint/suspicious/noThenProperty: the fake query builder is awaited like Drizzle's, so it must be thenable
   q.then = (resolve: (v: unknown) => void, reject: (e: unknown) => void) => {
     try {
       resolve(resolver(selection));

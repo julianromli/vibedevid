@@ -13,6 +13,13 @@ import {
   ModalTitle,
   ModalTrigger,
 } from "@/components/ui/modal";
+import {
+  AVATAR_OUTPUT_MAX_EDGE,
+  AVATAR_OUTPUT_QUALITY,
+  AVATAR_OUTPUT_TYPE,
+  avatarFileName,
+} from "@/lib/avatar-crop";
+import { fitWithin } from "@/lib/image-compression";
 
 interface Props {
   children: React.ReactNode;
@@ -63,6 +70,7 @@ export function AvatarUploader({
 
   const [open, onOpenChange] = React.useState<boolean>(false);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const handleUpdate = async () => {
     if (photo?.file && croppedAreaPixels) {
       setIsPending(true);
@@ -72,8 +80,9 @@ export function AvatarUploader({
           throw new Error("Failed to crop image");
         }
 
-        const file = new File([croppedImg.file], photo.file?.name ?? "cropped.jpeg", {
-          type: photo.file?.type ?? "image/jpeg",
+        const encodedType = croppedImg.file.type || AVATAR_OUTPUT_TYPE;
+        const file = new File([croppedImg.file], avatarFileName(photo.file?.name, encodedType), {
+          type: encodedType,
         });
 
         await onUpload(file);
@@ -211,17 +220,33 @@ async function getCroppedImg(
   // paste cropped image
   ctx.putImageData(data, 0, 0);
 
+  // Scale down to the avatar size cap. WebP keeps transparency.
+  const size = fitWithin(pixelCrop.width, pixelCrop.height, AVATAR_OUTPUT_MAX_EDGE);
+  const output = document.createElement("canvas");
+  output.width = size.width;
+  output.height = size.height;
+  const outputCtx = output.getContext("2d");
+  if (!outputCtx) {
+    throw new Error("Failed to create 2D context");
+  }
+  outputCtx.imageSmoothingQuality = "high";
+  outputCtx.drawImage(canvas, 0, 0, size.width, size.height);
+
   // return blob + object URL
   return new Promise((resolve, reject) => {
-    canvas.toBlob((file) => {
-      if (!file) {
-        reject(new Error("Failed to generate cropped image blob"));
-        return;
-      }
-      resolve({
-        url: URL.createObjectURL(file),
-        file,
-      });
-    });
+    output.toBlob(
+      (file) => {
+        if (!file) {
+          reject(new Error("Failed to generate cropped image blob"));
+          return;
+        }
+        resolve({
+          url: URL.createObjectURL(file),
+          file,
+        });
+      },
+      AVATAR_OUTPUT_TYPE,
+      AVATAR_OUTPUT_QUALITY,
+    );
   });
 }

@@ -2,7 +2,6 @@
 
 import { IconSearch, IconShield, IconShieldOff, IconUserPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
-import { useRouter } from "@/lib/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -28,14 +27,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { PrivilegedUser } from "@/lib/actions/admin/admins";
 import {
   grantAdminAccessFn,
   grantModeratorAccessFn,
   revokePrivilegedAccessFn,
   searchUsersForAdminGrantFn,
 } from "@/lib/actions/admin/admins.functions";
-import type { PrivilegedUser } from "@/lib/actions/admin/admins";
 import { ROLES } from "@/lib/actions/admin/schemas";
+import { useRouter } from "@/lib/navigation";
 
 interface SearchUser {
   id: string;

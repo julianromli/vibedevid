@@ -1,7 +1,7 @@
 import { and, eq, inArray, notInArray } from "drizzle-orm";
-import type { KnownProjectUpload } from "@/lib/project-images";
 import { getDb } from "@/lib/db";
 import { projectUploadFiles } from "@/lib/db/schema";
+import type { KnownProjectUpload } from "@/lib/project-images";
 
 export async function recordProjectUpload(input: {
   key: string;

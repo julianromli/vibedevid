@@ -27,6 +27,7 @@ export function Stepper({ steps, currentStep, onSelect, locked = false }: Steppe
         {t("steps.mobileLabel", { n: currentStep + 1, total, name: current?.title ?? "" })}
       </p>
       <ol className="flex w-full items-center">
+        {/** biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor */}
         {steps.map((step, index) => {
           const isCompleted = index < currentStep;
           const isCurrent = index === currentStep;

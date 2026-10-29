@@ -30,6 +30,7 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 /** Repair helper for migrated users or deployments where the DB trigger was not yet installed. */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function createUserProfile(input: CreateProfileInput): Promise<void> {
   const db = getDb();
 

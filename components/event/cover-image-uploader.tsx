@@ -1,15 +1,14 @@
 "use client";
 
-import { UploadButton } from "@uploadthing/react";
-import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { Image } from "@unpic/react";
-import { useState } from "react";
+import { CheckCircle, Loader2, Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { OurFileRouter } from "@/lib/uploadthing-router";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 
 interface CoverImageUploaderProps {
   value: string;
@@ -27,7 +26,7 @@ export function CoverImageUploader({
   disabled = false,
 }: CoverImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadTimeout, setUploadTimeout] = useState<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [mode, setMode] = useState<ImageInputMode>("upload");
 
@@ -44,6 +43,21 @@ export function CoverImageUploader({
       onError(""); // Clear error
     } catch {
       onError("URL gambar tidak valid");
+    }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    setIsUploading(true);
+    onError("");
+    try {
+      const { url } = await uploadImageOfKind("events", file);
+      onChange(url);
+    } catch (error) {
+      onError(
+        `Gagal mengupload gambar: ${error instanceof Error ? error.message : "Upload failed"}`,
+      );
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,101 +132,34 @@ export function CoverImageUploader({
                       </p>
                     </div>
                   ) : (
-                    <UploadButton<OurFileRouter, "projectImageUploader">
-                      endpoint="projectImageUploader"
-                      onUploadBegin={(name) => {
-                        console.log("[CoverImageUploader] Upload started for file:", name);
-                        setIsUploading(true);
-                        onError("");
-
-                        // Clear existing timeout if any
-                        if (uploadTimeout) {
-                          clearTimeout(uploadTimeout);
-                        }
-
-                        // Set a fallback timeout to prevent stuck state (2 minutes)
-                        const timeoutId = setTimeout(() => {
-                          console.log("[CoverImageUploader] Upload timeout - resetting state");
-                          setIsUploading(false);
-                          onError("Upload timed out. Please try again.");
-                        }, 120000);
-
-                        setUploadTimeout(timeoutId);
-                      }}
-                      onClientUploadComplete={(res) => {
-                        console.log("[CoverImageUploader] Client upload completed:", res);
-
-                        // Clear timeout since upload completed
-                        if (uploadTimeout) {
-                          clearTimeout(uploadTimeout);
-                          setUploadTimeout(null);
-                        }
-
-                        setIsUploading(false);
-                        onError("");
-
-                        // Check if we have a valid response
-                        if (res && Array.isArray(res) && res.length > 0) {
-                          const uploadResult = res[0];
-                          const imageUrl = uploadResult.url;
-
-                          if (imageUrl) {
-                            console.log("[CoverImageUploader] Setting image URL:", imageUrl);
-                            onChange(imageUrl);
-                          } else {
-                            onError("Upload completed but no URL received. Please try again.");
-                          }
-                        } else {
-                          onError(
-                            "Upload completed but response format is invalid. Please try again.",
-                          );
-                        }
-                      }}
-                      onUploadError={(error: Error) => {
-                        // Clear timeout since upload failed
-                        if (uploadTimeout) {
-                          clearTimeout(uploadTimeout);
-                          setUploadTimeout(null);
-                        }
-
-                        setIsUploading(false);
-
-                        // Check for file size error
-                        if (
-                          error.message.includes("FileSizeMismatch") ||
-                          error.message.includes("10MB")
-                        ) {
-                          onError("Ukuran file maksimal 10MB");
-                        } else {
-                          onError(`Gagal mengupload gambar: ${error.message}`);
-                        }
-                      }}
-                      config={{
-                        mode: "auto",
-                      }}
-                      content={{
-                        button({ ready }) {
-                          if (ready) return <div>Choose File</div>;
-                          return "Getting ready...";
-                        },
-                        allowedContent({ ready, fileTypes, isUploading }) {
-                          if (!ready) return "Checking what you allow";
-                          if (isUploading) return "Uploading...";
-                          return `Image (${fileTypes.join(", ")})`;
-                        },
-                      }}
-                      appearance={{
-                        button:
-                          "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
-                        allowedContent: "text-sm text-muted-foreground mt-2",
-                      }}
-                    />
+                    <>
+                      <Button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={disabled}
+                      >
+                        Choose File
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={disabled}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (file) void handleFileSelect(file);
+                        }}
+                      />
+                      <p className="mt-2 text-muted-foreground text-sm">Image (JPG, PNG, WebP)</p>
+                    </>
                   )}
                 </div>
                 <p className="mt-2 text-gray-500 text-sm">
                   {isUploading
                     ? "Uploading your cover image..."
-                    : "Upload a cover image for your event (max 10MB)"}
+                    : "Upload a cover image for your event (max 4MB)"}
                 </p>
               </div>
             </div>

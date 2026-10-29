@@ -61,6 +61,8 @@ function BreadcrumbPage({
   ...props
 }: React.ComponentPropsWithoutRef<"span"> & { ref?: React.Ref<HTMLSpanElement> }) {
   return (
+    // biome-ignore lint/a11y/useFocusableInteractive: shadcn pattern; the current page is a disabled link that should not take focus
+    // biome-ignore lint/a11y/useSemanticElements: shadcn pattern; an <a> without href would lose the link role
     <span
       ref={ref}
       role="link"

@@ -1,14 +1,26 @@
 "use client";
 
-import { Heart, MessageCircle } from "lucide-react";
-import { Image } from "@unpic/react";
 import { Link } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
+import { Heart, MessageCircle } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { StaggerContainer, StaggerItem } from "@/components/ui/motion-wrapper";
 
+interface ProjectTabProject {
+  id: string | number;
+  slug: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  thumbnail_url?: string | null;
+  likes?: number | null;
+  comments_count?: number | null;
+  created_at: string | number | Date;
+}
+
 interface ProjectTabProps {
-  projects: any[];
+  projects: ProjectTabProject[];
 }
 
 export function ProjectTab({ projects }: ProjectTabProps) {

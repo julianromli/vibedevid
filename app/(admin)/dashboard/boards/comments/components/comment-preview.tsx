@@ -1,6 +1,6 @@
 "use client";
 
-import { IconFileText, IconMessageCircle, IconTrash, IconX } from "@tabler/icons-react";
+import { IconFileText, IconTrash, IconX } from "@tabler/icons-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
 import type { ReportedComment } from "@/lib/actions/admin/comments";
+import { takeActionOnReportFn } from "@/lib/actions/admin/comments.functions";
 
 interface CommentPreviewProps {
   report: ReportedComment;
@@ -36,7 +36,7 @@ export function CommentPreview({ report, open, onOpenChange }: CommentPreviewPro
       } else {
         toast.error(result.error || "Failed to process report");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   };

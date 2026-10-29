@@ -1,8 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { DEFAULT_LOCALE, getBrowserInitialLocale, isLocale, LOCALES } from "@/lib/locale";
 import en from "../messages/en.json";
 import id from "../messages/id.json";
-import { DEFAULT_LOCALE, getBrowserInitialLocale, isLocale, LOCALES } from "@/lib/locale";
 
 export type Locale = (typeof LOCALES)[number];
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cleanupProjectProvisionalUploadFn } from "@/lib/actions/projects.functions";
-import { compressImageFile } from "@/lib/image-compression";
+import { compressForUpload } from "@/lib/image-compression";
 import {
   addQueuedShots,
   clampProgress,
@@ -17,8 +17,8 @@ import {
   setImportedShot,
   submittedImages,
 } from "@/lib/project-screenshots";
+import { uploadProjectImage } from "@/lib/project-upload-client";
 import { getConfirmedUpload } from "@/lib/project-upload-result";
-import { uploadFiles } from "@/lib/uploadthing-client";
 
 const MAX_PARALLEL_UPLOADS = 3;
 const UPLOAD_TIMEOUT_MS = 120_000;
@@ -96,8 +96,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
       inFlight.current.set(id, flight);
       update((current) => patchShot(current, id, { status: "uploading", progress: 0 }));
 
-      uploadFiles("projectImageUploader", {
-        files: [file],
+      uploadProjectImage(file, {
         signal: controller.signal,
         onUploadProgress: ({ progress }) => {
           if (inFlight.current.get(id) === flight) {
@@ -105,7 +104,6 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
           }
         },
       })
-        .then((results) => results[0])
         .catch(() => undefined)
         .then((result) => {
           clearTimeout(timer);
@@ -130,12 +128,11 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
               t("form.upload.announceDone", { n: positionOf(shotsRef.current, id) }),
             );
           } else {
-            const failedKey = result?.key?.trim();
-            if (failedKey) void cleanupKey(failedKey);
             update((current) =>
               patchShot(current, id, {
                 status: "error",
-                error: t(result ? "form.upload.unconfirmed" : "form.upload.failed"),
+                // undefined: the request failed. null: the server answered without a usable key and URL.
+                error: t(result === undefined ? "form.upload.failed" : "form.upload.unconfirmed"),
               }),
             );
             announceRef.current?.(
@@ -154,7 +151,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
       let compressed: File[];
       let isImage: boolean[];
       try {
-        compressed = await Promise.all(incoming.map((file) => compressImageFile(file)));
+        compressed = await Promise.all(incoming.map((file) => compressForUpload(file, "projects")));
         // The server rejects non-images after the upload; catch renamed files before it.
         isImage = await Promise.all(compressed.map((file) => hasImageSignature(file)));
       } finally {

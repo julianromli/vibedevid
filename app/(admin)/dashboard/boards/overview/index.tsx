@@ -34,13 +34,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { PlatformStats, TrendingItem } from "@/lib/actions/analytics";
 import {
   getAnalyticsTimeSeriesFn,
   getMostViewedPostsFn,
   getMostViewedProjectsFn,
   getPlatformStatsFn,
 } from "@/lib/actions/analytics.functions";
-import type { PlatformStats, TrendingItem } from "@/lib/actions/analytics";
 
 interface TimeSeriesPoint {
   date: string;

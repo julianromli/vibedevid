@@ -1,11 +1,11 @@
-import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
+import { and, count, desc, eq, ilike, like } from "drizzle-orm";
+import { USER_ROLE } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { containsPattern } from "@/lib/db/like-pattern";
-import { posts, postTags, blogPostTags, users, views } from "@/lib/db/schema";
 import { toPostDto } from "@/lib/db/mappers";
-import { USER_ROLE } from "@/lib/auth/permissions";
+import { blogPostTags, posts, postTags, users, views } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/server/auth";
-import { eq, and, desc, ilike, like, count } from "drizzle-orm";
+import { isPgUniqueViolation, slugifyTitle } from "@/lib/slug";
 
 function normalizeEditorContent(content: unknown): Record<string, unknown> {
   if (!content) return { type: "doc", content: [] };
@@ -101,6 +101,7 @@ export async function createBlogPost(data: {
   }
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function updateBlogPost(
   id: string,
   data: Partial<{

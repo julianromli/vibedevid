@@ -1,11 +1,11 @@
 import { getRequest } from "@tanstack/react-start/server";
+import { desc, eq } from "drizzle-orm";
 import { guestCommentNameError } from "@/lib/comment-policy";
 import { getDb } from "@/lib/db";
-import { comments, users, blogReports } from "@/lib/db/schema";
+import { blogReports, comments, users } from "@/lib/db/schema";
 import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession } from "@/lib/server/auth";
 import { clientIpFromHeaders, consumeRateLimit } from "@/lib/server/rate-limit";
-import { eq, desc } from "drizzle-orm";
 import type {
   Comment,
   CommentEntityType,
@@ -14,6 +14,7 @@ import type {
   GetCommentsResult,
 } from "@/types/comments";
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function createComment(input: CreateCommentInput): Promise<CommentResult> {
   const { entityType, entityId, content, guestName } = input;
 

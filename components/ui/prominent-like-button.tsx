@@ -68,6 +68,7 @@ export function ProminentLikeButton({
     };
   }, []);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const handleClick = async () => {
     if (!isLoggedIn) {
       setShowAuthDialog(true);

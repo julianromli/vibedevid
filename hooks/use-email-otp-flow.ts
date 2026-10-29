@@ -92,6 +92,7 @@ export function useEmailOtpFlow(input: { step?: "code"; redirectTo?: string }) {
   }, []);
 
   // Restore after refresh, or after browser Back/Forward between steps.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: run when the step changes only
   useEffect(() => {
     const stored = readOtpPending(sessionStore());
     if (stored && !email) setEmail(stored.email);
@@ -103,7 +104,6 @@ export function useEmailOtpFlow(input: { step?: "code"; redirectTo?: string }) {
       return;
     }
     setPending(stored);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run when the step changes only
   }, [step]);
 
   // Resend countdown ticks from the stored send time, not a decrementing counter.

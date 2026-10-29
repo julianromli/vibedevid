@@ -1,85 +1,91 @@
-import { describe, expect, it } from 'vite-plus/test'
-import { parseEnvFile } from '@/scripts/seed/env'
+import { describe, expect, it } from "vite-plus/test";
+import { parseEnvFile } from "@/scripts/seed/env";
 import {
   assertNoRealUsersBeforeSeed,
   assertSafeSeedTarget,
   isProductionSiteUrl,
   requestUrlIsProduction,
-} from '@/scripts/seed/guards'
+} from "@/scripts/seed/guards";
 
-describe('isProductionSiteUrl', () => {
-  it('treats production hosts as blocked', () => {
-    expect(isProductionSiteUrl('https://vibedevid.com')).toBe(true)
-    expect(isProductionSiteUrl('https://www.vibedevid.com')).toBe(true)
-    expect(isProductionSiteUrl('https://vibedeveloper.id')).toBe(true)
-    expect(isProductionSiteUrl('https://www.vibedeveloper.id')).toBe(true)
-  })
+describe("isProductionSiteUrl", () => {
+  it("treats production hosts as blocked", () => {
+    expect(isProductionSiteUrl("https://vibedevid.com")).toBe(true);
+    expect(isProductionSiteUrl("https://www.vibedevid.com")).toBe(true);
+    expect(isProductionSiteUrl("https://vibedeveloper.id")).toBe(true);
+    expect(isProductionSiteUrl("https://www.vibedeveloper.id")).toBe(true);
+  });
 
-  it('treats DNS trailing-dot production hosts as blocked', () => {
-    expect(isProductionSiteUrl('https://vibedeveloper.id.')).toBe(true)
-    expect(isProductionSiteUrl('https://www.vibedevid.com.')).toBe(true)
-  })
+  it("treats DNS trailing-dot production hosts as blocked", () => {
+    expect(isProductionSiteUrl("https://vibedeveloper.id.")).toBe(true);
+    expect(isProductionSiteUrl("https://www.vibedevid.com.")).toBe(true);
+  });
 
-  it('allows localhost and empty values', () => {
-    expect(isProductionSiteUrl('http://localhost:3000')).toBe(false)
-    expect(isProductionSiteUrl(undefined)).toBe(false)
-    expect(isProductionSiteUrl('')).toBe(false)
-  })
-})
+  it("allows localhost and empty values", () => {
+    expect(isProductionSiteUrl("http://localhost:3000")).toBe(false);
+    expect(isProductionSiteUrl(undefined)).toBe(false);
+    expect(isProductionSiteUrl("")).toBe(false);
+  });
+});
 
-describe('assertSafeSeedTarget', () => {
-  it('throws when a site URL is production and allowProduction is false', () => {
+describe("assertSafeSeedTarget", () => {
+  it("throws when a site URL is production and allowProduction is false", () => {
     expect(() =>
       assertSafeSeedTarget({
-        siteUrls: ['http://localhost:3000', 'https://vibedevid.com'],
+        siteUrls: ["http://localhost:3000", "https://vibedevid.com"],
         allowProduction: false,
       }),
-    ).toThrow(/Refusing to seed/)
-  })
+    ).toThrow(/Refusing to seed/);
+  });
 
-  it('throws when a production URL uses a DNS trailing-dot host', () => {
+  it("throws when a production URL uses a DNS trailing-dot host", () => {
     expect(() =>
       assertSafeSeedTarget({
-        siteUrls: ['https://vibedeveloper.id.'],
+        siteUrls: ["https://vibedeveloper.id."],
         allowProduction: false,
       }),
-    ).toThrow(/Refusing to seed/)
-  })
+    ).toThrow(/Refusing to seed/);
+  });
 
-  it('allows production when SEED_ALLOW_PRODUCTION is set', () => {
+  it("allows production when SEED_ALLOW_PRODUCTION is set", () => {
     expect(() =>
       assertSafeSeedTarget({
-        siteUrls: ['https://vibedevid.com'],
+        siteUrls: ["https://vibedevid.com"],
         allowProduction: true,
       }),
-    ).not.toThrow()
-  })
-})
+    ).not.toThrow();
+  });
+});
 
-describe('requestUrlIsProduction', () => {
-  it('matches the live site and skips localhost', () => {
-    expect(requestUrlIsProduction('https://vibedeveloper.id/')).toBe(true)
-    expect(requestUrlIsProduction('https://www.vibedeveloper.id/project/seed-pointer-ai')).toBe(true)
-    expect(requestUrlIsProduction('http://localhost:3000/')).toBe(false)
-  })
-})
+describe("requestUrlIsProduction", () => {
+  it("matches the live site and skips localhost", () => {
+    expect(requestUrlIsProduction("https://vibedeveloper.id/")).toBe(true);
+    expect(requestUrlIsProduction("https://www.vibedeveloper.id/project/seed-pointer-ai")).toBe(
+      true,
+    );
+    expect(requestUrlIsProduction("http://localhost:3000/")).toBe(false);
+  });
+});
 
-describe('assertNoRealUsersBeforeSeed', () => {
-  it('blocks a database that already has real users', () => {
+describe("assertNoRealUsersBeforeSeed", () => {
+  it("blocks a database that already has real users", () => {
     expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 4, allowProduction: false })).toThrow(
       /non-seed user/,
-    )
-  })
+    );
+  });
 
-  it('allows an empty database and an explicit override', () => {
-    expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 0, allowProduction: false })).not.toThrow()
-    expect(() => assertNoRealUsersBeforeSeed({ realUserCount: 4, allowProduction: true })).not.toThrow()
-  })
-})
+  it("allows an empty database and an explicit override", () => {
+    expect(() =>
+      assertNoRealUsersBeforeSeed({ realUserCount: 0, allowProduction: false }),
+    ).not.toThrow();
+    expect(() =>
+      assertNoRealUsersBeforeSeed({ realUserCount: 4, allowProduction: true }),
+    ).not.toThrow();
+  });
+});
 
-describe('parseEnvFile', () => {
-  it('reads keys and strips quotes', () => {
-    const parsed = parseEnvFile(`# comment\nFOO=bar\nBAZ="quoted"\n`)
-    expect(parsed).toEqual({ FOO: 'bar', BAZ: 'quoted' })
-  })
-})
+describe("parseEnvFile", () => {
+  it("reads keys and strips quotes", () => {
+    const parsed = parseEnvFile(`# comment\nFOO=bar\nBAZ="quoted"\n`);
+    expect(parsed).toEqual({ FOO: "bar", BAZ: "quoted" });
+  });
+});
