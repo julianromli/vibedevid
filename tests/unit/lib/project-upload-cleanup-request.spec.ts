@@ -36,4 +36,11 @@ describe("handleUploadCleanupRequest", () => {
     expect((await handleUploadCleanupRequest(post({ keys: many }), cleanup)).status).toBe(400);
     expect(cleanup).not.toHaveBeenCalled();
   });
+
+  it("accepts keys as long as project submission allows", async () => {
+    const cleanup = vi.fn().mockResolvedValue({ success: true });
+    const res = await handleUploadCleanupRequest(post({ keys: ["k".repeat(512)] }), cleanup);
+    expect(res.status).toBe(200);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
 });

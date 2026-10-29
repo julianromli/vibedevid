@@ -460,18 +460,73 @@ describe("SubmitProjectForm QA round 1", () => {
   });
 
   it("clears the importing announcement when the import fails", async () => {
+    let fail!: () => void;
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 502,
-        json: async () => ({ error: "Failed", code: "failed" }),
-      }),
+      vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          fail = () =>
+            resolve({
+              ok: false,
+              status: 502,
+              json: async () => ({ error: "Failed", code: "failed" }),
+            });
+        }),
+      ),
     );
     renderForm();
     await importRepo();
+    expect(screen.getByText("Importing repository")).toBeInTheDocument();
+
+    await act(async () => {
+      fail();
+    });
 
     expect(screen.queryByText("Importing repository")).not.toBeInTheDocument();
+  });
+
+  it("does not fill the favicon field from an import", async () => {
+    mockImport({ website_url: "https://vibeboard.app", favicon_url: "https://s2/icon" });
+    renderForm();
+    await importRepo();
+    fireEvent.click(screen.getByText("fill basics"));
+    next();
+    await addScreenshot();
+    next();
+    await screen.findByTestId("submit-project-button");
+    h.submitProjectFn.mockResolvedValue({ success: true, slug: "vibe-board" });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-project-button"));
+    });
+
+    expect(sentFormData().get("favicon_url")).toBeNull();
+  });
+
+  it("does not delete screenshots on unmount while the submit is still running", async () => {
+    h.submitProjectFn.mockReturnValue(new Promise(() => {}));
+    await goToReview();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-project-button"));
+    });
+
+    cleanup();
+
+    expect(h.cleanupProjectProvisionalUploadFn).not.toHaveBeenCalled();
+  });
+
+  it("deletes screenshots on unmount again after a failed submit", async () => {
+    h.submitProjectFn.mockResolvedValue({ success: false, error: "Nope" });
+    await goToReview();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-project-button"));
+    });
+    await screen.findByText("Nope");
+
+    cleanup();
+
+    expect(h.cleanupProjectProvisionalUploadFn).toHaveBeenCalledWith({
+      data: { imageKey: UPLOADED.key },
+    });
   });
 
   it("focuses the tags input when tags are the first invalid field", async () => {

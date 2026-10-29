@@ -40,7 +40,6 @@ import { SourceStep } from "@/components/ui/submit-project-form/steps/source-ste
 import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
 import { submitProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
-import { getFaviconUrl } from "@/lib/favicon-utils";
 import type { GitHubImportErrorCode } from "@/lib/github-import";
 import { useRouter } from "@/lib/navigation";
 import {
@@ -390,13 +389,13 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
     setIsLoading(true);
     setFormError(null);
     setAnnouncement(t("form.announceSubmitting"));
+    // Keep the screenshots while the server attaches them: no cleanup on reload or unmount.
+    uploads.release();
 
     try {
       const result = await submitProjectFn({ data: toFormData(input, userId) });
       if (result.success && result.slug) {
         toast.success(t("toast.success"));
-        // The screenshots belong to the project now: do not delete them on unmount.
-        uploads.release();
         // Stay locked while the project page loads. A second submit would reuse
         // screenshots that now belong to the new project and fail.
         router.navigate({ to: "/project/$slug", params: { slug: result.slug } });
@@ -406,6 +405,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
     } catch (err) {
       setFormError(err instanceof Error && err.message ? err.message : t("toast.error"));
     }
+    uploads.resume();
     submitLockRef.current = false;
     setIsLoading(false);
   };
@@ -455,11 +455,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
       mergeImportedTextState(setDescription, data.description);
       mergeImportedTextState(setWebsiteUrl, data.website_url);
 
-      if (data.favicon_url) {
-        setFaviconUrl(data.favicon_url);
-      } else if (data.website_url) {
-        setFaviconUrl(getFaviconUrl(data.website_url));
-      }
+      // Leave the favicon field empty: the server fetches the icon for the submitted website.
 
       const previewUrl = data.preview_image_url || data.image_url;
       if (previewUrl) uploads.setImported(previewUrl);

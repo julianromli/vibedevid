@@ -263,7 +263,7 @@
       "importFailed": "Could not import that repository. Check the name and try again.",
       "importError": {
         "notFound": "We could not find that repository. Check the name, and note that private repositories cannot be imported.",
-        "rateLimited": "GitHub is limiting requests right now. Wait a few minutes and try again, or fill it in yourself.",
+        "rateLimited": "Too many import requests right now. Try again later, or fill it in yourself.",
         "invalidUrl": "That does not look like a GitHub repository. Use owner/repo or a github.com link."
       },
       "skipImport": "Skip, I will fill it in myself",

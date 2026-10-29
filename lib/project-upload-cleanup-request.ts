@@ -2,7 +2,7 @@ import { z } from "zod";
 import { MAX_SCREENSHOTS } from "@/lib/project-screenshots";
 
 const bodySchema = z.object({
-  keys: z.array(z.string().trim().min(1).max(256)).min(1).max(MAX_SCREENSHOTS),
+  keys: z.array(z.string().trim().min(1).max(512)).min(1).max(MAX_SCREENSHOTS),
 });
 
 /**

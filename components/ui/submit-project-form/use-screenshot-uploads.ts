@@ -265,10 +265,15 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
     }
   }, [stop]);
 
-  /** The uploads now belong to a project: keep them when the form unmounts. */
+  /** The uploads are being handed to a project: keep them when the form unmounts. */
   const release = useCallback(() => {
     stop();
   }, [stop]);
+
+  /** The hand-off failed: the uploads are the form's again. */
+  const resume = useCallback(() => {
+    stopped.current = false;
+  }, []);
 
   useEffect(() => {
     // StrictMode runs cleanup then setup again: start fresh each time.
@@ -310,6 +315,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
     setImported,
     discardAll,
     release,
+    resume,
   };
 }
 

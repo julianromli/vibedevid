@@ -15,6 +15,11 @@ export function githubApiHeaders(token?: string): Record<string, string> {
 export function githubImportErrorCode(status: number, headers: Headers): GitHubImportErrorCode {
   if (status === 404) return "notFound";
   if (status === 429) return "rateLimited";
-  if (status === 403 && headers.get("x-ratelimit-remaining") === "0") return "rateLimited";
+  if (
+    status === 403 &&
+    (headers.get("x-ratelimit-remaining") === "0" || headers.has("retry-after"))
+  ) {
+    return "rateLimited";
+  }
   return "failed";
 }

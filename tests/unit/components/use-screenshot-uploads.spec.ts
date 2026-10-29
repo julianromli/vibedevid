@@ -231,4 +231,21 @@ describe("useScreenshotUploads", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("cleans up on page close again after resume", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("done"));
+    act(() => result.current.release());
+    act(() => result.current.resume());
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

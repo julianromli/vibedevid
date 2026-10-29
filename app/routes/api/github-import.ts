@@ -26,6 +26,7 @@ type GitHubRepo = {
   description: string | null;
   homepage: string | null;
   html_url: string;
+  private?: boolean;
   owner?: {
     login?: string | null;
   } | null;
@@ -173,6 +174,10 @@ export const Route = createFileRoute("/api/github-import")({
             );
           }
           const repoData = (await repoRes.json()) as GitHubRepo;
+          // A configured token may read private repos; never expose them through import.
+          if (repoData.private) {
+            return importError("notFound", "Repository not found");
+          }
 
           const topicsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/topics`, {
             headers: { ...headers, Accept: "application/vnd.github+json" },

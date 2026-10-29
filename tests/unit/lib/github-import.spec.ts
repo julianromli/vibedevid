@@ -26,6 +26,12 @@ describe("githubImportErrorCode", () => {
     );
   });
 
+  it("maps a 403 secondary rate limit (Retry-After) to rateLimited", () => {
+    expect(
+      githubImportErrorCode(403, headers({ "x-ratelimit-remaining": "42", "retry-after": "60" })),
+    ).toBe("rateLimited");
+  });
+
   it("maps any other failure to failed", () => {
     expect(githubImportErrorCode(403, headers({ "x-ratelimit-remaining": "42" }))).toBe("failed");
     expect(githubImportErrorCode(500, headers())).toBe("failed");
