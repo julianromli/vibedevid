@@ -1,6 +1,9 @@
 /** Kinds the `/api/uploads/image` route accepts. Mirrors `IMAGE_UPLOAD_KINDS` on the server. */
 export type ClientImageUploadKind = "events" | "blog" | "avatars";
 
+/** A stalled upload gives up after this, so no spinner hangs forever. */
+export const UPLOAD_TIMEOUT_MS = 120_000;
+
 export interface UploadImageOptions {
   signal?: AbortSignal;
   onUploadProgress?: (event: { progress: number }) => void;
@@ -23,6 +26,7 @@ export function postImageFile(
     }
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url);
+    xhr.timeout = UPLOAD_TIMEOUT_MS;
     xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
@@ -45,6 +49,7 @@ export function postImageFile(
       }
     };
     xhr.onerror = () => reject(new Error("Upload failed"));
+    xhr.ontimeout = () => reject(new Error("Upload timed out"));
     xhr.onabort = () => reject(new DOMException("Aborted", "AbortError"));
     options.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
     xhr.send(file);

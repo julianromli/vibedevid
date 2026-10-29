@@ -161,6 +161,20 @@ describe("submitTestimonial", () => {
     expect(deleteStoredFiles).toHaveBeenCalledWith("testimonials/anonymous/avatar-key.webp");
   });
 
+  it("logs when the orphaned avatar could not be deleted", async () => {
+    h.state.insertOutcome = "throw";
+    vi.mocked(deleteStoredFiles).mockResolvedValueOnce({ success: false, deletedCount: 0 });
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await submitTestimonial(validInput);
+
+    expect(errorLog).toHaveBeenCalledWith(
+      "Failed to delete orphaned testimonial upload:",
+      "testimonials/anonymous/avatar-key.webp",
+    );
+    errorLog.mockRestore();
+  });
+
   it("blocks a fourth submit in the rate window", async () => {
     h.state.rateCount = 3;
     const result = await submitTestimonial(validInput);

@@ -145,10 +145,9 @@ export async function submitTestimonial(
       return { success: true };
     } catch (error) {
       if (uploadedKey) {
-        try {
-          await deleteStoredFiles(uploadedKey);
-        } catch (cleanupError) {
-          console.error("Failed to delete orphaned testimonial upload:", cleanupError);
+        const cleanup = await deleteStoredFiles(uploadedKey);
+        if (!cleanup.success) {
+          console.error("Failed to delete orphaned testimonial upload:", uploadedKey);
         }
       }
       console.error("Unexpected error submitting testimonial:", error);

@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { uploadImageOfKind } from "@/lib/image-upload-client";
+import { UPLOAD_TIMEOUT_MS, uploadImageOfKind } from "@/lib/image-upload-client";
 
 type Sent = { method: string; url: string; headers: Record<string, string>; body: unknown };
 
 let sent: Sent[] = [];
-let reply: { status: number; body: string } = { status: 200, body: "{}" };
+let reply: { status: number; body: string; hang?: boolean } = { status: 200, body: "{}" };
+let lastXhr: FakeXhr | null = null;
 
 class FakeXhr {
   status = 0;
@@ -13,6 +14,8 @@ class FakeXhr {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
   onabort: (() => void) | null = null;
+  ontimeout: (() => void) | null = null;
+  timeout = 0;
   private request: Sent = { method: "", url: "", headers: {}, body: null };
   open(method: string, url: string) {
     this.request.method = method;
@@ -27,6 +30,8 @@ class FakeXhr {
   send(body: unknown) {
     this.request.body = body;
     sent.push(this.request);
+    lastXhr = this;
+    if (reply.hang) return;
     this.status = reply.status;
     this.responseText = reply.body;
     queueMicrotask(() => this.onload?.());
@@ -35,6 +40,7 @@ class FakeXhr {
 
 beforeEach(() => {
   sent = [];
+  lastXhr = null;
   vi.stubGlobal("XMLHttpRequest", FakeXhr);
 });
 
@@ -82,5 +88,17 @@ describe("uploadImageOfKind", () => {
     const file = new File([new Uint8Array([1])], "a.png", { type: "image/png" });
 
     await expect(uploadImageOfKind("events", file)).rejects.toThrow("Upload failed");
+  });
+
+  it("gives up after the upload timeout instead of hanging", async () => {
+    reply = { status: 200, body: "{}", hang: true };
+    const file = new File([new Uint8Array([1])], "a.png", { type: "image/png" });
+
+    const pending = uploadImageOfKind("events", file);
+    expect(UPLOAD_TIMEOUT_MS).toBe(120_000);
+    expect(lastXhr?.timeout).toBe(UPLOAD_TIMEOUT_MS);
+    lastXhr?.ontimeout?.();
+
+    await expect(pending).rejects.toThrow("Upload timed out");
   });
 });

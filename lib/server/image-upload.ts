@@ -122,8 +122,11 @@ export async function handleImageUpload(
   if (options.afterStore) {
     try {
       await options.afterStore({ key, url, userId });
-    } catch {
-      await deps.bucket.delete(key).catch(() => undefined);
+    } catch (afterStoreError) {
+      console.error(`[image-upload] afterStore failed for ${key}:`, afterStoreError);
+      await deps.bucket.delete(key).catch((deleteError: unknown) => {
+        console.error(`[image-upload] rollback delete failed for ${key}:`, deleteError);
+      });
       return error(500, options.saveFailed ?? "The image could not be saved");
     }
   }

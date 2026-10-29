@@ -27,6 +27,7 @@ import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState
 import { toast } from "sonner";
 import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { cn } from "@/lib/utils";
+import { insertUploadedImage } from "./insert-uploaded-image";
 import { NovelAISelector } from "./novel-ai-selector";
 import {
   Command,
@@ -187,12 +188,11 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
     toast.info("Uploading image...");
     try {
       const { url } = await uploadImageOfKind("blog", file);
-      editorInstanceRef.current
-        ?.chain()
-        .focus()
-        .insertContent({ type: "image", attrs: { src: url } })
-        .run();
-      toast.success("Image uploaded");
+      if (insertUploadedImage(editorInstanceRef.current, url)) {
+        toast.success("Image uploaded");
+      } else {
+        toast.error("Image uploaded, but the editor was closed before it could be inserted");
+      }
     } catch (error) {
       toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }

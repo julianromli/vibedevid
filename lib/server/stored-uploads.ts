@@ -61,10 +61,12 @@ export async function deleteStoredFiles(fileKeys: string | string[]): Promise<Up
       try {
         await bucket.delete(r2Keys);
         deletedCount += r2Keys.length;
-      } catch {
+      } catch (error) {
+        console.warn("[stored-uploads] R2 delete failed:", error);
         success = false;
       }
     } else {
+      console.warn("[stored-uploads] R2 delete skipped: PROJECT_UPLOADS binding missing");
       success = false;
     }
   }
@@ -75,10 +77,30 @@ export async function deleteStoredFiles(fileKeys: string | string[]): Promise<Up
       const result = await deleteUploadthingFiles(utKeys);
       success &&= result.success;
       deletedCount += result.deletedCount;
-    } catch {
+    } catch (error) {
+      console.warn("[stored-uploads] UploadThing delete failed:", error);
       success = false;
     }
   }
 
   return { success, deletedCount };
+}
+
+/**
+ * Delete files, then drop their ledger rows. When any delete fails the rows
+ * stay, so the files can still be found and removed later.
+ */
+export async function deleteStoredFilesThenForget(
+  keys: string[],
+  forget: (key: string) => Promise<unknown>,
+): Promise<UploadCleanupResult> {
+  const result = await deleteStoredFiles(keys);
+  if (result.success) {
+    for (const key of keys) {
+      await forget(key);
+    }
+  } else {
+    console.warn("[stored-uploads] Keeping ledger rows; some files were not deleted:", keys);
+  }
+  return result;
 }

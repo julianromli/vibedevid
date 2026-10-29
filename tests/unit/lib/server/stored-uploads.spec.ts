@@ -8,7 +8,11 @@ const h = vi.hoisted(() => ({
 
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadthingFiles: h.deleteUploadthingFiles }));
 
-import { deleteStoredFiles, storeAnonymousAvatar } from "@/lib/server/stored-uploads";
+import {
+  deleteStoredFiles,
+  deleteStoredFilesThenForget,
+  storeAnonymousAvatar,
+} from "@/lib/server/stored-uploads";
 
 const R2_KEY = "projects/user-1/abc.png";
 
@@ -42,6 +46,36 @@ describe("deleteStoredFiles", () => {
     (globalThis as { __env__?: unknown }).__env__ = {};
     const result = await deleteStoredFiles([R2_KEY]);
     expect(result).toEqual({ success: false, deletedCount: 0 });
+  });
+});
+
+describe("deleteStoredFiles failures", () => {
+  it("logs an R2 delete failure and reports it", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    h.r2Delete.mockRejectedValueOnce(new Error("r2 down"));
+    const result = await deleteStoredFiles([R2_KEY]);
+    expect(result).toEqual({ success: false, deletedCount: 0 });
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});
+
+describe("deleteStoredFilesThenForget", () => {
+  it("forgets every key after the files are deleted", async () => {
+    const forget = vi.fn(async () => undefined);
+    const result = await deleteStoredFilesThenForget([R2_KEY, "utkey1"], forget);
+    expect(result.success).toBe(true);
+    expect(forget.mock.calls).toEqual([[R2_KEY], ["utkey1"]]);
+  });
+
+  it("keeps the ledger rows when a delete fails, so the files can be found later", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    h.r2Delete.mockRejectedValueOnce(new Error("r2 down"));
+    const forget = vi.fn(async () => undefined);
+    const result = await deleteStoredFilesThenForget([R2_KEY], forget);
+    expect(result.success).toBe(false);
+    expect(forget).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
 

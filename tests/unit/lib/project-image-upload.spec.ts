@@ -118,4 +118,16 @@ describe("handleProjectImageUpload", () => {
     expect(res.status).toBe(500);
     expect(d.bucket.delete).toHaveBeenCalledWith("projects/user-1/abc123.png");
   });
+
+  it("logs the ledger failure and a failed rollback delete", async () => {
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const d = deps({ record: vi.fn(async () => Promise.reject(new Error("db down"))) });
+    d.bucket.delete = vi.fn(async () => Promise.reject(new Error("r2 down")));
+    const res = await handleProjectImageUpload(post(PNG), d);
+    expect(res.status).toBe(500);
+    const logged = errorLog.mock.calls.map((call) => String(call[0]));
+    expect(logged.some((line) => line.includes("afterStore"))).toBe(true);
+    expect(logged.some((line) => line.includes("rollback"))).toBe(true);
+    errorLog.mockRestore();
+  });
 });
