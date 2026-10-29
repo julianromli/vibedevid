@@ -14,17 +14,8 @@ async function getUploadthingHandlers() {
     return null;
   }
 
-  const [{ createRouteHandler }, { ourFileRouter }] = await Promise.all([
-    import("uploadthing/server"),
-    import("@/lib/uploadthing"),
-  ]);
-
-  return createRouteHandler({
-    router: ourFileRouter,
-    config: {
-      token: uploadthingToken,
-    },
-  });
+  const { createUploadthingRouteHandler } = await import("@/lib/server/uploadthing-route-handler");
+  return createUploadthingRouteHandler(uploadthingToken);
 }
 
 export const Route = createFileRoute("/api/uploadthing")({
