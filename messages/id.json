@@ -261,6 +261,11 @@
       "import": "Impor",
       "importSuccess": "Repository diimpor. Cek detailnya.",
       "importFailed": "Repository tidak bisa diimpor. Cek namanya lalu coba lagi.",
+      "importError": {
+        "notFound": "Repository tidak ditemukan. Cek namanya, dan ingat repository private tidak bisa diimpor.",
+        "rateLimited": "GitHub sedang membatasi permintaan. Tunggu beberapa menit lalu coba lagi, atau isi manual.",
+        "invalidUrl": "Itu bukan repository GitHub. Pakai format owner/repo atau link github.com."
+      },
       "skipImport": "Lewati, isi manual",
       "projectTitle": "Judul project",
       "projectTitlePlaceholder": "Vibe Board",

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   addQueuedShots,
+  clampProgress,
+  hasImageSignature,
   isAnyShotUploading,
   MAX_SCREENSHOTS,
   makeCover,
@@ -111,5 +113,28 @@ describe("pickScreenshotFiles", () => {
     const result = pickScreenshotFiles([png("a.png"), png("b.png"), png("c.png")], 2);
     expect(result.accepted.map((file) => file.name)).toEqual(["a.png", "b.png"]);
     expect(result.overLimit).toBe(1);
+  });
+});
+
+describe("clampProgress", () => {
+  it("keeps progress between 0 and 100", () => {
+    expect(clampProgress(-5)).toBe(0);
+    expect(clampProgress(42.6)).toBe(43);
+    expect(clampProgress(180)).toBe(100);
+    expect(clampProgress(Number.NaN)).toBe(0);
+  });
+});
+
+describe("hasImageSignature", () => {
+  const PNG_HEAD = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0];
+
+  it("accepts a real PNG", async () => {
+    const file = new File([new Uint8Array(PNG_HEAD)], "a.png", { type: "image/png" });
+    expect(await hasImageSignature(file)).toBe(true);
+  });
+
+  it("rejects a text file renamed to .png", async () => {
+    const file = new File(["hello, this is not an image"], "fake.png", { type: "image/png" });
+    expect(await hasImageSignature(file)).toBe(false);
   });
 });

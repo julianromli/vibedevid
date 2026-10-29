@@ -1,7 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  type GitHubImportErrorCode,
+  githubApiHeaders,
+  githubImportErrorCode,
+} from "@/lib/github-import";
 import { mutationBlockReason } from "@/lib/server/account-status";
 import { getServerSession } from "@/lib/server/auth";
 import { consumeRateLimit } from "@/lib/server/rate-limit";
+import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
+
+const IMPORT_ERROR_STATUS: Record<GitHubImportErrorCode, number> = {
+  notFound: 404,
+  rateLimited: 429,
+  invalidUrl: 400,
+  failed: 502,
+};
+
+function importError(code: GitHubImportErrorCode, error: string): Response {
+  return Response.json({ error, code }, { status: IMPORT_ERROR_STATUS[code] });
+}
 
 type GitHubRepo = {
   name: string;
@@ -135,30 +152,25 @@ export const Route = createFileRoute("/api/github-import")({
             60 * 60 * 1000,
           );
           if (!allowed) {
-            return Response.json(
-              { error: "Too many import requests. Try again later." },
-              { status: 429 },
-            );
+            return importError("rateLimited", "Too many import requests. Try again later.");
           }
 
           const { repoUrl } = await request.json();
           const parsed = parseRepoUrl(String(repoUrl || ""));
           if (!parsed) {
-            return Response.json({ error: "Invalid GitHub repository URL" }, { status: 400 });
+            return importError("invalidUrl", "Invalid GitHub repository URL");
           }
 
           const { owner, repo } = parsed;
-          const headers: Record<string, string> = {
-            Accept: "application/vnd.github+json",
-          };
-          const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-          if (token) headers.Authorization = `Bearer ${token}`;
+          const headers = githubApiHeaders(getServerRuntimeSecrets().githubToken);
 
           const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
           if (!repoRes.ok) {
-            const msg =
-              repoRes.status === 404 ? "Repository not found" : "Failed to fetch repository";
-            return Response.json({ error: msg }, { status: repoRes.status });
+            const code = githubImportErrorCode(repoRes.status, repoRes.headers);
+            return importError(
+              code,
+              code === "notFound" ? "Repository not found" : "Failed to fetch repository",
+            );
           }
           const repoData = (await repoRes.json()) as GitHubRepo;
 

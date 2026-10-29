@@ -4,6 +4,8 @@ import { cleanupProjectProvisionalUploadFn } from "@/lib/actions/projects.functi
 import { compressImageFile } from "@/lib/image-compression";
 import {
   addQueuedShots,
+  clampProgress,
+  hasImageSignature,
   isAnyShotUploading,
   MAX_SCREENSHOTS,
   makeCover,
@@ -20,6 +22,7 @@ import { uploadFiles } from "@/lib/uploadthing-client";
 
 const MAX_PARALLEL_UPLOADS = 3;
 const UPLOAD_TIMEOUT_MS = 120_000;
+const PAGEHIDE_CLEANUP_URL = "/api/project-uploads/cleanup";
 
 interface InFlight {
   controller: AbortController;
@@ -98,7 +101,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
         signal: controller.signal,
         onUploadProgress: ({ progress }) => {
           if (inFlight.current.get(id) === flight) {
-            update((current) => patchShot(current, id, { progress: Math.round(progress) }));
+            update((current) => patchShot(current, id, { progress: clampProgress(progress) }));
           }
         },
       })
@@ -149,14 +152,23 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
       if (stopped.current || incoming.length === 0) return;
       setPreparing((count) => count + 1);
       let compressed: File[];
+      let isImage: boolean[];
       try {
         compressed = await Promise.all(incoming.map((file) => compressImageFile(file)));
+        // The server rejects non-images after the upload; catch renamed files before it.
+        isImage = await Promise.all(compressed.map((file) => hasImageSignature(file)));
       } finally {
         setPreparing((count) => count - 1);
       }
       if (stopped.current) return;
-      const picked = pickScreenshotFiles(compressed, MAX_SCREENSHOTS - shotsRef.current.length);
-      const messages = picked.rejected.map((item) =>
+      const picked = pickScreenshotFiles(
+        compressed.filter((_, index) => isImage[index]),
+        MAX_SCREENSHOTS - shotsRef.current.length,
+      );
+      const notImages = compressed
+        .filter((_, index) => !isImage[index])
+        .map((file) => ({ name: file.name, reason: "type" as const }));
+      const messages = [...notImages, ...picked.rejected].map((item) =>
         t(item.reason === "type" ? "form.upload.rejectedType" : "form.upload.rejectedSize", {
           name: item.name,
         }),
@@ -261,7 +273,21 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
   useEffect(() => {
     // StrictMode runs cleanup then setup again: start fresh each time.
     stopped.current = false;
+    // Unmount cleanup does not run on reload or tab close; ask the server instead.
+    const onPageHide = (event: Event) => {
+      if (stopped.current || (event as PageTransitionEvent).persisted) return;
+      const keys = shotsRef.current.flatMap((shot) => (shot.key ? [shot.key] : []));
+      if (keys.length === 0) return;
+      void fetch(PAGEHIDE_CLEANUP_URL, {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keys }),
+      }).catch(() => undefined);
+    };
+    window.addEventListener("pagehide", onPageHide);
     return () => {
+      window.removeEventListener("pagehide", onPageHide);
       discardAll();
       for (const shot of shotsRef.current) {
         if (shot.source === "upload") revoke(shot.previewUrl);

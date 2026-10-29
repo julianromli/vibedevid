@@ -21,6 +21,8 @@ interface ServerRuntimeSecrets {
   newAccountAllowedEmails: string;
   /** Not secret: host suffix of this worker's Cloudflare preview URLs, e.g. "-vibedevid.<account>.workers.dev". */
   authPreviewHostSuffix: string;
+  /** Optional: raises the GitHub API rate limit for repository import. */
+  githubToken: string;
 }
 
 type EnvRecord = Record<string, string | undefined>;
@@ -48,5 +50,6 @@ export function getServerRuntimeSecrets(): ServerRuntimeSecrets {
     siteUrl: readEnv("NEXT_PUBLIC_SITE_URL") || readEnv("VITE_SITE_URL"),
     newAccountAllowedEmails: readEnv("NEW_ACCOUNT_ALLOWED_EMAILS"),
     authPreviewHostSuffix: readEnv("AUTH_PREVIEW_HOST_SUFFIX"),
+    githubToken: readEnv("GITHUB_TOKEN") || readEnv("GH_TOKEN"),
   };
 }

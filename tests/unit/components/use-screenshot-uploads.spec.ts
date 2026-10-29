@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
 import i18n from "@/i18n";
 
@@ -12,7 +12,8 @@ vi.mock("@/lib/actions/projects.functions", () => ({
   cleanupProjectProvisionalUploadFn: h.cleanup,
 }));
 
-const png = (name: string) => new File([new Uint8Array(10)], name, { type: "image/png" });
+const PNG_HEAD = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0];
+const png = (name: string) => new File([new Uint8Array(PNG_HEAD)], name, { type: "image/png" });
 
 function confirmed(key: string) {
   const url = `https://app.ufs.sh/f/${key}`;
@@ -31,6 +32,10 @@ beforeEach(() => {
   h.cleanup.mockResolvedValue({ success: true });
   h.compress.mockReset();
   h.compress.mockImplementation(async (file: File) => file);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 function deferred<T>() {
@@ -176,5 +181,54 @@ describe("useScreenshotUploads", () => {
     act(() => second.result.current.release());
     second.unmount();
     expect(h.cleanup).not.toHaveBeenCalled();
+  });
+
+  it("rejects a non-image renamed to .png before uploading it", async () => {
+    const { result } = renderHook(() => useScreenshotUploads());
+
+    await act(async () => {
+      await result.current.addFiles([
+        new File(["not an image"], "fake.png", { type: "image/png" }),
+      ]);
+    });
+
+    expect(h.uploadFiles).not.toHaveBeenCalled();
+    expect(result.current.shots).toEqual([]);
+    expect(result.current.notice).toMatch(/fake\.png/);
+  });
+
+  it("asks the server to delete stored uploads when the page is closed or reloaded", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("done"));
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/project-uploads/cleanup");
+    expect(init).toMatchObject({ method: "POST", keepalive: true });
+    expect(JSON.parse(String(init.body))).toEqual({ keys: ["k1"] });
+  });
+
+  it("keeps released uploads when the page is closed", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    const { result } = renderHook(() => useScreenshotUploads());
+    await act(async () => {
+      await result.current.addFiles([png("a.png")]);
+    });
+    await waitFor(() => expect(result.current.shots[0]?.status).toBe("done"));
+    act(() => result.current.release());
+
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

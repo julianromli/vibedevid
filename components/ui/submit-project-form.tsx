@@ -33,6 +33,7 @@ import { BasicsStep } from "@/components/ui/submit-project-form/steps/basics-ste
 import {
   LinksMediaStep,
   SCREENSHOTS_DROPZONE_ID,
+  TAGS_FIELD_ID,
 } from "@/components/ui/submit-project-form/steps/links-media-step";
 import { ReviewStep } from "@/components/ui/submit-project-form/steps/review-step";
 import { SourceStep } from "@/components/ui/submit-project-form/steps/source-step";
@@ -40,6 +41,7 @@ import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-sc
 import { submitProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
+import type { GitHubImportErrorCode } from "@/lib/github-import";
 import { useRouter } from "@/lib/navigation";
 import {
   buildProjectFieldErrors,
@@ -88,6 +90,7 @@ const STEP_FIELDS: Record<1 | 2, ProjectFormFieldName[]> = {
 /** The element that takes focus for a field. */
 const FIELD_FOCUS_ID: Partial<Record<ProjectFormFieldName, string>> = {
   image_urls: SCREENSHOTS_DROPZONE_ID,
+  tags: TAGS_FIELD_ID,
 };
 
 const FIRST_FIELD_ID: Record<StepIndex, string | null> = {
@@ -108,7 +111,8 @@ function firstErrorField(errors: FieldErrors): ProjectFormFieldName | undefined 
 function focusField(field: ProjectFormFieldName) {
   const element = document.getElementById(FIELD_FOCUS_ID[field] ?? field);
   if (!element) return;
-  element.focus();
+  const target = element instanceof HTMLDivElement ? element.querySelector("input") : element;
+  (target ?? element).focus();
   element.scrollIntoView?.({ block: "center" });
 }
 
@@ -406,6 +410,21 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
     setIsLoading(false);
   };
 
+  const importErrorMessage = (code: GitHubImportErrorCode | undefined): string | undefined => {
+    switch (code) {
+      case "notFound":
+        return t("form.importError.notFound");
+      case "rateLimited":
+        return t("form.importError.rateLimited");
+      case "invalidUrl":
+        return t("form.importError.invalidUrl");
+      case "failed":
+        return t("form.importFailed");
+      default:
+        return undefined;
+    }
+  };
+
   const handleGitHubImport = async () => {
     if (!githubRepoUrl.trim()) {
       setImportError(t("form.importEmpty"));
@@ -423,9 +442,12 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
         body: JSON.stringify({ repoUrl: githubRepoUrl.trim() }),
       });
 
-      const data = (await response.json()) as GitHubImportData & { error?: string };
+      const data = (await response.json()) as GitHubImportData & {
+        error?: string;
+        code?: GitHubImportErrorCode;
+      };
       if (!response.ok) {
-        throw new Error(data.error || t("form.importFailed"));
+        throw new Error(importErrorMessage(data.code) ?? data.error ?? t("form.importFailed"));
       }
 
       mergeImportedTextState(setTitle, data.title);
@@ -450,6 +472,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
       setAnnouncement(t("form.announceImported"));
       goToStep(1);
     } catch (err) {
+      setAnnouncement("");
       setImportError(err instanceof Error && err.message ? err.message : t("form.importFailed"));
     } finally {
       setIsImporting(false);

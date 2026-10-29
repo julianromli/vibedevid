@@ -1,5 +1,14 @@
 import { Image } from "@unpic/react";
-import { ChevronLeft, ChevronRight, ImagePlus, Loader2, RotateCw, Star, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  ImagePlus,
+  Loader2,
+  RotateCw,
+  Star,
+  X,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FieldMessage } from "@/components/auth/field-message";
@@ -75,6 +84,8 @@ const techOptions: Option[] = [
 ];
 
 export const SCREENSHOTS_DROPZONE_ID = "screenshots-dropzone";
+/** cmdk overrides the tag input's id, so focus finds the input through this wrapper. */
+export const TAGS_FIELD_ID = "tags-field";
 
 export interface LinksMediaStepProps extends FieldStepProps {
   websiteUrl: string;
@@ -257,6 +268,7 @@ export function LinksMediaStep({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [brokenFavicon, setBrokenFavicon] = useState<string | null>(null);
   // Counted, so dragging over a child does not flicker the state.
   const dragDepth = useRef(0);
 
@@ -321,15 +333,22 @@ export function LinksMediaStep({
           {t("form.faviconUrl")}
         </FieldLabel>
         <div className="relative mt-2">
-          {faviconPreview && (
-            <Image
-              src={faviconPreview}
-              alt=""
-              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2"
-              width={16}
-              height={16}
-            />
-          )}
+          {faviconPreview &&
+            (faviconPreview === brokenFavicon ? (
+              <Globe
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+            ) : (
+              <Image
+                src={faviconPreview}
+                alt=""
+                className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2"
+                width={16}
+                height={16}
+                onError={() => setBrokenFavicon(faviconPreview)}
+              />
+            ))}
           <Input
             id="favicon_url"
             name="favicon_url"
@@ -358,8 +377,9 @@ export function LinksMediaStep({
           if (e.key === "Enter") e.preventDefault();
         }}
       >
-        <FieldLabel htmlFor="tags">{t("form.techStack")}</FieldLabel>
-        <div className="mt-2">
+        {/* cmdk sets its own input id and hidden label (commandProps.label), so this label is visual only. */}
+        <FieldLabel>{t("form.techStack")}</FieldLabel>
+        <div id={TAGS_FIELD_ID} className="mt-2">
           <MultipleSelector
             value={selectedTags}
             onChange={setSelectedTags}
@@ -379,7 +399,6 @@ export function LinksMediaStep({
             )}
             commandProps={{ label: t("form.techStack") }}
             inputProps={{
-              id: "tags",
               onBlur: () => onFieldBlur("tags"),
               enterKeyHint: "enter",
               ...fieldAria("tags", errors),

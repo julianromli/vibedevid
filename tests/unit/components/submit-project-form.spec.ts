@@ -7,6 +7,8 @@ import type { BasicsStepProps } from "@/components/ui/submit-project-form/steps/
 import type { LinksMediaStepProps } from "@/components/ui/submit-project-form/steps/links-media-step";
 import i18n from "@/i18n";
 
+const PNG_HEAD = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0];
+
 const h = vi.hoisted(() => ({
   submitProjectFn: vi.fn(),
   cleanupProjectProvisionalUploadFn: vi.fn(),
@@ -66,6 +68,7 @@ vi.mock("@/components/ui/submit-project-form/steps/basics-step", () => ({
 
 vi.mock("@/components/ui/submit-project-form/steps/links-media-step", () => ({
   SCREENSHOTS_DROPZONE_ID: "screenshots-dropzone",
+  TAGS_FIELD_ID: "tags-field",
   LinksMediaStep: (props: LinksMediaStepProps) =>
     React.createElement(
       "div",
@@ -77,7 +80,9 @@ vi.mock("@/components/ui/submit-project-form/steps/links-media-step", () => ({
           type: "button",
           onClick: () => {
             props.setSelectedTags([{ value: "react", label: "React" }]);
-            props.onAddFiles([new File([new Uint8Array(10)], "shot.png", { type: "image/png" })]);
+            props.onAddFiles([
+              new File([new Uint8Array(PNG_HEAD)], "shot.png", { type: "image/png" }),
+            ]);
           },
         },
         "add screenshot",
@@ -89,6 +94,22 @@ vi.mock("@/components/ui/submit-project-form/steps/links-media-step", () => ({
           onClick: () => props.setFaviconUrl("https://vibeboard.app/icon.png"),
         },
         "set favicon",
+      ),
+      React.createElement(
+        "div",
+        { id: "tags-field" },
+        React.createElement("input", { id: "cmdk-generated", "aria-label": "Tech stack" }),
+      ),
+      React.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () =>
+            props.onAddFiles([
+              new File([new Uint8Array(PNG_HEAD)], "only.png", { type: "image/png" }),
+            ]),
+        },
+        "add screenshot only",
       ),
       React.createElement("button", { id: "screenshots-dropzone", type: "button" }, "dropzone"),
       React.createElement(
@@ -419,5 +440,52 @@ describe("SubmitProjectForm review fixes", () => {
     cleanup();
 
     expect(h.cleanupProjectProvisionalUploadFn).not.toHaveBeenCalled();
+  });
+});
+
+describe("SubmitProjectForm QA round 1", () => {
+  it("explains a missing repository instead of a generic failure", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({ error: "Repository not found", code: "notFound" }),
+      }),
+    );
+    renderForm();
+    await importRepo();
+
+    expect(await screen.findByText(/could not find that repository/i)).toBeInTheDocument();
+  });
+
+  it("clears the importing announcement when the import fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        json: async () => ({ error: "Failed", code: "failed" }),
+      }),
+    );
+    renderForm();
+    await importRepo();
+
+    expect(screen.queryByText("Importing repository")).not.toBeInTheDocument();
+  });
+
+  it("focuses the tags input when tags are the first invalid field", async () => {
+    renderForm();
+    next();
+    fireEvent.click(screen.getByText("fill basics"));
+    next();
+    await act(async () => {
+      fireEvent.click(screen.getByText("add screenshot only"));
+    });
+    await screen.findByText(/shots:.*upload-done/);
+
+    next();
+
+    expect(screen.getByLabelText("Tech stack")).toHaveFocus();
   });
 });

@@ -1,3 +1,4 @@
+import { sniffImageMime } from "@/lib/image-sniff";
 import { PROJECT_LIMITS } from "@/lib/project-submission";
 
 /**
@@ -99,4 +100,20 @@ export function pickScreenshotFiles(files: File[], freeSlots: number): PickedScr
     rejected,
     overLimit: Math.max(0, valid.length - slots),
   };
+}
+
+/** Upload progress as a whole percent between 0 and 100. */
+export function clampProgress(progress: number): number {
+  if (!Number.isFinite(progress)) return 0;
+  return Math.min(100, Math.max(0, Math.round(progress)));
+}
+
+/** True when the file starts with JPG, PNG, or WebP bytes, whatever its name or type says. */
+export async function hasImageSignature(file: File): Promise<boolean> {
+  try {
+    const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    return sniffImageMime(head) !== null;
+  } catch {
+    return false;
+  }
 }
