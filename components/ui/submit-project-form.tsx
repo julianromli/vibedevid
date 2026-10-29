@@ -187,6 +187,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
   const [errors, setErrors] = useState<FieldErrors>({});
   const [uploadsBusy, setUploadsBusy] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const [announcement, setAnnouncement] = useState("");
 
   const [selectedTags, setSelectedTags] = useState<Option[]>([]);
@@ -616,6 +617,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
                 type="button"
                 variant="ghost"
                 data-testid="cancel-button"
+                ref={cancelButtonRef}
                 onClick={handleCancel}
                 disabled={isLoading}
                 className="h-11 px-5 text-base sm:h-10 sm:text-sm"
@@ -645,7 +647,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
               )}
             >
               <span className="grid place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
-                <span className={cn(isLoading && isLastStep && "invisible")}>
+                <span className={cn(isLoading && isLastStep && "opacity-0")}>
                   {isLastStep ? t("form.submit") : t("form.next")}
                 </span>
                 {isLoading && isLastStep && (
@@ -662,7 +664,13 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
       </p>
 
       <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            // Opened without a Trigger, so tell Radix where focus goes back to.
+            event.preventDefault();
+            cancelButtonRef.current?.focus();
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>{t("form.confirmCancelTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("form.confirmCancelBody")}</AlertDialogDescription>

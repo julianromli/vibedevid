@@ -544,3 +544,30 @@ describe("SubmitProjectForm QA round 1", () => {
     expect(screen.getByLabelText("Tech stack")).toHaveFocus();
   });
 });
+
+describe("SubmitProjectForm QA round 2", () => {
+  it("keeps the submit button's name while it is loading", async () => {
+    h.submitProjectFn.mockReturnValue(new Promise(() => {}));
+    await goToReview();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("submit-project-button"));
+    });
+
+    expect(screen.getByRole("button", { name: "Submit project" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+  });
+
+  it("returns focus to Cancel when the discard dialog closes", async () => {
+    renderForm();
+    next();
+    fireEvent.click(screen.getByText("fill basics"));
+    fireEvent.click(screen.getByTestId("prev-step-button"));
+    fireEvent.click(screen.getByTestId("cancel-button"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+
+    await waitFor(() => expect(screen.getByTestId("cancel-button")).toHaveFocus());
+  });
+});

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { ourFileRouter, uploadAnonymousImage } from "@/lib/uploadthing";
+import { deleteUploadthingFiles, ourFileRouter, uploadAnonymousImage } from "@/lib/uploadthing";
 
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 
@@ -31,6 +31,9 @@ const h = vi.hoisted(() => {
       constructor(options?: { token?: string }) {
         state.constructedWith.push(options);
       }
+      deleteFiles = vi.fn(async () =>
+        Object.assign(Object.create({ toJSON() {} }), { success: true, deletedCount: 1 }),
+      );
       uploadFiles = vi.fn(async () => ({
         data: {
           url: "https://utfs.io/avatar.webp",
@@ -83,5 +86,14 @@ describe("projectImageUploader", () => {
   it("accepts only JPG, PNG, and WebP so other types fail before upload", () => {
     const config = ourFileRouter.projectImageUploader.routerConfig;
     expect(Object.keys(config).sort()).toEqual(["image/jpeg", "image/png", "image/webp"]);
+  });
+});
+
+describe("deleteUploadthingFiles", () => {
+  it("returns a plain object a server function can serialize", async () => {
+    const result = await deleteUploadthingFiles("k1");
+
+    expect(result).toEqual({ success: true, deletedCount: 1 });
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
   });
 });

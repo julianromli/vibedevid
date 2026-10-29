@@ -110,7 +110,9 @@ export async function deleteUploadthingFiles(
     };
   }
 
-  return getUtApi().deleteFiles(normalizedKeys);
+  // UTApi returns a class instance; server functions can only serialize plain objects.
+  const result = await getUtApi().deleteFiles(normalizedKeys);
+  return { success: Boolean(result.success), deletedCount: Number(result.deletedCount) || 0 };
 }
 
 export const ourFileRouter = {
