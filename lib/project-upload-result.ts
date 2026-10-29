@@ -1,13 +1,12 @@
+import { isR2UrlForKey } from "@/lib/r2-project-uploads";
+
 /**
- * What the browser gets back from UploadThing for one project screenshot.
- * `serverData` is what our `onUploadComplete` returned. It is missing when
- * that callback failed, so the file has no ownership row and submit would
- * reject it later.
+ * What the browser gets back for one project screenshot. `serverData` is what
+ * `/api/project-uploads` returned after it stored the file and wrote the
+ * ledger row. It is missing when the upload failed.
  */
 export interface ProjectUploadResult {
   serverData?: { key?: string; url?: string } | null;
-  url?: string;
-  key?: string;
 }
 
 /** The URL and key the server recorded, or null when the server never confirmed the file. */
@@ -16,7 +15,7 @@ export function getConfirmedUpload(
 ): { url: string; key: string } | null {
   const url = result?.serverData?.url?.trim();
   const key = result?.serverData?.key?.trim();
-  if (!url || !key) return null;
+  if (!url || !key || !isR2UrlForKey(url, key)) return null;
   return { url, key };
 }
 

@@ -21,7 +21,7 @@ vi.mock("@/lib/actions/projects.functions", () => ({
   cleanupProjectProvisionalUploadFn: h.cleanupProjectProvisionalUploadFn,
 }));
 
-vi.mock("@/lib/uploadthing-client", () => ({ uploadFiles: h.uploadFiles }));
+vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.uploadFiles }));
 
 vi.mock("@/lib/navigation", () => ({
   useRouter: () => ({ navigate: h.navigate, back: vi.fn() }),
@@ -122,7 +122,10 @@ vi.mock("@/components/ui/submit-project-form/steps/links-media-step", () => ({
     ),
 }));
 
-const UPLOADED = { key: "file-key-1", url: "https://app123.ufs.sh/f/file-key-1" };
+const UPLOADED = {
+  key: "projects/user-1/file-key-1.png",
+  url: "https://cdn.vibedeveloper.id/projects/user-1/file-key-1.png",
+};
 const PREVIEW = "https://opengraph.githubassets.com/1/owner/vibe-board";
 
 const categories = [
@@ -184,7 +187,7 @@ beforeEach(() => {
   h.cleanupProjectProvisionalUploadFn.mockReset();
   h.cleanupProjectProvisionalUploadFn.mockResolvedValue({ success: true });
   h.uploadFiles.mockReset();
-  h.uploadFiles.mockResolvedValue([{ ...UPLOADED, serverData: UPLOADED }]);
+  h.uploadFiles.mockResolvedValue({ serverData: UPLOADED });
   h.navigate.mockReset();
 });
 

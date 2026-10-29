@@ -17,8 +17,8 @@ import {
   setImportedShot,
   submittedImages,
 } from "@/lib/project-screenshots";
+import { uploadProjectImage } from "@/lib/project-upload-client";
 import { getConfirmedUpload } from "@/lib/project-upload-result";
-import { uploadFiles } from "@/lib/uploadthing-client";
 
 const MAX_PARALLEL_UPLOADS = 3;
 const UPLOAD_TIMEOUT_MS = 120_000;
@@ -96,8 +96,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
       inFlight.current.set(id, flight);
       update((current) => patchShot(current, id, { status: "uploading", progress: 0 }));
 
-      uploadFiles("projectImageUploader", {
-        files: [file],
+      uploadProjectImage(file, {
         signal: controller.signal,
         onUploadProgress: ({ progress }) => {
           if (inFlight.current.get(id) === flight) {
@@ -105,7 +104,6 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
           }
         },
       })
-        .then((results) => results[0])
         .catch(() => undefined)
         .then((result) => {
           clearTimeout(timer);
@@ -130,8 +128,6 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
               t("form.upload.announceDone", { n: positionOf(shotsRef.current, id) }),
             );
           } else {
-            const failedKey = result?.key?.trim();
-            if (failedKey) void cleanupKey(failedKey);
             update((current) =>
               patchShot(current, id, {
                 status: "error",

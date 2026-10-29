@@ -471,12 +471,23 @@ bisa drift karena keduanya membaca satu sumber.
   selalu mengeksekusi schema penuh.
 - Signed-out visits to `/project/submit` redirect from the route loader, not from the server function.
 - `formatProjectFieldErrors` uses readable labels (`image_urls` shows as "Screenshots").
-- Screenshot uploads count only when UploadThing returns `serverData` (`lib/project-upload-result.ts`).
-  No `serverData` means `onUploadComplete` failed and no ledger row exists, so the form drops the
-  file and shows an error at upload time instead of at Submit.
-- `projectImageUploader` accepts only JPG, PNG, and WebP, the same types the server sniffer allows.
+- New project screenshots (submit and edit) go to Cloudflare R2, not UploadThing.
+  The browser POSTs each file as the raw body to `/api/project-uploads/image`
+  (`lib/server/project-image-upload.ts`). The Worker checks the session, the Origin, the size
+  (4MB), and the magic bytes (JPG, PNG, WebP), picks the key `projects/<userId>/<uuid>.<ext>`,
+  writes it to the `PROJECT_UPLOADS` R2 binding, then writes the `project_upload_files` row.
+  If the row write fails, the object is deleted. No third-party callback is involved.
+- Files are public at `https://cdn.vibedeveloper.id/<key>` (custom domain on bucket
+  `vibedevid-uploads`). No R2 access keys are needed: the Worker uses only the binding.
+- Old UploadThing screenshots keep working: their `utfs.io` / `*.ufs.sh` URLs stay in the DB and
+  are still allowed. `deleteStoredProjectFiles` (`lib/server/stored-uploads.ts`) deletes R2 keys
+  from the bucket and older keys from UploadThing.
+- Screenshot uploads count only when the server response has `serverData` whose URL is the CDN
+  URL for its key (`lib/project-upload-result.ts`). Otherwise the form drops the file and shows
+  an error at upload time instead of at Submit.
 - `alignProjectImages` matches a screenshot by exact ledger URL, or by key when the URL is an
-  UploadThing `https://<host>/f/<key>` URL (`utfs.io` and `<app>.ufs.sh` serve the same file).
+  UploadThing `https://<host>/f/<key>` URL (`utfs.io` and `<app>.ufs.sh` serve the same file)
+  or the R2 CDN URL for the key.
 - Submit locks after one click and stays locked after success while the project page loads.
   A second submit would send screenshots already attached to the new project and fail.
 

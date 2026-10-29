@@ -42,6 +42,7 @@ import { Route as UserAuthResetPasswordRouteImport } from "./routes/user.auth.re
 import { Route as UserAuthConfirmEmailRouteImport } from "./routes/user.auth.confirm-email";
 import { Route as BlogEditorSlugRouteImport } from "./routes/blog.editor.$slug";
 import { Route as ApiVibeVideosIdRouteImport } from "./routes/api/vibe-videos.$id";
+import { Route as ApiProjectUploadsImageRouteImport } from "./routes/api/project-uploads.image";
 import { Route as ApiProjectUploadsCleanupRouteImport } from "./routes/api/project-uploads.cleanup";
 import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth.$";
 import { Route as ApiAiEnhanceDescriptionRouteImport } from "./routes/api/ai.enhance-description";
@@ -211,6 +212,11 @@ const ApiVibeVideosIdRoute = ApiVibeVideosIdRouteImport.update({
   path: "/$id",
   getParentRoute: () => ApiVibeVideosRoute,
 } as any);
+const ApiProjectUploadsImageRoute = ApiProjectUploadsImageRouteImport.update({
+  id: "/api/project-uploads/image",
+  path: "/api/project-uploads/image",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const ApiProjectUploadsCleanupRoute = ApiProjectUploadsCleanupRouteImport.update({
   id: "/api/project-uploads/cleanup",
   path: "/api/project-uploads/cleanup",
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   "/api/ai/enhance-description": typeof ApiAiEnhanceDescriptionRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/project-uploads/cleanup": typeof ApiProjectUploadsCleanupRoute;
+  "/api/project-uploads/image": typeof ApiProjectUploadsImageRoute;
   "/api/vibe-videos/$id": typeof ApiVibeVideosIdRoute;
   "/blog/editor/$slug": typeof BlogEditorSlugRoute;
   "/user/auth/confirm-email": typeof UserAuthConfirmEmailRoute;
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | "/api/ai/enhance-description"
     | "/api/auth/$"
     | "/api/project-uploads/cleanup"
+    | "/api/project-uploads/image"
     | "/api/vibe-videos/$id"
     | "/blog/editor/$slug"
     | "/user/auth/confirm-email"
@@ -491,6 +503,7 @@ export interface RootRouteChildren {
   ApiAiEnhanceDescriptionRoute: typeof ApiAiEnhanceDescriptionRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
   ApiProjectUploadsCleanupRoute: typeof ApiProjectUploadsCleanupRoute;
+  ApiProjectUploadsImageRoute: typeof ApiProjectUploadsImageRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -726,6 +739,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ApiVibeVideosIdRouteImport;
       parentRoute: typeof ApiVibeVideosRoute;
     };
+    "/api/project-uploads/image": {
+      id: "/api/project-uploads/image";
+      path: "/api/project-uploads/image";
+      fullPath: "/api/project-uploads/image";
+      preLoaderRoute: typeof ApiProjectUploadsImageRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/api/project-uploads/cleanup": {
       id: "/api/project-uploads/cleanup";
       path: "/api/project-uploads/cleanup";
@@ -846,6 +866,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiEnhanceDescriptionRoute: ApiAiEnhanceDescriptionRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiProjectUploadsCleanupRoute: ApiProjectUploadsCleanupRoute,
+  ApiProjectUploadsImageRoute: ApiProjectUploadsImageRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

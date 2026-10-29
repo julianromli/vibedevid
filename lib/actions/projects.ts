@@ -108,8 +108,8 @@ const cleanupProvisionalUploadByKey = async (
   }
 
   try {
-    const { deleteUploadthingFiles } = await import("../uploadthing");
-    return await deleteUploadthingFiles(normalizedKey);
+    const { deleteStoredProjectFiles } = await import("../server/stored-uploads");
+    return await deleteStoredProjectFiles(normalizedKey);
   } catch {
     return {
       success: false,
@@ -397,8 +397,8 @@ export async function editProject(projectSlug: string, formData: FormData) {
     );
     if (removedKeys.length > 0) {
       try {
-        const { deleteUploadthingFiles } = await import("../uploadthing");
-        await deleteUploadthingFiles(removedKeys);
+        const { deleteStoredProjectFiles } = await import("../server/stored-uploads");
+        await deleteStoredProjectFiles(removedKeys);
         await Promise.all(removedKeys.map((key) => forgetProjectUpload(key)));
       } catch (cleanupError) {
         console.warn("Failed to delete removed project images:", cleanupError);
@@ -465,8 +465,8 @@ export async function deleteProject(projectSlug: string) {
     // the project row surviving with broken images if the DB deletes failed.
     if (project.imageKeys?.length) {
       try {
-        const { deleteUploadthingFiles } = await import("../uploadthing");
-        await deleteUploadthingFiles(project.imageKeys);
+        const { deleteStoredProjectFiles } = await import("../server/stored-uploads");
+        await deleteStoredProjectFiles(project.imageKeys);
         await Promise.all(project.imageKeys.map((key) => forgetProjectUpload(key)));
       } catch {
         console.warn("Failed to cleanup uploaded images for deleted project:", projectSlug);

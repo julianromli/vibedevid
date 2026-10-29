@@ -2,9 +2,8 @@
 
 import { useRouter } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
-import { UploadButton } from "@uploadthing/react";
 import { Edit, Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
@@ -32,13 +31,13 @@ import {
   PROJECT_FORM_FIELDS,
   PROJECT_LIMITS,
 } from "@/lib/project-submission";
+import { uploadProjectImages } from "@/lib/project-upload-client";
 import {
   getConfirmedUpload,
   type ProjectUploadResult,
   UNCONFIRMED_UPLOAD_MESSAGE,
 } from "@/lib/project-upload-result";
 import { isValidProjectWebsiteUrl, normalizeProjectWebsiteUrl } from "@/lib/project-url";
-import type { OurFileRouter } from "@/lib/uploadthing-router";
 
 const { MAX_DESCRIPTION_LENGTH } = PROJECT_LIMITS;
 
@@ -91,6 +90,7 @@ export function ProjectEditClient({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
@@ -229,13 +229,16 @@ export function ProjectEditClient({
     }
   };
 
-  const handleUploadBegin = () => {
+  const handlePickedFiles = async (picked: FileList | null) => {
+    const files = Array.from(picked ?? []).slice(0, 10 - editImageUrls.length);
+    if (files.length === 0) return;
     setIsUploading(true);
-  };
-
-  const handleUploadError = (error: Error) => {
-    setIsUploading(false);
-    toast.error(`Upload failed: ${error.message}`);
+    try {
+      handleUploadComplete(await uploadProjectImages(await compressImageFiles(files)));
+    } catch (error) {
+      setIsUploading(false);
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -486,33 +489,38 @@ export function ProjectEditClient({
                   </div>
 
                   {editImageUrls.length < 10 && (
-                    <UploadButton<OurFileRouter, "projectImageUploader">
-                      endpoint="projectImageUploader"
-                      onBeforeUploadBegin={compressImageFiles}
-                      onUploadBegin={handleUploadBegin}
-                      onClientUploadComplete={handleUploadComplete}
-                      onUploadError={handleUploadError}
-                      onUploadProgress={() => {}}
-                      config={{
-                        mode: "auto",
-                      }}
-                      content={{
-                        button({ ready }) {
-                          if (ready) return <div>Add Images</div>;
-                          return "Getting ready...";
-                        },
-                        allowedContent({ ready, fileTypes, isUploading }) {
-                          if (!ready) return "Checking what you allow";
-                          if (isUploading) return "Uploading...";
-                          return `${fileTypes.join(", ")} (max 10 total)`;
-                        },
-                      }}
-                      appearance={{
-                        button:
-                          "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md",
-                        allowedContent: "text-sm text-muted-foreground mt-2",
-                      }}
-                    />
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        className="sr-only"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        onChange={(event) => {
+                          void handlePickedFiles(event.target.files);
+                          event.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading || isSaving}
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          "Add Images"
+                        )}
+                      </Button>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        JPG, PNG, or WebP, up to 4MB each (max 10 total)
+                      </p>
+                    </>
                   )}
                 </div>
               </div>

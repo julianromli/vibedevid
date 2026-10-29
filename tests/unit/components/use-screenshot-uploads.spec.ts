@@ -7,7 +7,7 @@ const h = vi.hoisted(() => ({ uploadFiles: vi.fn(), cleanup: vi.fn(), compress: 
 
 vi.mock("@/lib/image-compression", () => ({ compressImageFile: h.compress }));
 
-vi.mock("@/lib/uploadthing-client", () => ({ uploadFiles: h.uploadFiles }));
+vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.uploadFiles }));
 vi.mock("@/lib/actions/projects.functions", () => ({
   cleanupProjectProvisionalUploadFn: h.cleanup,
 }));
@@ -15,9 +15,12 @@ vi.mock("@/lib/actions/projects.functions", () => ({
 const PNG_HEAD = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0];
 const png = (name: string) => new File([new Uint8Array(PNG_HEAD)], name, { type: "image/png" });
 
-function confirmed(key: string) {
-  const url = `https://app.ufs.sh/f/${key}`;
-  return [{ key, url, serverData: { key, url } }];
+/** The R2 key the server would return for a test file id. */
+const k = (id: string) => `projects/user-1/${id.replace(/[^A-Za-z0-9_-]/g, "-")}.png`;
+
+function confirmed(id: string) {
+  const key = k(id);
+  return { serverData: { key, url: `https://cdn.vibedeveloper.id/${key}` } };
 }
 
 beforeAll(async () => {
@@ -48,9 +51,9 @@ function deferred<T>() {
 
 describe("useScreenshotUploads", () => {
   it("marks a failed file for retry while the other files finish", async () => {
-    h.uploadFiles.mockImplementation(async (_endpoint, { files }: { files: File[] }) => {
-      if (files[0]?.name === "bad.png") throw new Error("network");
-      return confirmed(files[0]?.name ?? "x");
+    h.uploadFiles.mockImplementation(async (file: File) => {
+      if (file.name === "bad.png") throw new Error("network");
+      return confirmed(file.name);
     });
     const { result } = renderHook(() => useScreenshotUploads());
 
@@ -67,11 +70,11 @@ describe("useScreenshotUploads", () => {
     act(() => result.current.retry(result.current.shots[1]?.id ?? ""));
 
     await waitFor(() => expect(result.current.shots[1]?.status).toBe("done"));
-    expect(result.current.shots[1]?.key).toBe("bad-retry");
+    expect(result.current.shots[1]?.key).toBe(k("bad-retry"));
   });
 
   it("treats an upload the server never confirmed as failed", async () => {
-    h.uploadFiles.mockResolvedValue([{ key: "orphan", url: "https://utfs.io/f/orphan" }]);
+    h.uploadFiles.mockResolvedValue({ serverData: null });
     const { result } = renderHook(() => useScreenshotUploads());
 
     await act(async () => {
@@ -105,7 +108,7 @@ describe("useScreenshotUploads", () => {
     act(() => result.current.remove(result.current.shots[0]?.id ?? ""));
 
     expect(result.current.shots).toEqual([]);
-    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "k1" } });
+    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: k("k1") } });
   });
 
   it("keeps the GitHub preview as the cover after uploads", async () => {
@@ -143,8 +146,7 @@ describe("useScreenshotUploads", () => {
   it("discardAll stops queued uploads and deletes files that finish later", async () => {
     const pending = new Map<string, (value: unknown) => void>();
     h.uploadFiles.mockImplementation(
-      (_endpoint, { files }: { files: File[] }) =>
-        new Promise((resolve) => pending.set(files[0]?.name ?? "", resolve)),
+      (file: File) => new Promise((resolve) => pending.set(file.name, resolve)),
     );
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
@@ -158,7 +160,9 @@ describe("useScreenshotUploads", () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "late-a" } }));
+    await waitFor(() =>
+      expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: k("late-a") } }),
+    );
     expect(h.uploadFiles).toHaveBeenCalledTimes(3);
   });
 
@@ -170,7 +174,7 @@ describe("useScreenshotUploads", () => {
     });
     await waitFor(() => expect(first.result.current.shots[0]?.status).toBe("done"));
     first.unmount();
-    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: "k1" } });
+    expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: k("k1") } });
 
     h.cleanup.mockClear();
     const second = renderHook(() => useScreenshotUploads());
@@ -213,7 +217,7 @@ describe("useScreenshotUploads", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/api/project-uploads/cleanup");
     expect(init).toMatchObject({ method: "POST", keepalive: true });
-    expect(JSON.parse(String(init.body))).toEqual({ keys: ["k1"] });
+    expect(JSON.parse(String(init.body))).toEqual({ keys: [k("k1")] });
   });
 
   it("keeps released uploads when the page is closed", async () => {
