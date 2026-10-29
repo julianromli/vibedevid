@@ -24,7 +24,7 @@ import {
 } from "novel";
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { cn } from "@/lib/utils";
 import { NovelAISelector } from "./novel-ai-selector";
 import {
@@ -182,36 +182,28 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   // Hidden file input ref for image upload via slash command
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // UploadThing for drag-drop/paste image handling
-  const { startUpload } = useUploadThing("blogImageUploader", {
-    onUploadBegin: () => {
-      toast.info("Uploading image...");
-    },
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
-      if (url && editorInstanceRef.current) {
-        editorInstanceRef.current
-          .chain()
-          .focus()
-          .insertContent({
-            type: "image",
-            attrs: { src: url },
-          })
-          .run();
-        toast.success("Image uploaded");
-      }
-    },
-    onUploadError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
-    },
-  });
+  // Upload a picked, dropped, or pasted image to R2 and insert it at the cursor.
+  const startUpload = useCallback(async (file: File) => {
+    toast.info("Uploading image...");
+    try {
+      const { url } = await uploadImageOfKind("blog", file);
+      editorInstanceRef.current
+        ?.chain()
+        .focus()
+        .insertContent({ type: "image", attrs: { src: url } })
+        .run();
+      toast.success("Image uploaded");
+    } catch (error) {
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }, []);
 
   // Handle file selection from hidden input
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file && file.type.startsWith("image/")) {
-        startUpload([file]);
+        void startUpload(file);
       }
       // Reset input so same file can be selected again
       e.target.value = "";
@@ -314,8 +306,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
                 const file = event.dataTransfer.files[0];
                 if (file.type.startsWith("image/")) {
                   event.preventDefault();
-                  toast.info("Uploading image...");
-                  startUpload([file]);
+                  void startUpload(file);
                   return true;
                 }
               }
@@ -325,8 +316,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
               const file = event.clipboardData?.files?.[0];
               if (file?.type.startsWith("image/")) {
                 event.preventDefault();
-                toast.info("Uploading image...");
-                startUpload([file]);
+                void startUpload(file);
                 return true;
               }
               return false;

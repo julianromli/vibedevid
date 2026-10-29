@@ -4,7 +4,7 @@ import {
   rejectTestimonial,
   submitTestimonial,
 } from "@/lib/actions/testimonials";
-import { deleteUploadthingFiles, uploadAnonymousImage } from "@/lib/uploadthing";
+import { deleteStoredFiles, storeAnonymousAvatar } from "@/lib/server/stored-uploads";
 
 const TESTIMONIAL_ID = "0f47d16c-3c2a-4e8e-b9b2-7e8d1f9a11aa";
 
@@ -82,12 +82,12 @@ vi.mock("@/lib/auth/permissions", () => ({
   requireAdmin: vi.fn(async () => undefined),
 }));
 
-vi.mock("@/lib/uploadthing", () => ({
-  uploadAnonymousImage: vi.fn(async () => ({
-    url: "https://utfs.io/avatar.webp",
-    key: "avatar-key",
+vi.mock("@/lib/server/stored-uploads", () => ({
+  storeAnonymousAvatar: vi.fn(async () => ({
+    url: "https://cdn.vibedeveloper.id/testimonials/anonymous/avatar-key.webp",
+    key: "testimonials/anonymous/avatar-key.webp",
   })),
-  deleteUploadthingFiles: vi.fn(async () => ({
+  deleteStoredFiles: vi.fn(async () => ({
     success: true,
     deletedCount: 1,
   })),
@@ -102,8 +102,8 @@ beforeEach(() => {
   h.state.insertOutcome = "ok";
   h.state.inserted = [];
   h.state.updated = [];
-  vi.mocked(uploadAnonymousImage).mockClear();
-  vi.mocked(deleteUploadthingFiles).mockClear();
+  vi.mocked(storeAnonymousAvatar).mockClear();
+  vi.mocked(deleteStoredFiles).mockClear();
 });
 
 describe("submitTestimonial", () => {
@@ -131,7 +131,9 @@ describe("submitTestimonial", () => {
     expect(h.state.inserted).toHaveLength(1);
     expect(h.state.inserted[0]?.status).toBe("pending");
     expect(h.state.inserted[0]?.fullName).toBe("Rizki Pratama");
-    expect(h.state.inserted[0]?.avatarUrl).toBe("https://utfs.io/avatar.webp");
+    expect(h.state.inserted[0]?.avatarUrl).toBe(
+      "https://cdn.vibedeveloper.id/testimonials/anonymous/avatar-key.webp",
+    );
     expect(h.state.inserted[0]?.ipHash).toBe("abc123");
   });
 
@@ -145,7 +147,7 @@ describe("submitTestimonial", () => {
     if (!result.success) {
       expect(result.error).toContain("Foto harus JPG, PNG, atau WebP");
     }
-    expect(uploadAnonymousImage).not.toHaveBeenCalled();
+    expect(storeAnonymousAvatar).not.toHaveBeenCalled();
     expect(h.state.inserted).toHaveLength(0);
   });
 
@@ -156,7 +158,7 @@ describe("submitTestimonial", () => {
 
     expect(result.success).toBe(false);
     expect(h.state.inserted).toHaveLength(0);
-    expect(deleteUploadthingFiles).toHaveBeenCalledWith("avatar-key");
+    expect(deleteStoredFiles).toHaveBeenCalledWith("testimonials/anonymous/avatar-key.webp");
   });
 
   it("blocks a fourth submit in the rate window", async () => {

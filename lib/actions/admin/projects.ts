@@ -270,9 +270,9 @@ export async function adminDeleteProject(
 
     if (existing?.imageKeys?.length) {
       try {
-        const { deleteUploadthingFiles } = await import("@/lib/uploadthing");
+        const { deleteStoredFiles } = await import("@/lib/server/stored-uploads");
         const { forgetProjectUpload } = await import("@/lib/server/project-uploads");
-        await deleteUploadthingFiles(existing.imageKeys);
+        await deleteStoredFiles(existing.imageKeys);
         await Promise.all(existing.imageKeys.map((key) => forgetProjectUpload(key)));
       } catch (cleanupError) {
         console.warn("Failed to delete admin project images:", cleanupError);

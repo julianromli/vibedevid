@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUploadThing } from "@/lib/uploadthing-client";
+import { uploadImageOfKind } from "@/lib/image-upload-client";
 import { cn } from "@/lib/utils";
 
 interface EditorImageUploaderProps {
@@ -145,32 +145,17 @@ export function EditorImageUploader({
   disabled = false,
   onInsert,
 }: EditorImageUploaderProps) {
-  const { startUpload } = useUploadThing("blogImageUploader", {
-    onUploadBegin: () => {
-      onUploadStart();
-    },
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.ufsUrl || res?.[0]?.url;
-      if (url) {
-        onUploadComplete(url);
-      } else {
-        onUploadError(new Error("No URL returned from upload"));
-      }
-    },
-    onUploadError: (error) => {
-      onUploadError(error);
-    },
-  });
-
   const handleFileSelect = useCallback(
     async (file: File) => {
+      onUploadStart();
       try {
-        await startUpload([file]);
+        const { url } = await uploadImageOfKind("blog", file);
+        onUploadComplete(url);
       } catch (err) {
         onUploadError(err instanceof Error ? err : new Error("Upload failed"));
       }
     },
-    [startUpload, onUploadError],
+    [onUploadStart, onUploadComplete, onUploadError],
   );
 
   const hasImage = value.trim() !== "";

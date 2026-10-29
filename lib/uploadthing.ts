@@ -1,17 +1,11 @@
-import { createUploadthing, type FileRouter, UploadThingError, UTApi } from "uploadthing/server";
-import { readFileBytes, SNIFFED_IMAGE_EXTENSION, sniffImageMime } from "@/lib/image-sniff";
-import { requireUser } from "@/lib/server/auth";
-import { recordProjectUpload } from "@/lib/server/project-uploads";
+/**
+ * Legacy UploadThing files. New uploads go to R2 (see `lib/server/image-upload.ts`);
+ * this module only deletes files that were uploaded to UploadThing before the
+ * move, so removing an old project screenshot still frees its storage.
+ */
+import { UTApi } from "uploadthing/server";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";
 import { isUploadthingTokenShape } from "@/lib/uploadthing-token";
-import type { OurFileRouter, UploadedFileMetadata } from "./uploadthing-router";
-
-const ANONYMOUS_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
-const PROJECT_IMAGE_LIMITS = { maxFileSize: "4MB", maxFileCount: 10 } as const;
-
-export type { OurFileRouter } from "./uploadthing-router";
-
-const f = createUploadthing();
 
 let utapiInstance: UTApi | null = null;
 let cachedUtApiToken: string | null = null;
@@ -45,55 +39,9 @@ function getUtApi() {
   return utapiInstance;
 }
 
-export type { UploadedFileMetadata } from "./uploadthing-router";
-
 export interface UploadCleanupResult {
   success: boolean;
   deletedCount: number;
-}
-
-async function requireAuthenticatedUserId() {
-  const user = await requireUser();
-  return user.id;
-}
-
-function getUfsUrl(file: unknown): string | undefined {
-  if (!file || typeof file !== "object") return undefined;
-  const ufsUrl = (file as Record<string, unknown>).ufsUrl;
-  return typeof ufsUrl === "string" ? ufsUrl : undefined;
-}
-
-export async function uploadAnonymousImage(file: File): Promise<{ url: string; key: string }> {
-  if (file.size > ANONYMOUS_IMAGE_MAX_BYTES) {
-    throw new Error("Foto maksimal 2 MB");
-  }
-
-  const bytes = await readFileBytes(file);
-  const mime = sniffImageMime(bytes);
-  if (!mime) {
-    throw new Error("Foto harus JPG, PNG, atau WebP");
-  }
-
-  const body = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(body).set(bytes);
-  const safeFile = new File([body], `avatar${SNIFFED_IMAGE_EXTENSION[mime]}`, {
-    type: mime,
-    lastModified: Date.now(),
-  });
-
-  const uploaded = await getUtApi().uploadFiles(safeFile);
-  const payload = Array.isArray(uploaded) ? uploaded[0] : uploaded;
-
-  if (!payload || payload.error || !payload.data) {
-    throw new Error(payload?.error?.message ?? "Upload failed");
-  }
-
-  const url = payload.data.ufsUrl ?? payload.data.url;
-  if (!url || !payload.data.key) {
-    throw new Error("Upload failed");
-  }
-
-  return { url, key: payload.data.key };
 }
 
 export async function deleteUploadthingFiles(
@@ -114,94 +62,3 @@ export async function deleteUploadthingFiles(
   const result = await getUtApi().deleteFiles(normalizedKeys);
   return { success: Boolean(result.success), deletedCount: Number(result.deletedCount) || 0 };
 }
-
-export const ourFileRouter = {
-  // Only types the server sniffer accepts. With a generic `image` route a GIF or
-  // HEIC uploads fine, onUploadComplete rejects it, and UploadThing hides that error.
-  projectImageUploader: f({
-    "image/jpeg": PROJECT_IMAGE_LIMITS,
-    "image/png": PROJECT_IMAGE_LIMITS,
-    "image/webp": PROJECT_IMAGE_LIMITS,
-  })
-    .middleware(async ({ files }) => {
-      // maxFileCount applies per MIME type above, so cap the request as a whole.
-      if (files.length > PROJECT_IMAGE_LIMITS.maxFileCount) {
-        throw new UploadThingError(
-          `Upload at most ${PROJECT_IMAGE_LIMITS.maxFileCount} screenshots at once`,
-        );
-      }
-      const userId = await requireAuthenticatedUserId();
-      return { userId };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      const ufsUrl = getUfsUrl(file);
-      const url = ufsUrl ?? file.url;
-
-      const sniffed = await fetch(url)
-        .then(async (response) => {
-          if (!response.ok) return null;
-          return sniffImageMime(new Uint8Array(await response.arrayBuffer()));
-        })
-        .catch(() => null);
-
-      if (!sniffed) {
-        await deleteUploadthingFiles(file.key);
-        throw new Error("Only JPG, PNG, and WebP images are allowed");
-      }
-
-      await recordProjectUpload({
-        key: file.key,
-        url,
-        userId: metadata.userId,
-      });
-
-      const uploadedFile = {
-        uploadedBy: metadata.userId,
-        url,
-        key: file.key,
-        name: file.name,
-      } satisfies UploadedFileMetadata;
-
-      return uploadedFile;
-    }),
-
-  blogImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
-    .middleware(async () => {
-      const userId = await requireAuthenticatedUserId();
-      return { userId };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      const ufsUrl = getUfsUrl(file);
-      const url = ufsUrl ?? file.url;
-
-      const uploadedFile = {
-        uploadedBy: metadata.userId,
-        url,
-        key: file.key,
-        name: file.name,
-      } satisfies UploadedFileMetadata;
-
-      return uploadedFile;
-    }),
-
-  avatarUploader: f({ image: { maxFileSize: "2MB", maxFileCount: 1 } })
-    .middleware(async () => {
-      const userId = await requireAuthenticatedUserId();
-      return { userId };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      const ufsUrl = getUfsUrl(file);
-      const url = ufsUrl ?? file.url;
-      return {
-        uploadedBy: metadata.userId,
-        url,
-        key: file.key,
-        name: file.name,
-      } satisfies UploadedFileMetadata;
-    }),
-} satisfies FileRouter;
-
-// Keep the runtime router in sync with the client-safe `OurFileRouter` type
-// declared in `./uploadthing-router`. If this assertion fails, the endpoint
-// names or shapes have drifted and the type must be updated.
-ourFileRouter satisfies OurFileRouter;

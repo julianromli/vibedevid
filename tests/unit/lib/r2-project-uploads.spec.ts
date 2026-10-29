@@ -26,3 +26,28 @@ describe("R2 project upload keys", () => {
     expect(isR2UrlForKey(`https://evil.example/${key}`, key)).toBe(false);
   });
 });
+
+describe("R2 upload keys for every kind", () => {
+  it("builds keys per kind", async () => {
+    const { r2UploadKey } = await import("@/lib/r2-project-uploads");
+    expect(r2UploadKey("events", "user-1", "abc", "image/png")).toBe("events/user-1/abc.png");
+    expect(r2UploadKey("avatars", "user-1", "abc", "image/jpeg")).toBe("avatars/user-1/abc.jpg");
+  });
+
+  it("knows any app-written R2 key, and project keys stay project-only", async () => {
+    const { isR2UploadKey } = await import("@/lib/r2-project-uploads");
+    for (const key of [
+      "projects/u/a.png",
+      "events/u/a.webp",
+      "blog/u/a.jpg",
+      "avatars/u/a.png",
+      "testimonials/anonymous/a.png",
+    ]) {
+      expect(isR2UploadKey(key)).toBe(true);
+    }
+    expect(isR2UploadKey("Xyz123utkey")).toBe(false);
+    expect(isR2UploadKey("other/u/a.png")).toBe(false);
+    expect(isR2UploadKey("blog/../a.png")).toBe(false);
+    expect(isR2ProjectKey("blog/u/a.png")).toBe(false);
+  });
+});

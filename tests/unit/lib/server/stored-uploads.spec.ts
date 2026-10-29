@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 const h = vi.hoisted(() => ({
   deleteUploadthingFiles: vi.fn(),
   r2Delete: vi.fn(),
+  r2Put: vi.fn(),
 }));
 
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadthingFiles: h.deleteUploadthingFiles }));
 
-import { deleteStoredProjectFiles } from "@/lib/server/stored-uploads";
+import { deleteStoredFiles, storeAnonymousAvatar } from "@/lib/server/stored-uploads";
 
 const R2_KEY = "projects/user-1/abc.png";
 
@@ -16,28 +17,75 @@ beforeEach(() => {
   h.deleteUploadthingFiles.mockResolvedValue({ success: true, deletedCount: 1 });
   h.r2Delete.mockReset();
   h.r2Delete.mockResolvedValue(undefined);
+  h.r2Put.mockReset();
+  h.r2Put.mockResolvedValue({});
   (globalThis as { __env__?: unknown }).__env__ = {
-    PROJECT_UPLOADS: { put: vi.fn(), delete: h.r2Delete },
+    PROJECT_UPLOADS: { put: h.r2Put, delete: h.r2Delete },
   };
 });
 
-describe("deleteStoredProjectFiles", () => {
+describe("deleteStoredFiles", () => {
   it("deletes R2 keys from the bucket and the rest from UploadThing", async () => {
-    const result = await deleteStoredProjectFiles([R2_KEY, "utkey1", " "]);
+    const result = await deleteStoredFiles([R2_KEY, "utkey1", " "]);
     expect(h.r2Delete).toHaveBeenCalledWith([R2_KEY]);
     expect(h.deleteUploadthingFiles).toHaveBeenCalledWith(["utkey1"]);
     expect(result).toEqual({ success: true, deletedCount: 2 });
   });
 
   it("does not call UploadThing for R2-only keys", async () => {
-    const result = await deleteStoredProjectFiles(R2_KEY);
+    const result = await deleteStoredFiles(R2_KEY);
     expect(h.deleteUploadthingFiles).not.toHaveBeenCalled();
     expect(result).toEqual({ success: true, deletedCount: 1 });
   });
 
   it("reports failure when the bucket binding is missing", async () => {
     (globalThis as { __env__?: unknown }).__env__ = {};
-    const result = await deleteStoredProjectFiles([R2_KEY]);
+    const result = await deleteStoredFiles([R2_KEY]);
     expect(result).toEqual({ success: false, deletedCount: 0 });
+  });
+});
+
+describe("deleteStoredFiles for every upload kind", () => {
+  it("sends event, blog, avatar, and testimonial keys to R2", async () => {
+    const keys = [
+      "events/u/a.png",
+      "blog/u/b.jpg",
+      "avatars/u/c.webp",
+      "testimonials/anonymous/d.png",
+    ];
+    const result = await deleteStoredFiles(keys);
+    expect(h.r2Delete).toHaveBeenCalledWith(keys);
+    expect(h.deleteUploadthingFiles).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true, deletedCount: 4 });
+  });
+});
+
+describe("storeAnonymousAvatar", () => {
+  const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  const file = (bytes: Uint8Array) =>
+    ({
+      type: "image/png",
+      size: bytes.byteLength,
+      name: "a.png",
+      arrayBuffer: async () => bytes.slice().buffer,
+    }) as File;
+
+  it("stores the avatar in R2 under testimonials/anonymous/", async () => {
+    const stored = await storeAnonymousAvatar(file(PNG));
+    expect(stored.key).toMatch(/^testimonials\/anonymous\/[A-Za-z0-9_-]+\.png$/);
+    expect(stored.url).toBe(`https://cdn.vibedeveloper.id/${stored.key}`);
+    expect(h.r2Put).toHaveBeenCalledWith(stored.key, expect.any(Uint8Array), expect.any(Object));
+  });
+
+  it("refuses avatars over 2MB", async () => {
+    const big = new Uint8Array(2 * 1024 * 1024 + 1);
+    big.set(PNG);
+    await expect(storeAnonymousAvatar(file(big))).rejects.toThrow("Foto maksimal 2 MB");
+    expect(h.r2Put).not.toHaveBeenCalled();
+  });
+
+  it("fails when the bucket binding is missing", async () => {
+    (globalThis as { __env__?: unknown }).__env__ = {};
+    await expect(storeAnonymousAvatar(file(PNG))).rejects.toThrow();
   });
 });
