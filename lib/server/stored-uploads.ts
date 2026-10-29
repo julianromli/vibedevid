@@ -91,9 +91,12 @@ export async function deleteStoredFilesThenForget(
 ): Promise<UploadCleanupResult> {
   const result = await deleteStoredFiles(keys);
   if (result.success) {
-    for (const key of keys) {
-      await forget(key);
-    }
+    const forgotten = await Promise.allSettled(keys.map((key) => forget(key)));
+    forgotten.forEach((outcome, index) => {
+      if (outcome.status === "rejected") {
+        console.warn(`[stored-uploads] Ledger row not removed for ${keys[index]}:`, outcome.reason);
+      }
+    });
   } else {
     console.warn("[stored-uploads] Keeping ledger rows; some files were not deleted:", keys);
   }

@@ -27,7 +27,7 @@ function post(
 
 function deps(overrides: Partial<Parameters<typeof handleKindImageUpload>[1]> = {}) {
   return {
-    requireUserId: vi.fn(async () => "user-1"),
+    getUserId: vi.fn(async (): Promise<string | null> => "user-1"),
     bucket: { put: vi.fn(async () => ({})), delete: vi.fn(async () => undefined) },
     newId: () => "abc123",
     ...overrides,
@@ -113,7 +113,7 @@ describe("handleKindImageUpload", () => {
       (await handleKindImageUpload(post("blog", new TextEncoder().encode("<svg>x</svg>....")), d))
         .status,
     ).toBe(415);
-    const signedOut = deps({ requireUserId: vi.fn(async () => Promise.reject(new Error("no"))) });
+    const signedOut = deps({ getUserId: vi.fn(async () => null) });
     expect((await handleKindImageUpload(post("avatars", PNG), signedOut)).status).toBe(401);
     expect(d.bucket.put).not.toHaveBeenCalled();
     expect(signedOut.bucket.put).not.toHaveBeenCalled();

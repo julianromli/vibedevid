@@ -68,6 +68,18 @@ describe("deleteStoredFilesThenForget", () => {
     expect(forget.mock.calls).toEqual([[R2_KEY], ["utkey1"]]);
   });
 
+  it("tries to forget every key even when one ledger delete fails", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const forget = vi.fn(async (key: string) => {
+      if (key === R2_KEY) throw new Error("db blip");
+    });
+    const result = await deleteStoredFilesThenForget([R2_KEY, "utkey1"], forget);
+    expect(result.success).toBe(true);
+    expect(forget.mock.calls).toEqual([[R2_KEY], ["utkey1"]]);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("keeps the ledger rows when a delete fails, so the files can be found later", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     h.r2Delete.mockRejectedValueOnce(new Error("r2 down"));

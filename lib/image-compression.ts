@@ -10,7 +10,7 @@
  * a WebP that is not smaller, an animated image, or a decode failure. The
  * server still accepts JPEG, PNG and WebP and stores the type it sniffs.
  */
-import type { R2UploadKind } from "@/lib/r2-uploads";
+import { type R2UploadKind, UPLOAD_MAX_BYTES } from "@/lib/r2-uploads";
 
 export const UPLOAD_WEBP_QUALITY = 0.82;
 
@@ -46,12 +46,22 @@ export function webpFileName(name: string): string {
 }
 
 /**
- * A WebP that already fits is left alone: it was compressed already (the
- * avatar crop, or a screenshot compressed when picked), and re-encoding lossy
- * WebP only loses quality.
+ * A WebP that already fits (edge and bytes) is left alone: it was compressed
+ * already (the avatar crop, or a screenshot compressed when picked), and
+ * re-encoding lossy WebP only loses quality. One over the byte limit is
+ * re-encoded, since the server would refuse it anyway.
  */
-export function needsReencode(type: string, width: number, height: number, maxEdge: number) {
-  return type.toLowerCase() !== "image/webp" || Math.max(width, height) > maxEdge;
+export function needsReencode(
+  file: { type: string; size: number },
+  width: number,
+  height: number,
+  kind: R2UploadKind,
+) {
+  return (
+    file.type.toLowerCase() !== "image/webp" ||
+    Math.max(width, height) > UPLOAD_MAX_EDGE[kind] ||
+    file.size > UPLOAD_MAX_BYTES[kind]
+  );
 }
 
 /** The WebP when the browser really made one and it is smaller; otherwise the original. */
@@ -68,7 +78,11 @@ export function keepSmallerUpload(original: File, encoded: Blob | null): File {
 const ascii = (bytes: Uint8Array, at: number, length: number) =>
   String.fromCharCode(...bytes.subarray(at, at + length));
 
-/** GIFs, APNGs (`acTL` before `IDAT`) and animated WebPs (VP8X animation flag). Canvas keeps only frame one. */
+/**
+ * GIFs, APNGs (`acTL` before `IDAT`) and animated WebPs (VP8X animation flag).
+ * Canvas keeps only frame one. A PNG whose prefix ends before `IDAT` counts as
+ * animated, so an unknown case keeps the original.
+ */
 export function isAnimatedImage(bytes: Uint8Array): boolean {
   if (ascii(bytes, 0, 3) === "GIF") return true;
 
@@ -80,7 +94,7 @@ export function isAnimatedImage(bytes: Uint8Array): boolean {
       if (type === "IDAT") return false;
       at += 12 + view.getUint32(at);
     }
-    return false;
+    return true;
   }
 
   if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP") {
@@ -103,7 +117,7 @@ export async function compressForUpload(file: File, kind: R2UploadKind): Promise
     const maxEdge = UPLOAD_MAX_EDGE[kind];
     try {
       if (!bitmap.width || !bitmap.height) return file;
-      if (!needsReencode(file.type, bitmap.width, bitmap.height, maxEdge)) return file;
+      if (!needsReencode(file, bitmap.width, bitmap.height, kind)) return file;
 
       const size = fitWithin(bitmap.width, bitmap.height, maxEdge);
       const canvas = document.createElement("canvas");

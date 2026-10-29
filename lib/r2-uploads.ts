@@ -14,6 +14,17 @@ const R2_PUBLIC_ORIGIN = `https://${R2_PUBLIC_HOST}`;
 export const R2_UPLOAD_KINDS = ["projects", "events", "blog", "avatars", "testimonials"] as const;
 export type R2UploadKind = (typeof R2_UPLOAD_KINDS)[number];
 
+const MB = 1024 * 1024;
+
+/** Largest file, in bytes, the server accepts for each kind. The client compresses to fit. */
+export const UPLOAD_MAX_BYTES: Record<R2UploadKind, number> = {
+  projects: 4 * MB,
+  events: 4 * MB,
+  blog: 4 * MB,
+  avatars: 2 * MB,
+  testimonials: 2 * MB,
+};
+
 /** Kinds a signed-in user uploads through `/api/uploads/image?kind=`. */
 export const IMAGE_UPLOAD_KIND_NAMES = ["events", "blog", "avatars"] as const;
 export type ImageUploadKind = (typeof IMAGE_UPLOAD_KIND_NAMES)[number];
@@ -60,7 +71,9 @@ export function isR2UrlForKey(url: string, key: string): boolean {
       isR2Host(parsed.hostname) &&
       !parsed.username &&
       !parsed.password &&
+      !parsed.port &&
       !parsed.search &&
+      !parsed.hash &&
       parsed.pathname === `/${key}`
     );
   } catch {

@@ -4,9 +4,9 @@ import {
   type R2UploadKind,
   r2PublicUrl,
   r2UploadKey,
+  UPLOAD_MAX_BYTES,
 } from "@/lib/r2-uploads";
 
-const MB = 1024 * 1024;
 const CLAIMED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const CACHE_CONTROL = "public, max-age=31536000, immutable";
 
@@ -21,7 +21,10 @@ export interface ImageUploadBucket {
 }
 
 export interface ImageUploadDeps {
-  requireUserId: () => Promise<string>;
+  /** The signed-in user's id, or null when signed out. Throws only when the lookup fails. */
+  getUserId: () => Promise<string | null>;
+  /** Why this account may not upload (e.g. suspended), or null. */
+  blockReason?: (userId: string) => Promise<string | null>;
   bucket: ImageUploadBucket;
   newId: () => string;
 }
@@ -50,9 +53,9 @@ export interface StoredImage {
  * route (it writes a ledger row) and testimonial avatars are stored server-side.
  */
 export const IMAGE_UPLOAD_KINDS = {
-  events: { maxBytes: 4 * MB, tooLarge: "Cover images must be 4MB or smaller" },
-  blog: { maxBytes: 4 * MB, tooLarge: "Images must be 4MB or smaller" },
-  avatars: { maxBytes: 2 * MB, tooLarge: "Avatars must be 2MB or smaller" },
+  events: { maxBytes: UPLOAD_MAX_BYTES.events, tooLarge: "Cover images must be 4MB or smaller" },
+  blog: { maxBytes: UPLOAD_MAX_BYTES.blog, tooLarge: "Images must be 4MB or smaller" },
+  avatars: { maxBytes: UPLOAD_MAX_BYTES.avatars, tooLarge: "Avatars must be 2MB or smaller" },
 } as const satisfies Record<ImageUploadKind, { maxBytes: number; tooLarge: string }>;
 
 export function isImageUploadKind(value: unknown): value is ImageUploadKind {
@@ -75,6 +78,25 @@ async function putImage(
 }
 
 /**
+ * The uploader's user id, or the response to send instead: 401 signed out,
+ * 403 blocked (e.g. suspended), 500 when the lookup itself fails.
+ */
+async function resolveUploader(
+  deps: ImageUploadDeps,
+  signedOut: string,
+): Promise<string | Response> {
+  try {
+    const userId = await deps.getUserId();
+    if (!userId) return error(401, signedOut);
+    const blocked = deps.blockReason ? await deps.blockReason(userId) : null;
+    return blocked ? error(403, blocked) : userId;
+  } catch (lookupError) {
+    console.error("[image-upload] session lookup failed:", lookupError);
+    return error(500, "Could not check your session. Please try again.");
+  }
+}
+
+/**
  * One image per request, sent as the raw request body. The server checks the
  * origin, the session, the claimed type, the size, and the image bytes, picks
  * the key, and stores the file in R2. No third-party callback is involved.
@@ -88,12 +110,9 @@ export async function handleImageUpload(
     return error(403, "Forbidden");
   }
 
-  let userId: string;
-  try {
-    userId = await deps.requireUserId();
-  } catch {
-    return error(401, options.signedOut);
-  }
+  const uploader = await resolveUploader(deps, options.signedOut);
+  if (uploader instanceof Response) return uploader;
+  const userId = uploader;
 
   const claimed = (request.headers.get("content-type") ?? "").split(";")[0]?.trim().toLowerCase();
   if (!claimed || !CLAIMED_TYPES.has(claimed)) {

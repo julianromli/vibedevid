@@ -8,6 +8,7 @@ import {
   UPLOAD_MAX_EDGE,
   webpFileName,
 } from "@/lib/image-compression";
+import { UPLOAD_MAX_BYTES } from "@/lib/r2-uploads";
 
 const ascii = (text: string) => Array.from(text, (char) => char.charCodeAt(0));
 const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -92,14 +93,21 @@ describe("keepSmallerUpload", () => {
 });
 
 describe("needsReencode", () => {
+  const small = (type: string) => ({ type, size: 1000 });
+
   it("re-encodes JPEG and PNG, and WebP that is over the cap", () => {
-    expect(needsReencode("image/jpeg", 800, 600, 1920)).toBe(true);
-    expect(needsReencode("image/png", 800, 600, 1920)).toBe(true);
-    expect(needsReencode("image/webp", 4000, 3000, 1920)).toBe(true);
+    expect(needsReencode(small("image/jpeg"), 800, 600, "blog")).toBe(true);
+    expect(needsReencode(small("image/png"), 800, 600, "blog")).toBe(true);
+    expect(needsReencode(small("image/webp"), 4000, 3000, "blog")).toBe(true);
   });
 
   it("leaves a WebP that already fits alone, so it is not compressed twice", () => {
-    expect(needsReencode("image/webp", 512, 512, 512)).toBe(false);
+    expect(needsReencode(small("image/webp"), 512, 512, "avatars")).toBe(false);
+  });
+
+  it("re-encodes a WebP that fits the edge but is over the kind's byte limit", () => {
+    const big = { type: "image/webp", size: UPLOAD_MAX_BYTES.avatars + 1 };
+    expect(needsReencode(big, 512, 512, "avatars")).toBe(true);
   });
 });
 
@@ -117,6 +125,10 @@ describe("isAnimatedImage", () => {
     ).toBe(true);
     expect(isAnimatedImage(webpVp8x(0x02))).toBe(true);
     expect(isAnimatedImage(new Uint8Array(ascii("GIF89a")))).toBe(true);
+  });
+
+  it("assumes animated when the prefix ends before IDAT, so an APNG is never flattened", () => {
+    expect(isAnimatedImage(new Uint8Array([...PNG_SIG, ...pngChunk("IHDR", 13)]))).toBe(true);
   });
 
   it("treats still images as still", () => {
@@ -214,8 +226,28 @@ describe("compressForUpload", () => {
     expect(bitmap).not.toHaveBeenCalled();
   });
 
-  it("leaves non-image files alone", async () => {
+  it("re-encodes a WebP that fits the edge but is over the byte limit", async () => {
+    const { toBlob } = stubBrowser(
+      512,
+      512,
+      new Blob([new Uint8Array(300)], { type: "image/webp" }),
+    );
+    const bytes = new Uint8Array(UPLOAD_MAX_BYTES.avatars + 1);
+    bytes.set(ascii("RIFF"));
+    bytes.set(ascii("WEBPVP8 "), 8);
+    const big = new File([bytes], "big.webp", { type: "image/webp" });
+    const out = await compressForUpload(big, "avatars");
+    expect(toBlob).toHaveBeenCalled();
+    expect(out.size).toBe(300);
+  });
+
+  it("leaves non-image files alone without decoding them", async () => {
+    const bitmap = vi.fn();
+    vi.stubGlobal("createImageBitmap", bitmap);
     const gif = new File(["GIF89a"], "a.gif", { type: "image/gif" });
+    const text = new File(["hello"], "a.txt", { type: "text/plain" });
     expect(await compressForUpload(gif, "blog")).toBe(gif);
+    expect(await compressForUpload(text, "blog")).toBe(text);
+    expect(bitmap).not.toHaveBeenCalled();
   });
 });

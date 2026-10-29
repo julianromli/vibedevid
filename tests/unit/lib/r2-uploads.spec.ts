@@ -25,6 +25,8 @@ describe("R2 project upload keys", () => {
     expect(isR2UrlForKey(r2PublicUrl(key), "projects/user-2/abc.png")).toBe(false);
     expect(isR2UrlForKey(`http://cdn.vibedeveloper.id/${key}`, key)).toBe(false);
     expect(isR2UrlForKey(`https://evil.example/${key}`, key)).toBe(false);
+    expect(isR2UrlForKey(`https://cdn.vibedeveloper.id:8443/${key}`, key)).toBe(false);
+    expect(isR2UrlForKey(`${r2PublicUrl(key)}#x`, key)).toBe(false);
   });
 });
 

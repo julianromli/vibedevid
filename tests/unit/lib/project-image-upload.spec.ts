@@ -8,12 +8,19 @@ const ORIGIN = "https://vibedeveloper.id";
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 1, 2]);
 const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
+const WEBP = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0, 0]);
+
 function post(
   body: Uint8Array,
-  { type = "image/png", origin = ORIGIN }: { type?: string; origin?: string | null } = {},
+  {
+    type = "image/png",
+    origin = ORIGIN,
+    length,
+  }: { type?: string; origin?: string | null; length?: number } = {},
 ) {
   const headers: Record<string, string> = { "Content-Type": type };
   if (origin) headers.Origin = origin;
+  if (length !== undefined) headers["Content-Length"] = String(length);
   return new Request(`${ORIGIN}/api/project-uploads`, {
     method: "POST",
     headers,
@@ -23,7 +30,8 @@ function post(
 
 function deps(overrides: Partial<Parameters<typeof handleProjectImageUpload>[1]> = {}) {
   return {
-    requireUserId: vi.fn(async () => "user-1"),
+    getUserId: vi.fn(async (): Promise<string | null> => "user-1"),
+    blockReason: vi.fn(async (): Promise<string | null> => null),
     bucket: { put: vi.fn(async () => ({})), delete: vi.fn(async () => undefined) },
     record: vi.fn(async () => undefined),
     newId: () => "abc123",
@@ -63,10 +71,51 @@ describe("handleProjectImageUpload", () => {
     );
   });
 
+  it("stores a WebP as .webp", async () => {
+    const d = deps();
+    const res = await handleProjectImageUpload(post(WEBP, { type: "image/webp" }), d);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ key: "projects/user-1/abc123.webp" });
+    expect(d.bucket.put).toHaveBeenCalledWith(
+      "projects/user-1/abc123.webp",
+      expect.any(Uint8Array),
+      expect.objectContaining({
+        httpMetadata: expect.objectContaining({ contentType: "image/webp" }),
+      }),
+    );
+  });
+
   it("refuses a signed-out user before reading the body", async () => {
-    const d = deps({ requireUserId: vi.fn(async () => Promise.reject(new Error("no session"))) });
+    const d = deps({ getUserId: vi.fn(async () => null) });
     const res = await handleProjectImageUpload(post(PNG), d);
     expect(res.status).toBe(401);
+    expect(d.bucket.put).not.toHaveBeenCalled();
+  });
+
+  it("answers 500, not 401, when the session lookup itself fails", async () => {
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const d = deps({ getUserId: vi.fn(async () => Promise.reject(new Error("db down"))) });
+    const res = await handleProjectImageUpload(post(PNG), d);
+    expect(res.status).toBe(500);
+    expect(d.bucket.put).not.toHaveBeenCalled();
+    errorLog.mockRestore();
+  });
+
+  it("refuses a suspended account before storing anything", async () => {
+    const d = deps({ blockReason: vi.fn(async () => "This account is suspended") });
+    const res = await handleProjectImageUpload(post(PNG), d);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "This account is suspended" });
+    expect(d.bucket.put).not.toHaveBeenCalled();
+  });
+
+  it("refuses a declared Content-Length over the limit without storing", async () => {
+    const d = deps();
+    const res = await handleProjectImageUpload(
+      post(PNG, { length: PROJECT_IMAGE_MAX_BYTES + 1 }),
+      d,
+    );
+    expect(res.status).toBe(413);
     expect(d.bucket.put).not.toHaveBeenCalled();
   });
 

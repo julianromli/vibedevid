@@ -229,6 +229,7 @@ async function getCroppedImg(
   if (!outputCtx) {
     throw new Error("Failed to create 2D context");
   }
+  outputCtx.imageSmoothingQuality = "high";
   outputCtx.drawImage(canvas, 0, 0, size.width, size.height);
 
   // return blob + object URL

@@ -1,7 +1,10 @@
 /**
- * Legacy UploadThing files. New uploads go to R2 (see `lib/server/image-upload.ts`);
- * this module only deletes files that were uploaded to UploadThing before the
- * move, so removing an old project screenshot still frees its storage.
+ * UploadThing files. App uploads go to R2 (see `lib/server/image-upload.ts`).
+ * Deletes are routed by key shape: keys that are not R2 keys
+ * (`<kind>/<owner>/<id>.<ext>`) are
+ * UploadThing keys and are deleted here, so removing an old screenshot still
+ * frees its storage. The one remaining UploadThing writer is the one-off
+ * `scripts/backfill-image-compression.ts`.
  */
 import { UTApi } from "uploadthing/server";
 import { getServerRuntimeSecrets } from "@/lib/server/runtime-secrets";

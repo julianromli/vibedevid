@@ -7,13 +7,14 @@ export const PROJECT_IMAGE_UPLOAD_URL = "/api/project-uploads/image";
 /**
  * Send one screenshot to our server, which stores it in R2 and records it in
  * the upload ledger. Rejects on network errors and on any non-2xx response.
+ * The file goes as-is: callers compress it first (the submit form does so when
+ * files are picked, so its size check sees the compressed file).
  */
 export async function uploadProjectImage(
   file: File,
   options: UploadImageOptions = {},
 ): Promise<ProjectUploadResult> {
-  const upload = await compressForUpload(file, "projects");
-  const data = (await postImageFile(PROJECT_IMAGE_UPLOAD_URL, upload, options)) as {
+  const data = (await postImageFile(PROJECT_IMAGE_UPLOAD_URL, file, options)) as {
     key?: unknown;
     url?: unknown;
   } | null;
@@ -21,11 +22,12 @@ export async function uploadProjectImage(
   return { key: data.key, url: data.url };
 }
 
-/** Upload several screenshots one by one; failed files are skipped. */
+/** Compress and upload several screenshots one by one; failed files are skipped. */
 export async function uploadProjectImages(files: File[]): Promise<ProjectUploadResult[]> {
   const results: ProjectUploadResult[] = [];
   for (const file of files) {
-    results.push(await uploadProjectImage(file).catch(() => null));
+    const upload = await compressForUpload(file, "projects");
+    results.push(await uploadProjectImage(upload).catch(() => null));
   }
   return results;
 }

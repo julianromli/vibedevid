@@ -8,19 +8,26 @@ export const Route = createFileRoute("/api/project-uploads/image")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const [{ handleProjectImageUpload }, { getProjectUploadsBucket }, auth, uploads] =
-          await Promise.all([
-            import("@/lib/server/project-image-upload"),
-            import("@/lib/server/stored-uploads"),
-            import("@/lib/server/auth"),
-            import("@/lib/server/project-uploads"),
-          ]);
+        const [
+          { handleProjectImageUpload },
+          { getProjectUploadsBucket },
+          auth,
+          uploads,
+          accountStatus,
+        ] = await Promise.all([
+          import("@/lib/server/project-image-upload"),
+          import("@/lib/server/stored-uploads"),
+          import("@/lib/server/auth"),
+          import("@/lib/server/project-uploads"),
+          import("@/lib/server/account-status"),
+        ]);
         const bucket = getProjectUploadsBucket();
         if (!bucket) {
           return Response.json({ error: "Upload service not configured" }, { status: 503 });
         }
         return handleProjectImageUpload(request, {
-          requireUserId: async () => (await auth.requireUser()).id,
+          getUserId: async () => (await auth.getServerSession())?.user?.id ?? null,
+          blockReason: accountStatus.mutationBlockReason,
           bucket,
           record: uploads.recordProjectUpload,
           newId: () => crypto.randomUUID(),
