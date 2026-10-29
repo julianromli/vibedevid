@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   handleProjectImageUpload,
   PROJECT_IMAGE_MAX_BYTES,
@@ -40,6 +40,10 @@ function deps(overrides: Partial<Parameters<typeof handleProjectImageUpload>[1]>
 }
 
 describe("handleProjectImageUpload", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("stores a PNG under the user's prefix and records it in the ledger", async () => {
     const d = deps();
     const res = await handleProjectImageUpload(post(PNG), d);
@@ -93,12 +97,11 @@ describe("handleProjectImageUpload", () => {
   });
 
   it("answers 500, not 401, when the session lookup itself fails", async () => {
-    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
     const d = deps({ getUserId: vi.fn(async () => Promise.reject(new Error("db down"))) });
     const res = await handleProjectImageUpload(post(PNG), d);
     expect(res.status).toBe(500);
     expect(d.bucket.put).not.toHaveBeenCalled();
-    errorLog.mockRestore();
   });
 
   it("refuses a suspended account before storing anything", async () => {
@@ -177,6 +180,5 @@ describe("handleProjectImageUpload", () => {
     const logged = errorLog.mock.calls.map((call) => String(call[0]));
     expect(logged.some((line) => line.includes("afterStore"))).toBe(true);
     expect(logged.some((line) => line.includes("rollback"))).toBe(true);
-    errorLog.mockRestore();
   });
 });
