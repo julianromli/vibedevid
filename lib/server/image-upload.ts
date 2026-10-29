@@ -1,5 +1,10 @@
 import { type SniffedImageMime, sniffImageMime } from "@/lib/image-sniff";
-import { type R2UploadKind, r2PublicUrl, r2UploadKey } from "@/lib/r2-project-uploads";
+import {
+  type ImageUploadKind,
+  type R2UploadKind,
+  r2PublicUrl,
+  r2UploadKey,
+} from "@/lib/r2-uploads";
 
 const MB = 1024 * 1024;
 const CLAIMED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -12,7 +17,7 @@ export interface ImageUploadBucket {
     value: Uint8Array,
     options: { httpMetadata: { contentType: string; cacheControl: string } },
   ): Promise<unknown>;
-  delete(key: string): Promise<unknown>;
+  delete(keys: string | string[]): Promise<unknown>;
 }
 
 export interface ImageUploadDeps {
@@ -48,9 +53,7 @@ export const IMAGE_UPLOAD_KINDS = {
   events: { maxBytes: 4 * MB, tooLarge: "Cover images must be 4MB or smaller" },
   blog: { maxBytes: 4 * MB, tooLarge: "Images must be 4MB or smaller" },
   avatars: { maxBytes: 2 * MB, tooLarge: "Avatars must be 2MB or smaller" },
-} as const satisfies Partial<Record<R2UploadKind, { maxBytes: number; tooLarge: string }>>;
-
-export type ImageUploadKind = keyof typeof IMAGE_UPLOAD_KINDS;
+} as const satisfies Record<ImageUploadKind, { maxBytes: number; tooLarge: string }>;
 
 export function isImageUploadKind(value: unknown): value is ImageUploadKind {
   return typeof value === "string" && Object.hasOwn(IMAGE_UPLOAD_KINDS, value);

@@ -9,13 +9,19 @@ import { SNIFFED_IMAGE_EXTENSION, type SniffedImageMime } from "@/lib/image-snif
 
 export const R2_PUBLIC_HOST = "cdn.vibedeveloper.id";
 const R2_PUBLIC_ORIGIN = `https://${R2_PUBLIC_HOST}`;
-// projects/<userId>/<id>.<ext>. No dots or slashes in the parts, so no "..".
-const R2_PROJECT_KEY = /^projects\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.(?:jpg|png|webp)$/;
-const R2_UPLOAD_KEY =
-  /^(?:projects|events|blog|avatars|testimonials)\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.(?:jpg|png|webp)$/;
 
 /** Top-level folders in the bucket, one per kind of upload. */
-export type R2UploadKind = "projects" | "events" | "blog" | "avatars" | "testimonials";
+export const R2_UPLOAD_KINDS = ["projects", "events", "blog", "avatars", "testimonials"] as const;
+export type R2UploadKind = (typeof R2_UPLOAD_KINDS)[number];
+
+/** Kinds a signed-in user uploads through `/api/uploads/image?kind=`. */
+export const IMAGE_UPLOAD_KIND_NAMES = ["events", "blog", "avatars"] as const;
+export type ImageUploadKind = (typeof IMAGE_UPLOAD_KIND_NAMES)[number];
+
+// <kind>/<ownerId>/<id>.<ext>. No dots or slashes in the parts, so no "..".
+const R2_UPLOAD_KEY = new RegExp(
+  `^(?:${R2_UPLOAD_KINDS.join("|")})/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+\\.(?:jpg|png|webp)$`,
+);
 
 export function r2UploadKey(
   kind: R2UploadKind,
@@ -26,18 +32,14 @@ export function r2UploadKey(
   return `${kind}/${ownerId}/${id}${SNIFFED_IMAGE_EXTENSION[mime]}`;
 }
 
-export function projectUploadKey(userId: string, id: string, mime: SniffedImageMime): string {
-  return r2UploadKey("projects", userId, id, mime);
-}
-
-/** True for project screenshot keys this app wrote to R2. UploadThing keys have no slash. */
-export function isR2ProjectKey(key: string): boolean {
-  return R2_PROJECT_KEY.test(key);
-}
-
-/** True for any key this app wrote to R2, whatever the kind. */
+/** True for any key this app wrote to R2, whatever the kind. UploadThing keys have no slash. */
 export function isR2UploadKey(key: string): boolean {
   return R2_UPLOAD_KEY.test(key);
+}
+
+/** True for project screenshot keys this app wrote to R2. */
+export function isR2ProjectKey(key: string): boolean {
+  return isR2UploadKey(key) && key.startsWith("projects/");
 }
 
 export function r2PublicUrl(key: string): string {

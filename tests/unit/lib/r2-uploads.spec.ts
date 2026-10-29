@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   isR2ProjectKey,
+  isR2UploadKey,
   isR2UrlForKey,
-  projectUploadKey,
   r2PublicUrl,
-} from "@/lib/r2-project-uploads";
+  r2UploadKey,
+} from "@/lib/r2-uploads";
 
 describe("R2 project upload keys", () => {
   it("builds a key under the user's prefix", () => {
-    expect(projectUploadKey("user-1", "abc", "image/webp")).toBe("projects/user-1/abc.webp");
+    expect(r2UploadKey("projects", "user-1", "abc", "image/webp")).toBe("projects/user-1/abc.webp");
   });
 
   it("knows R2 keys from UploadThing keys", () => {
@@ -28,14 +29,12 @@ describe("R2 project upload keys", () => {
 });
 
 describe("R2 upload keys for every kind", () => {
-  it("builds keys per kind", async () => {
-    const { r2UploadKey } = await import("@/lib/r2-project-uploads");
+  it("builds keys per kind", () => {
     expect(r2UploadKey("events", "user-1", "abc", "image/png")).toBe("events/user-1/abc.png");
     expect(r2UploadKey("avatars", "user-1", "abc", "image/jpeg")).toBe("avatars/user-1/abc.jpg");
   });
 
-  it("knows any app-written R2 key, and project keys stay project-only", async () => {
-    const { isR2UploadKey } = await import("@/lib/r2-project-uploads");
+  it("knows any app-written R2 key, and project keys stay project-only", () => {
     for (const key of [
       "projects/u/a.png",
       "events/u/a.webp",

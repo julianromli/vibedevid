@@ -6,7 +6,7 @@
  * user; this function decides which URLs and keys may be stored.
  */
 
-import { isR2Host, isR2UrlForKey } from "@/lib/r2-project-uploads";
+import { isR2Host, isR2UrlForKey } from "@/lib/r2-uploads";
 
 const MAX_IMAGE_URL_LENGTH = 2048;
 const GITHUB_PREVIEW_HOST = "opengraph.githubassets.com";
@@ -73,7 +73,7 @@ export function isAllowedProjectImageUrl(url: string): boolean {
 }
 
 /** True when `url` is the stored file URL for `key`: UploadThing `/f/<key>` or the R2 CDN. */
-function isUploadthingUrlForKey(url: string, key: string): boolean {
+function isStoredUrlForKey(url: string, key: string): boolean {
   if (isR2UrlForKey(url, key)) return true;
   try {
     const parsed = new URL(url);
@@ -92,7 +92,7 @@ function isUploadthingUrlForKey(url: string, key: string): boolean {
  * keyless GitHub preview shifts the indexes: match by URL, never by position.
  */
 export function imageKeyForUrl(url: string, keys: readonly string[]): string | null {
-  return keys.find((key) => key.trim() && isUploadthingUrlForKey(url, key.trim()))?.trim() ?? null;
+  return keys.find((key) => key.trim() && isStoredUrlForKey(url, key.trim()))?.trim() ?? null;
 }
 
 /** The key stored for an existing screenshot, or "" when it has none. */
@@ -127,7 +127,7 @@ export function alignProjectImages(input: AlignProjectImagesInput): AlignProject
 
     const upload = input.knownUploads.find(
       (row) =>
-        (row.url === url || isUploadthingUrlForKey(url, row.key)) &&
+        (row.url === url || isStoredUrlForKey(url, row.key)) &&
         row.userId === input.actorUserId &&
         submittedKeys.has(row.key) &&
         (row.projectId == null || row.projectId === input.projectId),

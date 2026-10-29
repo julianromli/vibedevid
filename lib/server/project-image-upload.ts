@@ -3,12 +3,9 @@ import { handleImageUpload, type ImageUploadBucket } from "@/lib/server/image-up
 /** Same limit the UploadThing route had. The client compresses before upload. */
 export const PROJECT_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 
-/** The part of an R2 bucket binding the upload code uses. */
-export type ProjectUploadBucket = ImageUploadBucket;
-
 export interface ProjectImageUploadDeps {
   requireUserId: () => Promise<string>;
-  bucket: ProjectUploadBucket;
+  bucket: ImageUploadBucket;
   record: (input: { key: string; url: string; userId: string }) => Promise<void>;
   newId: () => string;
 }

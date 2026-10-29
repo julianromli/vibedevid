@@ -103,7 +103,7 @@ export const starterKit = StarterKit.configure({
 
 /**
  * Image extension for Novel editor
- * Note: Image upload is handled separately via UploadThing
+ * Note: image upload is handled separately (R2 via `/api/uploads/image?kind=blog`)
  */
 export const tiptapImage = TiptapImage.configure({
   allowBase64: false,

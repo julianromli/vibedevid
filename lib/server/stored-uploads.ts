@@ -1,43 +1,38 @@
-import { readFileBytes } from "@/lib/image-sniff";
-import { isR2UploadKey } from "@/lib/r2-project-uploads";
+import { isR2UploadKey } from "@/lib/r2-uploads";
 import {
   type ImageUploadBucket,
   type StoredImage,
   storeImageBytes,
 } from "@/lib/server/image-upload";
+import { TESTIMONIAL_AVATAR_MAX_BYTES } from "@/lib/testimonial-form-utils";
 
 export interface UploadCleanupResult {
   success: boolean;
   deletedCount: number;
 }
 
-type R2Bucket = ImageUploadBucket & { delete(keys: string | string[]): Promise<unknown> };
-
-const ANONYMOUS_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
-
 /** The `PROJECT_UPLOADS` R2 binding from wrangler.jsonc, or null outside Workers. */
-export function getProjectUploadsBucket(): R2Bucket | null {
+export function getProjectUploadsBucket(): ImageUploadBucket | null {
   const env = (globalThis as { __env__?: Record<string, unknown> }).__env__;
-  const bucket = env?.PROJECT_UPLOADS as R2Bucket | undefined;
+  const bucket = env?.PROJECT_UPLOADS as ImageUploadBucket | undefined;
   return bucket && typeof bucket.put === "function" ? bucket : null;
 }
 
-/** Store a testimonial avatar (no signed-in user) in R2. */
-export async function storeAnonymousAvatar(file: File): Promise<StoredImage> {
-  if (file.size > ANONYMOUS_AVATAR_MAX_BYTES) {
-    throw new Error("Foto maksimal 2 MB");
-  }
+/**
+ * Store a testimonial avatar (no signed-in user) in R2. Takes the bytes the
+ * action already read and sniffed; the size cap is the form's own limit.
+ */
+export async function storeAnonymousAvatar(bytes: Uint8Array): Promise<StoredImage> {
   const bucket = getProjectUploadsBucket();
   if (!bucket) {
     throw new Error("Upload service not configured");
   }
-  return storeImageBytes(await readFileBytes(file), {
+  return storeImageBytes(bytes, {
     bucket,
     kind: "testimonials",
     ownerId: "anonymous",
     id: crypto.randomUUID(),
-    maxBytes: ANONYMOUS_AVATAR_MAX_BYTES,
-    tooLarge: "Foto maksimal 2 MB",
+    maxBytes: TESTIMONIAL_AVATAR_MAX_BYTES,
   });
 }
 

@@ -1,5 +1,4 @@
-/** Kinds the `/api/uploads/image` route accepts. Mirrors `IMAGE_UPLOAD_KINDS` on the server. */
-export type ClientImageUploadKind = "events" | "blog" | "avatars";
+import type { ImageUploadKind } from "@/lib/r2-uploads";
 
 /** A stalled upload gives up after this, so no spinner hangs forever. */
 export const UPLOAD_TIMEOUT_MS = 120_000;
@@ -58,7 +57,7 @@ export function postImageFile(
 
 /** Upload an event cover, blog image, or avatar to R2 and get its public URL. */
 export async function uploadImageOfKind(
-  kind: ClientImageUploadKind,
+  kind: ImageUploadKind,
   file: File,
   options: UploadImageOptions = {},
 ): Promise<{ key: string; url: string }> {

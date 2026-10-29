@@ -8,7 +8,7 @@
     "binding": "ASSETS",
     "directory": ".output/public",
   },
-  // New project screenshots. Public at https://cdn.vibedeveloper.id (bucket custom domain).
+  // Uploaded images (projects, events, blog, avatars, testimonials). Public at https://cdn.vibedeveloper.id (bucket custom domain).
   "r2_buckets": [
     {
       "binding": "PROJECT_UPLOADS",

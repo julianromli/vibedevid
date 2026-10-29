@@ -11,15 +11,19 @@ export async function uploadProjectImage(
   file: File,
   options: UploadImageOptions = {},
 ): Promise<ProjectUploadResult> {
-  const serverData = await postImageFile(PROJECT_IMAGE_UPLOAD_URL, file, options);
-  return { serverData: (serverData ?? null) as ProjectUploadResult["serverData"] };
+  const data = (await postImageFile(PROJECT_IMAGE_UPLOAD_URL, file, options)) as {
+    key?: unknown;
+    url?: unknown;
+  } | null;
+  if (typeof data?.key !== "string" || typeof data.url !== "string") return null;
+  return { key: data.key, url: data.url };
 }
 
 /** Upload several screenshots one by one; failed files are skipped. */
 export async function uploadProjectImages(files: File[]): Promise<ProjectUploadResult[]> {
   const results: ProjectUploadResult[] = [];
   for (const file of files) {
-    results.push(await uploadProjectImage(file).catch(() => ({ serverData: null })));
+    results.push(await uploadProjectImage(file).catch(() => null));
   }
   return results;
 }

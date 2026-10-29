@@ -96,16 +96,8 @@ describe("deleteStoredFiles for every upload kind", () => {
 
 describe("storeAnonymousAvatar", () => {
   const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
-  const file = (bytes: Uint8Array) =>
-    ({
-      type: "image/png",
-      size: bytes.byteLength,
-      name: "a.png",
-      arrayBuffer: async () => bytes.slice().buffer,
-    }) as File;
-
   it("stores the avatar in R2 under testimonials/anonymous/", async () => {
-    const stored = await storeAnonymousAvatar(file(PNG));
+    const stored = await storeAnonymousAvatar(PNG);
     expect(stored.key).toMatch(/^testimonials\/anonymous\/[A-Za-z0-9_-]+\.png$/);
     expect(stored.url).toBe(`https://cdn.vibedeveloper.id/${stored.key}`);
     expect(h.r2Put).toHaveBeenCalledWith(stored.key, expect.any(Uint8Array), expect.any(Object));
@@ -114,12 +106,12 @@ describe("storeAnonymousAvatar", () => {
   it("refuses avatars over 2MB", async () => {
     const big = new Uint8Array(2 * 1024 * 1024 + 1);
     big.set(PNG);
-    await expect(storeAnonymousAvatar(file(big))).rejects.toThrow("Foto maksimal 2 MB");
+    await expect(storeAnonymousAvatar(big)).rejects.toThrow("The image is too large");
     expect(h.r2Put).not.toHaveBeenCalled();
   });
 
   it("fails when the bucket binding is missing", async () => {
     (globalThis as { __env__?: unknown }).__env__ = {};
-    await expect(storeAnonymousAvatar(file(PNG))).rejects.toThrow();
+    await expect(storeAnonymousAvatar(PNG)).rejects.toThrow("Upload service not configured");
   });
 });

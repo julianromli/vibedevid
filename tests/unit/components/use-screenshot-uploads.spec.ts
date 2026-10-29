@@ -3,11 +3,11 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { useScreenshotUploads } from "@/components/ui/submit-project-form/use-screenshot-uploads";
 import i18n from "@/i18n";
 
-const h = vi.hoisted(() => ({ uploadFiles: vi.fn(), cleanup: vi.fn(), compress: vi.fn() }));
+const h = vi.hoisted(() => ({ upload: vi.fn(), cleanup: vi.fn(), compress: vi.fn() }));
 
 vi.mock("@/lib/image-compression", () => ({ compressImageFile: h.compress }));
 
-vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.uploadFiles }));
+vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.upload }));
 vi.mock("@/lib/actions/projects.functions", () => ({
   cleanupProjectProvisionalUploadFn: h.cleanup,
 }));
@@ -20,7 +20,7 @@ const k = (id: string) => `projects/user-1/${id.replace(/[^A-Za-z0-9_-]/g, "-")}
 
 function confirmed(id: string) {
   const key = k(id);
-  return { serverData: { key, url: `https://cdn.vibedeveloper.id/${key}` } };
+  return { key, url: `https://cdn.vibedeveloper.id/${key}` };
 }
 
 beforeAll(async () => {
@@ -30,7 +30,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  h.uploadFiles.mockReset();
+  h.upload.mockReset();
   h.cleanup.mockReset();
   h.cleanup.mockResolvedValue({ success: true });
   h.compress.mockReset();
@@ -51,7 +51,7 @@ function deferred<T>() {
 
 describe("useScreenshotUploads", () => {
   it("marks a failed file for retry while the other files finish", async () => {
-    h.uploadFiles.mockImplementation(async (file: File) => {
+    h.upload.mockImplementation(async (file: File) => {
       if (file.name === "bad.png") throw new Error("network");
       return confirmed(file.name);
     });
@@ -66,7 +66,7 @@ describe("useScreenshotUploads", () => {
     );
     expect(result.current.isUploading).toBe(false);
 
-    h.uploadFiles.mockResolvedValueOnce(confirmed("bad-retry"));
+    h.upload.mockResolvedValueOnce(confirmed("bad-retry"));
     act(() => result.current.retry(result.current.shots[1]?.id ?? ""));
 
     await waitFor(() => expect(result.current.shots[1]?.status).toBe("done"));
@@ -74,7 +74,7 @@ describe("useScreenshotUploads", () => {
   });
 
   it("treats an upload the server never confirmed as failed", async () => {
-    h.uploadFiles.mockResolvedValue({ serverData: null });
+    h.upload.mockResolvedValue(null);
     const { result } = renderHook(() => useScreenshotUploads());
 
     await act(async () => {
@@ -92,13 +92,13 @@ describe("useScreenshotUploads", () => {
       await result.current.addFiles([new File(["x"], "a.gif", { type: "image/gif" })]);
     });
 
-    expect(h.uploadFiles).not.toHaveBeenCalled();
+    expect(h.upload).not.toHaveBeenCalled();
     expect(result.current.shots).toEqual([]);
     expect(result.current.notice).toMatch(/a\.gif/);
   });
 
   it("deletes the stored file when a finished upload is removed", async () => {
-    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    h.upload.mockResolvedValue(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await result.current.addFiles([png("a.png")]);
@@ -112,7 +112,7 @@ describe("useScreenshotUploads", () => {
   });
 
   it("keeps the GitHub preview as the cover after uploads", async () => {
-    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    h.upload.mockResolvedValue(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
     act(() => result.current.setImported("https://opengraph.githubassets.com/repo"));
     await act(async () => {
@@ -126,7 +126,7 @@ describe("useScreenshotUploads", () => {
   it("counts files that are still being compressed as uploading", async () => {
     const compressing = deferred<File>();
     h.compress.mockReturnValueOnce(compressing.promise);
-    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    h.upload.mockResolvedValue(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
 
     let adding: Promise<void> = Promise.resolve();
@@ -145,14 +145,14 @@ describe("useScreenshotUploads", () => {
 
   it("discardAll stops queued uploads and deletes files that finish later", async () => {
     const pending = new Map<string, (value: unknown) => void>();
-    h.uploadFiles.mockImplementation(
+    h.upload.mockImplementation(
       (file: File) => new Promise((resolve) => pending.set(file.name, resolve)),
     );
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await result.current.addFiles(["a", "b", "c", "d"].map((n) => png(`${n}.png`)));
     });
-    expect(h.uploadFiles).toHaveBeenCalledTimes(3);
+    expect(h.upload).toHaveBeenCalledTimes(3);
 
     act(() => result.current.discardAll());
     await act(async () => {
@@ -163,11 +163,11 @@ describe("useScreenshotUploads", () => {
     await waitFor(() =>
       expect(h.cleanup).toHaveBeenCalledWith({ data: { imageKey: k("late-a") } }),
     );
-    expect(h.uploadFiles).toHaveBeenCalledTimes(3);
+    expect(h.upload).toHaveBeenCalledTimes(3);
   });
 
   it("deletes finished uploads on unmount unless they were released to a project", async () => {
-    h.uploadFiles.mockResolvedValue(confirmed("k1"));
+    h.upload.mockResolvedValue(confirmed("k1"));
     const first = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await first.result.current.addFiles([png("a.png")]);
@@ -196,7 +196,7 @@ describe("useScreenshotUploads", () => {
       ]);
     });
 
-    expect(h.uploadFiles).not.toHaveBeenCalled();
+    expect(h.upload).not.toHaveBeenCalled();
     expect(result.current.shots).toEqual([]);
     expect(result.current.notice).toMatch(/fake\.png/);
   });
@@ -204,7 +204,7 @@ describe("useScreenshotUploads", () => {
   it("asks the server to delete stored uploads when the page is closed or reloaded", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
-    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    h.upload.mockResolvedValueOnce(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await result.current.addFiles([png("a.png")]);
@@ -223,7 +223,7 @@ describe("useScreenshotUploads", () => {
   it("keeps released uploads when the page is closed", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
-    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    h.upload.mockResolvedValueOnce(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await result.current.addFiles([png("a.png")]);
@@ -239,7 +239,7 @@ describe("useScreenshotUploads", () => {
   it("cleans up on page close again after resume", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
-    h.uploadFiles.mockResolvedValueOnce(confirmed("k1"));
+    h.upload.mockResolvedValueOnce(confirmed("k1"));
     const { result } = renderHook(() => useScreenshotUploads());
     await act(async () => {
       await result.current.addFiles([png("a.png")]);

@@ -12,7 +12,7 @@ const PNG_HEAD = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0];
 const h = vi.hoisted(() => ({
   submitProjectFn: vi.fn(),
   cleanupProjectProvisionalUploadFn: vi.fn(),
-  uploadFiles: vi.fn(),
+  upload: vi.fn(),
   navigate: vi.fn(),
 }));
 
@@ -21,7 +21,7 @@ vi.mock("@/lib/actions/projects.functions", () => ({
   cleanupProjectProvisionalUploadFn: h.cleanupProjectProvisionalUploadFn,
 }));
 
-vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.uploadFiles }));
+vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.upload }));
 
 vi.mock("@/lib/navigation", () => ({
   useRouter: () => ({ navigate: h.navigate, back: vi.fn() }),
@@ -186,8 +186,8 @@ beforeEach(() => {
   h.submitProjectFn.mockReset();
   h.cleanupProjectProvisionalUploadFn.mockReset();
   h.cleanupProjectProvisionalUploadFn.mockResolvedValue({ success: true });
-  h.uploadFiles.mockReset();
-  h.uploadFiles.mockResolvedValue({ serverData: UPLOADED });
+  h.upload.mockReset();
+  h.upload.mockResolvedValue(UPLOADED);
   h.navigate.mockReset();
 });
 
@@ -268,7 +268,7 @@ describe("SubmitProjectForm import", () => {
 
 describe("SubmitProjectForm uploads", () => {
   it("holds Next while a screenshot is still uploading", async () => {
-    h.uploadFiles.mockReturnValue(new Promise(() => {}));
+    h.upload.mockReturnValue(new Promise(() => {}));
     renderForm();
     next();
     fireEvent.click(screen.getByText("fill basics"));

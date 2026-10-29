@@ -131,7 +131,8 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
             update((current) =>
               patchShot(current, id, {
                 status: "error",
-                error: t(result ? "form.upload.unconfirmed" : "form.upload.failed"),
+                // undefined: the request failed. null: the server answered without a usable key and URL.
+                error: t(result === undefined ? "form.upload.failed" : "form.upload.unconfirmed"),
               }),
             );
             announceRef.current?.(

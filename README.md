@@ -481,7 +481,7 @@ bisa drift karena keduanya membaca satu sumber.
 - Old UploadThing screenshots keep working: their `utfs.io` / `*.ufs.sh` URLs stay in the DB and
   are still allowed. `deleteStoredFiles` (`lib/server/stored-uploads.ts`) deletes R2 keys
   from the bucket and older keys from UploadThing.
-- Screenshot uploads count only when the server response has `serverData` whose URL is the CDN
+- Screenshot uploads count only when the server response has a `key` and a `url` that is the CDN
   URL for its key (`lib/project-upload-result.ts`). Otherwise the form drops the file and shows
   an error at upload time instead of at Submit.
 - `alignProjectImages` matches a screenshot by exact ledger URL, or by key when the URL is an

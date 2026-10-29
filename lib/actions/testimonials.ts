@@ -129,7 +129,7 @@ export async function submitTestimonial(
 
     let uploadedKey: string | undefined;
     try {
-      const uploaded = await storeAnonymousAvatar(input.avatar as File);
+      const uploaded = await storeAnonymousAvatar(avatarBytes);
       uploadedKey = uploaded.key;
 
       await db.insert(testimonials).values({

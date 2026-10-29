@@ -159,7 +159,7 @@ export async function getProjectBySlug(slug: string): Promise<ProjectDetail | nu
 
 /**
  * Screenshot keys for the signed-in owner only. Public detail reads do not
- * include keys, because a key is enough to ask UploadThing to delete the file.
+ * include keys, because a key is enough to ask storage to delete the file.
  */
 export async function getOwnedProjectImageKeys(slug: string, userId: string): Promise<string[]> {
   if (!slug.trim() || !userId) return [];
