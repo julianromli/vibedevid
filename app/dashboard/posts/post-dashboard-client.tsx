@@ -182,9 +182,7 @@ export function PostDashboardClient({ initialPosts }: PostDashboardClientProps) 
                       {post.status === "published" && (
                         <span className="flex items-center gap-1.5">
                           <Eye className="h-3.5 w-3.5" />
-                          <span className="font-medium text-foreground">
-                            {post.view_count}
-                          </span>{" "}
+                          <span className="font-medium text-foreground">{post.view_count}</span>{" "}
                           views
                         </span>
                       )}

@@ -66,15 +66,19 @@ describe("handleKindImageUpload", () => {
     expect(await res.json()).toMatchObject({ key: "blog/user-1/abc123.webp" });
   });
 
-  it.each([null, "", "projects", "testimonials", "../x", "unknown"])(
-    "refuses an unknown or reserved kind (%s)",
-    async (kind) => {
-      const d = deps();
-      const res = await handleKindImageUpload(post(kind, PNG), d);
-      expect(res.status).toBe(400);
-      expect(d.bucket.put).not.toHaveBeenCalled();
-    },
-  );
+  it.each([
+    null,
+    "",
+    "projects",
+    "testimonials",
+    "../x",
+    "unknown",
+  ])("refuses an unknown or reserved kind (%s)", async (kind) => {
+    const d = deps();
+    const res = await handleKindImageUpload(post(kind, PNG), d);
+    expect(res.status).toBe(400);
+    expect(d.bucket.put).not.toHaveBeenCalled();
+  });
 
   it("keeps the old UploadThing size limits per kind", () => {
     expect(IMAGE_UPLOAD_KINDS.events.maxBytes).toBe(4 * MB);
