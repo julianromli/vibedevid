@@ -1,3 +1,4 @@
+import { compressForUpload } from "@/lib/image-compression";
 import type { ImageUploadKind } from "@/lib/r2-uploads";
 
 /** A stalled upload gives up after this, so no spinner hangs forever. */
@@ -61,7 +62,8 @@ export async function uploadImageOfKind(
   file: File,
   options: UploadImageOptions = {},
 ): Promise<{ key: string; url: string }> {
-  const data = (await postImageFile(`/api/uploads/image?kind=${kind}`, file, options)) as {
+  const upload = await compressForUpload(file, kind);
+  const data = (await postImageFile(`/api/uploads/image?kind=${kind}`, upload, options)) as {
     key?: unknown;
     url?: unknown;
   } | null;

@@ -1,29 +1,23 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   AVATAR_OUTPUT_MAX_EDGE,
+  AVATAR_OUTPUT_QUALITY,
   AVATAR_OUTPUT_TYPE,
   avatarFileName,
-  fitWithin,
 } from "@/lib/avatar-crop";
 
 describe("avatar crop output", () => {
-  it("is a JPEG capped at 1024px on the long edge", () => {
-    expect(AVATAR_OUTPUT_TYPE).toBe("image/jpeg");
-    expect(AVATAR_OUTPUT_MAX_EDGE).toBe(1024);
+  it("is WebP at ~0.82, capped at 512px on the long edge", () => {
+    expect(AVATAR_OUTPUT_TYPE).toBe("image/webp");
+    expect(AVATAR_OUTPUT_QUALITY).toBe(0.82);
+    expect(AVATAR_OUTPUT_MAX_EDGE).toBe(512);
   });
 
-  it("keeps small crops as they are", () => {
-    expect(fitWithin(400, 300, 1024)).toEqual({ width: 400, height: 300 });
-  });
-
-  it("scales large crops down, keeping the aspect ratio", () => {
-    expect(fitWithin(3000, 3000, 1024)).toEqual({ width: 1024, height: 1024 });
-    expect(fitWithin(4000, 2000, 1024)).toEqual({ width: 1024, height: 512 });
-  });
-
-  it("names the file .jpg whatever the source was", () => {
-    expect(avatarFileName("me.png")).toBe("me.jpg");
-    expect(avatarFileName("photo.of.me.webp")).toBe("photo.of.me.jpg");
-    expect(avatarFileName(undefined)).toBe("avatar.jpg");
+  it("names the file after what the browser actually encoded", () => {
+    expect(avatarFileName("me.png", "image/webp")).toBe("me.webp");
+    expect(avatarFileName("photo.of.me.jpg", "image/webp")).toBe("photo.of.me.webp");
+    // No WebP encoder: toBlob falls back to PNG.
+    expect(avatarFileName("me.jpg", "image/png")).toBe("me.png");
+    expect(avatarFileName(undefined, "image/webp")).toBe("avatar.webp");
   });
 });

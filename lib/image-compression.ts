@@ -1,144 +1,126 @@
 /**
- * Client-side image compression for uploads.
+ * Client-side WebP compression for every upload.
  *
- * Cloudflare Workers cannot run `sharp` (a native binary) and UploadThing uses
- * client-side uploads (the browser sends the file straight to `ufs.sh`), so the
- * only place we can shrink images without a paid image CDN is the browser, before
- * the upload starts. We downscale to a sensible max dimension and re-encode as
- * WebP, which typically cuts a 380KB PNG/JPEG to ~80-120KB while staying sharp
- * enough for both project cards and detail pages.
+ * Workers cannot run `sharp` and the R2 public bucket does no resizing, so the
+ * browser shrinks images before they leave: decode, scale the long edge down to
+ * the kind's cap, and re-encode as WebP. A phone photo of a few MB usually ends
+ * up a few hundred KB.
  *
- * Wire this into UploadThing via the `onBeforeUploadBegin` callback.
+ * Whatever goes wrong, the original file is uploaded instead: no WebP encoder,
+ * a WebP that is not smaller, an animated image, or a decode failure. The
+ * server still accepts JPEG, PNG and WebP and stores the type it sniffs.
  */
+import type { R2UploadKind } from "@/lib/r2-uploads";
 
-export interface CompressImageOptions {
-  /** Longest-edge cap in pixels. Images larger than this are downscaled. */
-  maxDimension?: number;
-  /** WebP quality, 0-1. */
-  quality?: number;
-  /** Skip files already smaller than this (bytes) — not worth re-encoding. */
-  skipBelowBytes?: number;
-}
+export const UPLOAD_WEBP_QUALITY = 0.82;
 
-const DEFAULTS: Required<CompressImageOptions> = {
-  // 1600px keeps detail pages crisp while still being far smaller than typical
-  // 2-4MB source uploads.
-  maxDimension: 1600,
-  quality: 0.8,
-  // Files under ~60KB are already small; re-encoding risks making them larger.
-  skipBelowBytes: 60 * 1024,
+/** Longest edge, in pixels, an upload of each kind is scaled down to. */
+export const UPLOAD_MAX_EDGE: Record<R2UploadKind, number> = {
+  avatars: 512,
+  testimonials: 512,
+  blog: 1920,
+  events: 1920,
+  projects: 1920,
 };
 
-function isCompressibleImage(file: File): boolean {
-  // GIFs would lose animation; SVGs are vector. Only raster JPEG/PNG/WebP benefit.
-  return /^image\/(jpe?g|png|webp)$/i.test(file.type);
-}
+const COMPRESSIBLE_TYPE = /^image\/(jpe?g|png|webp)$/i;
 
-function computeTargetSize(
+/** Enough of the file to find the animation markers, which sit before the image data. */
+const SNIFF_BYTES = 64 * 1024;
+
+/** Scale `width` x `height` down so neither side is over `maxEdge`. Never scales up. */
+export function fitWithin(
   width: number,
   height: number,
-  maxDimension: number,
+  maxEdge: number,
 ): { width: number; height: number } {
-  const longest = Math.max(width, height);
-  if (longest <= maxDimension) {
-    return { width, height };
-  }
-  const scale = maxDimension / longest;
+  const scale = Math.min(1, maxEdge / Math.max(width, height));
   return {
-    width: Math.round(width * scale),
-    height: Math.round(height * scale),
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
   };
 }
 
-async function decodeImage(file: File): Promise<ImageBitmap | HTMLImageElement> {
-  if (typeof createImageBitmap === "function") {
-    return createImageBitmap(file);
+export function webpFileName(name: string): string {
+  return `${name.replace(/\.[^.]*$/, "").trim() || "image"}.webp`;
+}
+
+/**
+ * A WebP that already fits is left alone: it was compressed already (the
+ * avatar crop, or a screenshot compressed when picked), and re-encoding lossy
+ * WebP only loses quality.
+ */
+export function needsReencode(type: string, width: number, height: number, maxEdge: number) {
+  return type.toLowerCase() !== "image/webp" || Math.max(width, height) > maxEdge;
+}
+
+/** The WebP when the browser really made one and it is smaller; otherwise the original. */
+export function keepSmallerUpload(original: File, encoded: Blob | null): File {
+  if (!encoded || encoded.type !== "image/webp" || encoded.size >= original.size) {
+    return original;
   }
-  // Fallback for browsers without createImageBitmap.
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to decode image"));
-    };
-    img.src = url;
+  return new File([encoded], webpFileName(original.name), {
+    type: "image/webp",
+    lastModified: Date.now(),
   });
 }
 
-function renameToWebp(name: string): string {
-  return `${name.replace(/\.[^.]+$/, "")}.webp`;
+const ascii = (bytes: Uint8Array, at: number, length: number) =>
+  String.fromCharCode(...bytes.subarray(at, at + length));
+
+/** GIFs, APNGs (`acTL` before `IDAT`) and animated WebPs (VP8X animation flag). Canvas keeps only frame one. */
+export function isAnimatedImage(bytes: Uint8Array): boolean {
+  if (ascii(bytes, 0, 3) === "GIF") return true;
+
+  if (bytes[0] === 0x89 && ascii(bytes, 1, 3) === "PNG") {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    for (let at = 8; at + 8 <= bytes.length; ) {
+      const type = ascii(bytes, at + 4, 4);
+      if (type === "acTL") return true;
+      if (type === "IDAT") return false;
+      at += 12 + view.getUint32(at);
+    }
+    return false;
+  }
+
+  if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP") {
+    return ascii(bytes, 12, 4) === "VP8X" && ((bytes[20] ?? 0) & 0x02) !== 0;
+  }
+
+  return false;
 }
 
-/**
- * Compress a single image file. Returns the original file unchanged if the file
- * is not a compressible raster image, is already small, the browser lacks the
- * needed APIs, or compression fails / does not actually reduce size.
- */
-
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
-export async function compressImageFile(
-  file: File,
-  options: CompressImageOptions = {},
-): Promise<File> {
-  const opts = { ...DEFAULTS, ...options };
-
-  if (typeof document === "undefined") return file; // SSR guard
-  if (!isCompressibleImage(file)) return file;
-  if (file.size <= opts.skipBelowBytes) return file;
+/** Shrink one image for an upload of `kind`. Never throws; falls back to `file`. */
+export async function compressForUpload(file: File, kind: R2UploadKind): Promise<File> {
+  if (typeof document === "undefined" || typeof createImageBitmap !== "function") return file;
+  if (!COMPRESSIBLE_TYPE.test(file.type)) return file;
 
   try {
-    const bitmap = await decodeImage(file);
-    const srcWidth = "width" in bitmap ? bitmap.width : 0;
-    const srcHeight = "height" in bitmap ? bitmap.height : 0;
-    if (!srcWidth || !srcHeight) {
-      if ("close" in bitmap) bitmap.close();
-      return file;
+    const head = new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer());
+    if (isAnimatedImage(head)) return file;
+
+    const bitmap = await createImageBitmap(file);
+    const maxEdge = UPLOAD_MAX_EDGE[kind];
+    try {
+      if (!bitmap.width || !bitmap.height) return file;
+      if (!needsReencode(file.type, bitmap.width, bitmap.height, maxEdge)) return file;
+
+      const size = fitWithin(bitmap.width, bitmap.height, maxEdge);
+      const canvas = document.createElement("canvas");
+      canvas.width = size.width;
+      canvas.height = size.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.drawImage(bitmap, 0, 0, size.width, size.height);
+
+      const encoded = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/webp", UPLOAD_WEBP_QUALITY);
+      });
+      return keepSmallerUpload(file, encoded);
+    } finally {
+      bitmap.close();
     }
-
-    const { width, height } = computeTargetSize(srcWidth, srcHeight, opts.maxDimension);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      if ("close" in bitmap) bitmap.close();
-      return file;
-    }
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    if ("close" in bitmap) bitmap.close();
-
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((b) => resolve(b), "image/webp", opts.quality);
-    });
-
-    // If encoding failed or the result is not actually smaller, keep the original.
-    if (!blob || blob.size >= file.size) {
-      return file;
-    }
-
-    return new File([blob], renameToWebp(file.name), {
-      type: "image/webp",
-      lastModified: Date.now(),
-    });
   } catch {
-    // Any failure: fall back to the original file so uploads never break.
     return file;
   }
-}
-
-/**
- * Compress a list of files. Suitable as an UploadThing `onBeforeUploadBegin`
- * handler: `onBeforeUploadBegin={compressImageFiles}`.
- */
-export async function compressImageFiles(
-  files: File[],
-  options: CompressImageOptions = {},
-): Promise<File[]> {
-  return Promise.all(files.map((file) => compressImageFile(file, options)));
 }

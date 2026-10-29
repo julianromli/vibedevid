@@ -1,3 +1,4 @@
+import { compressForUpload } from "@/lib/image-compression";
 import { postImageFile, type UploadImageOptions } from "@/lib/image-upload-client";
 import type { ProjectUploadResult } from "@/lib/project-upload-result";
 
@@ -11,7 +12,8 @@ export async function uploadProjectImage(
   file: File,
   options: UploadImageOptions = {},
 ): Promise<ProjectUploadResult> {
-  const data = (await postImageFile(PROJECT_IMAGE_UPLOAD_URL, file, options)) as {
+  const upload = await compressForUpload(file, "projects");
+  const data = (await postImageFile(PROJECT_IMAGE_UPLOAD_URL, upload, options)) as {
     key?: unknown;
     url?: unknown;
   } | null;

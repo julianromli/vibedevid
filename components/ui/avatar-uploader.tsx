@@ -18,8 +18,8 @@ import {
   AVATAR_OUTPUT_QUALITY,
   AVATAR_OUTPUT_TYPE,
   avatarFileName,
-  fitWithin,
 } from "@/lib/avatar-crop";
+import { fitWithin } from "@/lib/image-compression";
 
 interface Props {
   children: React.ReactNode;
@@ -80,8 +80,9 @@ export function AvatarUploader({
           throw new Error("Failed to crop image");
         }
 
-        const file = new File([croppedImg.file], avatarFileName(photo.file?.name), {
-          type: AVATAR_OUTPUT_TYPE,
+        const encodedType = croppedImg.file.type || AVATAR_OUTPUT_TYPE;
+        const file = new File([croppedImg.file], avatarFileName(photo.file?.name, encodedType), {
+          type: encodedType,
         });
 
         await onUpload(file);
@@ -219,8 +220,7 @@ async function getCroppedImg(
   // paste cropped image
   ctx.putImageData(data, 0, 0);
 
-  // Scale down to the avatar size cap. JPEG has no alpha, so paint transparent
-  // areas white instead of letting them turn black.
+  // Scale down to the avatar size cap. WebP keeps transparency.
   const size = fitWithin(pixelCrop.width, pixelCrop.height, AVATAR_OUTPUT_MAX_EDGE);
   const output = document.createElement("canvas");
   output.width = size.width;
@@ -229,8 +229,6 @@ async function getCroppedImg(
   if (!outputCtx) {
     throw new Error("Failed to create 2D context");
   }
-  outputCtx.fillStyle = "#ffffff";
-  outputCtx.fillRect(0, 0, size.width, size.height);
   outputCtx.drawImage(canvas, 0, 0, size.width, size.height);
 
   // return blob + object URL

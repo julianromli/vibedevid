@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cleanupProjectProvisionalUploadFn } from "@/lib/actions/projects.functions";
-import { compressImageFile } from "@/lib/image-compression";
+import { compressForUpload } from "@/lib/image-compression";
 import {
   addQueuedShots,
   clampProgress,
@@ -151,7 +151,7 @@ export function useScreenshotUploads(options: { announce?: (message: string) => 
       let compressed: File[];
       let isImage: boolean[];
       try {
-        compressed = await Promise.all(incoming.map((file) => compressImageFile(file)));
+        compressed = await Promise.all(incoming.map((file) => compressForUpload(file, "projects")));
         // The server rejects non-images after the upload; catch renamed files before it.
         isImage = await Promise.all(compressed.map((file) => hasImageSignature(file)));
       } finally {

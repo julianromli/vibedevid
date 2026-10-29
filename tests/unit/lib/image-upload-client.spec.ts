@@ -74,6 +74,40 @@ describe("uploadImageOfKind", () => {
     });
   });
 
+  it("sends the WebP-compressed file, capped at the kind's max edge", async () => {
+    reply = {
+      status: 200,
+      body: JSON.stringify({
+        key: "avatars/u/a.webp",
+        url: "https://cdn.vibedeveloper.id/avatars/u/a.webp",
+      }),
+    };
+    vi.stubGlobal(
+      "createImageBitmap",
+      vi.fn(async () => ({ width: 2000, height: 1000, close: () => {} })),
+    );
+    const drawImage = vi.fn();
+    const getContext = vi
+      .spyOn(HTMLCanvasElement.prototype, "getContext")
+      .mockReturnValue({ drawImage } as unknown as CanvasRenderingContext2D);
+    const toBlob = vi
+      .spyOn(HTMLCanvasElement.prototype, "toBlob")
+      .mockImplementation((callback) => callback(new Blob(["webp"], { type: "image/webp" })));
+    const photo = new File([new Uint8Array(5000)], "me.jpg", { type: "image/jpeg" });
+
+    try {
+      await uploadImageOfKind("avatars", photo);
+    } finally {
+      getContext.mockRestore();
+      toBlob.mockRestore();
+    }
+
+    expect(drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 512, 256);
+    const body = sent[0]?.body as File;
+    expect(body.name).toBe("me.webp");
+    expect(sent[0]?.headers["Content-Type"]).toBe("image/webp");
+  });
+
   it("rejects with the server's error message", async () => {
     reply = { status: 413, body: JSON.stringify({ error: "Avatars must be 2MB or smaller" }) };
     const file = new File([new Uint8Array([1])], "a.png", { type: "image/png" });
@@ -96,7 +130,8 @@ describe("uploadImageOfKind", () => {
 
     const pending = uploadImageOfKind("events", file);
     expect(UPLOAD_TIMEOUT_MS).toBe(120_000);
-    expect(lastXhr?.timeout).toBe(UPLOAD_TIMEOUT_MS);
+    // The request starts once the file has been compressed.
+    await vi.waitFor(() => expect(lastXhr?.timeout).toBe(UPLOAD_TIMEOUT_MS));
     lastXhr?.ontimeout?.();
 
     await expect(pending).rejects.toThrow("Upload timed out");

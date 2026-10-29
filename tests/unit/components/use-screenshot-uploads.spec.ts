@@ -5,7 +5,7 @@ import i18n from "@/i18n";
 
 const h = vi.hoisted(() => ({ upload: vi.fn(), cleanup: vi.fn(), compress: vi.fn() }));
 
-vi.mock("@/lib/image-compression", () => ({ compressImageFile: h.compress }));
+vi.mock("@/lib/image-compression", () => ({ compressForUpload: h.compress }));
 
 vi.mock("@/lib/project-upload-client", () => ({ uploadProjectImage: h.upload }));
 vi.mock("@/lib/actions/projects.functions", () => ({

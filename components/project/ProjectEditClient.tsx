@@ -22,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { editProjectFn } from "@/lib/actions/projects.functions";
 import type { Category } from "@/lib/categories";
 import { getFaviconUrl } from "@/lib/favicon-utils";
-import { compressImageFiles } from "@/lib/image-compression";
 import { imageKeyForUrl } from "@/lib/project-images";
 import {
   buildProjectFieldErrors,
@@ -235,7 +234,7 @@ export function ProjectEditClient({
     if (files.length === 0) return;
     setIsUploading(true);
     try {
-      handleUploadComplete(await uploadProjectImages(await compressImageFiles(files)));
+      handleUploadComplete(await uploadProjectImages(files));
     } catch (error) {
       setIsUploading(false);
       toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);

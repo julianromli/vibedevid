@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTestimonialForm } from "@/hooks/useTestimonialForm";
 import { submitTestimonialFn } from "@/lib/actions/testimonials.functions";
-import { compressImageFile } from "@/lib/image-compression";
+import { compressForUpload } from "@/lib/image-compression";
 import { TESTIMONIAL_BODY_MAX } from "@/lib/testimonial-form-utils";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +39,7 @@ export function TestimonialForm() {
       setAvatarFile(null);
       return;
     }
-    const compressed = await compressImageFile(file, { maxDimension: 512 });
+    const compressed = await compressForUpload(file, "testimonials");
     setAvatarFile(compressed);
   }
 
