@@ -52,6 +52,7 @@ export const Route = createFileRoute("/api/vibe-videos/$id")({
         }
       },
 
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
       PUT: async ({ request, params }) => {
         try {
           await requireAdminOrModeratorUser();

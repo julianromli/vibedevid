@@ -74,7 +74,6 @@ export function OptimizedImage({
           sizes={sizes}
         />
       ))}
-      {/** biome-ignore lint/a11y/useAltText: alt is forwarded explicitly below. */}
       <img
         src={`/optimized/${name}-${fallbackWidth}.webp`}
         alt={alt}

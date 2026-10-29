@@ -1,9 +1,9 @@
 import { type CookieSerializeOptions, serialize } from "cookie-es";
 import { eq } from "drizzle-orm";
 import { type Locale, routing } from "@/i18n";
+import { AUTH_PATH, ONBOARDING_PATH, resolveOnboardingRedirect } from "@/lib/auth/onboarding-gate";
 import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { getAuth } from "@/lib/auth/server";
-import { AUTH_PATH, ONBOARDING_PATH, resolveOnboardingRedirect } from "@/lib/auth/onboarding-gate";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from "@/lib/locale";

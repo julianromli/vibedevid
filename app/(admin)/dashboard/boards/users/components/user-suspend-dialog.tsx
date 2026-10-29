@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { suspendUserFn } from "@/lib/actions/admin/users.functions";
 import type { AdminUser } from "@/lib/actions/admin/users";
+import { suspendUserFn } from "@/lib/actions/admin/users.functions";
 
 interface UserSuspendDialogProps {
   user: AdminUser;
@@ -45,7 +45,7 @@ export function UserSuspendDialog({ user, open, onOpenChange }: UserSuspendDialo
       } else {
         toast.error(result.error || "Failed to update suspension status");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

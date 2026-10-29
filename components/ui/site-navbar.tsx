@@ -1,7 +1,7 @@
 "use client";
 
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { Navbar, type NavbarProps } from "@/components/ui/navbar";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 /**
  * Navbar wired to the root-context current user.

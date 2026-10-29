@@ -64,6 +64,7 @@ function parsePhase(value: string | undefined, fallback?: PhaseName): PhaseName 
   throw new Error(`Unknown phase "${value}". Expected one of: ${ORDERED_PHASES.join(", ")}`);
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 function parseArgs(argv = process.argv.slice(3)): CliOptions {
   const options: CliOptions = {
     append: false,
@@ -362,6 +363,7 @@ async function ensureAuthStagingSchema(target: postgres.Sql) {
   `);
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function copyAuthStaging(options: CliOptions) {
   const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
   const source = await createPostgresSource();
@@ -441,6 +443,7 @@ async function fetchTableViaPostgres(
   return rows as Record<string, unknown>[];
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function copyPublicDataViaRest(options: CliOptions) {
   const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
   const target = postgres(neonUrl, { max: 1 });
@@ -521,6 +524,7 @@ type StagedUser = {
   }>;
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function migrateUsersToBetterAuth(options: CliOptions) {
   const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
   const pg = postgres(neonUrl, { max: 1 });
@@ -651,6 +655,7 @@ async function getNeonCounts(
   return counts;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function verifyCounts(options: CliOptions) {
   const neonUrl = requireEnv("DATABASE_URL", NEON_URL);
   const pg = postgres(neonUrl, { max: 1 });

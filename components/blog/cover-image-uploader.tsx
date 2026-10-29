@@ -1,8 +1,7 @@
 "use client";
 
 import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,18 +16,6 @@ interface CoverImageUploaderProps {
   onUploadComplete: (url: string) => void;
   onUploadError: (error: Error) => void;
   disabled?: boolean;
-}
-
-function parseHttpOrHttpsUrl(rawUrl: string): { url: string; isHttp: boolean } | null {
-  try {
-    const parsed = new URL(rawUrl);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return null;
-    }
-    return { url: parsed.toString(), isHttp: parsed.protocol === "http:" };
-  } catch {
-    return null;
-  }
 }
 
 function UrlInputSection({

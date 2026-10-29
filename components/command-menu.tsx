@@ -1,7 +1,6 @@
 "use client";
 
 import { IconArrowRightDashed, IconDeviceLaptop, IconMoon, IconSun } from "@tabler/icons-react";
-import { useRouter } from "@/lib/navigation";
 import { useTheme } from "next-themes";
 import * as React from "react";
 import {
@@ -13,6 +12,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { useRouter } from "@/lib/navigation";
 import { sidebarData } from "./admin-panel/data/sidebar-data";
 import { useSearch } from "./search-provider";
 import { ScrollArea } from "./ui/scroll-area";

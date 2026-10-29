@@ -51,6 +51,11 @@ function parseAndValidate(
   return buildProjectSubmissionSchema(categoryNames).safeParse(parsed.input);
 }
 
+function errorOf(result: ReturnType<typeof parseAndValidate>) {
+  if (!result.error) throw new Error("expected validation to fail");
+  return result.error;
+}
+
 describe("PROJECT_LIMITS — one truth for field bounds", () => {
   it("exposes the limits both clients and server previously duplicated", () => {
     expect(PROJECT_LIMITS.MAX_TITLE_LENGTH).toBe(120);
@@ -111,14 +116,14 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
   it("rejects short titles with the server message", () => {
     const result = parseAndValidate(formDataOf({ title: "ab" }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.title).toContain("Title must be at least 3 characters");
   });
 
   it("rejects taglines in the forbidden mid-range (1-9 chars)", () => {
     const result = parseAndValidate(formDataOf({ tagline: "short" }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.tagline).toContain("Tagline must be at least 10 characters or left empty");
   });
 
@@ -133,7 +138,7 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
       ["education"],
     );
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.description).toContain(
       "Description must clearly explain what your project does",
     );
@@ -142,7 +147,7 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
   it("rejects a website url the normalizer cannot canonicalize", () => {
     const result = parseAndValidate(formDataOf({ website_url: "not a url" }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.website_url).toContain("Enter a valid website URL");
   });
 
@@ -152,14 +157,14 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
       ["education"],
     );
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.image_urls?.[0]).toContain("uploaded images");
   });
 
   it("rejects empty image lists", () => {
     const result = parseAndValidate(formDataOf({ image_urls: JSON.stringify([]) }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.image_urls).toContain("At least one project screenshot is required");
   });
 
@@ -188,14 +193,14 @@ describe("buildProjectSubmissionSchema — per-field rules", () => {
     const manyTags = Array.from({ length: 11 }, (_, index) => `tag-${index}`);
     const result = parseAndValidate(formDataOf({ tags: JSON.stringify(manyTags) }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.tags).toContain("Use 10 tags or fewer");
   });
 
   it("rejects inactive categories when category names are provided", () => {
     const result = parseAndValidate(formDataOf({ category: "obsolete" }), ["education"]);
     expect(result.success).toBe(false);
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.category).toContain("Choose an active category");
   });
 
@@ -210,7 +215,7 @@ describe("buildProjectFieldErrors + formatProjectFieldErrors — wire contract",
     const result = parseAndValidate(formDataOf({ website_url: "not a url" }), ["education"]);
     expect(result.success).toBe(false);
 
-    const fieldErrors = buildProjectFieldErrors(result.error!);
+    const fieldErrors = buildProjectFieldErrors(errorOf(result));
     expect(fieldErrors.website_url).toContain("Enter a valid website URL");
     expect(fieldErrors).not.toHaveProperty("websiteUrl");
   });
@@ -225,7 +230,7 @@ describe("buildProjectFieldErrors + formatProjectFieldErrors — wire contract",
     );
     expect(result.success).toBe(false);
 
-    const formatted = formatProjectFieldErrors(buildProjectFieldErrors(result.error!));
+    const formatted = formatProjectFieldErrors(buildProjectFieldErrors(errorOf(result)));
     expect(formatted).toContain("Title: Title must be at least 3 characters");
     expect(formatted).toContain("Screenshots: At least one project screenshot is required");
   });

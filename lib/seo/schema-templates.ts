@@ -13,14 +13,14 @@
  *   underlying data is missing, rather than emitted as empty strings.
  */
 
-import type { ProfileUser } from '@/app/[username]/profile-data'
-import { absoluteUrl } from '@/lib/seo/site-url'
-import type { PublishedPostDetail } from '@/lib/server/blog-public'
-import type { ProjectDetail } from '@/lib/server/project-public'
-import type { EventDto } from '@/types/domain'
+import type { ProfileUser } from "@/app/[username]/profile-data";
+import { absoluteUrl } from "@/lib/seo/site-url";
+import type { PublishedPostDetail } from "@/lib/server/blog-public";
+import type { ProjectDetail } from "@/lib/server/project-public";
+import type { EventDto } from "@/types/domain";
 
 function siteLogoUrl(): string {
-  return absoluteUrl('/vibedevid_final_black.svg')
+  return absoluteUrl("/vibedevid_final_black.svg");
 }
 
 /**
@@ -28,43 +28,45 @@ function siteLogoUrl(): string {
  * https://schema.org/BlogPosting
  */
 export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
-  const url = absoluteUrl(`/blog/${slug}`)
-  const author = post.author
-  const authorName = author?.display_name || 'VibeDev ID'
-  const image = post.cover_image || undefined
-  const keywords = post.tags.map((t) => t.post_tags?.name).filter((name): name is string => Boolean(name))
-  const authorImage = author?.avatar_url || undefined
-  const authorBio = author?.bio?.trim() || undefined
+  const url = absoluteUrl(`/blog/${slug}`);
+  const author = post.author;
+  const authorName = author?.display_name || "VibeDev ID";
+  const image = post.cover_image || undefined;
+  const keywords = post.tags
+    .map((t) => t.post_tags?.name)
+    .filter((name): name is string => Boolean(name));
+  const authorImage = author?.avatar_url || undefined;
+  const authorBio = author?.bio?.trim() || undefined;
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt || undefined,
     image: image,
     datePublished: post.published_at || post.created_at || undefined,
     dateModified: post.updated_at || post.published_at || undefined,
     author: {
-      '@type': 'Person',
+      "@type": "Person",
       name: authorName,
       url: author?.username ? absoluteUrl(`/${author.username}`) : undefined,
       image: authorImage,
       description: authorBio,
     },
     publisher: {
-      '@type': 'Organization',
-      name: 'VibeDev ID',
+      "@type": "Organization",
+      name: "VibeDev ID",
       logo: {
-        '@type': 'ImageObject',
+        "@type": "ImageObject",
         url: siteLogoUrl(),
       },
     },
     mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': url,
+      "@type": "WebPage",
+      "@id": url,
     },
-    ...(keywords.length > 0 ? { keywords: keywords.join(', ') } : {}),
-  }
+    ...(keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
+  };
 }
 
 /**
@@ -72,46 +74,50 @@ export function blogPostingSchema(post: PublishedPostDetail, slug: string) {
  * https://schema.org/Event
  */
 function eventLocation(event: EventDto) {
-  if (event.locationType === 'online') {
-    if (!event.registrationUrl) return undefined
-    return { '@type': 'VirtualLocation', url: event.registrationUrl }
+  if (event.locationType === "online") {
+    if (!event.registrationUrl) return undefined;
+    return { "@type": "VirtualLocation", url: event.registrationUrl };
   }
 
-  if (!event.locationDetail) return undefined
-  return { '@type': 'Place', name: event.locationDetail, address: event.locationDetail }
+  if (!event.locationDetail) return undefined;
+  return { "@type": "Place", name: event.locationDetail, address: event.locationDetail };
 }
 
 export function eventSchema(event: EventDto) {
-  const url = absoluteUrl(`/event/${event.slug}`)
-  const image = event.coverImage || undefined
+  const url = absoluteUrl(`/event/${event.slug}`);
+  const image = event.coverImage || undefined;
 
   // Combine date + time into ISO 8601 start/end strings.
-  const startISO = event.date && event.time ? `${event.date}T${event.time}` : event.date || undefined
-  const endISO = event.endDate && event.endTime ? `${event.endDate}T${event.endTime}` : event.endDate || undefined
+  const startISO =
+    event.date && event.time ? `${event.date}T${event.time}` : event.date || undefined;
+  const endISO =
+    event.endDate && event.endTime
+      ? `${event.endDate}T${event.endTime}`
+      : event.endDate || undefined;
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Event',
+    "@context": "https://schema.org",
+    "@type": "Event",
     name: event.name,
     description: event.description || undefined,
     startDate: startISO,
     endDate: endISO || undefined,
-    eventStatus: 'https://schema.org/EventScheduled',
+    eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode:
-      event.locationType === 'online'
-        ? 'https://schema.org/OnlineEventAttendanceMode'
-        : event.locationType === 'offline'
-          ? 'https://schema.org/OfflineEventAttendanceMode'
-          : 'https://schema.org/MixedEventAttendanceMode',
+      event.locationType === "online"
+        ? "https://schema.org/OnlineEventAttendanceMode"
+        : event.locationType === "offline"
+          ? "https://schema.org/OfflineEventAttendanceMode"
+          : "https://schema.org/MixedEventAttendanceMode",
     image: image,
     location: eventLocation(event),
     organizer: {
-      '@type': 'Organization',
+      "@type": "Organization",
       name: event.organizer,
       url: event.registrationUrl || undefined,
     },
     url: url,
-  }
+  };
 }
 
 /**
@@ -119,23 +125,23 @@ export function eventSchema(event: EventDto) {
  * https://schema.org/ProfilePage
  */
 export function profilePageSchema(user: ProfileUser) {
-  const url = absoluteUrl(`/${user.username}`)
-  const name = user.display_name || user.username
-  const image = user.avatar_url || undefined
+  const url = absoluteUrl(`/${user.username}`);
+  const name = user.display_name || user.username;
+  const image = user.avatar_url || undefined;
 
-  const sameAs: string[] = []
-  if (user.github_url) sameAs.push(user.github_url)
-  if (user.x_url) sameAs.push(user.x_url)
-  if (user.twitter_url) sameAs.push(user.twitter_url)
-  if (user.instagram_url) sameAs.push(user.instagram_url)
-  if (user.threads_url) sameAs.push(user.threads_url)
-  if (user.website) sameAs.push(user.website)
+  const sameAs: string[] = [];
+  if (user.github_url) sameAs.push(user.github_url);
+  if (user.x_url) sameAs.push(user.x_url);
+  if (user.twitter_url) sameAs.push(user.twitter_url);
+  if (user.instagram_url) sameAs.push(user.instagram_url);
+  if (user.threads_url) sameAs.push(user.threads_url);
+  if (user.website) sameAs.push(user.website);
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'ProfilePage',
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
     mainEntity: {
-      '@type': 'Person',
+      "@type": "Person",
       name: name,
       alternateName: `@${user.username}`,
       identifier: user.username,
@@ -145,7 +151,7 @@ export function profilePageSchema(user: ProfileUser) {
       ...(user.location ? { address: user.location } : {}),
       ...(sameAs.length > 0 ? { sameAs } : {}),
     },
-  }
+  };
 }
 
 /**
@@ -153,27 +159,27 @@ export function profilePageSchema(user: ProfileUser) {
  * https://schema.org/SoftwareApplication
  */
 export function softwareApplicationSchema(project: ProjectDetail) {
-  const url = absoluteUrl(`/project/${project.slug}`)
-  const image = project.image || project.faviconUrl || undefined
-  const description = project.tagline || project.description || undefined
-  const author = project.author
+  const url = absoluteUrl(`/project/${project.slug}`);
+  const image = project.image || project.faviconUrl || undefined;
+  const description = project.tagline || project.description || undefined;
+  const author = project.author;
 
   return {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
     name: project.title,
     description: description,
-    applicationCategory: project.category || 'DeveloperApplication',
-    operatingSystem: 'Web',
+    applicationCategory: project.category || "DeveloperApplication",
+    operatingSystem: "Web",
     url: url,
     ...(image ? { screenshot: image } : {}),
-    ...(project.tags.length > 0 ? { keywords: project.tags.join(', ') } : {}),
+    ...(project.tags.length > 0 ? { keywords: project.tags.join(", ") } : {}),
     author: {
-      '@type': 'Person',
+      "@type": "Person",
       name: author.name,
       url: absoluteUrl(`/${author.username}`),
     },
-  }
+  };
 }
 
 /**
@@ -184,13 +190,13 @@ export function softwareApplicationSchema(project: ProjectDetail) {
  */
 export function breadcrumbListSchema(crumbs: Array<{ name: string; url: string }>) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: crumbs.map((crumb, index) => ({
-      '@type': 'ListItem',
+      "@type": "ListItem",
       position: index + 1,
       name: crumb.name,
       item: crumb.url,
     })),
-  }
+  };
 }

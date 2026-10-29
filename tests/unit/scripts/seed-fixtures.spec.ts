@@ -2,8 +2,8 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   assertSeedFixtures,
   SEED_CATEGORIES,
-  SEED_DESCRIPTION_MARKER,
   SEED_COMMENTS,
+  SEED_DESCRIPTION_MARKER,
   SEED_EVENTS,
   SEED_LIKES,
   SEED_POSTS,

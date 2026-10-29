@@ -1,11 +1,11 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { AuthCard } from "@/components/auth/auth-card";
 import { EmailStep } from "@/components/auth/email-step";
 import { OtpStep } from "@/components/auth/otp-step";
 import { StepTransition } from "@/components/auth/step-transition";
 import { useEmailOtpFlow } from "@/hooks/use-email-otp-flow";
-import { useTranslation } from "react-i18next";
 
 export default function AuthPage({ step, redirectTo }: { step?: "code"; redirectTo?: string }) {
   const { t } = useTranslation("auth");

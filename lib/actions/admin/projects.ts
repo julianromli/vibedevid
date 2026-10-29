@@ -1,11 +1,11 @@
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { ProjectUpdateSchema } from "@/lib/actions/admin/schemas";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { containsPattern } from "@/lib/db/like-pattern";
-import { projects, users, likes, views, comments, categories } from "@/lib/db/schema";
 import { toProjectDto } from "@/lib/db/mappers";
+import { categories, comments, likes, projects, users, views } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
-import { requireAdmin } from "@/lib/auth/permissions";
-import { eq, and, gte, lte, desc, count, or, ilike, inArray, asc } from "drizzle-orm";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -53,6 +53,7 @@ async function checkAdminAccess() {
   return user;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function getAllProjects(
   filters: ProjectFilters = {},
   page: number = 1,

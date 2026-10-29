@@ -3,8 +3,8 @@
  * Displays AI tool/integration cards with icon, title, description, and link
  */
 
-import { ExternalLink } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

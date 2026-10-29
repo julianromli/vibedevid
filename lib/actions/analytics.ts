@@ -1,17 +1,17 @@
+import { and, count, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import {
-  users,
-  projects,
-  posts,
-  comments,
-  likes,
-  views,
-  events,
   blogReports,
+  comments,
+  events,
+  likes,
+  posts,
+  projects,
+  users,
+  views,
 } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
-import { requireAdmin } from "@/lib/auth/permissions";
-import { eq, and, gte, lte, count, desc, inArray, sql } from "drizzle-orm";
 
 export interface PlatformStats {
   total_users: number;

@@ -1,11 +1,11 @@
+import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { containsPattern } from "@/lib/db/like-pattern";
-import { users, projects, posts, comments, likes, authUser } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
+import { authUser, comments, likes, posts, projects, users } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
-import { requireAdmin } from "@/lib/auth/permissions";
 import { ROLES } from "./schemas";
-import { eq, and, or, ilike, desc, count, inArray, isNull } from "drizzle-orm";
 
 const DEFAULT_PAGE_SIZE = 20;
 

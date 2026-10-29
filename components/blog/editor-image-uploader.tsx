@@ -1,7 +1,7 @@
 "use client";
 
-import { Image as ImageIcon, Link as LinkIcon, Loader2, Upload, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { Loader2, Upload, X } from "lucide-react";
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

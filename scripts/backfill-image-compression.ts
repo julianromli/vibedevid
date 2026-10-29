@@ -19,9 +19,9 @@
  * Env (from .env.local): DATABASE_URL, UPLOADTHING_TOKEN
  */
 
-import { UTApi } from "uploadthing/server";
 import postgres from "postgres";
 import sharp from "sharp";
+import { UTApi } from "uploadthing/server";
 
 const APPLY = process.argv.includes("--apply");
 const MIN_KB = Number(
@@ -127,6 +127,7 @@ async function recompress(input: Buffer): Promise<Buffer | null> {
   return pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 async function main() {
   console.log(
     `[backfill] mode=${APPLY ? "APPLY" : "dry-run"} min-kb=${MIN_KB} max-dim=${MAX_DIMENSION} q=${WEBP_QUALITY}`,

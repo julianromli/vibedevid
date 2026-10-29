@@ -2,6 +2,8 @@
  * Extract YouTube video ID from berbagai format URL
  * Support: watch, youtu.be, shorts, embed, dll
  */
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function extractYouTubeVideoId(url: string): string | null {
   if (!url) return null;
 
@@ -67,7 +69,7 @@ export function generateYouTubeUrl(videoId: string): string {
 /**
  * Extract JSON dari HTML response (untuk scraping YouTube page)
  */
-export function extractJsonFromHtml(html: string, key: string): any | null {
+export function extractJsonFromHtml(html: string, key: string): unknown {
   try {
     // Cari pattern: var YOUTUBE_KEY = {...}; atau window.YOUTUBE_KEY = {...};
     const patterns = [
@@ -78,7 +80,7 @@ export function extractJsonFromHtml(html: string, key: string): any | null {
 
     for (const pattern of patterns) {
       const match = html.match(pattern);
-      if (match && match[1]) {
+      if (match?.[1]) {
         return JSON.parse(match[1]);
       }
     }
@@ -95,11 +97,11 @@ export function extractJsonFromHtml(html: string, key: string): any | null {
  */
 export function formatViewCount(views: number): string {
   if (views >= 1000000000) {
-    return (views / 1000000000).toFixed(1) + "B";
+    return `${(views / 1000000000).toFixed(1)}B`;
   } else if (views >= 1000000) {
-    return (views / 1000000).toFixed(1) + "M";
+    return `${(views / 1000000).toFixed(1)}M`;
   } else if (views >= 1000) {
-    return (views / 1000).toFixed(1) + "K";
+    return `${(views / 1000).toFixed(1)}K`;
   }
   return views.toString();
 }
@@ -112,9 +114,9 @@ export function parseDuration(duration: string): string {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return "0:00";
 
-    const hours = parseInt(match[1] || "0");
-    const minutes = parseInt(match[2] || "0");
-    const seconds = parseInt(match[3] || "0");
+    const hours = parseInt(match[1] || "0", 10);
+    const minutes = parseInt(match[2] || "0", 10);
+    const seconds = parseInt(match[3] || "0", 10);
 
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
@@ -142,6 +144,6 @@ export function cleanDescription(description: string, maxLength: number = 200): 
   const lastSpace = truncated.lastIndexOf(" ");
 
   return lastSpace > maxLength * 0.8
-    ? truncated.substring(0, lastSpace) + "..."
-    : truncated + "...";
+    ? `${truncated.substring(0, lastSpace)}...`
+    : `${truncated}...`;
 }

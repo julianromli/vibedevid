@@ -1,10 +1,10 @@
-import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from "@/lib/profile-social-links";
+import { and, eq, ne } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { users } from "@/lib/db/schema";
 import { toUserProfile } from "@/lib/db/mappers";
-import { validateUsername } from "@/lib/username";
+import { users } from "@/lib/db/schema";
+import { normalizeProfileSocialUrl, normalizeProfileWebsiteUrl } from "@/lib/profile-social-links";
 import { getServerSession, requireUser } from "@/lib/server/auth";
-import { eq, and, ne } from "drizzle-orm";
+import { validateUsername } from "@/lib/username";
 import type { User } from "@/types/homepage";
 
 interface UpdateProfileData {

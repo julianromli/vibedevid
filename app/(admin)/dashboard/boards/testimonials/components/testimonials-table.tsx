@@ -15,12 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { AdminTestimonial, AdminTestimonialsFilter } from "@/lib/actions/testimonials";
 import {
   approveTestimonialFn,
   rejectTestimonialFn,
   unpublishTestimonialFn,
 } from "@/lib/actions/testimonials.functions";
-import type { AdminTestimonial, AdminTestimonialsFilter } from "@/lib/actions/testimonials";
 import { useRouter } from "@/lib/navigation";
 
 function statusBadge(status: AdminTestimonial["status"]) {

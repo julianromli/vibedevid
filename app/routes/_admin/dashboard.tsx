@@ -7,9 +7,9 @@ import Analytics from "@/app/(admin)/dashboard/boards/analytics";
 import BlogPage from "@/app/(admin)/dashboard/boards/blog/page";
 import CommentsPage from "@/app/(admin)/dashboard/boards/comments/page";
 import EventsApproval from "@/app/(admin)/dashboard/boards/events-approval/page";
-import TestimonialsPage from "@/app/(admin)/dashboard/boards/testimonials/page";
 import Overview from "@/app/(admin)/dashboard/boards/overview";
 import ProjectsPage from "@/app/(admin)/dashboard/boards/projects/page";
+import TestimonialsPage from "@/app/(admin)/dashboard/boards/testimonials/page";
 import UsersPage from "@/app/(admin)/dashboard/boards/users/page";
 import {
   DashboardContent,

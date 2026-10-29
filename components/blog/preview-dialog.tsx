@@ -14,7 +14,7 @@ import { PostContent } from "./post-content";
 interface PreviewDialogProps {
   post: {
     title: string;
-    content: any;
+    content: unknown;
     excerpt?: string;
     cover_image?: string;
     author?: {

@@ -71,7 +71,7 @@ async function decodeImage(file: File): Promise<ImageBitmap | HTMLImageElement> 
 }
 
 function renameToWebp(name: string): string {
-  return name.replace(/\.[^.]+$/, "") + ".webp";
+  return `${name.replace(/\.[^.]+$/, "")}.webp`;
 }
 
 /**
@@ -79,6 +79,8 @@ function renameToWebp(name: string): string {
  * is not a compressible raster image, is already small, the browser lacks the
  * needed APIs, or compression fails / does not actually reduce size.
  */
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function compressImageFile(
   file: File,
   options: CompressImageOptions = {},

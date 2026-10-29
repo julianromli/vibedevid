@@ -426,6 +426,7 @@ export function SubmitProjectForm({ userId, categories }: SubmitProjectFormProps
     }
   };
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const handleGitHubImport = async () => {
     if (!githubRepoUrl.trim()) {
       setImportError(t("form.importEmpty"));

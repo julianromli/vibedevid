@@ -56,6 +56,7 @@ interface ProfileEditDialogProps {
   saving?: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export default function ProfileEditDialog({
   open,
   onOpenChange,

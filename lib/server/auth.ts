@@ -1,8 +1,8 @@
 import { getRequest, getRequestHeaders } from "@tanstack/react-start/server";
 import { eq, lt } from "drizzle-orm";
+import { isAdminOrModerator } from "@/lib/auth/permissions";
 import { createUserProfile } from "@/lib/auth/profile";
 import { getAuth } from "@/lib/auth/server";
-import { isAdminOrModerator } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { authSession, authVerification, users } from "@/lib/db/schema";
 

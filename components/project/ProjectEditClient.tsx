@@ -80,6 +80,7 @@ interface ProjectEditClientProps {
   isOwner: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function ProjectEditClient({
   project,
   categories,

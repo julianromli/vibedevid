@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { Image } from "@unpic/react";
+import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";

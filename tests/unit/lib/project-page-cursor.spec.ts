@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
+import { isBotUserAgent } from "@/lib/bot-user-agent";
 import {
   decodeProjectCursor,
   encodeProjectCursor,
   PROJECT_PAGE_SIZE,
   trendingScore,
 } from "@/lib/project-page-cursor";
-import { isBotUserAgent } from "@/lib/bot-user-agent";
 
 describe("project page cursor", () => {
   it("round-trips a keyset cursor", () => {

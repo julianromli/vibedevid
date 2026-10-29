@@ -63,6 +63,7 @@ export function AvatarUploader({
 
   const [open, onOpenChange] = React.useState<boolean>(false);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const handleUpdate = async () => {
     if (photo?.file && croppedAreaPixels) {
       setIsPending(true);

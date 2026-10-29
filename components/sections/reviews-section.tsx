@@ -20,6 +20,8 @@ const TestimonialsColumns = lazy(() =>
   })),
 );
 
+const SKELETON_KEYS = ["skeleton-1", "skeleton-2", "skeleton-3"];
+
 const SEED_IMAGES = [
   "https://github.com/shadcn.png",
   "/optimized/professional-woman-dark-hair-128.webp",
@@ -70,8 +72,8 @@ export function ReviewsSection({
             fallback={
               <div className="flex justify-center gap-6">
                 <div className="flex flex-col space-y-4">
-                  {Array.from({ length: 3 }).map((_, idx) => (
-                    <div key={idx} className="bg-muted/20 w-80 animate-pulse rounded-lg p-4">
+                  {SKELETON_KEYS.map((key) => (
+                    <div key={key} className="bg-muted/20 w-80 animate-pulse rounded-lg p-4">
                       <div className="bg-muted/30 mb-3 h-20 rounded"></div>
                       <div className="flex items-center space-x-3">
                         <div className="bg-muted/30 h-10 w-10 rounded-full"></div>

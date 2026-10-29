@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { checkUsernameAvailabilityFn, claimUsernameFn } from "@/lib/actions/onboarding.functions";
 import {
   normalizeUsername,
-  type UsernameError,
   USERNAME_MAX_LENGTH,
+  type UsernameError,
   validateUsername,
 } from "@/lib/username";
 
@@ -53,6 +53,7 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
   const abortRef = useRef<AbortController | null>(null);
   const latest = useRef(username);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const check = useCallback(async (value: string, revealErrors: boolean) => {
     abortRef.current?.abort();
     const plan = planUsernameCheck(value, revealErrors);
@@ -114,6 +115,7 @@ export function useUsernameClaim(input: { initialUsername: string; onClaimed: ()
   const pickSuggestion = useCallback((value: string) => setUsername(value), []);
 
   /** Returns false when the view should focus the input. */
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
   const submit = useCallback(async (): Promise<boolean> => {
     if (saving) return false;
     setShowErrors(true);

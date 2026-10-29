@@ -1,55 +1,66 @@
-'use client'
+"use client";
 
-import { lazy, Suspense } from 'react'
-import { FAQSection } from '@/components/sections/faq-section'
-import { HeroSection } from '@/components/sections/hero-section'
-import { HomeStructuredData } from '@/components/sections/home-structured-data'
-import { ProjectShowcase } from '@/components/sections/project-showcase'
-import { ProjectShowcaseProvider } from '@/components/sections/project-showcase/project-showcase-context'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { Footer } from '@/components/ui/footer'
-import { Navbar } from '@/components/ui/navbar'
-import { JOIN_COMMUNITY_URL } from '@/lib/seo/site-url'
-import type { Project, ProjectFilterOption, SortBy, Testimonial, User, VibeVideo } from '@/types/homepage'
+import { lazy, Suspense } from "react";
+import { FAQSection } from "@/components/sections/faq-section";
+import { HeroSection } from "@/components/sections/hero-section";
+import { HomeStructuredData } from "@/components/sections/home-structured-data";
+import { ProjectShowcase } from "@/components/sections/project-showcase";
+import { ProjectShowcaseProvider } from "@/components/sections/project-showcase/project-showcase-context";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Footer } from "@/components/ui/footer";
+import { Navbar } from "@/components/ui/navbar";
+import { JOIN_COMMUNITY_URL } from "@/lib/seo/site-url";
+import type {
+  Project,
+  ProjectFilterOption,
+  SortBy,
+  Testimonial,
+  User,
+  VibeVideo,
+} from "@/types/homepage";
 
 // Below-the-fold sections are code-split so their JS does not block initial
 // hydration/interactivity. This is the main lever for reducing Total Blocking
 // Time on the homepage (Lighthouse `bootup-time` / `mainthread-work-breakdown`).
 const YouTubeVideoShowcase = lazy(() =>
-  import('@/components/ui/youtube-video-showcase').then((m) => ({
+  import("@/components/ui/youtube-video-showcase").then((m) => ({
     default: m.YouTubeVideoShowcase,
   })),
-)
-const CommunityFeaturesSection = lazy(() => import('@/components/features-8'))
+);
+const CommunityFeaturesSection = lazy(() => import("@/components/features-8"));
 const AIToolsSection = lazy(() =>
-  import('@/components/sections/ai-tools-section').then((m) => ({
+  import("@/components/sections/ai-tools-section").then((m) => ({
     default: m.AIToolsSection,
   })),
-)
+);
 const ReviewsSection = lazy(() =>
-  import('@/components/sections/reviews-section').then((m) => ({
+  import("@/components/sections/reviews-section").then((m) => ({
     default: m.ReviewsSection,
   })),
-)
-const CTASection = lazy(() => import('@/components/sections/cta-section').then((m) => ({ default: m.CTASection })))
+);
+const CTASection = lazy(() =>
+  import("@/components/sections/cta-section").then((m) => ({ default: m.CTASection })),
+);
 
-const SectionFallback = <div className="mx-auto my-12 h-48 w-full max-w-7xl animate-pulse rounded-lg bg-muted/20" />
+const SectionFallback = (
+  <div className="mx-auto my-12 h-48 w-full max-w-7xl animate-pulse rounded-lg bg-muted/20" />
+);
 
 interface HomePageClientProps {
-  initialIsLoggedIn: boolean
-  initialUser: User | null
-  initialProjects: Project[]
-  initialNextCursor?: string | null
-  initialError?: string | null
-  initialCategories: ProjectFilterOption[]
-  initialFilter: string
-  initialSort: SortBy
-  initialVibeVideos: VibeVideo[]
-  initialTestimonials: Testimonial[]
+  initialIsLoggedIn: boolean;
+  initialUser: User | null;
+  initialProjects: Project[];
+  initialNextCursor?: string | null;
+  initialError?: string | null;
+  initialCategories: ProjectFilterOption[];
+  initialFilter: string;
+  initialSort: SortBy;
+  initialVibeVideos: VibeVideo[];
+  initialTestimonials: Testimonial[];
 }
 
 function scrollToShowcase() {
-  document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById("projects")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export default function HomePageClient({
@@ -65,10 +76,7 @@ export default function HomePageClient({
   initialTestimonials,
 }: HomePageClientProps) {
   return (
-    <main
-      id="main-content"
-      className="bg-background min-h-screen"
-    >
+    <main id="main-content" className="bg-background min-h-screen">
       <HomeStructuredData />
 
       <Navbar
@@ -77,10 +85,7 @@ export default function HomePageClient({
         user={initialUser ?? undefined}
       />
 
-      <HeroSection
-        joinHref={JOIN_COMMUNITY_URL}
-        handleViewShowcase={scrollToShowcase}
-      />
+      <HeroSection joinHref={JOIN_COMMUNITY_URL} handleViewShowcase={scrollToShowcase} />
 
       <ErrorBoundary sectionName="Project Showcase">
         <ProjectShowcaseProvider
@@ -125,5 +130,5 @@ export default function HomePageClient({
 
       <Footer />
     </main>
-  )
+  );
 }

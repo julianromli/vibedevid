@@ -245,6 +245,7 @@ function ShotTile({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function LinksMediaStep({
   websiteUrl,
   setWebsiteUrl,

@@ -111,6 +111,8 @@ function existingKeyFor(url: string, index: number, urls: string[], keys: string
  * preview may be stored with no key. Any other URL or key is rejected, and
  * rejected keys are not returned.
  */
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export function alignProjectImages(input: AlignProjectImagesInput): AlignProjectImagesResult {
   const submittedKeys = new Set(input.submittedKeys.map((key) => key.trim()).filter(Boolean));
   const imageUrls: string[] = [];

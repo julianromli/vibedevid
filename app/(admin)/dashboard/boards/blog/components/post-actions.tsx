@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  IconArchive,
-  IconArchiveOff,
   IconDotsVertical,
   IconEdit,
   IconExternalLink,
@@ -31,8 +29,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { adminDeletePostFn, togglePostFeaturedFn } from "@/lib/actions/admin/posts.functions";
 import type { AdminPost } from "@/lib/actions/admin/posts";
+import { adminDeletePostFn, togglePostFeaturedFn } from "@/lib/actions/admin/posts.functions";
 
 interface PostActionsProps {
   post: AdminPost;
@@ -56,7 +54,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || "Failed to update post");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);
@@ -73,7 +71,7 @@ export function PostActions({ post, onEdit }: PostActionsProps) {
       } else {
         toast.error(result.error || "Failed to delete post");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

@@ -19,6 +19,7 @@ import {
   EditorCommandItem,
   EditorCommandList,
   EditorContent,
+  type EditorInstance,
   EditorRoot,
   type JSONContent,
 } from "novel";
@@ -177,8 +178,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
 ) {
   const [editorContent, setEditorContent] = useState<JSONContent | null>(null);
   // Store editor instance reference for setContent and image uploads
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editorInstanceRef = useRef<any>(null);
+  const editorInstanceRef = useRef<EditorInstance | null>(null);
   // Hidden file input ref for image upload via slash command
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -202,7 +202,7 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file && file.type.startsWith("image/")) {
+      if (file?.type.startsWith("image/")) {
         void startUpload(file);
       }
       // Reset input so same file can be selected again
@@ -234,9 +234,8 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
   }, [content]);
 
   // Store editor content reference for getContent
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdate = useCallback(
-    ({ editor }: { editor: any }) => {
+    ({ editor }: { editor: EditorInstance }) => {
       const json = editor.getJSON();
       setEditorContent(json);
       // Store editor instance for setContent and image insertion
@@ -287,7 +286,6 @@ export const NovelEditor = forwardRef<NovelEditorHandle, NovelEditorProps>(funct
         accept="image/*"
         onChange={handleFileInputChange}
         className="hidden"
-        aria-hidden="true"
       />
       <EditorRoot>
         <EditorContent

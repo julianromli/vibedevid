@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "@/lib/navigation";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BlogGuideModal } from "@/components/blog/blog-guide-modal";
@@ -12,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import MultipleSelector, { type Option } from "@/components/ui/multiselect";
 import { Navbar } from "@/components/ui/navbar";
 import { createBlogPostFn, getTagsFn, updateBlogPostFn } from "@/lib/actions/blog.functions";
+import { useRouter } from "@/lib/navigation";
 import type { User } from "@/types/homepage";
 
 const NovelEditor = lazy(() =>
@@ -28,14 +28,27 @@ function EditorSkeleton() {
   );
 }
 
+type EditorJson = Record<string, unknown>;
+
 interface EditorRef {
-  getContent: () => Record<string, any>;
-  setContent: (content: Record<string, any>) => void;
+  getContent: () => EditorJson;
+  setContent: (content: EditorJson) => void;
+}
+
+/** The post being edited, as the edit route loads it. */
+interface BlogEditorInitialData {
+  id?: string;
+  slug?: string;
+  title?: string;
+  excerpt?: string | null;
+  cover_image?: string | null;
+  content?: unknown;
+  tags?: string[];
 }
 
 interface BlogEditorClientProps {
   user: User;
-  initialData?: any;
+  initialData?: BlogEditorInitialData;
   mode?: "create" | "edit";
 }
 
@@ -68,16 +81,16 @@ export default function BlogEditorClient({
 
   // Tags state
   const [selectedTags, setSelectedTags] = useState<Option[]>(
-    initialData?.tags?.map((t: string) => ({ label: t, value: t })) || [],
+    initialData?.tags?.map((t) => ({ label: t, value: t })) || [],
   );
 
   // Memoize content for preview
-  const [currentContent, setCurrentContent] = useState<any>(
-    initialData?.content || { type: "doc", content: [] },
+  const [currentContent, setCurrentContent] = useState<EditorJson>(
+    (initialData?.content as EditorJson | undefined) || { type: "doc", content: [] },
   );
 
   const initialEditorContent = useMemo(
-    () => initialData?.content || ({ type: "doc", content: [] } as Record<string, any>),
+    () => (initialData?.content as EditorJson | undefined) || { type: "doc", content: [] },
     [initialData],
   );
 
@@ -86,6 +99,7 @@ export default function BlogEditorClient({
   }, [user]);
 
   const handleSave = useCallback(
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
     async (status: "published" | "draft") => {
       if (!title.trim()) {
         toast.error("Please add a title");
@@ -130,7 +144,9 @@ export default function BlogEditorClient({
       setSaving(true);
 
       try {
-        let result: any;
+        let result:
+          | Awaited<ReturnType<typeof createBlogPostFn>>
+          | Awaited<ReturnType<typeof updateBlogPostFn>>;
         const postData = {
           title: title.trim(),
           excerpt: excerpt.trim() || undefined,
@@ -177,7 +193,7 @@ export default function BlogEditorClient({
     [title, excerpt, coverImage, isUploadingCover, router, mode, initialData, selectedTags],
   );
 
-  const handleEditorChange = useCallback((json: Record<string, any>) => {
+  const handleEditorChange = useCallback((json: EditorJson) => {
     setCurrentContent(json);
   }, []);
 

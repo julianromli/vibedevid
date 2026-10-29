@@ -269,6 +269,7 @@ export async function cleanupReplacedProjectProvisionalUpload(
 
   return cleanupProjectProvisionalUpload(normalizedPreviousKey);
 }
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
 export async function editProject(projectSlug: string, formData: FormData) {
   if (!projectSlug || typeof projectSlug !== "string" || projectSlug.trim() === "") {
     return { success: false, error: "Project slug is required" };
@@ -284,7 +285,7 @@ export async function editProject(projectSlug: string, formData: FormData) {
     return { success: false, error: "Project not found" };
   }
 
-  let user;
+  let user: Awaited<ReturnType<typeof requireUser>>;
   try {
     user = await requireUser();
   } catch {
@@ -427,7 +428,7 @@ export async function deleteProject(projectSlug: string) {
     return { success: false, error: "Project not found" };
   }
 
-  let user;
+  let user: Awaited<ReturnType<typeof requireUser>>;
   try {
     user = await requireUser();
   } catch {

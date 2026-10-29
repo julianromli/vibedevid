@@ -1,12 +1,10 @@
 "use client";
 
-import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from "lucide-react";
-import { Image } from "@unpic/react";
 import { Link } from "@tanstack/react-router";
-import { useRouter } from "@/lib/navigation";
+import { Image } from "@unpic/react";
+import { Calendar, Edit, Eye, FileText, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +23,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { deleteBlogPostFn } from "@/lib/actions/blog.functions";
+import { useRouter } from "@/lib/navigation";
 
 interface Post {
   id: string;
@@ -65,7 +64,7 @@ export function PostDashboardClient({ initialPosts }: PostDashboardClientProps) 
       } else {
         toast.error(result.error || "Failed to delete");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setDeleteId(null);

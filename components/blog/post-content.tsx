@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface PostContentProps {
   post: {
     title: string;
-    content: any;
+    content: unknown;
     excerpt?: string;
     cover_image?: string;
     published_at?: string | null;
@@ -67,9 +67,14 @@ export function PostContent({ post, className }: PostContentProps) {
 
       <div className="prose prose-lg prose-neutral dark:prose-invert max-w-none">
         {post.content && typeof post.content === "object" ? (
-          <div dangerouslySetInnerHTML={{ __html: contentToHtml(post.content) }} />
+          <div
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: contentToHtml sanitizes its output with DOMPurify and a tag/attr allowlist
+            dangerouslySetInnerHTML={{
+              __html: contentToHtml(post.content as Record<string, unknown>),
+            }}
+          />
         ) : (
-          <p>{post.content}</p>
+          <p>{typeof post.content === "string" ? post.content : null}</p>
         )}
       </div>
     </div>

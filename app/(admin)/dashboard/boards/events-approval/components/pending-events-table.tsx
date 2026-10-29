@@ -2,7 +2,6 @@
 
 import { IconCalendarEvent } from "@tabler/icons-react";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { approveEventFn, rejectEventFn } from "@/lib/actions/events.functions";
+import { useRouter } from "@/lib/navigation";
 import type { AIEvent } from "@/types/events";
 
 interface PendingEventsTableProps {

@@ -14,8 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { createTagFn, deleteTagFn } from "@/lib/actions/admin/posts.functions";
 import type { Tag } from "@/lib/actions/admin/posts";
+import { createTagFn, deleteTagFn } from "@/lib/actions/admin/posts.functions";
 
 interface TagsManagerProps {
   tags: Tag[];
@@ -39,7 +39,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || "Failed to create tag");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);
@@ -58,7 +58,7 @@ export function TagsManager({ tags: initialTags }: TagsManagerProps) {
       } else {
         toast.error(result.error || "Failed to delete tag");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsLoading(false);

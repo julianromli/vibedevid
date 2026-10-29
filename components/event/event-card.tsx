@@ -1,8 +1,8 @@
 "use client";
 
-import { Calendar, Clock, ExternalLink, MapPin, Users } from "lucide-react";
-import { Image } from "@unpic/react";
 import { Link } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
+import { Calendar, Clock, ExternalLink, MapPin, Users } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";

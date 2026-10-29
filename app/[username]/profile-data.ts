@@ -1,17 +1,17 @@
 import { and, count, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { getCategories } from "@/lib/categories";
 import { getDb } from "@/lib/db";
 import { toUserProfile } from "@/lib/db/mappers";
 import {
   blogPostTags,
   comments,
   likes,
-  postTags,
   posts,
+  postTags,
   projects,
   users,
   views,
 } from "@/lib/db/schema";
-import { getCategories } from "@/lib/categories";
 import { getCurrentUser } from "@/lib/server/auth";
 
 export interface ProfileUser {
@@ -132,7 +132,9 @@ async function fetchUserProjects(username: string): Promise<UserProject[]> {
   if (projectRows.length === 0) return [];
 
   const categoryRows = await getCategories();
-  const categoryNames = new Map(categoryRows.map((category) => [category.name, category.display_name]));
+  const categoryNames = new Map(
+    categoryRows.map((category) => [category.name, category.display_name]),
+  );
   const projectIds = projectRows.map((project) => project.id);
   const [likesData, viewsData, commentsData] = await Promise.all([
     db

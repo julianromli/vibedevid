@@ -90,6 +90,7 @@ export default function Analytics() {
   const [health, setHealth] = useState<CommunityHealthCounts | null>(null);
 
   useEffect(() => {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: existing function over the limit; split it in its own refactor
     async function load() {
       setLoading(true);
       setError(null);

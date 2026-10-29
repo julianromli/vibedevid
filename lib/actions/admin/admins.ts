@@ -1,10 +1,10 @@
+import { asc, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { requireAdmin } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db";
 import { containsPattern } from "@/lib/db/like-pattern";
-import { users, authUser } from "@/lib/db/schema";
+import { authUser, users } from "@/lib/db/schema";
 import { requireUser } from "@/lib/server/auth";
-import { requireAdmin } from "@/lib/auth/permissions";
 import { ROLES, RoleSchema, UserIdSchema } from "./schemas";
-import { eq, and, asc, inArray, or, ilike, count, sql } from "drizzle-orm";
 
 type UserProfileRow = {
   id: string;

@@ -143,9 +143,9 @@ describe("getProjectBySlug — detail read", () => {
     const project = await getProjectBySlug("pijar-mahir");
 
     expect(project).not.toBeNull();
-    expect(project!.id).toBe(7);
-    expect(project!.slug).toBe("pijar-mahir");
-    expect(project!.author).toEqual({
+    expect(project?.id).toBe(7);
+    expect(project?.slug).toBe("pijar-mahir");
+    expect(project?.author).toEqual({
       name: "Jane Doe",
       username: "jane",
       role: 2,
@@ -153,20 +153,20 @@ describe("getProjectBySlug — detail read", () => {
       bio: "Bio",
       location: "Jakarta",
     });
-    expect(project!.category).toBe("Education"); // display name resolved
-    expect(project!.categoryRaw).toBe("education");
-    expect(project!.image).toBe("https://img.example.com/1.png");
-    expect(project!.likes).toBe(12);
-    expect(project!.views).toBe(345);
-    expect(project!.uniqueViews).toBe(200);
-    expect(project!.todayViews).toBe(3);
-    expect(project!.imageUrls).toEqual([
+    expect(project?.category).toBe("Education"); // display name resolved
+    expect(project?.categoryRaw).toBe("education");
+    expect(project?.image).toBe("https://img.example.com/1.png");
+    expect(project?.likes).toBe(12);
+    expect(project?.views).toBe(345);
+    expect(project?.uniqueViews).toBe(200);
+    expect(project?.todayViews).toBe(3);
+    expect(project?.imageUrls).toEqual([
       "https://img.example.com/1.png",
       "https://img.example.com/2.png",
     ]);
     expect(project).not.toHaveProperty("imageKeys");
-    expect(project!.tags).toEqual(["edtech"]);
-    expect(project!.createdAt).toBe("2026-08-01T00:00:00.000Z");
+    expect(project?.tags).toEqual(["edtech"]);
+    expect(project?.createdAt).toBe("2026-08-01T00:00:00.000Z");
   });
 
   it("returns null for an empty slug without touching the database", async () => {

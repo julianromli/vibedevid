@@ -1,8 +1,7 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { usePathname, useSearchParams } from "@/lib/navigation";
+import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -17,10 +16,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { DEFAULT_DASHBOARD_TAB, resolveDashboardTab } from "@/lib/admin/dashboard-tabs";
+import { usePathname, useSearchParams } from "@/lib/navigation";
 import { Badge } from "../ui/badge";
-import type { NavGroup, NavItem } from "./types";
+import type { NavGroup as NavGroupProps, NavItem } from "./types";
 
-export function NavGroup({ title, items }: NavGroup) {
+export function NavGroup({ title, items }: NavGroupProps) {
   const { setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const searchParams = useSearchParams();

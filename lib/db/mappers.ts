@@ -1,4 +1,4 @@
-import type { users, projects, posts, categories, events } from "@/lib/db/schema";
+import type { categories, events, posts, projects, users } from "@/lib/db/schema";
 import type { CategoryDto, EventDto, PostDto, ProjectDto, UserProfileDto } from "@/types/domain";
 import type { EventCategory, EventLocationType, EventStatus } from "@/types/events";
 

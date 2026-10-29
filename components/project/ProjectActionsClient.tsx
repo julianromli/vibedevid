@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { deleteProjectFn } from "@/lib/actions/projects.functions";
+import { useRouter } from "@/lib/navigation";
 
 interface ProjectActionsClientProps {
   projectSlug: string;
