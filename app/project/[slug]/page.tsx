@@ -10,6 +10,7 @@ import { ProjectEditClient } from "@/components/project/ProjectEditClient";
 import { ProjectViewTracker } from "@/components/project/ProjectViewTracker";
 import { ShareButton } from "@/components/project/ShareButton";
 import { PageBreadcrumbs } from "@/components/seo/page-breadcrumbs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CommentSection } from "@/components/ui/comment-section";
@@ -245,13 +246,10 @@ export default function ProjectDetailsPage({ data }: { data: ProjectDetailsData 
               {project.tags && project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {project.tags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="bg-muted text-muted-foreground flex items-center gap-1 rounded-full px-3 py-1 text-sm"
-                    >
-                      <Tag className="h-3 w-3" />
+                    <Badge key={tag} variant="secondary">
+                      <Tag />
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}

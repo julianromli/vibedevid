@@ -81,14 +81,21 @@ const NOISE = `
     float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
     float fbm(vec2 p){return .57*noise(p)+.28*noise(p*2.03+7.1)+.15*noise(p*4.07+21.3);}
   `;
-const FIELD = `precision highp float;
+// highp is optional in WebGL 1 fragment shaders; fall back to mediump where it is missing.
+const PRECISION = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+`;
+const field = (maxDrops: number) => `${PRECISION}
     uniform vec2 size, cell; uniform float time, scale, seed, flowOffset;
-    uniform vec4 drops[24]; uniform int count;
+    uniform vec4 drops[${maxDrops}]; uniform int count;
     ${NOISE}
     void main(){
       vec2 p=(floor(gl_FragCoord.xy)+.5)*cell;
       float flow=time*.035+flowOffset;
-      for(int i=0;i<24;i++){if(i<count){float a=time-drops[i].z; if(a>0.){
+      for(int i=0;i<${maxDrops};i++){if(i<count){float a=time-drops[i].z; if(a>0.){
         flow+=.36*(1.-exp(-min(a,4.)*1.4));
       }}}
       vec2 q=p/max(scale,.4);
@@ -99,7 +106,7 @@ const FIELD = `precision highp float;
       float calm=fbm(q*.008+vec2(time*.012,-time*.009)+seed);
       float gray=pow(smoothstep(.48,.74,calm),1.7)*.47;
       float blue=0.; float wake=0.;
-      for(int i=0;i<24;i++){
+      for(int i=0;i<${maxDrops};i++){
         if(i<count){float age=time-drops[i].z;
           if(age>0. && age<3.4){
             vec2 delta=(p-drops[i].xy)/max(scale,.4);
@@ -134,7 +141,7 @@ const FIELD = `precision highp float;
       gray*=grain; blue*=grain;
       gl_FragColor=vec4(clamp(gray,0.,1.),blue,0.,1.);
     }`;
-const DRAW = `precision highp float;
+const DRAW = `${PRECISION}
     uniform sampler2D field,atlas; uniform vec2 resolution,size,grid,cell,atlasTile;
     uniform float time,seed;
     ${NOISE}
@@ -172,6 +179,11 @@ export function createDigitalWaves(
   if (!context)
     throw new Error("WebGL is unavailable. Enable hardware acceleration to display the water.");
   const gl: WebGLRenderingContext = context;
+  // WebGL 1 only promises 16 fragment uniform vectors; the field shader needs ~8 besides the drops.
+  const maxDrops = Math.max(
+    4,
+    Math.min(24, (gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS) as number) - 8),
+  );
 
   let mode: DigitalWaveMode = options.mode || "sequence";
   let disposed = false;
@@ -272,7 +284,7 @@ export function createDigitalWaves(
       gl.STATIC_DRAW,
     );
     resources = {
-      field: program(FIELD),
+      field: program(field(maxDrops)),
       draw: program(DRAW),
       buffer,
       texture: texture(),
@@ -337,8 +349,8 @@ export function createDigitalWaves(
       return false;
     });
     for (const d of manual) active.push([d[0] * width, d[1] * height, t - (time - d[2]), d[3]]);
-    const data = new Float32Array(24 * 4);
-    active.slice(-24).forEach((d, i) => {
+    const data = new Float32Array(maxDrops * 4);
+    active.slice(-maxDrops).forEach((d, i) => {
       data.set(d, i * 4);
     });
 
@@ -352,7 +364,7 @@ export function createDigitalWaves(
     gl.uniform1f(loc(p, "seed"), seed);
     gl.uniform1f(loc(p, "flowOffset"), flowOffset);
     gl.uniform1f(loc(p, "scale"), options.scale || Math.min(width / 866, height / 734));
-    gl.uniform1i(loc(p, "count"), Math.min(24, active.length));
+    gl.uniform1i(loc(p, "count"), Math.min(maxDrops, active.length));
     gl.uniform4fv(loc(p, "drops[0]"), data);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 

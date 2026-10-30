@@ -134,7 +134,8 @@ export function BasicsStep({
             className={cn(
               fieldClassName,
               authInputClassName,
-              "mt-2 w-full data-[size=default]:h-12",
+              // SelectTrigger's own dark fills, shadow and disabled opacity would beat the field look.
+              "mt-2 w-full shadow-none data-[size=default]:h-12 disabled:opacity-100 dark:bg-card dark:hover:bg-card",
             )}
             aria-required="true"
             {...fieldAria("category", errors, false)}

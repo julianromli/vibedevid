@@ -96,7 +96,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
               disabled={isLoading}
               className="form-input-enhanced"
             />
-            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+            {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
           </div>
 
           {/* Date and Time */}
@@ -113,7 +113,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 disabled={isLoading}
                 className="form-input-enhanced"
               />
-              {errors.date && <p className="text-red-500 text-sm">{errors.date}</p>}
+              {errors.date && <p className="text-destructive text-sm">{errors.date}</p>}
             </div>
 
             <div className="space-y-2">
@@ -128,7 +128,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 disabled={isLoading}
                 className="form-input-enhanced"
               />
-              {errors.time && <p className="text-red-500 text-sm">{errors.time}</p>}
+              {errors.time && <p className="text-destructive text-sm">{errors.time}</p>}
             </div>
           </div>
 
@@ -151,7 +151,9 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 <SelectItem value="hybrid">Hybrid</SelectItem>
               </SelectContent>
             </Select>
-            {errors.locationType && <p className="text-red-500 text-sm">{errors.locationType}</p>}
+            {errors.locationType && (
+              <p className="text-destructive text-sm">{errors.locationType}</p>
+            )}
           </div>
 
           {/* Location Detail */}
@@ -168,7 +170,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
               className="form-input-enhanced"
             />
             {errors.locationDetail && (
-              <p className="text-red-500 text-sm">{errors.locationDetail}</p>
+              <p className="text-destructive text-sm">{errors.locationDetail}</p>
             )}
           </div>
 
@@ -192,7 +194,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
                 <SelectItem value="hackathon">Hackathon</SelectItem>
               </SelectContent>
             </Select>
-            {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+            {errors.category && <p className="text-destructive text-sm">{errors.category}</p>}
           </div>
 
           {/* Organizer */}
@@ -208,7 +210,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
               disabled={isLoading}
               className="form-input-enhanced"
             />
-            {errors.organizer && <p className="text-red-500 text-sm">{errors.organizer}</p>}
+            {errors.organizer && <p className="text-destructive text-sm">{errors.organizer}</p>}
           </div>
 
           {/* Description */}
@@ -225,7 +227,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
               className="form-input-enhanced"
               rows={4}
             />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+            {errors.description && <p className="text-destructive text-sm">{errors.description}</p>}
           </div>
 
           {/* Registration URL */}
@@ -243,7 +245,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
               className="form-input-enhanced"
             />
             {errors.registrationUrl && (
-              <p className="text-red-500 text-sm">{errors.registrationUrl}</p>
+              <p className="text-destructive text-sm">{errors.registrationUrl}</p>
             )}
           </div>
 
@@ -258,7 +260,7 @@ export function SubmitEventModal({ open, onOpenChange, userId }: SubmitEventModa
             }}
             disabled={isLoading}
           />
-          {errors.coverImage && <p className="text-red-500 text-sm">{errors.coverImage}</p>}
+          {errors.coverImage && <p className="text-destructive text-sm">{errors.coverImage}</p>}
 
           {/* Submit Button */}
           <div className="flex justify-end gap-4">

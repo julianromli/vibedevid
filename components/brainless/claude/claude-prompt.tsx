@@ -130,8 +130,10 @@ export function ClaudePrompt({
           placeholder={placeholder}
           onKeyDown={onKeyDown}
           {...(controlled ? { value, onChange } : { defaultValue, onChange })}
+          // A value without onChange cannot change: say so, so React does not warn.
+          readOnly={controlled && !onChange}
           className={cn(
-            "term-input min-w-0 flex-1 bg-transparent py-0.5 pl-[1ch] outline-none placeholder:text-[#565f89]",
+            "term-input min-w-0 flex-1 bg-transparent py-0.5 pl-[1ch] outline-none placeholder:text-[#565f89] focus-visible:outline-solid focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#7dcfff]/60",
             inputClassName,
           )}
           style={{ color: FG, caretColor: FG, caretShape: "block" } as React.CSSProperties}

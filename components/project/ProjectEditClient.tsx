@@ -328,7 +328,7 @@ export function ProjectEditClient({
                   <span
                     className={`font-medium ${
                       editFormData.description.length > MAX_DESCRIPTION_LENGTH
-                        ? "text-red-500"
+                        ? "text-destructive"
                         : editFormData.description.length > 1500
                           ? "text-yellow-500"
                           : "text-muted-foreground"

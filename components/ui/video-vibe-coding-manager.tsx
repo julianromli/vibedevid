@@ -578,8 +578,8 @@ export function VideoVibeCodingManager() {
                       // Edit Mode
                       <div className="space-y-2">
                         {/* YouTube URL Fetch Section */}
-                        <div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
+                        <div className="space-y-2 rounded-lg border border-border bg-muted p-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <Youtube className="h-4 w-4" />
                             Replace with YouTube URL
                           </div>
@@ -610,7 +610,7 @@ export function VideoVibeCodingManager() {
                             </Button>
                           </div>
                           {editFetchError && (
-                            <p className="text-xs text-red-600">{editFetchError}</p>
+                            <p className="text-xs text-destructive">{editFetchError}</p>
                           )}
                         </div>
 
@@ -729,12 +729,7 @@ export function VideoVibeCodingManager() {
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                              aria-label="Delete video"
-                            >
+                            <Button size="sm" variant="danger-subtle" aria-label="Delete video">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -750,7 +745,7 @@ export function VideoVibeCodingManager() {
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDeleteVideo(video.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive-hover"
                               >
                                 Delete
                               </AlertDialogAction>

@@ -114,7 +114,7 @@ export function UsersTable({ users, totalCount, currentPage }: UsersTableProps) 
                 </TableCell>
                 <TableCell>
                   {user.is_suspended ? (
-                    <Badge className="bg-red-500/10 text-red-600">Suspended</Badge>
+                    <Badge variant="destructive">Suspended</Badge>
                   ) : (
                     <Badge className="bg-green-500/10 text-green-600">Active</Badge>
                   )}

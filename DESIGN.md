@@ -119,7 +119,7 @@ Components use semantic tokens through their Tailwind utilities (`bg-card`, `tex
 
 Surfaces get lighter as they rise: `background` for the page, `card` for grouped containers and the sidebar, `popover` for anything that floats over content (menus, dialogs, tooltips). Hover and selected rows use `accent`.
 
-The interface has two hues and each has one job. `destructive` (tomato) marks delete or no-undo actions and errors. `brand` (blue) is only for promo or upgrade calls to action and the first chart series. No other hue goes into UI chrome.
+The interface has two hues and each has one job. `destructive` (tomato) marks delete or no-undo actions and errors. `brand` (blue) is only for promo or upgrade calls to action and the first chart series. No other hue goes into UI chrome. The one exception is status markers, which keep their own status hue: green for success, active, approved, published and the online dot; yellow or amber for pending, featured, needs-attention and near-limit counters; blue for the Moderator role and the active link in the editor toolbar; red for the Admin role. Content marks keep their own color too: the YouTube icon, the filled like heart and the editor's AI purple. Errors and destructive states always use the `destructive` tokens, never a palette red.
 
 `border`, `muted` and the `component` family are translucent white in dark, so one token reads correctly on every surface. Use them instead of choosing a different gray per surface.
 
@@ -205,13 +205,13 @@ Most important action on the view?
 
 Buttons press to `scale-[0.97]` and keep their colors-then-scale transition from `buttonVariants`; with reduced motion the press does not scale. On touch screens a `::before` box extends every button's hit area, so do not add padding to make a small button easier to tap. A button placed inside a field (a clear or show-password button) adds `before:hidden`, so its hit area does not cover the text.
 
-Every text field is an `Input`, `InputWithIcon` or `Textarea`; their shared look lives in `fieldClassName` (`components/ui/form-classes.ts`), so call sites pass layout and size only, never colors, borders or focus styles. The auth card and the submit form use the larger `authInputClassName` size. A field always has a visible `Label` or an `aria-label`; the placeholder is an example, not the label. Icons drawn over a field take `pointer-events-none`. A textarea that submits a form also submits on Cmd/Ctrl+Enter.
+Every text field is an `Input`, `InputWithIcon` or `Textarea`; their shared look lives in `fieldClassName` (`components/ui/form-classes.ts`), so call sites pass layout and size only, never colors, borders or focus styles. The auth card and the submit form use the larger `authInputClassName` size. A field always has a visible `Label` or an `aria-label`; the placeholder is an example, not the label. Icons drawn over a field take `pointer-events-none`. A textarea that is the only field of a posting form (the comment box) also submits on Cmd/Ctrl+Enter; in multi-field forms, Enter in a textarea only adds a new line.
 
 Tech-stack tags use the `secondary` badge. A `destructive` badge uses the danger-subtle look, not a solid fill.
 
 ## Do's and Don'ts
 
-- Do use semantic token utilities in components; don't use raw palette classes or hex for interface chrome.
+- Do use semantic token utilities in components; don't use raw palette classes or hex for interface chrome. The status markers listed under Colors are the only exception.
 - Don't lower the focus ring's opacity (`ring-ring/50`); use the full ring with an offset.
 - Don't make text quieter with opacity below `/80`; use `muted-foreground` or `subtle-foreground`.
 - Don't add a hue or a button variant outside the sets above.
