@@ -49,7 +49,7 @@ export default function FeaturesSection() {
             <StaggerItem className="col-span-full sm:col-span-3 lg:col-span-2">
               <Card className="relative h-full overflow-hidden">
                 <CardContent className="pt-6">
-                  <div className="relative mx-auto flex aspect-square size-32 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
+                  <div className="relative mx-auto flex aspect-square size-32 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border before:border-border/50">
                     <svg
                       aria-hidden="true"
                       className="m-auto h-fit w-24"
@@ -198,7 +198,7 @@ export default function FeaturesSection() {
               <Card className="relative h-full overflow-hidden">
                 <CardContent className="grid pt-6 sm:grid-cols-2">
                   <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
-                    <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
+                    <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border before:border-border/50">
                       <Shield className="m-auto size-5" strokeWidth={1} />
                     </div>
                     <div className="space-y-2">
@@ -210,9 +210,9 @@ export default function FeaturesSection() {
                   </div>
                   <div className="relative mt-6 -mr-6 -mb-6 h-fit rounded-tl-(--radius) border-t border-l p-6 py-6 sm:ml-6">
                     <div className="absolute top-2 left-3 flex gap-1">
-                      <span className="block size-2 rounded-full border dark:border-white/10 dark:bg-white/10"></span>
-                      <span className="block size-2 rounded-full border dark:border-white/10 dark:bg-white/10"></span>
-                      <span className="block size-2 rounded-full border dark:border-white/10 dark:bg-white/10"></span>
+                      <span className="block size-2 rounded-full border bg-component"></span>
+                      <span className="block size-2 rounded-full border bg-component"></span>
+                      <span className="block size-2 rounded-full border bg-component"></span>
                     </div>
                     <svg
                       aria-hidden="true"
@@ -263,7 +263,7 @@ export default function FeaturesSection() {
               <Card className="relative h-full overflow-hidden">
                 <CardContent className="grid h-full pt-6 sm:grid-cols-2">
                   <div className="relative z-10 flex flex-col justify-between space-y-12 lg:space-y-6">
-                    <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border dark:border-white/10 dark:before:border-white/5">
+                    <div className="relative flex aspect-square size-12 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border before:border-border/50">
                       <Users className="m-auto size-6" strokeWidth={1} />
                     </div>
                     <div className="space-y-2">

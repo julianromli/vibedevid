@@ -8,7 +8,7 @@ interface ClientThemeProviderProps {
 
 export function ClientThemeProvider({ children }: ClientThemeProviderProps) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       {children}
     </ThemeProvider>
   );

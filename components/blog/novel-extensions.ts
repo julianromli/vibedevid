@@ -95,7 +95,7 @@ export const starterKit = StarterKit.configure({
   },
   horizontalRule: false,
   dropcursor: {
-    color: "hsl(var(--primary))",
+    color: "var(--primary)",
     width: 4,
   },
   gapcursor: false,

@@ -99,12 +99,12 @@ export function CoverImageUploader({
           </TabsList>
 
           <TabsContent value="upload" className="mt-4">
-            <div className="rounded-lg border-2 border-gray-300 border-dashed p-6 dark:border-gray-600">
+            <div className="rounded-lg border-2 border-field border-dashed p-6">
               <div className="text-center">
                 {isUploading ? (
                   <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
                 ) : (
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
                 )}
                 <div className="mt-4">
                   {isUploading ? (
@@ -209,7 +209,7 @@ export function CoverImageUploader({
                     />
                   )}
                 </div>
-                <p className="mt-2 text-gray-500 text-sm">
+                <p className="mt-2 text-muted-foreground text-sm">
                   {isUploading
                     ? "Uploading your cover image..."
                     : "Upload a cover image for your event (max 10MB)"}

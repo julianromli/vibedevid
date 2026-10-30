@@ -46,7 +46,7 @@ function UrlInputSection({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled || isUploading}
-          className={cn("flex-1 transition-all duration-200", value && "pr-10")}
+          className={cn("flex-1", value && "pr-10")}
         />
         {value && (
           <Button
@@ -55,7 +55,7 @@ function UrlInputSection({
             size="icon"
             onClick={() => onChange("")}
             disabled={disabled || isUploading}
-            className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
+            className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full before:hidden"
           >
             <X className="h-4 w-4" />
           </Button>

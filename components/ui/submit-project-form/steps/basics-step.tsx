@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { authInputClassName } from "@/components/ui/form-classes";
+import { authInputClassName, fieldClassName } from "@/components/ui/form-classes";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -131,7 +131,12 @@ export function BasicsStep({
         <Select name="category" disabled={disabled} value={category} onValueChange={setCategory}>
           <SelectTrigger
             id="category"
-            className={cn(authInputClassName, "mt-2 w-full data-[size=default]:h-12")}
+            className={cn(
+              fieldClassName,
+              authInputClassName,
+              // SelectTrigger's own dark fills, shadow and disabled opacity would beat the field look.
+              "mt-2 w-full shadow-none data-[size=default]:h-12 disabled:opacity-100 dark:bg-card dark:hover:bg-card",
+            )}
             aria-required="true"
             {...fieldAria("category", errors, false)}
           >

@@ -166,9 +166,9 @@ export default function ProfileEditDialog({
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <AvatarUploader onUpload={handleAvatarUpload}>
-              <Avatar className="h-20 w-20 cursor-pointer rounded-xl border border-zinc-300 shadow transition-opacity hover:opacity-80 dark:border-zinc-700">
+              <Avatar className="h-20 w-20 cursor-pointer rounded-xl border border-border shadow transition-opacity hover:opacity-80">
                 <AvatarImage src={formData.avatar || "/placeholder.svg"} className="object-cover" />
-                <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800">
+                <AvatarFallback className="bg-muted">
                   {formData.name
                     ?.split(" ")
                     .map((n) => n[0])
@@ -202,7 +202,7 @@ export default function ProfileEditDialog({
                   <span>AI Generate</span>
                 </Button>
               </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-muted-foreground">
                 Paste a URL below, or generate with AI
               </p>
             </div>
@@ -210,7 +210,7 @@ export default function ProfileEditDialog({
 
           <div className="grid gap-4">
             <div>
-              <Label htmlFor="avatar-url" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <Label htmlFor="avatar-url" className="text-sm text-foreground">
                 Avatar URL
               </Label>
               <Input
@@ -224,7 +224,7 @@ export default function ProfileEditDialog({
 
           <div className="grid gap-4">
             <div>
-              <Label htmlFor="name" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <Label htmlFor="name" className="text-sm text-foreground">
                 Full Name
               </Label>
               <Input
@@ -235,7 +235,7 @@ export default function ProfileEditDialog({
               />
             </div>
             <div>
-              <Label htmlFor="username" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <Label htmlFor="username" className="text-sm text-foreground">
                 Username
               </Label>
               <Input
@@ -262,7 +262,7 @@ export default function ProfileEditDialog({
               ) : null}
             </div>
             <div>
-              <Label htmlFor="location" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <Label htmlFor="location" className="text-sm text-foreground">
                 Location
               </Label>
               <Input
@@ -276,7 +276,7 @@ export default function ProfileEditDialog({
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="bio" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <Label htmlFor="bio" className="text-sm text-foreground">
                 Bio
               </Label>
               <Button
@@ -284,7 +284,7 @@ export default function ProfileEditDialog({
                 size="sm"
                 onClick={handleGenerateBio}
                 disabled={loadingBio}
-                className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400"
+                className="flex items-center gap-1 text-xs text-muted-foreground"
               >
                 {loadingBio ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -304,14 +304,20 @@ export default function ProfileEditDialog({
           </div>
 
           <div className="grid gap-4">
-            <Label className="text-sm text-zinc-700 dark:text-zinc-300">Social Links</Label>
+            <Label className="text-sm text-foreground">Social Links</Label>
             <div className="grid gap-3">
               <Input
+                aria-label="Website"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="Website or domain"
                 value={formData.website}
                 onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
               />
               <Input
+                aria-label="GitHub"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="GitHub URL or @username"
                 value={formData.github_url}
                 onChange={(e) =>
@@ -322,6 +328,9 @@ export default function ProfileEditDialog({
                 }
               />
               <Input
+                aria-label="X"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="X URL or @username"
                 value={formData.x_url}
                 onChange={(e) =>
@@ -332,6 +341,9 @@ export default function ProfileEditDialog({
                 }
               />
               <Input
+                aria-label="Instagram"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="Instagram URL or @username"
                 value={formData.instagram_url}
                 onChange={(e) =>
@@ -342,6 +354,9 @@ export default function ProfileEditDialog({
                 }
               />
               <Input
+                aria-label="Threads"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="Threads URL or @username"
                 value={formData.threads_url}
                 onChange={(e) =>
@@ -358,11 +373,7 @@ export default function ProfileEditDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
+            <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>

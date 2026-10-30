@@ -1,46 +1,79 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "@fontsource-variable/geist";
-@import "@fontsource/instrument-serif";
+@import "@fontsource-variable/geist-mono";
+
+/* Canvas-only face for the hero water effect. Geist Mono, SIL OFL 1.1 (see public/fonts/GeistMono-OFL.txt). */
+@font-face {
+  font-family: "Digital Mono";
+  src: url("/fonts/GeistMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Dark is the default theme (see client-theme-provider.tsx); light is the toggle option.
+ * Both themes share one achromatic OKLCH ramp. Two hues only: tomato for destructive
+ * actions and errors, blue for the brand button and charts (Radix, via Interfere).
+ * Components use the semantic names below, never raw values. See DESIGN.md.
+ */
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0 0 0);
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(0.99 0 0);
-  --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0 0 0);
-  --primary-foreground: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.145 0 0);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.94 0 0);
-  --secondary-foreground: oklch(0 0 0);
+  --secondary-foreground: oklch(0.145 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.44 0 0);
+  --muted-foreground: oklch(0.439 0 0);
   --accent: oklch(0.94 0 0);
-  --accent-foreground: oklch(0 0 0);
-  --destructive: oklch(0.63 0.19 23.03);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0 0);
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: #e54d2e;
+  --destructive-hover: #dd4425;
+  --destructive-active: #d13415;
+  --destructive-foreground: #ffffff;
+  --danger-subtle: #ff200008;
+  --danger-subtle-hover: #f52b0018;
+  --danger-subtle-active: #ff2e003d;
+  --danger-foreground: #d72400da;
+  --brand: #0090ff;
+  --brand-hover: #0588f0;
+  --brand-foreground: #ffffff;
+  /* Translucent fills for buttons and controls: read on any surface. */
+  --component: oklch(0 0 0 / 6.3%);
+  --component-hover: oklch(0 0 0 / 9%);
+  --component-active: oklch(0 0 0 / 12.2%);
+  --subtle-foreground: oklch(0 0 0 / 60.8%);
+  --disabled: oklch(0 0 0 / 6.3%);
+  --disabled-foreground: oklch(0 0 0 / 26.7%);
+  --border: oklch(0.922 0 0);
   --input: oklch(0.94 0 0);
-  --ring: oklch(0 0 0);
-  --chart-1: oklch(0.81 0.17 75.35);
+  /* Edge of text fields: 3:1 or more on every surface (WCAG 1.4.11). */
+  --field: oklch(0.556 0 0);
+  --ring: oklch(0.556 0 0);
+  --chart-1: #0090ff;
   --chart-2: oklch(0.55 0.22 264.53);
   --chart-3: oklch(0.72 0 0);
   --chart-4: oklch(0.92 0 0);
   --chart-5: oklch(0.56 0 0);
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(0 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.145 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.94 0 0);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0 0 0);
-  --font-sans: Geist, sans-serif;
-  --font-serif: Instrument Serif, ui-serif, serif;
-  --font-mono: Geist Mono, monospace;
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.556 0 0);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
   --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
@@ -55,50 +88,64 @@
 }
 
 .dark {
-  --background: oklch(0 0 0);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.14 0 0);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.852 0.199 91.936);
-  --primary-foreground: oklch(0 0 0);
+  /* Surfaces get lighter as they rise: background < card < popover. */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.178 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.23 0 0);
-  --muted-foreground: oklch(0.72 0 0);
-  --accent: oklch(0.32 0 0);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.69 0.2 23.91);
-  --destructive-foreground: oklch(0 0 0);
-  --border: oklch(0.26 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(1 0 0 / 7.1%);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: #e54d2e;
+  --destructive-hover: #ec6142;
+  --destructive-active: #ff977d;
+  --destructive-foreground: #ffffff;
+  --danger-subtle: #ff55330f;
+  --danger-subtle-hover: #ff35232b;
+  --danger-subtle-active: #fe332153;
+  --danger-foreground: #ff6847eb;
+  --brand: #0090ff;
+  --brand-hover: #3b9eff;
+  --brand-foreground: #ffffff;
+  --component: oklch(1 0 0 / 7.1%);
+  --component-hover: oklch(1 0 0 / 10.5%);
+  --component-active: oklch(1 0 0 / 13.4%);
+  --subtle-foreground: oklch(1 0 0 / 68.5%);
+  --disabled: oklch(1 0 0 / 3.4%);
+  --disabled-foreground: oklch(1 0 0 / 33.2%);
+  --border: oklch(1 0 0 / 10.5%);
   --input: oklch(0.32 0 0);
-  --ring: oklch(0.72 0 0);
-  --chart-1: oklch(0.81 0.17 75.35);
+  --field: oklch(0.556 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: #0090ff;
   --chart-2: oklch(0.58 0.21 260.84);
-  --chart-3: oklch(0.56 0 0);
-  --chart-4: oklch(0.44 0 0);
-  --chart-5: oklch(0.92 0 0);
-  --sidebar: oklch(0.18 0 0);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.32 0 0);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.32 0 0);
-  --sidebar-ring: oklch(0.72 0 0);
-  --font-sans: Geist, sans-serif;
-  --font-serif: Instrument Serif, ui-serif, serif;
-  --font-mono: Geist Mono, monospace;
-  --radius: 0.5rem;
-  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.09);
-  --shadow-sm: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 1px 2px -1px hsl(0 0% 0% / 0.18);
-  --shadow-md: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
-  --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 4px 6px -1px hsl(0 0% 0% / 0.18);
-  --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.18), 0px 8px 10px -1px hsl(0 0% 0% / 0.18);
-  --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.45);
+  --chart-3: oklch(0.708 0 0);
+  --chart-4: oklch(0.556 0 0);
+  --chart-5: oklch(0.922 0 0);
+  --sidebar: oklch(0.178 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10.5%);
+  --sidebar-ring: oklch(0.708 0 0);
+  /* On a dark ground a light shadow does not show: these are darker and larger. */
+  --shadow-2xs: 0px 1px 2px 0px rgb(0 0 0 / 0.5);
+  --shadow-xs: 0px 1px 2px 0px rgb(0 0 0 / 0.5);
+  --shadow-sm: 0px 1px 2px 0px rgb(0 0 0 / 0.5);
+  --shadow: 0px 1px 2px 0px rgb(0 0 0 / 0.5), 0px 1px 3px 0px rgb(0 0 0 / 0.3);
+  --shadow-md: 0px 4px 12px -2px rgb(0 0 0 / 0.5), 0px 1px 3px 0px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0px 8px 20px -4px rgb(0 0 0 / 0.55), 0px 2px 6px 0px rgb(0 0 0 / 0.4);
+  --shadow-xl: 0px 16px 40px -8px rgb(0 0 0 / 0.7), 0px 4px 12px 0px rgb(0 0 0 / 0.4);
+  --shadow-2xl: 0px 24px 64px -12px rgb(0 0 0 / 0.75);
 }
 
 @theme inline {
@@ -117,9 +164,25 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-active: var(--destructive-active);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-subtle-hover: var(--danger-subtle-hover);
+  --color-danger-subtle-active: var(--danger-subtle-active);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-component: var(--component);
+  --color-component-hover: var(--component-hover);
+  --color-component-active: var(--component-active);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-disabled: var(--disabled);
+  --color-disabled-foreground: var(--disabled-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-field: var(--field);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -236,10 +299,6 @@ body {
   letter-spacing: var(--tracking-normal);
 }
 
-body {
-  letter-spacing: var(--tracking-normal);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -343,17 +402,13 @@ body {
 
 /* Enhanced form input readability and contrast */
 .form-input-enhanced {
-  @apply placeholder:text-muted-foreground/70 text-foreground;
+  @apply placeholder:text-muted-foreground text-foreground;
 }
 
+/* Full muted-foreground: at /70 the placeholder was 4.2:1 and failed AA. */
 .form-input-enhanced::placeholder {
-  color: hsl(var(--muted-foreground)) !important;
-  opacity: 0.7 !important;
+  color: var(--muted-foreground) !important;
   font-weight: 400;
-}
-
-.form-input-enhanced:focus::placeholder {
-  opacity: 0.5 !important;
 }
 
 /* Better visual hierarchy for form labels and helper text */
@@ -545,6 +600,11 @@ body {
   background-size: 20px 20px;
 }
 
+/* Block caret for the Claude terminal prompt (components/brainless). Chrome 144+ / Edge 144+; others fall back to a bar. */
+.term-input {
+  caret-shape: block;
+}
+
 @keyframes theme-toggle-glow {
   0%,
   100% {
@@ -584,15 +644,18 @@ body {
 }
 
 .scrollbar-track-muted {
-  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.1);
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 30%, transparent)
+    color-mix(in oklch, var(--muted) 10%, transparent);
 }
 
 .scrollbar-thumb-muted-foreground {
-  scrollbar-color: hsl(var(--muted-foreground) / 0.5) hsl(var(--muted) / 0.1);
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent)
+    color-mix(in oklch, var(--muted) 10%, transparent);
 }
 
 .hover\:scrollbar-thumb-foreground:hover {
-  scrollbar-color: hsl(var(--foreground) / 0.7) hsl(var(--muted) / 0.1);
+  scrollbar-color: color-mix(in oklch, var(--foreground) 70%, transparent)
+    color-mix(in oklch, var(--muted) 10%, transparent);
 }
 
 /* Webkit scrollbar styling for better browser support */
@@ -601,31 +664,31 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.1);
+  background: color-mix(in oklch, var(--muted) 10%, transparent);
   border-radius: 9999px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
+  background: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--foreground) / 0.5);
+  background: color-mix(in oklch, var(--foreground) 50%, transparent);
 }
 
 /* Dark mode specific scrollbar adjustments */
 .dark .scrollbar-thin::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.2);
+  background: color-mix(in oklch, var(--muted) 20%, transparent);
 }
 
 .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.4);
+  background: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
 }
 
 .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--foreground) / 0.6);
+  background: color-mix(in oklch, var(--foreground) 60%, transparent);
 }
 
 ::view-transition-old(root),

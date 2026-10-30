@@ -24,7 +24,9 @@ _Indonesia's premier community for developers, vibe coders, and AI enthusiasts. 
 - 🛠️ **Admin Dashboard** - Full admin panel dengan moderation tools
 - ⌨️ **Command Palette** - Quick navigation dan search (cmdk)
 - 🎬 **Vibe Videos** - Video content section untuk tutorial dan highlights
-- 🌙 **Dark/Light Mode** - UI theme yang nyaman mata
+- 🌙 **Dark-first Theme** - Dark jadi tema default, light tetap bisa lewat toggle. Design system (token, tema, varian komponen) ada di [DESIGN.md](DESIGN.md).
+- 🖥️ **Hero Claude Code Terminal** - Mockup hero diganti sesi Claude Code CLI (`components/brainless/blocks/claude-session.tsx`) yang dirender sebagai komponen React, bukan screenshot.
+- 🌊 **Hero Water Background** - Background hero dark mode memakai efek WebGL "digital water" (`components/ui/digital-water.tsx`, renderer di `lib/digital-waves.ts`). Light mode tetap memakai grid biasa.
 - 📱 **Responsive Design** - Perfect di semua device
 - 🏷️ **Project Categories** - Personal Web, SaaS, Landing Page, dan lainnya
 - ❤️ **Like System** - Like project yang lo suka
@@ -438,6 +440,7 @@ Project list indexes: `scripts/migrations/neon/08_project_list_indexes.sql` (`cr
 ├── scripts/                # migrate-to-neon.ts + scripts/migrations/neon/
 ├── tests/                  # Vitest unit tests + Playwright E2E tests
 ├── messages/               # i18n messages (en.json, id.json)
+├── DESIGN.md               # Design system (tokens, themes, components)
 ├── docs/                   # Documentation (security, database, deployment)
 ├── plans/                  # Self-contained React improvement plans (improve-react)
 ├── biome.json              # Biome configuration
@@ -703,6 +706,8 @@ For detailed security documentation, see:
 ## License
 
 This project is licensed under the MIT License.
+
+Third-party: `components/brainless/` is copied from [brainless](https://github.com/theswerd/brainless) by Ben Swerdlow (MIT, see `components/brainless/LICENSE`) and is excluded from Biome. `lib/digital-waves.ts` is a TypeScript port of [claude-code-water](https://github.com/traddmccorkle/claude-code-water) by Tradd McCorkle (MIT, notice kept in the file header). `public/fonts/GeistMono-Regular.woff2` is Geist Mono under the SIL Open Font License 1.1 (`public/fonts/GeistMono-OFL.txt`).
 
 ---
 

@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { extractYouTubeVideoId } from "@/lib/youtube-utils";
@@ -577,8 +578,8 @@ export function VideoVibeCodingManager() {
                       // Edit Mode
                       <div className="space-y-2">
                         {/* YouTube URL Fetch Section */}
-                        <div className="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
+                        <div className="space-y-2 rounded-lg border border-border bg-muted p-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <Youtube className="h-4 w-4" />
                             Replace with YouTube URL
                           </div>
@@ -587,7 +588,7 @@ export function VideoVibeCodingManager() {
                               value={editYoutubeUrl}
                               onChange={(e) => setEditYoutubeUrl(e.target.value)}
                               placeholder="https://www.youtube.com/watch?v=example"
-                              className="h-8 min-w-0 flex-1 text-xs"
+                              className="h-8 min-w-0 flex-1"
                             />
                             <Button
                               size="sm"
@@ -609,7 +610,7 @@ export function VideoVibeCodingManager() {
                             </Button>
                           </div>
                           {editFetchError && (
-                            <p className="text-xs text-red-600">{editFetchError}</p>
+                            <p className="text-xs text-destructive">{editFetchError}</p>
                           )}
                         </div>
 
@@ -623,9 +624,11 @@ export function VideoVibeCodingManager() {
                             }))
                           }
                           className="font-medium"
+                          aria-label="Video title"
                           placeholder="Video title"
                         />
-                        <textarea
+                        <Textarea
+                          aria-label="Video description"
                           value={editFormData.description || ""}
                           onChange={(e) =>
                             setEditFormData((prev) => ({
@@ -633,7 +636,7 @@ export function VideoVibeCodingManager() {
                               description: e.target.value,
                             }))
                           }
-                          className="bg-background h-16 w-full resize-none rounded border p-2 text-sm"
+                          className="h-16 resize-none"
                           placeholder="Video description"
                         />
                         <div className="text-muted-foreground flex flex-col gap-2 text-xs sm:flex-row">
@@ -645,7 +648,8 @@ export function VideoVibeCodingManager() {
                                 viewCount: e.target.value,
                               }))
                             }
-                            className="h-8 w-full text-xs sm:w-24"
+                            className="h-8 w-full sm:w-24"
+                            aria-label="Views"
                             placeholder="Views"
                           />
                           <Input
@@ -657,7 +661,7 @@ export function VideoVibeCodingManager() {
                                 publishedAt: e.target.value,
                               }))
                             }
-                            className="h-8 w-full text-xs sm:w-36"
+                            className="h-8 w-full sm:w-36"
                           />
                         </div>
                       </div>
@@ -725,12 +729,7 @@ export function VideoVibeCodingManager() {
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                              aria-label="Delete video"
-                            >
+                            <Button size="sm" variant="danger-subtle" aria-label="Delete video">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -746,7 +745,7 @@ export function VideoVibeCodingManager() {
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDeleteVideo(video.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive-hover"
                               >
                                 Delete
                               </AlertDialogAction>

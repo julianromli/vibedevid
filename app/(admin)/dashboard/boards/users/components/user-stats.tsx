@@ -120,7 +120,7 @@ export function UserStats({ user, open, onOpenChange }: UserStatsProps) {
                 <p className="text-muted-foreground">Status</p>
                 <p className="font-medium">
                   {user.is_suspended ? (
-                    <span className="text-red-600">Suspended</span>
+                    <span className="text-destructive">Suspended</span>
                   ) : (
                     <span className="text-green-600">Active</span>
                   )}
