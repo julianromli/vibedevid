@@ -53,27 +53,27 @@ interface EngagementPoint {
 }
 
 const contentGrowthConfig = {
-  users: { label: "New users", color: "hsl(var(--chart-1))" },
-  projects: { label: "New projects", color: "hsl(var(--chart-2))" },
-  posts: { label: "New posts", color: "hsl(var(--chart-3))" },
+  users: { label: "New users", color: "var(--chart-1)" },
+  projects: { label: "New projects", color: "var(--chart-2)" },
+  posts: { label: "New posts", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
 const engagementConfig = {
-  views: { label: "Views", color: "hsl(var(--chart-1))" },
-  likes: { label: "Likes", color: "hsl(var(--chart-2))" },
-  comments: { label: "Comments", color: "hsl(var(--chart-3))" },
+  views: { label: "Views", color: "var(--chart-1)" },
+  likes: { label: "Likes", color: "var(--chart-2)" },
+  comments: { label: "Comments", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
 const categoryChartConfig = {
-  count: { label: "Projects", color: "hsl(var(--chart-1))" },
+  count: { label: "Projects", color: "var(--chart-1)" },
 } satisfies ChartConfig;
 
 const roleChartConfig = {
-  count: { label: "Users", color: "hsl(var(--chart-2))" },
+  count: { label: "Users", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
 const statusChartConfig = {
-  count: { label: "Posts", color: "hsl(var(--chart-3))" },
+  count: { label: "Posts", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
 export default function Analytics() {

@@ -6,11 +6,11 @@ Dokumentasi teknis dan operasional untuk project VibeDev ID.
 
 ## Quick Links
 
-| Document                            | Description                                    |
-| ----------------------------------- | ---------------------------------------------- |
-| [Design System](./design-system.md) | Color palette, typography, components, spacing |
-| [README.md](../README.md)           | App overview, local setup, and Cloudflare deploy |
-| [SECURITY.md](../SECURITY.md)       | Security guidelines & practices                |
+| Document                      | Description                                      |
+| ----------------------------- | ------------------------------------------------ |
+| [DESIGN.md](../DESIGN.md)     | Design system: tokens, themes, components        |
+| [README.md](../README.md)     | App overview, local setup, and Cloudflare deploy |
+| [SECURITY.md](../SECURITY.md) | Security guidelines & practices                  |
 
 ---
 

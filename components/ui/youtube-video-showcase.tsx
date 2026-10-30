@@ -157,7 +157,7 @@ function DesktopVideoOption({
 
   return (
     <article
-      className={`video-option video-option-enter relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-[hsl(var(--muted))] transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
+      className={`video-option video-option-enter relative min-w-[60px] cursor-pointer overflow-hidden rounded-xl bg-muted transition-all duration-700 ease-in-out will-change-[flex-grow,box-shadow,transform] ${
         isActive ? "active border-primary border-2 shadow-2xl" : "border-border border-2 shadow-lg"
       } `}
       style={{

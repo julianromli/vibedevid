@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { authInputClassName } from "@/components/ui/form-classes";
+import { authInputClassName, fieldClassName } from "@/components/ui/form-classes";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -131,7 +131,11 @@ export function BasicsStep({
         <Select name="category" disabled={disabled} value={category} onValueChange={setCategory}>
           <SelectTrigger
             id="category"
-            className={cn(authInputClassName, "mt-2 w-full data-[size=default]:h-12")}
+            className={cn(
+              fieldClassName,
+              authInputClassName,
+              "mt-2 w-full data-[size=default]:h-12",
+            )}
             aria-required="true"
             {...fieldAria("category", errors, false)}
           >

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { OptimizedAvatar } from "@/components/ui/optimized-avatar";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UserDisplayName } from "@/components/ui/user-display-name";
 import { createCommentFn, getCommentsFn, reportCommentFn } from "@/lib/actions/comments.functions";
@@ -46,7 +47,8 @@ export function CommentSection({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    // requestSubmit() from Cmd/Ctrl+Enter ignores the disabled button, so guard here.
+    if (!canSubmit || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -136,7 +138,7 @@ export function CommentSection({
             {!isLoggedIn && allowGuest && (
               <div className="space-y-2">
                 <Label htmlFor="guest-comment-name">Your name</Label>
-                <input
+                <Input
                   id="guest-comment-name"
                   type="text"
                   name="guestName"
@@ -144,7 +146,6 @@ export function CommentSection({
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder="Alex"
-                  className="border-border bg-background text-foreground focus:ring-primary w-full rounded-lg border p-3 focus:ring-2 focus:outline-none"
                   maxLength={50}
                 />
               </div>
@@ -152,8 +153,16 @@ export function CommentSection({
 
             {/* Comment textarea */}
             <Textarea
+              aria-label="Comment"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => {
+                // Cmd/Ctrl+Enter posts; plain Enter still makes a new line.
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
               placeholder={
                 isLoggedIn
                   ? `Share your thoughts${currentUser?.name ? `, ${currentUser.name}` : ""}...`

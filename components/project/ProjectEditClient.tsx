@@ -442,7 +442,7 @@ export function ProjectEditClient({
 
               <div className="space-y-2">
                 <Label>Project Screenshots (up to 10)</Label>
-                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div className="rounded-lg border border-border p-4">
                   {editImageUrls.length > 0 && (
                     <div className="mb-4">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

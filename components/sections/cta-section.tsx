@@ -31,8 +31,8 @@ export function CTASection({ joinHref }: CTASectionProps) {
               45deg,
               transparent,
               transparent 2px,
-              hsl(var(--border) / 0.1) 2px,
-              hsl(var(--border) / 0.1) 4px
+              color-mix(in oklch, var(--border) 10%, transparent) 2px,
+              color-mix(in oklch, var(--border) 10%, transparent) 4px
             )`,
           }}
         ></div>

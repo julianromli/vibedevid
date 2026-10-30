@@ -56,7 +56,7 @@ function UrlInputSection({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled || isUploading}
           className={cn(
-            "pr-10 transition-all duration-200",
+            "pr-10",
             value && "ring-primary/20 ring-offset-background ring-2 ring-offset-2",
           )}
         />
@@ -67,7 +67,7 @@ function UrlInputSection({
             size="icon"
             onClick={() => onChange("")}
             disabled={disabled || isUploading}
-            className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full"
+            className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 rounded-full before:hidden"
           >
             <X className="h-4 w-4" />
           </Button>

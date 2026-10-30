@@ -352,15 +352,15 @@ function TopItemsCard({ title, description, items, loading }: TopItemsCardProps)
 const chartConfig = {
   views: {
     label: "Views",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-1)",
   },
   likes: {
     label: "Likes",
-    color: "hsl(var(--chart-2))",
+    color: "var(--chart-2)",
   },
   comments: {
     label: "Comments",
-    color: "hsl(var(--chart-3))",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 

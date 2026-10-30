@@ -187,7 +187,7 @@ export function AdminManagementBoard({
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
-              <IconSearch className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <IconSearch className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Username, display name, or email..."
                 value={searchQuery}

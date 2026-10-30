@@ -228,7 +228,7 @@ export default function BlogEditorClient({
                 placeholder="Give your post a catchy title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="font-semibold text-lg"
+                className="font-semibold text-lg md:text-lg"
               />
             </div>
 

@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { extractYouTubeVideoId } from "@/lib/youtube-utils";
@@ -587,7 +588,7 @@ export function VideoVibeCodingManager() {
                               value={editYoutubeUrl}
                               onChange={(e) => setEditYoutubeUrl(e.target.value)}
                               placeholder="https://www.youtube.com/watch?v=example"
-                              className="h-8 min-w-0 flex-1 text-xs"
+                              className="h-8 min-w-0 flex-1"
                             />
                             <Button
                               size="sm"
@@ -623,9 +624,11 @@ export function VideoVibeCodingManager() {
                             }))
                           }
                           className="font-medium"
+                          aria-label="Video title"
                           placeholder="Video title"
                         />
-                        <textarea
+                        <Textarea
+                          aria-label="Video description"
                           value={editFormData.description || ""}
                           onChange={(e) =>
                             setEditFormData((prev) => ({
@@ -633,7 +636,7 @@ export function VideoVibeCodingManager() {
                               description: e.target.value,
                             }))
                           }
-                          className="bg-background h-16 w-full resize-none rounded border p-2 text-sm"
+                          className="h-16 resize-none"
                           placeholder="Video description"
                         />
                         <div className="text-muted-foreground flex flex-col gap-2 text-xs sm:flex-row">
@@ -645,7 +648,8 @@ export function VideoVibeCodingManager() {
                                 viewCount: e.target.value,
                               }))
                             }
-                            className="h-8 w-full text-xs sm:w-24"
+                            className="h-8 w-full sm:w-24"
+                            aria-label="Views"
                             placeholder="Views"
                           />
                           <Input
@@ -657,7 +661,7 @@ export function VideoVibeCodingManager() {
                                 publishedAt: e.target.value,
                               }))
                             }
-                            className="h-8 w-full text-xs sm:w-36"
+                            className="h-8 w-full sm:w-36"
                           />
                         </div>
                       </div>
