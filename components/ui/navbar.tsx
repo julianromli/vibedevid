@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, FileText, LogIn, LogOut, Upload, User } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import { useRouter } from "@/lib/navigation";
 import { useTranslation } from "react-i18next";
@@ -26,10 +26,12 @@ import { useScroll } from "@/hooks/use-scroll";
 import { signOut } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 
+// Critically damped: the bar settles without overshoot. Duration matches the
+// CSS color/blur transition on the same element (duration-350).
 const springTransition = {
   type: "spring" as const,
-  stiffness: 300,
-  damping: 30,
+  duration: 0.35,
+  bounce: 0,
 };
 
 interface UserInfo {
@@ -275,6 +277,8 @@ export function Navbar({
 }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const scrolled = useScroll(10);
+  const reduceMotion = useReducedMotion();
+  const barTransition = reduceMotion ? { duration: 0 } : springTransition;
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -336,31 +340,34 @@ export function Navbar({
 
   return (
     <header className="fixed top-0 z-50 w-full">
+      {/* The width change (full bleed → max-w-7xl) and the 16px drop are layout
+          animations: Motion runs them as transforms, so the bar and its content
+          move together instead of snapping. Colors, border, shadow and blur
+          follow with a CSS transition of the same length. */}
       <motion.div
+        layout
         className={cn(
-          "mx-auto w-full border-b",
+          "mx-auto w-full border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-350 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
           scrolled
-            ? "border-border bg-background/80 backdrop-blur-md md:max-w-7xl md:rounded-2xl md:border-border/50 md:bg-background/80 md:shadow-md md:backdrop-blur-xl"
+            ? "mt-4 border-border bg-background/80 backdrop-blur-md md:max-w-7xl md:border-border/50 md:bg-background/80 md:shadow-md md:backdrop-blur-xl"
             : "border-transparent bg-transparent",
         )}
         initial={false}
-        animate={{
-          y: scrolled ? 16 : 0,
-          borderRadius: scrolled ? 16 : 0,
-        }}
-        transition={springTransition}
-        style={{ marginLeft: "auto", marginRight: "auto" }}
+        animate={{ borderRadius: scrolled ? 16 : 0 }}
+        transition={barTransition}
       >
-        <nav className="relative flex h-16 items-center justify-between px-4 md:px-6">
+        <motion.nav
+          layout
+          transition={barTransition}
+          className="relative flex h-16 items-center justify-between px-4 md:px-6"
+        >
           {/* Brand */}
           <motion.div
-            className="flex items-center justify-start gap-3"
+            layout="position"
+            className="flex origin-left items-center justify-start gap-3"
             initial={false}
-            animate={{
-              scale: scrolled ? 0.92 : 1,
-              x: scrolled ? -2 : 0,
-            }}
-            transition={springTransition}
+            animate={{ scale: scrolled ? 0.92 : 1 }}
+            transition={barTransition}
           >
             {showBackButton ? (
               <Link to="/">
@@ -370,7 +377,7 @@ export function Navbar({
               </Link>
             ) : (
               <Link to="/" className="flex items-center gap-2">
-                <AdaptiveLogo className="h-7 w-auto md:h-8" />
+                <AdaptiveLogo className="aspect-auto h-7 w-35 md:h-8" />
               </Link>
             )}
           </motion.div>
@@ -378,10 +385,9 @@ export function Navbar({
           {/* Desktop Navigation */}
           {showNavigation && (
             <motion.div
+              layout="position"
               className="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-1 md:flex lg:gap-2"
-              initial={false}
-              animate={{ y: 0, opacity: 1 }}
-              transition={springTransition}
+              transition={barTransition}
             >
               {navItems.map((item) => (
                 <NavItem key={item.type === "link" ? item.href : `nav-${item.label}`} item={item} />
@@ -391,13 +397,9 @@ export function Navbar({
 
           {/* Desktop Actions */}
           <motion.div
+            layout="position"
             className="hidden items-center justify-end gap-2 md:flex"
-            initial={false}
-            animate={{
-              scale: scrolled ? 0.95 : 1,
-              x: scrolled ? 2 : 0,
-            }}
-            transition={springTransition}
+            transition={barTransition}
           >
             <LanguageSwitcher />
             <ThemeToggle />
@@ -442,7 +444,7 @@ export function Navbar({
               <MenuToggleIcon className="size-6" duration={300} open={open} />
             </Button>
           </div>
-        </nav>
+        </motion.nav>
       </motion.div>
 
       {/* Mobile Menu */}
