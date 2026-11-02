@@ -142,7 +142,7 @@ bun run db:seed
 bun run db:purge-seed         # delete demo rows only; real content stays
 ```
 
-`db:seed` is idempotent. It upserts seed rows only and does not wipe rows you create after that. If demo seed rows were loaded into production, the next request to `https://vibedeveloper.id` deletes only those rows (seed accounts, `seed-*` slugs, the "Community highlight" videos, and the Ayu Pratama / Bimo Santoso testimonials). You can run the same delete with `bun run db:purge-seed` against that database.
+`db:seed` is idempotent. It upserts seed rows only and does not wipe rows you create after that. If demo seed rows are ever loaded into production, run `bun run db:purge-seed` against that database. It deletes only those rows (seed accounts, `seed-*` slugs, the "Community highlight" videos, and the Ayu Pratama / Bimo Santoso testimonials).
 
 One-time Supabase → Neon import is not part of this path. See [docs/migrations/neon-better-auth.md](docs/migrations/neon-better-auth.md).
 
@@ -313,9 +313,9 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
   posts, events, and related tables). It refuses `vibedeveloper.id` and
   `vibedevid.com` site URLs, and it refuses a database that already has a
   non-seed user. Use `--reset` to delete seed-owned rows and insert them again.
-  `bun run db:purge-seed` deletes demo rows and leaves real content. The
-  production Worker also runs that delete once per isolate when the request
-  host is `vibedeveloper.id`.
+  `bun run db:purge-seed` deletes demo rows and leaves real content. It is
+  idempotent and runs only when you call it; the Worker no longer checks for
+  seed rows on requests.
 - **Branch policy** is in `neon.ts`: new non-default branches get a 7-day TTL,
   0.25–1 CU, and a 5-minute suspend.
 - **Harden migration** `scripts/migrations/neon/03_harden_schema.sql` runs after
@@ -325,8 +325,13 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
 - **Homepage cache** (`lib/server/short-ttl-cache.ts`) stores active categories
   and home vibe videos for 5 minutes (Cloudflare Cache API on Workers, memory
   locally). Admin vibe-video mutations clear the video cache key.
-- **Auth cleanup** — `getServerSession` deletes expired `session` and
-  `verification` rows at most once per isolate every 10 minutes.
+- **Auth cleanup** — an hourly Workers Cron Trigger (`triggers.crons` in
+  `wrangler.jsonc`, handled by `server/plugins/auth-cleanup-cron.ts`) deletes
+  expired `session` and `verification` rows. Page requests do not run it.
+- **Session cookie cache** — Better Auth keeps the session in a signed cookie for
+  5 minutes (`session.cookieCache` in `lib/auth/server.ts`), so most requests
+  read the session without querying Neon. A session revoked on another device
+  can stay valid for up to 5 minutes.
 - **One-time Supabase import** scripts live in `scripts/migrate-to-neon.ts`.
   Staging schema `supabase_auth_staging` holds password hashes. Drop it after
   `migrate:users` succeeds.
