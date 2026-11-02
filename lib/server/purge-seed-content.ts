@@ -32,7 +32,6 @@ import {
   SEED_USERS,
   SEED_VIDEOS,
 } from "@/scripts/seed/fixtures";
-import { requestUrlIsProduction } from "@/scripts/seed/guards";
 
 const seedUserIds = SEED_USERS.map((user) => user.id);
 const seedEmails = SEED_USERS.map((user) => user.email);
@@ -238,23 +237,4 @@ export async function purgeSeedRows(): Promise<{ removed: boolean }> {
   await invalidateCached(SHORT_TTL_CACHE_KEYS.testimonials);
   console.log("[purge-seed] removed demo seed rows from the database");
   return { removed: true };
-}
-
-let pendingPurge: Promise<void> | null = null;
-
-/**
- * On the production host, remove seed rows once per isolate.
- * Local requests are skipped so `bun run db:seed` still works.
- */
-export function ensureProductionSeedPurged(request: Request): Promise<void> {
-  if (!requestUrlIsProduction(request.url)) return Promise.resolve();
-  if (!pendingPurge) {
-    pendingPurge = purgeSeedRows()
-      .then(() => undefined)
-      .catch((error: unknown) => {
-        pendingPurge = null;
-        console.log("[purge-seed] failed:", error instanceof Error ? error.message : String(error));
-      });
-  }
-  return pendingPurge;
 }

@@ -40,7 +40,9 @@ async function runLocaleAndAuth(url: string) {
 }
 
 describe("request middleware on the production host", () => {
-  beforeEach(() => getDb.mockClear());
+  beforeEach(() => {
+    getDb.mockClear();
+  });
 
   it("does not query the database for seed rows on a page request", async () => {
     await runLocaleAndAuth("https://vibedeveloper.id/");

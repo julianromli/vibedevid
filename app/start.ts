@@ -1,5 +1,4 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from "@tanstack/react-start";
-import { ensureProductionSeedPurged } from "@/lib/server/purge-seed-content";
 import {
   applyAuthMiddleware,
   applyCanonicalHostRedirect,
@@ -22,8 +21,6 @@ const localeAndAuthMiddleware = createMiddleware().server(async ({ request, path
   if (shouldSkipRequestMiddleware(pathname)) {
     return next();
   }
-
-  await ensureProductionSeedPurged(request);
 
   const localeResult = await applyLocaleMiddleware(request, pathname);
   if (localeResult instanceof Response) {
