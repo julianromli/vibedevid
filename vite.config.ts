@@ -41,6 +41,8 @@ export default defineConfig({
         deployConfig: false,
         nodeCompat: true,
       },
+      // Handles the Worker `scheduled` event for `triggers.crons` in wrangler.jsonc.
+      plugins: ["./server/plugins/auth-cleanup-cron.ts"],
       // Long-lived caching for static public assets. Nitro writes these into the
       // generated `_headers` file (Cloudflare honours them). The hashed JS/CSS in
       // `/assets/**` is already handled by the framework; `/optimized/**` holds the

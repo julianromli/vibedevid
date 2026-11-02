@@ -8,6 +8,11 @@
     "binding": "ASSETS",
     "directory": ".output/public",
   },
+  // Daily 03:17 UTC: delete expired auth sessions/OTPs (server/plugins/auth-cleanup-cron.ts).
+  // Runs outside page requests so Neon is not woken per isolate. Keep in sync with AUTH_CLEANUP_CRON.
+  "triggers": {
+    "crons": ["17 3 * * *"],
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,

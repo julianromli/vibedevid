@@ -91,6 +91,12 @@ export function createAuth() {
     baseURL: config.baseURL,
     // Production trusts only baseURL. A Cloudflare preview of this worker also trusts its own origin.
     trustedOrigins: (request) => previewTrustedOrigins(request, config.previewHostSuffix),
+    // Signed session cookie: most page requests resolve the session without querying
+    // Neon. A session revoked elsewhere can stay valid here for up to maxAge.
+    // Sign-out clears this cookie. Username claim state is read from `users`, not here.
+    session: {
+      cookieCache: { enabled: true, maxAge: 5 * 60 },
+    },
     // Email OTP is the only sign-in method. No passwords, no OAuth.
     emailAndPassword: { enabled: false },
     plugins: [
