@@ -325,8 +325,8 @@ reads and writes go through Drizzle `getDb()` plus Better Auth checks
 - **Homepage cache** (`lib/server/short-ttl-cache.ts`) stores active categories
   and home vibe videos for 5 minutes (Cloudflare Cache API on Workers, memory
   locally). Admin vibe-video mutations clear the video cache key.
-- **Auth cleanup** — an hourly Workers Cron Trigger (`triggers.crons` in
-  `wrangler.jsonc`, handled by `server/plugins/auth-cleanup-cron.ts`) deletes
+- **Auth cleanup** — a daily Workers Cron Trigger (03:17 UTC, `triggers.crons`
+  in `wrangler.jsonc`, handled by `server/plugins/auth-cleanup-cron.ts`) deletes
   expired `session` and `verification` rows. Page requests do not run it.
 - **Session cookie cache** — Better Auth keeps the session in a signed cookie for
   5 minutes (`session.cookieCache` in `lib/auth/server.ts`), so most requests
