@@ -2,6 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "vibedevid",
   "main": ".output/server/index.mjs",
+  // Nitro already bundles the server. Upload its modules as-is (Nitro's own default for
+  // cloudflare_module). Re-bundling with esbuild added `__name()` wrappers to functions,
+  // which broke next-themes' inline script (serialized with fn.toString()) in the browser.
+  "no_bundle": true,
+  "rules": [{ "type": "ESModule", "globs": ["**/*.mjs", "**/*.js"] }],
   "compatibility_date": "2024-09-19",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {

@@ -253,6 +253,11 @@ apex. Canonical tags, `robots.txt` (`Host` + `Sitemap`), and `/sitemap.xml`
 always use `https://vibedeveloper.id`, even if a Worker secret still holds the
 old domain.
 
+Wrangler uploads Nitro's server modules unchanged (`no_bundle: true` in
+`wrangler.jsonc`). Do not let Wrangler re-bundle them: esbuild then adds
+`__name()` calls into the next-themes inline script, which throws
+`__name is not defined` in the browser.
+
 ```bash
 # 1. Build with production client URLs baked in (VITE_* are compile-time)
 NEXT_PUBLIC_SITE_URL=https://vibedeveloper.id \
