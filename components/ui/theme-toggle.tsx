@@ -1,5 +1,6 @@
 "use client";
 
+import { useHydrated } from "@tanstack/react-router";
 import { Moon, SunDim } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
@@ -13,6 +14,7 @@ type props = {
 
 export const ThemeToggle = ({ className }: props) => {
   const { setTheme, resolvedTheme } = useTheme();
+  const hydrated = useHydrated();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const changeTheme = async () => {
@@ -62,9 +64,14 @@ export const ThemeToggle = ({ className }: props) => {
         "rounded-full transition-opacity duration-200 hover:cursor-pointer hover:opacity-80 focus:outline-none",
         className,
       )}
-      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+      // resolvedTheme is unknown during SSR, so the label waits for hydration and
+      // the icon is picked by the `dark` class (set before paint) instead of state.
+      aria-label={
+        hydrated ? `Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode` : "Toggle theme"
+      }
     >
-      {resolvedTheme === "dark" ? <SunDim className="size-5" /> : <Moon className="size-5" />}
+      <SunDim className="hidden size-5 dark:block" />
+      <Moon className="size-5 dark:hidden" />
     </Button>
   );
 };
