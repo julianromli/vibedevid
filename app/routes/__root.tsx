@@ -11,6 +11,7 @@ import { getCurrentUserFn } from "@/lib/actions/user.functions";
 import { DEFAULT_LOCALE, ssrLocaleScript } from "@/lib/locale";
 import { getLocaleFn } from "@/lib/locale.functions";
 import { getSiteUrl } from "@/lib/seo/site-url";
+import { themeScript } from "@/lib/theme-script";
 import appCss from "../globals.css?url";
 
 export const Route = createRootRoute({
@@ -66,6 +67,10 @@ function RootLayout() {
   return (
     <html lang={locale} suppressHydrationWarning className="font-sans antialiased">
       <head>
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: theme class must be set before first paint.
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: SSR locale marker must run before hydration.
           dangerouslySetInnerHTML={{ __html: ssrLocaleScript(locale) }}
