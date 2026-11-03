@@ -146,9 +146,10 @@ export async function applyAuthMiddleware(
 ): Promise<Response | { cookies: CookieRecord[] }> {
   const pendingCookies: CookieRecord[] = [...localeCookies];
 
-  // Skip auth checks for better-auth's own API routes — they handle
-  // their own session/cookie management.
-  if (pathname.startsWith("/api/auth/")) {
+  // Server functions and API routes never get a redirect here: they are
+  // onboarding-exempt and are not the sign-in page. Skip the session lookup so
+  // each call (several per client navigation) saves its DB round trips.
+  if (pathname.startsWith("/_serverFn/") || pathname.startsWith("/api/")) {
     return { cookies: pendingCookies };
   }
 
