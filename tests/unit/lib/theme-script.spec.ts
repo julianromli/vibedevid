@@ -28,6 +28,7 @@ describe("themeScript", () => {
     expect(run("system", false)).toBe("font-sans antialiased light|light");
     expect(run("system", true)).toBe("font-sans antialiased dark|dark");
     expect(run("bogus")).toBe("font-sans antialiased dark|dark");
+    expect(localStorage.getItem("theme")).toBe("dark");
   });
 
   it("is a plain string without bundler helpers", () => {
