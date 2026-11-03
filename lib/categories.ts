@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { toCategoryDto } from "@/lib/db/mappers";
@@ -56,7 +55,3 @@ export async function getCategoryDisplayName(categoryName: string): Promise<stri
   const category = allCategories.find((cat) => cat.name === categoryName);
   return category?.display_name || categoryName;
 }
-
-export const getCategoriesFn = createServerFn({ method: "GET" }).handler(async () =>
-  getCategories(),
-);

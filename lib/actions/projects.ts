@@ -20,7 +20,8 @@ import {
   syncProjectUploadAttachments,
 } from "@/lib/server/project-uploads";
 import { fetchFavicon, resolveProjectFavicon } from "../favicon-utils";
-import { getProjectIdBySlug, insertWithUniqueSlug, slugifyTitle } from "../slug";
+import { insertWithUniqueSlug, slugifyTitle } from "../slug";
+import { getProjectIdBySlug } from "@/lib/server/project-slug";
 
 type SubmitProjectFieldErrors = ProjectFieldErrors;
 
