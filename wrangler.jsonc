@@ -18,6 +18,12 @@
       "id": "0bdd0350694b41589bbe89fa801db883",
     },
   ],
+  // Run the Worker next to the DB (VPS in Jakarta) instead of at the visitor's edge colo.
+  // Each request makes several serial DB round trips; Indonesian traffic was landing in
+  // SJC/MRS/CDG, ~200 ms per round trip. Revert by deleting this block.
+  "placement": {
+    "region": "gcp:asia-southeast2",
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
