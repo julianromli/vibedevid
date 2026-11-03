@@ -6,7 +6,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { fetchProjectsWithSortingFn } from "@/lib/actions/projects.functions";
-import { getCategoriesFn } from "@/lib/categories";
+import { getCategoriesFn } from "@/lib/categories.functions";
 import { PROJECT_PAGE_SIZE } from "@/lib/project-page-cursor";
 import type { Project, ProjectFilterOption, SortBy } from "@/types/homepage";
 

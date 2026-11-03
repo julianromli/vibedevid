@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
-import { projects } from "@/lib/db/schema";
+// Pure slug helpers. No DB imports: client code imports this module.
 
 export function slugifyTitle(input: string, maxLen: number = 80): string {
   let base = input.trim().toLowerCase();
@@ -55,24 +53,4 @@ export async function insertWithUniqueSlug<T>(
 export function isValidSlug(slug: string): boolean {
   const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   return slugRegex.test(slug) && slug.length > 0 && slug.length <= 100;
-}
-
-export async function getProjectIdBySlug(slug: string): Promise<string | null> {
-  if (!slug || !isValidSlug(slug)) {
-    return null;
-  }
-
-  try {
-    const db = getDb();
-    const [row] = await db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(eq(projects.slug, slug))
-      .limit(1);
-
-    return row ? String(row.id) : null;
-  } catch (error) {
-    console.error("Error getting project ID by slug:", error);
-    return null;
-  }
 }

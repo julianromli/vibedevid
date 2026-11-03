@@ -3,7 +3,8 @@ import { isBotUserAgent } from "@/lib/bot-user-agent";
 import { getDb } from "@/lib/db";
 import { views } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/server/auth";
-import { getProjectIdBySlug, isPgUniqueViolation, isValidSlug } from "@/lib/slug";
+import { isPgUniqueViolation, isValidSlug } from "@/lib/slug";
+import { getProjectIdBySlug } from "@/lib/server/project-slug";
 
 const SESSION_ID_PATTERN = /^[A-Za-z0-9-]{8,80}$/;
 
