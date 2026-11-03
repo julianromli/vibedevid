@@ -9,14 +9,13 @@
     "directory": ".output/public",
   },
   // Postgres 17 on the VPS (db.vibedeveloper.id, behind Cloudflare Tunnel + Access), via Hyperdrive.
-  // PLACEHOLDER id: replace with the real id from `wrangler hyperdrive create` before merging.
-  // A deploy with this placeholder fails, so prod keeps the previous version.
+  // Hyperdrive config with caching disabled (reads must see writes immediately).
   // Local dev (`bun run dev`) and scripts use DATABASE_URL. Under `wrangler dev`, set
   // CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE instead.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
+      "id": "0bdd0350694b41589bbe89fa801db883",
     },
   ],
   "observability": {
