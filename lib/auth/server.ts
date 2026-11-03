@@ -1,3 +1,4 @@
+import { getRequest } from "@tanstack/react-start/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
@@ -166,16 +167,33 @@ export function createAuth() {
   });
 }
 
-let _auth: ReturnType<typeof createAuth> | null = null;
+type Auth = ReturnType<typeof createAuth>;
 
-export function getAuth() {
-  if (!_auth) {
-    _auth = createAuth();
+function currentRequest(): Request | undefined {
+  try {
+    return getRequest();
+  } catch {
+    // Outside a TanStack Start request: cron, scripts, tests.
+    return undefined;
   }
-  return _auth;
 }
 
-export const auth = new Proxy({} as ReturnType<typeof createAuth>, {
+/** Better Auth holds the db client, so it is per request too (see `getDb`). */
+const requestAuths = new WeakMap<Request, Auth>();
+
+export function getAuth(): Auth {
+  const request = currentRequest();
+  if (!request) return createAuth();
+
+  let auth = requestAuths.get(request);
+  if (!auth) {
+    auth = createAuth();
+    requestAuths.set(request, auth);
+  }
+  return auth;
+}
+
+export const auth = new Proxy({} as Auth, {
   get(_target, prop) {
     return Reflect.get(getAuth(), prop);
   },

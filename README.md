@@ -306,7 +306,10 @@ Production data is Neon Postgres in `aws-ap-southeast-1` (Singapore). All server
 reads and writes go through Drizzle `getDb()` plus Better Auth checks
 (`requireUser`, `requireAdminOrModeratorUser`).
 
-- **App / Workers** use the pooled `DATABASE_URL`. The host includes `-pooler`.
+- **App / Workers** connect through the `HYPERDRIVE` binding (`wrangler.jsonc`) to
+  self-hosted Postgres 17, with `drizzle-orm/postgres-js`. `getDb()` and `getAuth()`
+  build one client per request (Workers cannot reuse sockets across requests). When
+  no binding exists (local `bun run dev`, scripts, tests) they use `DATABASE_URL`.
 - **Schema tools** use `DATABASE_URL_UNPOOLED` (direct). `drizzle.config.ts`,
   `bun run migrate:schema`, and `bun run db:seed` prefer this URL when it is set.
 - **Local demo data** — `bun run db:seed` upserts seed-owned rows (users, projects,
