@@ -272,10 +272,28 @@
   }
 }
 
+/* Client navigation bar: hidden for the first 150ms, then eases toward 90%. */
+.animate-nav-progress {
+  animation: nav-progress 8s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both;
+}
+
+@keyframes nav-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.9);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Step change is opacity only, 150ms. */
   .animate-auth-step-in {
     animation-duration: 150ms;
+  }
+  /* Static bar instead of a growing one. */
+  .animate-nav-progress {
+    animation: auth-step-out 150ms 150ms reverse both;
   }
   @keyframes auth-step-in {
     from {

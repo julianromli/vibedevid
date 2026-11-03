@@ -4,6 +4,7 @@ import { AgentationProvider } from "@/components/agentation-provider";
 import { ClientThemeProvider } from "@/components/client-theme-provider";
 import { DefaultRouteError } from "@/components/errors/default-route-error";
 import NotFoundError from "@/components/errors/not-found-error";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { Toaster } from "@/components/ui/sonner";
 import i18n, { i18nInit, syncI18nLocale } from "@/i18n";
 import { getCurrentUserFn } from "@/lib/actions/user.functions";
@@ -112,6 +113,7 @@ function RootLayout() {
         </a>
         <I18nextProvider i18n={i18n}>
           <ClientThemeProvider>
+            <NavigationProgress />
             <Outlet />
             <Toaster />
           </ClientThemeProvider>
