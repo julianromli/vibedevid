@@ -255,8 +255,13 @@ old domain.
 
 Wrangler uploads Nitro's server modules unchanged (`no_bundle: true` in
 `wrangler.jsonc`). Do not let Wrangler re-bundle them: esbuild then adds
-`__name()` calls into the next-themes inline script, which throws
-`__name is not defined` in the browser.
+`__name()` calls to code that is sent to the browser as `fn.toString()` (this
+broke the old next-themes inline script with `__name is not defined`).
+
+The theme is set before first paint by a plain-string script at the top of
+`<head>` (`lib/theme-script.ts`). It uses the same storage key (`theme`) and
+default (`dark`) as next-themes. The next-themes `<body>` script is rendered
+inert (`type="text/plain"`), so it does not run twice.
 
 ```bash
 # 1. Build with production client URLs baked in (VITE_* are compile-time)
