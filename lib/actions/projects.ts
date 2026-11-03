@@ -457,8 +457,7 @@ export async function deleteProject(projectSlug: string) {
     }
 
     // One DELETE. comments, likes, and views use ON DELETE CASCADE.
-    // neon-http cannot open a multi-statement transaction, and a single
-    // statement is already atomic.
+    // A single statement is already atomic, so no transaction is needed.
     await db.delete(projects).where(eq(projects.id, projectId));
 
     // Cleanup runs after the rows are gone. Deleting images first would leave

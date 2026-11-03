@@ -13,7 +13,7 @@
  * .env / .env.local. Safe to re-run.
  */
 
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 import { parseCleanupArgs, runLegacyAuthCleanup } from "@/lib/server/legacy-auth-cleanup";
 import { loadSeedEnv } from "./seed/env";
 
@@ -23,14 +23,22 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("Set DATABASE_URL_UNPOOLED or DATABASE_URL.");
 
-  const sql = neon(databaseUrl);
-  await runLegacyAuthCleanup({
-    args,
-    databaseUrl,
-    confirmHost: process.env.CONFIRM_DATABASE_HOST,
-    query: (text, params) => sql.query(text, params) as Promise<Record<string, unknown>[]>,
-    log: (line) => console.log(line),
-  });
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    await runLegacyAuthCleanup({
+      args,
+      databaseUrl,
+      confirmHost: process.env.CONFIRM_DATABASE_HOST,
+      query: async (text, params) =>
+        (await sql.unsafe(text, params as postgres.ParameterOrJSON<never>[])) as unknown as Record<
+          string,
+          unknown
+        >[],
+      log: (line) => console.log(line),
+    });
+  } finally {
+    await sql.end();
+  }
 }
 
 main().catch((error: unknown) => {

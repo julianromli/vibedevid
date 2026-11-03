@@ -8,6 +8,16 @@
     "binding": "ASSETS",
     "directory": ".output/public",
   },
+  // Postgres 17 on the VPS (db.vibedeveloper.id, behind Cloudflare Tunnel + Access), via Hyperdrive.
+  // Hyperdrive config with caching disabled (reads must see writes immediately).
+  // Local dev (`bun run dev`) and scripts use DATABASE_URL. Under `wrangler dev`, set
+  // CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE instead.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "0bdd0350694b41589bbe89fa801db883",
+    },
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,

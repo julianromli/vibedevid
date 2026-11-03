@@ -47,7 +47,7 @@ export function buildEmailOtpOptions(
     storeOTP: "hashed",
     generateOTP: () => generateNumericOtp(OTP_CONFIG.length),
     // Better Auth's own limiter keeps per-isolate memory on Workers. Our
-    // Neon-backed limits in `otp-guards.ts` are the real ones; this is a
+    // Postgres-backed limits in `otp-guards.ts` are the real ones; this is a
     // loose backstop that stays above the per-code attempt limit.
     rateLimit: { window: 60, max: 10 },
     sendVerificationOTP,

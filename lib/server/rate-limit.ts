@@ -63,7 +63,7 @@ async function consumeDatabase(
 
 /**
  * Returns true when the caller is still inside the limit.
- * Uses Neon when `rate_limit_buckets` exists. If that query fails (migration
+ * Uses Postgres when `rate_limit_buckets` exists. If that query fails (migration
  * not applied, or the database is down), falls back to memory in this isolate.
  */
 export async function consumeRateLimit(
@@ -134,7 +134,7 @@ async function consumeAnchoredDatabase(
 
 /**
  * Window starts at the first hit (not at a clock boundary), so a 60s
- * cooldown really lasts 60s. One atomic upsert in Neon; memory fallback
+ * cooldown really lasts 60s. One atomic upsert in Postgres; memory fallback
  * like `consumeRateLimit`. Returns the seconds left when blocked.
  */
 export async function consumeWindowedRateLimit(
