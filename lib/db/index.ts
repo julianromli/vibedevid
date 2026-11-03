@@ -1,3 +1,4 @@
+import { createServerOnlyFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -40,14 +41,18 @@ export function createDb(connectionString: string = resolveDatabaseUrl()) {
 
 export type Db = ReturnType<typeof createDb>;
 
-function currentRequest(): Request | undefined {
+// createServerOnlyFn lets the Start compiler drop `@tanstack/react-start/server`
+// from client bundles. Some client-reachable modules import this file; a static
+// getRequest import there runs h3's AsyncLocalStorage setup in the browser,
+// which throws at module eval and stops React from hydrating.
+const currentRequest = createServerOnlyFn((): Request | undefined => {
   try {
     return getRequest();
   } catch {
     // Outside a TanStack Start request: cron, scripts, tests.
     return undefined;
   }
-}
+});
 
 /** One client per request. Workers cannot reuse a TCP socket across requests. */
 const requestDbs = new WeakMap<Request, Db>();

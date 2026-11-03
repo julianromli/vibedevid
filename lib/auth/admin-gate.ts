@@ -1,6 +1,6 @@
 import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { USER_ROLE } from "@/lib/auth/permissions";
+import { USER_ROLE } from "@/lib/auth/roles";
 import { getCurrentUser } from "@/lib/server/auth";
 
 export const ROLES = {

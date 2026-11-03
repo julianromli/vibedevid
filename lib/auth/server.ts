@@ -1,3 +1,4 @@
+import { createServerOnlyFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -169,14 +170,18 @@ export function createAuth() {
 
 type Auth = ReturnType<typeof createAuth>;
 
-function currentRequest(): Request | undefined {
+// createServerOnlyFn lets the Start compiler drop `@tanstack/react-start/server`
+// from client bundles. Some client-reachable modules import this file; a static
+// getRequest import there runs h3's AsyncLocalStorage setup in the browser,
+// which throws at module eval and stops React from hydrating.
+const currentRequest = createServerOnlyFn((): Request | undefined => {
   try {
     return getRequest();
   } catch {
     // Outside a TanStack Start request: cron, scripts, tests.
     return undefined;
   }
-}
+});
 
 /** Better Auth holds the db client, so it is per request too (see `getDb`). */
 const requestAuths = new WeakMap<Request, Auth>();

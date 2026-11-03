@@ -1,12 +1,9 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { USER_ROLE } from "./roles";
 
-export const USER_ROLE = {
-  ADMIN: 0,
-  MODERATOR: 1,
-  USER: 2,
-} as const;
+export { USER_ROLE };
 
 export function isAdminOrModerator(role: number | null | undefined): boolean {
   return role === USER_ROLE.ADMIN || role === USER_ROLE.MODERATOR;
