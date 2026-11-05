@@ -35,11 +35,12 @@
 
 1. Set runtime secrets with Wrangler (never commit them):
    `bunx wrangler secret put <NAME>` or `bun run scripts/sync-wrangler-secrets.ts`
-2. Required runtime keys: `DATABASE_URL`, `BETTER_AUTH_SECRET`,
-   `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, plus OAuth and upload keys
-   when those features are enabled
-3. Do not put `DATABASE_URL_UNPOOLED` on the Worker. Keep it in local
-   `.env.local` for schema tools.
+2. Required runtime keys: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
+   `NEXT_PUBLIC_SITE_URL`, plus OAuth and upload keys when those features
+   are enabled
+3. The Worker reaches the database through the `HYPERDRIVE` binding. Do not
+   put `DATABASE_URL` or `DATABASE_URL_UNPOOLED` on the Worker. Keep them in
+   local `.env.local` for scripts and schema tools.
 4. `VITE_*` values are inlined at build time. Rebuild before deploy when
    they change.
 

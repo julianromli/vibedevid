@@ -287,11 +287,11 @@ Notes:
   bindings are exposed on `globalThis.__env__` per request.
 - **`VITE_*` values are inlined at build time** — rebuild before deploy whenever
   `VITE_BETTER_AUTH_URL` or `VITE_SITE_URL` changes.
-- Worker secrets (runtime): pooled `DATABASE_URL` (Singapore `-pooler` host),
-  `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`, `OPENROUTER_API_KEY`,
+- Worker secrets (runtime): `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `UPLOADTHING_TOKEN`, `OPENROUTER_API_KEY`,
   `RESEND_API_KEY`, and `EMAIL_FROM` (sign-in fails with 503 without the last
-  two; the `EMAIL_FROM` domain must be verified in Resend). Do not put `DATABASE_URL_UNPOOLED` on the
-  Worker. Keep it in local `.env.local` for schema tools.
+  two; the `EMAIL_FROM` domain must be verified in Resend). The Worker reaches the database through
+  the `HYPERDRIVE` binding, so do not put `DATABASE_URL` or `DATABASE_URL_UNPOOLED` on the Worker.
+  Keep them in local `.env.local` for scripts and schema tools.
 - For `wrangler dev`, create a gitignored `.dev.vars` file with the same keys.
 - Email OTP rollout uses two migrations. Apply
   `scripts/migrations/neon/09_email_otp_onboarding.sql` before deploying: it adds
