@@ -120,7 +120,12 @@ export async function updateBlogPost(
 
   const db = getDb();
   const [post] = await db
-    .select({ authorId: posts.authorId, status: posts.status, slug: posts.slug })
+    .select({
+      authorId: posts.authorId,
+      title: posts.title,
+      status: posts.status,
+      slug: posts.slug,
+    })
     .from(posts)
     .where(eq(posts.id, id))
     .limit(1);
@@ -149,13 +154,10 @@ export async function updateBlogPost(
   if (updateDataRaw.title) {
     updateData.title = updateDataRaw.title;
 
-    // Only regenerate slug if the title actually changed. Regenerating
-    // blindly would strip the unique-suffix added during create
-    // (e.g. `...-mtf56oe1` → `...`), colliding with another post and
-    // throwing a 23505 unique-violation on the `posts.slug` index —
-    // manifesting as "Failed to update post" whenever you edit+publish.
+    // The editor sends the title on every save. Compare titles rather than
+    // slugs so content edits preserve collision suffixes and public URLs.
     const newSlug = slugifyTitle(updateDataRaw.title);
-    if (newSlug !== post.slug) {
+    if (updateDataRaw.title !== post.title && newSlug !== post.slug) {
       // Title changed → regenerate a unique slug (re-use the same
       // suffix strategy as createBlogPost to avoid collisions).
       const existing = await db
