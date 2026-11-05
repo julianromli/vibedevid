@@ -25,8 +25,9 @@ function parseEnvFile(path: string): Record<string, string> {
 
 const env = parseEnvFile(".env.local");
 
+// The database is reached through the HYPERDRIVE binding (wrangler.jsonc),
+// so DATABASE_URL is local-only and is never pushed as a Worker secret.
 const secrets: Record<string, string> = {
-  DATABASE_URL: env.DATABASE_URL ?? "",
   BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET ?? "",
   BETTER_AUTH_URL: siteUrl,
   NEXT_PUBLIC_SITE_URL: siteUrl,
@@ -37,7 +38,6 @@ const secrets: Record<string, string> = {
 };
 
 const requiredKeys = [
-  "DATABASE_URL",
   "BETTER_AUTH_SECRET",
   "BETTER_AUTH_URL",
   "NEXT_PUBLIC_SITE_URL",
